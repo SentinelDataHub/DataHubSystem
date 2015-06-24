@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	version="1.0" elementFormDefault="qualified" xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+	jxb:version="2.1" xmlns:inheritance="http://jaxb2-commons.dev.java.net/basic/inheritance"
+	xmlns:annox="http://annox.dev.java.net" jxb:extensionBindingPrefixes="inheritance annox"
+	xmlns:dhusMessaging="fr.gael.dhus.database.object.config.messaging"
+	xmlns:dhusJms="fr.gael.dhus.database.object.config.messaging.jms"
+	targetNamespace="fr.gael.dhus.database.object.config.messaging">
+
+	<xs:import namespace="fr.gael.dhus.database.object.config.messaging.jms" schemaLocation="dhus-jms.xsd"/>
+	
+	<xs:annotation>
+		<xs:appinfo>
+			<jxb:schemaBindings>
+				<jxb:package name="fr.gael.dhus.database.object.config.messaging" />
+			</jxb:schemaBindings>
+		</xs:appinfo>
+	</xs:annotation>
+	
+	<xs:complexType name="messagingConfiguration">
+		<xs:annotation>
+			<xs:appinfo>
+				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
+				</inheritance:extends>
+				<annox:annotate>@javax.persistence.Embeddable</annox:annotate>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:all>
+			<xs:element minOccurs="0" name="jms" type="dhusJms:jmsConfiguration">
+				<xs:annotation>
+					<xs:appinfo>
+						<jxb:property name="jmsConfiguration" />
+						<annox:annotate target="field">@javax.persistence.Transient
+						</annox:annotate>
+					</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="mail"
+				type="dhusMessaging:mailConfiguration">
+				<xs:annotation>
+					<xs:appinfo>
+						<jxb:property name="mailConfiguration" />
+						<annox:annotate target="field">@javax.persistence.Embedded
+						</annox:annotate>
+					</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+		</xs:all>
+	</xs:complexType>	
+
+	<xs:complexType name="mailConfiguration">
+		<xs:annotation>
+			<xs:appinfo>
+				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
+				</inheritance:extends>
+				<annox:annotate>@javax.persistence.Embeddable</annox:annotate>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element minOccurs="0" name="server"
+				type="dhusMessaging:mailServerConfiguration">
+				<xs:annotation>
+					<xs:appinfo>
+						<jxb:property name="serverConfiguration" />
+						<annox:annotate target="field">@javax.persistence.Embedded
+						</annox:annotate>
+					</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="onUserCreate" type="xs:boolean">
+			<xs:annotation>
+				<xs:appinfo>
+					<annox:annotate target="field">@javax.persistence.Column(name="MAIL_ONUSERCREATE",
+						columnDefinition = "BOOLEAN", nullable=false)
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="onUserDelete" type="xs:boolean">
+			<xs:annotation>
+				<xs:appinfo>
+					<annox:annotate target="field">@javax.persistence.Column(name="MAIL_ONUSERDELETE",
+						columnDefinition = "BOOLEAN", nullable=false)
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="onUserUpdate" type="xs:boolean">
+			<xs:annotation>
+				<xs:appinfo>
+					<annox:annotate target="field">@javax.persistence.Column(name="MAIL_ONUSERUPDATE",
+						columnDefinition = "BOOLEAN", nullable=false)
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+
+	<xs:complexType name="mailServerConfiguration">
+		<xs:annotation>
+			<xs:appinfo>
+				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
+				</inheritance:extends>
+				<annox:annotate>@javax.persistence.Embeddable</annox:annotate>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:all>
+			<xs:element minOccurs="0" name="from"
+				type="dhusMessaging:mailFromConfiguration">
+				<xs:annotation>
+					<xs:appinfo>
+						<jxb:property name="mailFromConfiguration" />
+						<annox:annotate target="field">@javax.persistence.Embedded
+						</annox:annotate>
+					</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="replyTo" type="xs:string">
+				<xs:annotation>
+					<xs:appinfo>
+						<annox:annotate target="field">@javax.persistence.Column(name="MAILSERVER_REPLYTO",
+							nullable=false)
+						</annox:annotate>
+					</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+		</xs:all>
+		<xs:attribute name="password" type="xs:string">
+			<xs:annotation>
+				<xs:appinfo>
+					<annox:annotate target="field">@javax.persistence.Column(name="MAILSERVER_PASSWORD",
+						nullable=false)
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="port" type="xs:int">
+			<xs:annotation>
+				<xs:appinfo>
+					<annox:annotate target="field">@javax.persistence.Column(name="MAILSERVER_PORT",
+						nullable=false)
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="smtp" type="xs:string">
+			<xs:annotation>
+				<xs:appinfo>
+					<annox:annotate target="field">@javax.persistence.Column(name="MAILSERVER_SMTP",
+						nullable=false)
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="tls" type="xs:boolean">
+			<xs:annotation>
+				<xs:appinfo>
+					<annox:annotate target="field">@javax.persistence.Column(name="MAILSERVER_TLS",
+						columnDefinition = "BOOLEAN", nullable=false)
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="username" type="xs:string">
+			<xs:annotation>
+				<xs:appinfo>
+					<annox:annotate target="field">@javax.persistence.Column(name="MAILSERVER_USERNAME",
+						nullable=false)
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+
+	<xs:complexType name="mailFromConfiguration">
+		<xs:annotation>
+			<xs:appinfo>
+				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
+				</inheritance:extends>
+				<annox:annotate>@javax.persistence.Embeddable</annox:annotate>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:all />
+		<xs:attribute name="address" type="xs:string">
+			<xs:annotation>
+				<xs:appinfo>
+					<annox:annotate target="field">@javax.persistence.Column(name="MAILSERVER_FROMADDRESS",
+						nullable=false)
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="name" type="xs:string">
+			<xs:annotation>
+				<xs:appinfo>
+					<annox:annotate target="field">@javax.persistence.Column(name="MAILSERVER_FROMNAME",
+						nullable=false)
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+
+</xs:schema>

@@ -1,0 +1,387 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<style>	
+		#managementEviction_div
+		{
+			height: 100%;
+			display: none;
+		}
+
+		.ui-slider 
+		{
+        	cursor: pointer;
+			background: #FFF;
+			color:black;
+		}
+
+		.ui-slider .ui-slider-handle 
+		{
+        	position: absolute;
+        	z-index: 2;
+        	width: 12px;
+        	height: 12px;
+        	cursor: pointer;
+			background: #CCC;
+			border-color: #999;
+		}
+
+		.ui-slider-horizontal 
+		{
+		        height: 2px;
+		}
+		.ui-slider-horizontal .ui-slider-handle 
+		{
+		        top: -6px;
+		        margin-left: -6px;
+		}
+		
+		.managementEviction_field
+		{
+			display: inline-block;
+			width: 220px;
+		}
+		
+		#managementEviction_keepingField
+		{
+			display: inline-block;
+			width: 220px;
+			padding-top: 5px;
+		}		
+		
+		.managementEviction_longField
+		{
+			display: inline-block;
+			width: 250px;
+		}
+
+		#managementEviction_strategyField
+		{
+			display: inline-block;
+			padding-right: 10px;
+		}
+
+		#managementEviction_strategy
+		{
+			display: inline-block;
+			width: 250px;
+		}
+		
+		#managementEviction_keepingPeriod
+		{
+			display: inline-block;
+			width: 50px;
+			margin-left: -4px;
+		}
+
+		#managementEviction_diskUsageField
+		{
+			display: inline-block;
+			padding-top: 5px;
+		}
+
+		#managementEviction_diskUsageSlider
+		{
+			display: inline-block;
+			width: 215px;
+		}
+
+		#managementEviction_sliderMin
+		{
+		    position: absolute;
+		    top: 5px;
+		    left: 0px;
+		}
+		
+		#managementEviction_sliderMax
+		{
+		    position: absolute;
+		    top: 5px;
+		    right: 0px;
+		}
+
+		#managementEviction_tooltip
+		{
+		    position: absolute;
+		    top: -18px;
+		    left: -6px;
+		    color: black;
+		    text-align: center;
+		    width: 24px;
+		}
+
+		#managementEviction_buttons
+		{
+			text-align: center;
+			padding-top: 5px;
+			padding-bottom: 10px;
+		}
+		
+		#managementEviction_saveButton
+		{
+			font-size: 12px;
+			text-align: center;
+			width: 60px;
+			vertical-align: top;
+		}
+		
+		#managementEviction_runButton
+		{
+			font-size: 12px;
+			text-align: center;
+			width: 60px;
+			vertical-align: top;
+		}
+		
+		#managementEviction_cancelButton
+		{
+			font-size: 12px;
+			text-align: center;
+			width: 60px;
+			vertical-align: top;
+		}				
+		
+		#managementEviction_products
+		{
+			display: block;
+			width: 960px;
+		}	
+		
+		.managementEviction_productsPreview
+		{
+			height: 64px;
+			width: 64px;
+			border: solid 1px #BBBBBB;
+			text-align: center;
+			vertical-align: middle;
+		}	
+		
+		.managementEviction_productsProduct
+		{
+			vertical-align: top;
+			height: 64px;
+		}
+		
+		#managementEviction_productsDisplay tbody tr.even, #search_tableDisplay tbody tr.even {
+			background-color: #e3e3e3;
+		}
+	
+		#managementEviction_productsDisplay tbody tr.odd, #search_tableDisplay tbody tr.odd {
+			background-color: #EEEEEE;
+		}
+		
+		#managementEviction_productsDisplay tbody tr.even:hover, #search_tableDisplay tbody tr.even td.highlighted {
+			cursor: default;
+			background-color: #BCD2EE;
+		}
+	
+		#managementEviction_productsDisplay tbody tr.odd:hover, #search_tableDisplay tbody tr.odd td.highlighted {
+			cursor: default;
+			background-color: #BCD2EE;
+		}
+	
+		.thumbnailPreviewImg
+		{		
+			max-height: 64px;
+			max-width: 64px;
+		}
+	</style>
+	<script>
+		var intCheck = new RegExp("^[0-9]+$");	
+		var managementEviction_products;
+		var managementEviction_viewProductFunction;
+	
+		function showSystemEviction(getEvictableProductsFunction, viewProductFunc, maxProductsToEvict)
+		{
+			document.getElementById("managementEviction_div").style.display = "block";
+	
+			managementEviction_viewProductFunction = viewProductFunc;
+			
+			managementEviction_products = managementEviction_createTable("managementEviction_products", getEvictableProductsFunction,
+         [
+					{ "sTitle": "", "sClass": "center",  
+						"mRender": function ( data, type, full )
+						{
+							if (data.thumbnail == null)
+                     {
+                        return '<div class="managementEviction_productsPreview"><br>No Quicklook</div>';
+                     }
+                     else
+                     {
+                        return '<div class="managementEviction_productsPreview">' + 
+                           '<img class="thumbnailPreviewImg" src="' +
+                            data.thumbnail + '"/></div>';
+                     }
+                  }
+					},
+					{ "sTitle": "", "mRender": function ( data, type, full )
+						{
+							return '<div class="managementEviction_productsProduct"><b>'+data.identifier+'</b><br>'+
+									'<a class="link" href="'+data.link+'" target="_blank">'+data.link+'</a>'+
+									'<br><br>'+data.summary+'</div>';
+					   }
+					},
+					{ "sTitle": "", "sClass": "center", 
+					  "mRender": function ( data, type, full )
+					  {
+						   return '<img onclick="managementEviction_viewProductFunction('+data+')" src="home/dhus/images/view.png" style="cursor:pointer;" title="View product"/>';
+					   }
+				   },
+					{ "sTitle": "", "sClass": "center", 
+						"mRender": function ( data, type, full )
+						{
+							if (data != null)
+							{
+								return '<a href="'+data+'" target="_blank"><img src="home/dhus/images/download.png" title="Download product"/></a>';
+							}
+							else
+							{
+								return '<img src="home/dhus/images/download_disabled.png" style="cursor:default;" title="You are not allowed to download product"/>';
+							}
+					   }
+				   }
+			], "<col style='width: 72px'/><col/><col style='width: 25px'/><col style='width: 25px'/>", '<"H"ir>t<"F">',
+			{ "sEmptyTable": "No products will be evicted",
+			  "sInfoEmpty": "No products will be evicted"
+		   }, 420, [maxProductsToEvict]);	
+			
+			var tooltip = $('<div id="managementEviction_tooltip" />')
+
+			$(function() 
+			{
+			 	$( "#managementEviction_diskUsageSlider" ).slider({ 
+			 		max: 100, min: 0,
+			    	change: function(event, ui) 
+			    	{
+			        	$( "#managementEviction_tooltip" ).text(ui.value);
+			    	},
+			    	slide: function(event, ui) 
+			    	{
+			        	$( "#managementEviction_tooltip" ).text(ui.value);
+			    	}
+			    }).find(".ui-slider-handle").append(tooltip)
+			 });
+		}	
+		
+		function setMaxDiskUsageValue(value)
+		{
+			$( "#managementEviction_diskUsageSlider" ).slider( "value", value);
+			$( "#managementEviction_tooltip" ).text(value);
+		}
+		
+		function managementEviction_keepingPeriodValidate()
+		{
+			var keepingPeriod = document.getElementById('managementEviction_keepingPeriod').value;
+			if (keepingPeriod == null || keepingPeriod=="" || !intCheck.test(keepingPeriod))
+			{
+			  document.getElementById('managementEviction_keepingPeriod').setCustomValidity('Keeping period must be a valid number of days')	
+			  document.getElementById('managementEviction_saveButton').className = "button_disabled";
+			  document.getElementById('managementEviction_runButton').className = "button_disabled";
+			}
+			else
+			{
+			  document.getElementById('managementEviction_keepingPeriod').setCustomValidity('')
+			  document.getElementById('managementEviction_saveButton').className = "button_black";
+			  document.getElementById('managementEviction_runButton').className = "button_black";
+			}			
+		}
+			
+		function managementEviction_refreshProducts()
+		{
+			managementEviction_products.fnDraw(false);
+		}
+		
+		function managementEviction_createTable(tableId, requestDataFunction, aoColumns, columns, sDom, oLanguage, parentHeight, onClickFunction) {
+			$("#"+tableId).html(
+				'<table cellpadding="0" cellspacing="0" border="0" class="display" id="'+
+					tableId+'Display">'+columns+'</table>');
+				
+			var oTable = $("#"+tableId+"Display").dataTable({
+				"aoColumns": aoColumns,
+				"bJQueryUI": true,
+				"sDom" : sDom,
+				"sPaginationType": "full_numbers",	
+				"bSort" : false,
+				"bDeferRender": true,
+				"bServerSide" : true,
+				"sAjaxSource" : "",
+				"fnServerData": requestDataFunction,
+				"oLanguage": oLanguage,
+				"sScrollY": "0px",
+				    "fnDrawCallback": function() {
+				        var $dataTable = $("#"+tableId+"Display").dataTable();
+				        $dataTable.fnAdjustColumnSizing(false);
+
+				        if (typeof(TableTools) != "undefined") {
+				            var tableTools = TableTools.fnGetInstance(table);
+				            if (tableTools != null)
+				            {
+				            	if (tableTools.fnResizeRequired()) 
+				            	{
+				                	tableTools.fnResizeButtons();
+				                }
+				            }
+				        }
+
+				        var $dataTableWrapper = $("#"+tableId+"Display").closest(".dataTables_wrapper");
+
+				        var toolbarHeights = 0;
+				        $dataTableWrapper.find(".fg-toolbar").each(function(i, obj) {
+				            toolbarHeights = toolbarHeights + $(obj).height();
+				        });
+						
+						var scrollHeadHeight = $dataTableWrapper.find(".dataTables_scrollHead").height();
+				        var height = parentHeight - toolbarHeights - scrollHeadHeight;
+				        $dataTableWrapper.find(".dataTables_scrollBody").height(height - 24);
+				        
+				        $dataTable._fnScrollDraw();
+				    }
+				});
+				return oTable;
+		}	
+	</script>
+</head>
+<body>
+	<div id="managementEviction_div"> 
+		<div id="managementEviction_strategyField"> 
+			<div class="managementEviction_field">Eviction strategy:</div><select id="managementEviction_strategy"/>
+		</div>
+		<div id="managementEviction_diskUsageField"> 
+			<div class="managementEviction_longField">Maximum disk usage before eviction (in %):</div>
+			<div id="managementEviction_diskUsageSlider">
+				<div id="managementEviction_sliderMin">0</div>
+				<div id="managementEviction_sliderMax">100</div>
+			</div>
+		</div>
+		<div > 
+			<div id="managementEviction_keepingField">Minimal keeping period for a product:</div>
+			<input type="text" id="managementEviction_keepingPeriod" onkeyup="managementEviction_keepingPeriodValidate()"> days
+		</div>
+		<div id="managementEviction_buttons">
+			<div class="button_disabled" id="managementEviction_saveButton">Save</div>
+			<div class="button_disabled" id="managementEviction_runButton">Run</div>
+			<div class="button_black" id="managementEviction_cancelButton">Cancel</div>
+		</div>
+		<div id="managementEviction_products"></div>
+	</div>
+</body>
+</html>

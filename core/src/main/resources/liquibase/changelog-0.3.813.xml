@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+
+	<changeSet author="fred" id="addChecksumTable">
+		<createTable tableName="CHECKSUMS">
+            <column name="PRODUCT_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="DOWNLOAD_CHECKSUM_VALUE" type="VARCHAR(255)"/>
+            <column name="DOWNLOAD_CHECKSUM_ALGORITHM" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+	</changeSet>
+   
+   <changeSet author="fred" id="addPrimaryKeyChecksums">
+        <addPrimaryKey 
+           columnNames="PRODUCT_ID, DOWNLOAD_CHECKSUM_ALGORITHM" 
+           constraintName="SYS_PK_10153" 
+           tableName="CHECKSUMS"/>
+    </changeSet>
+   
+
+	<changeSet author="fred" id="addForeignKeyProductChecksum">
+		<addForeignKeyConstraint 
+         baseColumnNames="PRODUCT_ID" 
+         baseTableName="CHECKSUMS" 
+         constraintName="FKBDE83C7062210BBD" 
+         deferrable="false" 
+         initiallyDeferred="false" 
+         onDelete="NO ACTION" 
+         onUpdate="NO ACTION" 
+         referencedColumnNames="ID" 
+         referencedTableName="PRODUCTS"/>
+	</changeSet>
+
+	<changeSet author="fred" id="addChecksumIdIndex">
+		<createIndex 
+         indexName="SYS_IDX_10578"
+         tableName="CHECKSUMS"
+			unique="false">
+			<column name="PRODUCT_ID" />
+		</createIndex>
+	</changeSet>
+
+   <changeSet author="fred" id="addProductDownloadInfos">
+      <addColumn tableName="PRODUCTS">
+         <column defaultValue="-1" name="DOWNLOAD_SIZE" type="BIGINT"/>
+      </addColumn>
+      <addColumn tableName="PRODUCTS">
+         <column defaultValue="application/octet-stream" 
+            name="DOWNLOAD_TYPE" type="VARCHAR(255)"/>
+      </addColumn>
+   </changeSet>
+  
+  
+   <changeSet author="fred" id="createProductUuidIndex">
+      <createIndex indexName="SYS_IDX_P_UUID" tableName="PRODUCTS" unique="false">
+         <column name="UUID"/>
+      </createIndex>
+    </changeSet>
+   <changeSet author="fred" id="createProductProcessedFlagIndex">
+      <createIndex indexName="SYS_IDX_P_PROCESSED" tableName="PRODUCTS" unique="false">
+         <column name="PROCESSED"/>
+      </createIndex>
+   </changeSet>
+
+
+   <changeSet author="fred" id="dropMetadataIndexTable">
+      <dropTable tableName="PRODUCT_INDEXES"/>
+   </changeSet>
+   <changeSet author="fred" id="dropProductMetadataIndexJoinTable">
+      <dropTable tableName="METADATA_INDEXES"/>
+   </changeSet>
+   
+   <changeSet author="fred" id="createNewMetadataIndexesTable">
+      <createTable tableName="METADATA_INDEXES">
+         <column name="PRODUCT_ID" type="BIGINT">
+            <constraints nullable="false"/>
+         </column>
+         <column name="CATEGORY" type="VARCHAR(255)"/>
+         <column name="NAME" type="VARCHAR(255)">
+            <constraints nullable="false"/>
+         </column>
+         <column name="QUERYABLE" type="VARCHAR(255)"/>
+         <column name="TYPE" type="VARCHAR(255)"/>
+         <column name="VALUE" type="VARCHAR(4096)">
+            <constraints nullable="false"/>
+         </column>
+      </createTable>
+   </changeSet>
+
+   <changeSet author="fred" id="createMetadataPrimaryKey">
+      <addPrimaryKey 
+         columnNames="PRODUCT_ID, NAME, VALUE" 
+         constraintName="SYS_PK_10229" 
+         tableName="METADATA_INDEXES"/>
+   </changeSet>
+   
+   <changeSet author="fred" id="createMetdataIndexConstraint">
+      <addForeignKeyConstraint 
+         baseColumnNames="PRODUCT_ID" 
+         baseTableName="METADATA_INDEXES" 
+         constraintName="FK8EF847D062210BBD" 
+         deferrable="false" 
+         initiallyDeferred="false" 
+         onDelete="NO ACTION" 
+         onUpdate="NO ACTION" 
+         referencedColumnNames="ID" 
+         referencedTableName="PRODUCTS"/>
+   </changeSet>
+   
+   <changeSet author="fred" id="createMetadataIndexIndex">
+      <createIndex 
+         indexName="SYS_IDX_10422" 
+         tableName="METADATA_INDEXES" 
+         unique="false">
+            <column name="PRODUCT_ID"/>
+      </createIndex>
+   </changeSet>
+   
+   <changeSet author="fred" id="forceReIndex">
+      <customChange class="fr.gael.dhus.database.liquibase.ForceReindex"></customChange>
+   </changeSet>
+   
+</databaseChangeLog>

@@ -1,0 +1,132 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<style>	
+		#profileSearches_div
+		{
+			height: 440px;
+			display: none;
+		}
+		
+		#profileSearches_space
+		{
+			height: 5px;
+		}
+		
+		#profileSearches_search
+		{
+			display: block;
+			width: 960px;
+		}	
+		
+		#profileSearches_searchDisplay tbody tr.even, #search_tableDisplay tbody tr.even {
+			background-color: #e3e3e3;
+		}
+	
+		#profileSearches_searchDisplay tbody tr.odd, #search_tableDisplay tbody tr.odd {
+			background-color: #EEEEEE;
+		}
+		
+		#profileSearches_searchDisplay tbody tr.even:hover, #search_tableDisplay tbody tr.even td.highlighted {
+			cursor: default;
+			background-color: #BCD2EE;
+		}
+	
+		#profileSearches_searchDisplay tbody tr.odd:hover, #search_tableDisplay tbody tr.odd td.highlighted {
+			cursor: default;
+			background-color: #BCD2EE;
+		}	
+						
+		#profileSearches_buttons
+		{	
+			text-align: right;
+		}
+		
+		#profileSearches_clearSearches
+		{	
+			font-size: 12px;
+			text-align: center;
+			width: 180px;
+		}
+		
+		#profileSearches_searchInfos
+		{
+			width: 100%;
+			padding-top: 3px;
+			text-align: center;
+			display: inline-block;
+			font-size: 10px;
+			font-style: italic;
+		}
+	</style>
+	<script>		
+		var profileSearches_searchIt;
+		var profileSearches_deleteSearch;
+		var profileSearches_searchesTable;
+		var profileSearches_activateSearchFunction;
+		
+		function showProfileSearches (getSearchFunction, searchFunction, deleteFunction, activateSearchFunc)
+		{
+			document.getElementById("profileSearches_div").style.display = "block";				
+			
+			profileSearches_searchIt = searchFunction;
+			profileSearches_deleteSearch = deleteFunction;
+			profileSearches_activateSearchFunction = activateSearchFunc;
+			
+			profileSearches_searchesTable = initProfileTable("profileSearches_search", getSearchFunction, [{ "sTitle": "" },
+			       { "sTitle": "", "sClass": "center", 
+						"mRender": function ( data, type, full ) {
+						s = "'"+data+"'";
+						return '<img onclick="profileSearches_searchIt('+s+')" src="home/dhus/images/search.png" style="cursor:pointer;" title="Search for it"/>';
+					}},
+			       { "sTitle": "", "sClass": "center", 
+						"mRender": function ( data, type, full ) {
+						return '<img onclick="profileSearches_activateSearchFunction(event,'+data.id+')" src="home/dhus/images/mailNotification_'+(data.notify?'on':'off')+'.png" style="cursor:pointer;" title="'+(data.notify?'Dea':'A')+'ctivate notification"/>';
+					}},
+			       { "sTitle": "", "sClass": "center",
+						"mRender": function ( data, type, full ) {;
+						return '<img onclick="profileSearches_deleteSearch('+data+')" src="home/dhus/images/delete.png" style="cursor:pointer;" title="Delete search"/>';
+					}}], 
+					"<col/><col style='width: 16px'/><col style='width: 16px'/><col style='width: 16px'/>", '<"H"ir>t<"F"lp>',
+					{ "sEmptyTable": "No saved searches.",
+					  "sInfo": "Display _START_ to _END_ of _TOTAL_ saved searches",
+					  "sInfoEmpty": "No saved searches.",
+					  "sLengthMenu": "Page size: _MENU_"}, 400, [25,50,100]);		
+		}
+		
+		function profileSearches_refreshSearches()
+		{
+			profileSearches_searchesTable.fnDraw(false);
+		}
+	</script>
+</head>
+<body>
+	<div id="profileSearches_div">
+		<div id="profileSearches_search"></div>
+		<div id="profileSearches_space"></div>
+		<div id="profileSearches_searchInfos"></div>
+		<div id="profileSearches_buttons">
+			<div class="button_disabled" id="profileSearches_clearSearches">Clear your saved searches</div>
+		</div>
+	</div>
+</body>
+</html>

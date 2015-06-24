@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+    <parent>
+       <groupId>fr.gael.dhus</groupId>
+       <artifactId>dhus-parent</artifactId>
+       <version>0.4.3-5-2</version>
+       <relativePath></relativePath>
+    </parent>
+
+	<artifactId>dhus-html-client</artifactId>
+	<packaging>jar</packaging>
+
+	<name>DHuS - HTML Client</name>
+
+	<dependencies>
+		<!-- DHuS -->
+		<dependency>
+			<groupId>fr.gael.dhus</groupId>
+			<artifactId>dhus-core</artifactId>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.eclipse.jdt.core.compiler</groupId>
+					<artifactId>ecj</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+	            <artifactId>maven-assembly-plugin</artifactId>
+	            <version>2.2-beta-5</version>
+	            <configuration>
+	               <descriptors>
+	                  <descriptor>src/main/assembly/assembly.xml</descriptor>
+	               </descriptors>
+	               <outputDirectory>${project.build.directory}/classes</outputDirectory>
+	               <finalName>dhus-client</finalName>
+	            </configuration>
+	            <executions>
+	               <execution>
+	                  <id>make-assembly</id>
+	                  <phase>prepare-package</phase>
+	                  <goals>
+	                     <goal>single</goal>
+	                  </goals>
+	               </execution>
+	            </executions>
+	         </plugin>	
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+			</plugin>
+		</plugins>
+	</build>
+		
+   <profiles>
+      <profile>
+         <id>sources</id>         
+         <build>
+	         <plugins>
+		         <plugin>
+		            <groupId>org.apache.maven.plugins</groupId>
+		            <artifactId>maven-source-plugin</artifactId>
+		            <version>2.1.2</version>
+		            <executions>
+		                <execution>
+		                    <id>attach-sources</id>
+		                    <goals>
+		                       <goal>jar-no-fork</goal>
+		                    </goals>
+		                </execution>
+		            </executions>
+		         </plugin> 
+	         </plugins>
+         </build>
+       </profile>
+	</profiles>
+
+</project>

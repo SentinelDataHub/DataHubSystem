@@ -1,0 +1,501 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<style>	
+		#profileInfos_div
+		{
+			height: 285px;
+			display: none;
+		}
+		
+		#profileInfos_infos
+		{			  
+			vertical-align: top;
+			width: 586px;
+			height: 275px;
+			display: inline-block;
+			border: solid 1px #aaa;
+			background: #DEDEDE;
+			padding: 5px;
+			margin-right: 5px;
+		}
+	
+		.profileInfos_line
+		{
+		}
+		
+		.profileInfos_label
+		{
+			width: 80px;
+			display:inline-block;
+		}	
+		
+		.profileInfos_field
+		{
+			width: 190px;
+			font-size: 12px;
+			vertical-align: middle;
+			font-family: "Trebuchet MS", Helvetica, sans-serif;
+			margin-bottom: 3px;
+			margin-right: 5px;
+			height: 16px;
+		}
+		
+		#profileInfos_space
+		{
+			height: 5px;
+		}
+		
+		#profileInfos_button_div
+		{
+			text-align: center;
+		}
+		
+		#profileInfos_save
+		{	
+			font-size: 12px;
+			text-align: center;
+			width: 120px;
+		}
+		
+		#profileInfos_changePassword
+		{	
+			font-size: 12px;
+			text-align: center;
+			width: 120px;
+		}
+		
+		#profileInfos_roles
+		{
+			display: inline-block;
+			width: 352px;
+		}
+		
+		#profileInfos_rolesDisplay tbody tr.even, #search_tableDisplay tbody tr.even {
+			background-color: #e3e3e3;
+		}
+	
+		#profileInfos_rolesDisplay tbody tr.odd, #search_tableDisplay tbody tr.odd {
+			background-color: #EEEEEE;
+		}
+		
+		#profileInfos_rolesDisplay tbody tr.even:hover, #search_tableDisplay tbody tr.even td.highlighted {
+			cursor: default;
+			background-color: #BCD2EE;
+		}
+	
+		#profileInfos_rolesDisplay tbody tr.odd:hover, #search_tableDisplay tbody tr.odd td.highlighted {
+			cursor: default;
+			background-color: #BCD2EE;
+		}	
+		
+		#profileInfos_domain
+		{
+			height: 18px;
+			width: 192px;
+		}
+		
+		#profileInfos_usage
+		{
+			height: 18px;
+			width: 192px;
+		}
+		
+		#profileInfos_subDomainLabel
+		{
+			display: none;
+		}
+		
+		#profileInfos_subDomain
+		{
+			display: none;
+		}
+		
+		#profileInfos_subUsageLabel
+		{
+			display: none;
+		}
+		
+		#profileInfos_subUsage
+		{
+			display: none;
+		}
+	</style>
+	<script>	
+		var profileInfos_rolesTable;
+		var profileInfos_passwordConfirmFocused = false;
+		var profileInfos_mailCheck = new RegExp("^[a-zA-Z0-9!#$%\x26'*+/=?^_`{|}~-]+(?:\\.[a-zA-Z0-9!#$%\x26'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$");
+					
+		function showProfileInfos (getRoleFunction)
+		{
+			document.getElementById("profileInfos_div").style.display = "block";			
+			
+			profileInfos_rolesTable = initProfileTable("profileInfos_roles", getRoleFunction, [{ "sTitle": "" }], 
+					'<col/>', '<"H"lr>t<"F">',
+					{ "sEmptyTable": "No functions allowed.",
+					  "sLengthMenu": "Allowed functions"}, 287, [50]);		
+
+			$.each(getAllDomains(), function(val, text) {
+				$('#profileInfos_domain').append(new Option(text, val));
+			});
+			$.each(getAllUsages(), function(val, text) {
+				$('#profileInfos_usage').append(new Option(text, val));
+			});
+			
+			document.getElementById("profileInfos_password").onpaste = function(e) {
+				   e.preventDefault();
+			 };
+				
+			document.getElementById("profileInfos_password_confirm").onpaste = function(e) {
+				   e.preventDefault();
+			 };
+				
+			document.getElementById("profileInfos_oldPassword").onpaste = function(e) {
+				   e.preventDefault();
+			 };
+		}
+		
+		function profileInfos_refreshRoles()
+		{
+			profileInfos_rolesTable.fnDraw(false);
+		}
+		
+		function profileInfos_activateSaveButton()
+		{		
+			var userValue = document.getElementById('profileInfos_username').value;
+			var mail = document.getElementById('profileInfos_mail').value;
+			var firstNameValue = document.getElementById('profileInfos_firstname').value;
+			var lastNameValue = document.getElementById('profileInfos_lastname').value;
+			var countryValue = document.getElementById('profileInfos_country').value;
+			var usageValue = document.getElementById("profileInfos_usage").options[document.getElementById("profileInfos_usage").value].text;
+			var domainValue = document.getElementById("profileInfos_domain").options[document.getElementById("profileInfos_domain").value].text;
+					
+			if (userValue == null || userValue == "" ||				
+				mail == null || mail == "" || !profileInfos_mailCheck.test(mail)||
+				firstNameValue == null || firstNameValue == "" ||
+				lastNameValue == null || lastNameValue == "" ||
+				countryValue == null || countryValue == "" ||
+				(usageValue.toLowerCase() == "other" && (document.getElementById("profileInfos_subUsage").value == null || document.getElementById("profileInfos_subUsage").value == "")) || 
+				(domainValue.toLowerCase() == "other" && (document.getElementById("profileInfos_subDomain").value == null || document.getElementById("profileInfos_subDomain").value == "")))
+			{		
+				document.getElementById('profileInfos_save').className = "button_disabled";
+			}
+			else
+			{
+				document.getElementById('profileInfos_save').className = "button_black";
+			}
+		}
+	
+		function profileInfos_validateUsername()
+		{
+			var username = document.getElementById('profileInfos_username').value;
+			if (username == null || username=="")
+			{
+			  document.getElementById('profileInfos_username').setCustomValidity('Username field must be filled')	
+			}
+			else
+			{
+			  document.getElementById('profileInfos_username').setCustomValidity('')
+			}			  
+			profileInfos_activateSaveButton();
+		}
+		
+		function profileInfos_validateMail()
+		{
+			var mail = document.getElementById('profileInfos_mail').value;
+			
+			if (mail == null || mail == "" || !profileInfos_mailCheck.test(mail))
+			{
+			  document.getElementById('profileInfos_mail').setCustomValidity('E-mail fields must be filled and equals');			  
+			}
+			else
+			{
+			  document.getElementById('profileInfos_mail').setCustomValidity('');
+			}			 
+			profileInfos_activateSaveButton();
+		}
+		
+		function profileInfos_refreshDone()
+		{
+			profileInfos_validateMail();
+			profileInfos_validateUsername();
+		}
+	
+		function profileInfos_validateFirstname()
+		{
+			var value = document.getElementById('profileInfos_firstname').value;
+			if (value ==null || value=="")
+			{
+			  document.getElementById('profileInfos_firstname').setCustomValidity('Firstname field must be filled')	
+			}
+			else
+			{
+			  document.getElementById('profileInfos_firstname').setCustomValidity('')
+			}			  
+			profileInfos_activateSaveButton();
+		}
+	
+		function profileInfos_validateLastname()
+		{
+			var value = document.getElementById('profileInfos_lastname').value;
+			if (value ==null || value=="")
+			{
+			  document.getElementById('profileInfos_lastname').setCustomValidity('Lastname field must be filled')	
+			}
+			else
+			{
+			  document.getElementById('profileInfos_lastname').setCustomValidity('')
+			}			  
+			profileInfos_activateSaveButton();
+		}
+	
+		function profileInfos_validateCountry()
+		{
+			var value = document.getElementById('profileInfos_country').value;
+			if (value ==null || value=="")
+			{
+			  document.getElementById('profileInfos_country').setCustomValidity('Country field must be filled')	
+			}
+			else
+			{
+			  document.getElementById('profileInfos_country').setCustomValidity('')
+			}			  
+			profileInfos_activateSaveButton();
+		}
+	
+		function profileInfos_validateSubUsage()
+		{
+			var value = document.getElementById('profileInfos_subUsage').value;
+			if (value ==null || value=="")
+			{
+			  document.getElementById('profileInfos_subUsage').setCustomValidity('Usage field must be filled')	
+			}
+			else
+			{
+			  document.getElementById('profileInfos_subUsage').setCustomValidity('')
+			}			  
+			profileInfos_activateSaveButton();
+		}
+	
+		function profileInfos_validateSubDomain()
+		{
+			var value = document.getElementById('profileInfos_subDomain').value;
+			if (value ==null || value=="")
+			{
+			  document.getElementById('profileInfos_subDomain').setCustomValidity('Domain field must be filled')	
+			}
+			else
+			{
+			  document.getElementById('profileInfos_subDomain').setCustomValidity('')
+			}			  
+			profileInfos_activateSaveButton();
+		}
+		
+		function profileInfos_activateChangePasswordButton()
+		{		
+			var oldpassword = document.getElementById('profileInfos_oldPassword').value;
+			var password = document.getElementById('profileInfos_password').value;
+			var confirm = document.getElementById('profileInfos_password_confirm').value;
+						
+			if (oldpassword == null || oldpassword == "" ||				
+				password == null || password == "" || password != confirm)
+			{		
+				document.getElementById('profileInfos_changePassword').className = "button_disabled";
+			}
+			else
+			{
+				document.getElementById('profileInfos_changePassword').className = "button_black";
+			}
+		}
+		
+		function profileInfos_validateOldPassword()
+		{
+			var value = document.getElementById('profileInfos_oldPassword').value;
+			if (value ==null || value=="")
+			{
+			  document.getElementById('profileInfos_oldPassword').setCustomValidity('Old password must be filled')	
+			}
+			else
+			{
+			  document.getElementById('profileInfos_oldPassword').setCustomValidity('')
+			}			  
+			profileInfos_activateSaveButton();
+		}
+		
+		function profileInfos_validatePassword()
+		{
+			var password = document.getElementById('profileInfos_password').value;
+			var confirm = document.getElementById('profileInfos_password_confirm').value;
+			
+			if (!profileInfos_passwordConfirmFocused)
+			{			
+				if (password == null || password == "")
+				{
+					document.getElementById('profileInfos_password').setCustomValidity('Password fields must be filled and equals');			  
+				}
+				else
+				{
+				 	document.getElementById('profileInfos_password').setCustomValidity('');
+				}	
+			}
+			else
+			{
+				if (password == null || password == "" || confirm != password)
+				{
+					document.getElementById('profileInfos_password').setCustomValidity('Password fields must be filled and equals');	
+					document.getElementById('profileInfos_password_confirm').setCustomValidity('Password fields must be filled and equals');			  
+				}
+				else
+				{
+			  		document.getElementById('profileInfos_password').setCustomValidity('');
+			  		document.getElementById('profileInfos_password_confirm').setCustomValidity('');
+				}	
+			}							  
+			profileInfos_activateChangePasswordButton();
+		}
+		
+		function profileInfos_validatePasswordConfirm()
+		{
+			profileInfos_passwordConfirmFocused = true;
+			profileInfos_validatePassword();
+		}
+		
+		function profileInfos_domainChange()
+		{
+			var value = document.getElementById("profileInfos_domain").options[document.getElementById("profileInfos_domain").value].text;
+			document.getElementById("profileInfos_subDomainLabel").style.display = ("other" == value.toLowerCase() ? "inline-block" : "none");
+			document.getElementById("profileInfos_subDomain").style.display = ("other" == value.toLowerCase() ? "inline-block" : "none");
+			profileInfos_validateSubDomain();
+		}
+		
+		function profileInfos_usageChange()
+		{
+			var value = document.getElementById("profileInfos_usage").options[document.getElementById("profileInfos_usage").value].text;
+			document.getElementById("profileInfos_subUsageLabel").style.display = ("other" == value.toLowerCase() ? "inline-block" : "none");
+			document.getElementById("profileInfos_subUsage").style.display = ("other" == value.toLowerCase() ? "inline-block" : "none");
+			profileInfos_validateSubUsage();
+		}
+		
+		function profileInfos_selectDomain(domain)
+		{
+			var sel = document.getElementById("profileInfos_domain");
+			for(var i = 0; i < sel.options.length; i++) {
+		        if(sel.options[i].text === domain) {
+		           sel.selectedIndex = i;
+		           break;
+		        }
+		    }
+			
+			document.getElementById("profileInfos_subDomainLabel").style.display = ("other" == domain.toLowerCase() ? "inline-block" : "none");
+			document.getElementById("profileInfos_subDomain").style.display = ("other" == domain.toLowerCase() ? "inline-block" : "none");
+		}
+		
+		function profileInfos_selectUsage(usage)
+		{
+			var sel = document.getElementById("profileInfos_usage");
+			for(var i = 0; i < sel.options.length; i++) {
+		        if(sel.options[i].text === usage) {
+		           sel.selectedIndex = i;
+		           break;
+		        }
+		    }
+			
+			document.getElementById("profileInfos_subUsageLabel").style.display = ("other" == usage.toLowerCase() ? "inline-block" : "none");
+			document.getElementById("profileInfos_subUsage").style.display = ("other" == usage.toLowerCase() ? "inline-block" : "none");
+		}
+	</script>
+</head>
+<body>
+	<div id="profileInfos_div">
+		<div id="profileInfos_infos">
+			<div class="profileInfos_line">
+				<div class="profileInfos_label">Username</div>
+				<input type="text" name="profileInfos_username" id="profileInfos_username" class="profileInfos_field"
+					onkeyup="profileInfos_validateUsername()"/>
+			</div>					
+			<div class="profileInfos_line">
+				<div class="profileInfos_label">E-mail *</div>
+				<input type="text" name="profileInfos_mail" id="profileInfos_mail" class="profileInfos_field" 
+					onkeyup="profileInfos_validateMail()"/>
+			</div>		
+			<div class="profileInfos_line">
+				<div class="profileInfos_label">Firstname *</div>
+				<input type="text" name="profileInfos_firstname" id="profileInfos_firstname" class="profileInfos_field"  
+					onkeyup="profileInfos_validateFirstname()"/>
+				<div class="profileInfos_label">Lastname *</div>
+				<input type="text" name="profileInfos_lastname" id="profileInfos_lastname" class="profileInfos_field"  
+					onkeyup="profileInfos_validateLastname()"/>
+			</div>	
+			<div class="profileInfos_line">
+				<div class="profileInfos_label">Domain *</div>
+				<select name="profileInfos_domain" id="profileInfos_domain" class="profileInfos_field" onchange="profileInfos_domainChange()"/>
+				<div class="profileInfos_label" id="profileInfos_subDomainLabel">Please specify</div>
+				<input type="text" name="profileInfos_subDomain" id="profileInfos_subDomain" class="profileInfos_field" 
+					onkeyup="profileInfos_validateSubDomain()"/>
+			</div>	
+			<div class="profileInfos_line">
+				<div class="profileInfos_label">Usage *</div>
+				<select name="profileInfos_usage" id="profileInfos_usage" class="profileInfos_field" onchange="profileInfos_usageChange()"/>
+				<div class="profileInfos_label" id="profileInfos_subUsageLabel">Please specify</div>
+				<input type="text" name="profileInfos_subUsage" id="profileInfos_subUsage" class="profileInfos_field" 
+					onkeyup="profileInfos_validateSubUsage()"/>
+			</div>	
+			<div class="profileInfos_line">
+				<div class="profileInfos_label">Country *</div>
+				<input type="text" name="profileInfos_country" id="profileInfos_country" class="profileInfos_field" 
+					onkeyup="profileInfos_validateCountry()"/>
+			</div>	
+			<div class="profileInfos_line">
+				<div class="profileInfos_label">Address</div>
+				<input type="text" name="profileInfos_address" id="profileInfos_address" class="profileInfos_field" />
+				<div class="profileInfos_label">Phone</div>
+				<input type="text" name="profileInfos_phone" id="profileInfos_phone" class="profileInfos_field" />
+			</div>	
+			
+			<div id="profileInfos_space"></div>	
+			<div id="profileInfos_button_div"><div class="button_disabled" id="profileInfos_save">Save Modifications</div></div>
+			<div id="profileInfos_space"></div>	
+			<div id="profileInfos_space"></div>	
+			<div id="profileInfos_space"></div>	
+			
+			<div class="profileInfos_line">
+				<div class="profileInfos_label">Old Password</div>
+				<input type="password" name="profileInfos_password" id="profileInfos_oldPassword" class="profileInfos_field"
+					onkeyup="profileInfos_validateOldPassword()"/>	
+			</div>
+			<div class="profileInfos_line">
+				<div class="profileInfos_label">New Password</div>
+				<input type="password" name="profileInfos_password" id="profileInfos_password" class="profileInfos_field"
+					onkeyup="profileInfos_validatePassword()"/>	
+				<div class="profileInfos_label">Confirm it</div>
+				<input type="password" name="profileInfos_password_confirm" id="profileInfos_password_confirm" 
+					onkeyup="profileInfos_validatePasswordConfirm()" class="profileInfos_field"/>
+			</div>
+
+			<div id="profileInfos_space"></div>	
+			<div id="profileInfos_button_div"><div class="button_disabled" id="profileInfos_changePassword">Change password</div></div>
+			<div id="profileInfos_space"></div>				
+		</div>
+		<div id="profileInfos_roles"></div>
+	</div>
+</body>
+</html>

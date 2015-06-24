@@ -1,0 +1,140 @@
+<?xml version="1.0"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE module PUBLIC
+    "-//Puppy Crawl//DTD Check Configuration 1.1//EN"
+    "http://www.puppycrawl.com/dtds/configuration_1_1.dtd">
+
+<module name="Checker">
+
+   <!-- No TAB characters in the source code -->
+   <module name="FileTabCharacter">
+      <property name="eachLine" value="true" />
+      <property name="fileExtensions" value="java,xml" />
+   </module>
+
+   <module name="TreeWalker">
+
+      <!--************************************************* -->
+      <!-- File format -->
+      <!--************************************************* -->
+
+      <!-- Forbidden line greater than 80 characters -->
+      <module name="LineLength">
+         <property name="max" value="80" />
+      </module>
+
+      <!--************************************************* -->
+      <!-- Adhere to generally accepted naming conventions -->
+      <!--************************************************* -->
+
+      <module name="PackageName">
+         <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]+)*$" />
+      </module>
+
+      <module name="TypeName">
+         <property name="format" value="^[a-zA-Z][a-zA-Z0-9_]*$" />
+      </module>
+      <module name="ConstantName">
+         <property name="format" value="^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$" />
+      </module>
+      <module name="LocalFinalVariableName" />
+      <module name="LocalVariableName">
+         <property name="format" value="^[a-zA-Z][a-zA-Z0-9_]*$" />
+      </module>
+      <module name="MemberName" />
+      <module name="MethodName" />
+      <module name="ParameterName">
+         <property name="format" value="^[a-z][a-z0-9_]*$" />
+      </module>
+      <module name="StaticVariableName">
+         <property name="format" value="^[a-zA-Z][a-zA-Z0-9]*|[A-Z][a-zA-Z0-9_]*$" />
+      </module>
+
+      <!--************************************************* -->
+      <!-- Programming convention -->
+      <!--************************************************* -->
+
+      <!-- Check Header -->
+      <!-- <module name="RegexpHeader"> <property name="headerFile" value="etc/checkstyle/headerFile" 
+         /> </module> -->
+
+      <module name="DeclarationOrder" />
+      <module name="RequireThis" />
+      <!-- Avoid creating duplicate objects -->
+      <module name="IllegalInstantiation">
+         <property name="classes" value="java.lang.Boolean, java.lang.String" />
+      </module>
+      <module name="HideUtilityClassConstructor" />
+      <!-- Make all fields private and develop accesor -->
+      <!-- <module name="VisibilityModifier"> <property name="protectedAllowed" value="true"/> 
+         </module> -->
+
+      <!-- Detects empty statements -->
+      <module name="EmptyStatement" />
+      <module name="MissingSwitchDefault" />
+      <module name="DefaultComesLast" />
+      <module name="RedundantThrows" />
+      <!--================================================= -->
+      <!-- Checks for imports -->
+      <!--================================================= -->
+
+      <!-- Checks that there are no import statements that use the * notation. -->
+      <module name="AvoidStarImport" />
+
+      <!-- Checks for redundant import statements. -->
+      <module name="RedundantImport" />
+
+      <!-- Checks for unused import statements. -->
+      <module name="UnusedImports" />
+
+      <!--================================================= -->
+      <!-- Checks for blocks -->
+      <!--================================================= -->
+
+      <!-- Don't ignore exceptions -->
+      <module name="EmptyBlock">
+         <property name="tokens" value="LITERAL_CATCH" />
+
+         <!-- require a comment, change to stmt to require a statement -->
+         <property name="option" value="text" />
+      </module>
+
+      <module name="LeftCurly">
+         <property name="option" value="nl" />
+      </module>
+      <module name="RightCurly">
+         <property name="option" value="alone" />
+      </module>
+
+      <!--************************************************* -->
+      <!-- Javadoc -->
+      <!-- Write doc comments for all exposed API elements -->
+      <!--************************************************* -->
+      <module name="JavadocType" />
+      <module name="JavadocVariable" />
+      <module name="JavadocMethod">
+         <!-- For allow runtime exception comment -->
+         <property name="allowUndeclaredRTE" value="yes" />
+      </module>
+
+   </module>
+
+</module>

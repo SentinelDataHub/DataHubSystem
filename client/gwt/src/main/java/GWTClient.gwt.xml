@@ -1,0 +1,67 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<module rename-to="home">
+    <!-- Inherit the core Web Toolkit stuff. -->
+    <inherits name="com.google.gwt.user.User"/>
+    <inherits name="com.google.gwt.xml.XML"/>
+    <inherits name='org.gwtopenmaps.openlayers.OpenLayers' />
+    
+   
+  <!-- For production, most teams prefer to set the default log level to `OFF` -->
+  <!-- 
+  <inherits name="com.allen_sauer.gwt.log.gwt-log-OFF" />
+  -->
+  <!-- For development, a default of `DEBUG` is recommended -->
+  <inherits name="com.allen_sauer.gwt.log.gwt-log-DEBUG" />
+  <set-property name="log_DivLogger" value="DISABLED" />
+
+  <!-- To compile at `DEBUG`, `WARN` and `OFF` log levels (with a 3x compile time cost) -->
+  <!--
+  <inherits name="com.allen_sauer.gwt.log.gwt-log-OFF" />
+  <extend-property name="log_level" values="DEBUG,WARN"/>
+  -->
+   
+  <!-- 
+     Default to `OFF`, but allow selection of a specific log level,
+     say `INFO`, via the `log_level` URL parameter:
+     http[s]://hostame:port/yourmodule/Yourmodule.html?log_level=INFO
+  <inherits name="com.allen_sauer.gwt.log.gwt-log-OFF" />
+  <extend-property name="log_level" values="INFO"/>
+  -->
+
+  <!-- 
+     Compile both `DEBUG` and `ERROR` log levels, with level
+     selection via a `gwt:property` meta tag in your HTML page:
+       <head>
+         <title>....</title>
+         <meta name="gwt:property" content="log_level=DEBUG">
+       </head>
+  <inherits name="com.allen_sauer.gwt.log.gwt-log-ERROR" />
+  <extend-property name="log_level" values="DEBUG"/>
+  -->
+    
+    <source path="fr/gael/dhus/database/object"/>    
+    <source path="fr/gael/dhus/gwt/share"/>
+    <source path="fr/gael/dhus/gwt/services"/>   	
+    <source path="fr/gael/dhus/gwt/client"/>
+    	
+    <!-- Specify the app entry point class.  -->
+    <entry-point class="fr.gael.dhus.gwt.client.GWTClient" />    
+</module>

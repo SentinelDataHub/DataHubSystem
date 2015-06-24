@@ -1,0 +1,342 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<head>
+	<style>	
+		#statisticsSearches_div
+		{
+			display: none;
+			height: 100%;
+		}				
+		
+		.statisticsSearches_bloc
+		{
+			width: 948px;
+			border: solid 1px #aaa;
+			background: #DEDEDE;
+			padding: 5px;
+			margin-bottom: 10px;
+		}	
+		
+		#statisticsSearches_graphBloc
+		{
+			height: 601px;
+		}
+		
+		.statisticsSearches_label
+		{
+			width: 100px;
+			display: inline-block;
+		}		
+		
+		.statisticsSearches_inline
+		{
+			display: inline-block;
+		}		
+		
+		.statisticsSearches_graphTitleDiv
+		{
+			width: 100%;
+			text-align: right;
+		}
+		
+		.statisticsSearches_graphTitle
+		{
+			width: 180px;
+			font-size: 12px;	
+			text-align: center;		
+		}
+		
+		#statisticsSearches_graphOptions
+		{
+			padding-top: 3px;
+			padding-bottom: 3px;
+			text-align: center;
+			width: 100%;
+			float: left;
+		}
+
+		#statisticsSearches_emptyGraphOptions
+		{
+			padding-top: 3px;
+			padding-bottom: 3px;
+			width: 100%;
+			height: 30px;
+		}
+
+		.statisticsSearches_dateField
+		{
+			display: inline-block;
+		}
+
+		.statisticsSearches_dateFieldLabelCol3
+		{
+			display: inline-block;
+			width: 115px;
+		}
+
+		.statisticsSearches_dateFieldInput
+		{
+			display: inline-block;
+			width: 190px;
+			border:1px solid #7f9db9;
+			height: 20px;
+	    	margin-top: 2px;
+			font-family: "Trebuchet MS", Helvetica, sans-serif;	
+			font-size: 12px;
+		}
+
+		.statisticsSearches_dateFieldToLabel
+		{
+			display: inline-block;
+			width: 15px;
+		}	
+	
+		.statisticsSearches_datepicker
+		{
+			background: white url(home/dhus/images/calendar.png) no-repeat right 2px center;
+			border:1px solid #7f9db9;
+			height: 20px;
+			padding-right: 20px;
+			width: 73px;
+			cursor: pointer;
+		}
+		
+		#statisticsSearches_refresh 
+		{
+			width: 80px;
+			font-size: 12px;	
+			text-align: center;		
+			margin-left: 5px;	
+			margin-right: 5px;
+		}
+		
+		.statisticsSearches_selected
+		{
+			cursor: pointer;
+			color: #fff;
+			background: #FF790B url('home/dhus/images/button_hover.gif') repeat-x;
+			border: solid 1px #DB7623;
+		}			
+		
+		.statisticsSearches_scaleButton
+		{
+			vertical-align: middle;
+			margin-top: -2px;
+			cursor: pointer;
+		}
+		
+		#statisticsSearches_scaleBloc
+		{		
+			display: inline-block;
+			border: solid 1px #aaa;
+			background: #CDCDCD;
+			padding: 5px;
+			margin-top: 5px;
+			text-align: left;
+			width: 340px;
+		}
+		
+		.statisticsSearches_scaleOption
+		{
+			width: 49%; 
+			display: inline-block;
+			cursor: pointer;
+		}
+				
+		#statisticsSearches_table
+		{
+			width: 330px;
+			float: left;
+			padding-top: 5px;
+			text-align: left;
+		}
+			
+		.statisticsSearches_tableCheckbox
+		{		
+			vertical-align: middle;
+			margin-bottom: 1px;
+		}
+
+		#statisticsSearches_graph
+		{		
+			float: right;
+		}
+		
+		.statisticsSearches_deletedUser
+		{
+			color: gray;
+		}
+	</style>
+	<script>	
+		var searchesPerUserDataset = [];
+		var searchesPerDomainDataset = [];
+		var searchesPerUsageDataset = [];
+		var statisticsSearches_table;	
+		var statisticsSearches_checkedFunction;
+		var statisticsSearches_scaleChangedFunction;
+	
+		function showStatisticsSearches(getUsersFunction, userCheckedFunc, scaleChangedFunc)
+		{
+			document.getElementById("statisticsSearches_div").style.display = "block";		
+			
+			statisticsSearches_checkedFunction = userCheckedFunc;
+			statisticsSearches_scaleChangedFunction = scaleChangedFunc;
+			
+			var today = new Date();
+			var dd = today.getDate();
+			var mm = today.getMonth()+1; //January is 0!
+			var yyyy = today.getFullYear();
+			if(dd<10){dd='0'+dd} if(mm<10){mm='0'+mm} today = yyyy+'-'+mm+'-'+dd;
+
+			$( "#statisticsSearches_dateFieldDate" ).Zebra_DatePicker({
+				select_other_months: true,
+				direction: false,
+				show_clear_date: false,
+				onSelect: function(format, date, jsDate, element)
+				{
+					$( "#statisticsSearches_dateFieldDateEnd" ).data('Zebra_DatePicker').update({
+						direction: [date, today]
+					});
+					statisticsSearches_scaleChangedFunction();
+				},
+				onClear: function(format, date, jsDate, element)
+				{
+					$( "#statisticsSearches_dateFieldDateEnd" ).data('Zebra_DatePicker').update({
+						direction: false
+					});
+				}
+			});
+			$( "#statisticsSearches_dateFieldDateEnd" ).Zebra_DatePicker({
+				select_other_months: true,
+				direction: false,
+				show_clear_date: false,
+				onSelect: function(format, date, jsDate, element)
+				{
+					var one_day=1000*60*60*24;
+					var today = new Date();
+					var delta = Math.ceil((jsDate.getTime()-today.getTime())/(one_day));
+					$( "#statisticsSearches_dateFieldDate" ).data('Zebra_DatePicker').update({
+						direction: delta
+					});
+					statisticsSearches_scaleChangedFunction();
+				},
+				onClear: function(format, date, jsDate, element)
+				{
+					$( "#statisticsSearches_dateFieldDate" ).data('Zebra_DatePicker').update({
+						direction: false
+					});
+				}
+			});	
+
+			statisticsSearches_table = initStatisticsTable("statisticsSearches_table", getUsersFunction, [
+						{ "sTitle": "", "sClass": "center",  
+						"mRender": function ( data, type, full ) {
+							return "<input type='checkbox' class='statisticsSearches_tableCheckbox' "+(data.checked ? "checked" : "")+" onclick='statisticsSearches_checkedFunction(\""+data.name+"\")' />";
+						}},
+					{ "sTitle": "","mRender": function ( data, type, full ) {
+							return (data.deleted?"<i class='statisticsSearches_deletedUser'>":"")+data.name+(data.deleted?"</i>":"");
+						}}], '<col style="width: 20px"/><col/>', '<"H"ifr>t<"F"lp>',
+					{ "sEmptyTable": "No users found.",
+					  "sLengthMenu": "Page size: _MENU_",
+					  "sInfo": "Display _START_ to _END_ of _TOTAL_ users",
+					  "sInfoEmpty": "No users found",
+					  "oPaginate": {
+					        "sFirst": "<<",
+					        "sPrevious": "<",
+					        "sNext": ">",
+					        "sLast": ">>"
+					      }
+					  }, 530, [50, 100]
+					  );
+		}
+		
+		function statisticsSearches_refreshUsers()
+		{
+			statisticsSearches_table.fnDraw(false);
+		}
+		
+		function setSearchesPerUserDataset(dataSet, start, end, perHour)
+		{
+			searchesPerUserDataset = dataSet;
+			document.getElementById("statisticsSearches_table").style.display = "block";	
+			document.getElementById("statisticsSearches_graphOptions").style.display = "block";
+			document.getElementById("statisticsSearches_emptyGraphOptions").style.display = "none";	
+			doStackedBarGraph('statisticsSearches_graph',searchesPerUserDataset.slice(0), 'Searches', start, end, perHour, 600);
+		}
+		
+		function setSearchesPerDomainDataset(dataSet, start, end, perHour)
+		{
+			searchesPerDomainDataset = dataSet;
+			document.getElementById("statisticsSearches_table").style.display = "none";	
+			document.getElementById("statisticsSearches_graphOptions").style.display = "block";
+			document.getElementById("statisticsSearches_emptyGraphOptions").style.display = "none";			
+			doStackedBarGraph('statisticsSearches_graph',searchesPerDomainDataset.slice(0), 'Searches', start, end, perHour, 930);
+		}
+		
+		function setSearchesPerUsageDataset(dataSet, start, end, perHour)
+		{
+			searchesPerUsageDataset = dataSet;
+			document.getElementById("statisticsSearches_table").style.display = "none";	
+			document.getElementById("statisticsSearches_graphOptions").style.display = "block";
+			document.getElementById("statisticsSearches_emptyGraphOptions").style.display = "none";			
+			doStackedBarGraph('statisticsSearches_graph',searchesPerUsageDataset.slice(0), 'Searches', start, end, perHour, 930);
+		}
+	</script>
+</head>
+<body>      
+	<div id="statisticsSearches_div">
+		<div class="statisticsSearches_bloc">			
+			<div class="statisticsSearches_label">Total searches : </div><div id="statisticsSearches_totalSearches" class="statisticsSearches_inline">.</div><br>
+		</div>
+		<div class="statisticsSearches_bloc" id="statisticsSearches_graphBloc">
+			<div class="statisticsSearches_graphTitleDiv">
+				<div class="statisticsSearches_graphTitle button_black" id="statisticsSearches_searchesPerUserButton">Searches per user</div>	
+				<div class="statisticsSearches_graphTitle button_black" id="statisticsSearches_searchesPerDomainButton">Searches per domain</div>
+				<div class="statisticsSearches_graphTitle button_black" id="statisticsSearches_searchesPerUsageButton">Searches per usage</div>
+			</div>	
+			<div id="statisticsSearches_graphOptions">
+				<div class="statisticsSearches_dateField" class="statisticsSearches_datepicker">
+				<input class="statisticsSearches_dateFieldInput statisticsSearches_datepicker" type="text" id="statisticsSearches_dateFieldDate">
+				<div class="statisticsSearches_dateFieldToLabel">to </div> 
+				<input class="statisticsSearches_dateFieldInput statisticsSearches_datepicker" type="text" id="statisticsSearches_dateFieldDateEnd">
+				<div class="button_black" id="statisticsSearches_refresh">Refresh</div>	
+				</div>
+				<div id="statisticsSearches_scaleBloc">
+					<div class="statisticsSearches_scaleOption" id="statisticsSearches_scaleDayOption">
+						<input class="statisticsSearches_scaleButton" type="radio" name="statisticsSearches_scale" id="statisticsSearches_scaleDay" value="day">&nbsp;
+						<p id="statisticsSearches_scaleDayLabel" style="display: inline-block;">Per day</p>
+					</div>
+					<div class="statisticsSearches_scaleOption" id="statisticsSearches_scaleHourOption">
+						<input class="statisticsSearches_scaleButton" type="radio" name="statisticsSearches_scale" id="statisticsSearches_scaleHour" value="hour">&nbsp;
+						<p id="statisticsSearches_scaleHourLabel" style="display: inline-block;">Per hour</p>
+					</div>
+				</div>
+			</div>
+			<div id ="statisticsSearches_emptyGraphOptions"></div>
+        	<div id="statisticsSearches_table"></div>
+			<div id="statisticsSearches_graph"></div>
+			<!-- div>download serie</div -->
+		</div>		
+	</div>
+</body>
+</html>

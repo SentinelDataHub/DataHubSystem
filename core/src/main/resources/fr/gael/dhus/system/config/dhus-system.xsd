@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	version="1.0" elementFormDefault="qualified" xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+	jxb:version="2.1" xmlns:inheritance="http://jaxb2-commons.dev.java.net/basic/inheritance"
+	xmlns:annox="http://annox.dev.java.net" jxb:extensionBindingPrefixes="inheritance annox"
+	xmlns:dhusSystem="fr.gael.dhus.database.object.config.system"
+	targetNamespace="fr.gael.dhus.database.object.config.system">
+
+	<xs:annotation>
+		<xs:appinfo>
+			<jxb:schemaBindings>
+				<jxb:package name="fr.gael.dhus.database.object.config.system" />
+			</jxb:schemaBindings>
+		</xs:appinfo>
+	</xs:annotation>
+
+	<xs:complexType name="systemConfiguration">
+		<xs:annotation>
+			<xs:appinfo>
+				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
+				</inheritance:extends>
+				<annox:annotate>@javax.persistence.Embeddable</annox:annotate>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:all>
+			<xs:element minOccurs="0" name="administrator"
+				type="dhusSystem:administratorConfiguration">
+				<xs:annotation>
+					<xs:appinfo>
+						<jxb:property name="administratorConfiguration" />
+						<annox:annotate target="field">@javax.persistence.Transient
+						</annox:annotate>
+					</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="archive"
+				type="dhusSystem:archiveConfiguration">
+				<xs:annotation>
+					<xs:appinfo>
+						<jxb:property name="archiveConfiguration" />
+						<annox:annotate target="field">@javax.persistence.Transient
+						</annox:annotate>
+					</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="database"
+				type="dhusSystem:databaseConfiguration">
+				<xs:annotation>
+					<xs:appinfo>
+						<jxb:property name="databaseConfiguration" />
+						<annox:annotate target="field">@javax.persistence.Transient
+						</annox:annotate>
+					</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="name"
+				type="dhusSystem:nameConfiguration">
+				<xs:annotation>
+					<xs:appinfo>
+						<jxb:property name="nameConfiguration" />
+						<annox:annotate target="field">@javax.persistence.Embedded
+						</annox:annotate>
+					</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="processing"
+				type="dhusSystem:processingConfiguration">
+				<xs:annotation>
+					<xs:appinfo>
+						<jxb:property name="processingConfiguration" />
+						<annox:annotate target="field">@javax.persistence.Transient
+						</annox:annotate>
+					</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="support"
+				type="dhusSystem:supportConfiguration">
+				<xs:annotation>
+					<xs:appinfo>
+						<jxb:property name="supportConfiguration" />
+						<annox:annotate target="field">@javax.persistence.Embedded
+						</annox:annotate>
+					</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="tomcat"
+				type="dhusSystem:tomcatConfiguration">
+				<xs:annotation>
+					<xs:appinfo>
+						<jxb:property name="tomcatConfiguration" />
+						<annox:annotate target="field">@javax.persistence.Transient
+						</annox:annotate>
+					</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+		</xs:all>
+	</xs:complexType>
+
+	<xs:complexType name="administratorConfiguration">
+		<xs:annotation>
+			<xs:appinfo>
+				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
+				</inheritance:extends>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:all />
+		<xs:attribute name="name" type="xs:string" />
+		<xs:attribute name="password" type="xs:string" />
+	</xs:complexType>
+
+	<xs:complexType name="databaseConfiguration">
+		<xs:annotation>
+			<xs:appinfo>
+				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
+				</inheritance:extends>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:all />
+		<xs:attribute name="dumpPath" type="xs:string" />
+		<xs:attribute name="path" type="xs:string" />
+		<xs:attribute name="settings" type="xs:string" />
+	</xs:complexType>
+
+	<xs:complexType name="nameConfiguration">
+		<xs:annotation>
+			<xs:appinfo>
+				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
+				</inheritance:extends>
+				<annox:annotate>@javax.persistence.Embeddable</annox:annotate>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:all />
+		<xs:attribute name="long" type="xs:string">
+			<xs:annotation>
+				<xs:appinfo>
+					<jxb:property name="longName" />
+					<annox:annotate target="field">@javax.persistence.Column(name="SYSTEM_LONGNAME",
+						nullable=false)
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="short" type="xs:string">
+			<xs:annotation>
+				<xs:appinfo>
+					<jxb:property name="shortName" />
+					<annox:annotate target="field">@javax.persistence.Column(name="SYSTEM_SHORTNAME",
+						nullable=false)
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+
+	<xs:complexType name="processingConfiguration">
+		<xs:annotation>
+			<xs:appinfo>
+				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
+				</inheritance:extends>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:all />
+		<xs:attribute name="corePoolSize" type="xs:int" />
+		<xs:attribute name="maxPoolSize" type="xs:int" />
+		<xs:attribute name="queueCapacity" type="xs:int" />
+	</xs:complexType>
+
+	<xs:complexType name="supportConfiguration">
+		<xs:annotation>
+			<xs:appinfo>
+				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
+				</inheritance:extends>
+				<annox:annotate>@javax.persistence.Embeddable</annox:annotate>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:all />
+		<xs:attribute name="mail" type="xs:string">
+			<xs:annotation>
+				<xs:appinfo>
+					<annox:annotate target="field">@javax.persistence.Column(name="SYSTEM_SUPPORTMAIL",
+						nullable=false)
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="name" type="xs:string">
+			<xs:annotation>
+				<xs:appinfo>
+					<annox:annotate target="field">@javax.persistence.Column(name="SYSTEM_SUPPORTNAME",
+						nullable=false)
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+
+	<xs:complexType name="tomcatConfiguration">
+		<xs:annotation>
+			<xs:appinfo>
+				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
+				</inheritance:extends>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:all />
+		<xs:attribute name="path" type="xs:string" />
+	</xs:complexType>
+
+	<xs:complexType name="archiveConfiguration">
+		<xs:annotation>
+			<xs:appinfo>
+				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
+				</inheritance:extends>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:all>
+			<xs:element minOccurs="0" name="eviction"
+				type="dhusSystem:evictionConfiguration">
+				<xs:annotation>
+					<xs:appinfo>
+						<jxb:property name="evictionConfiguration" />
+					</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="incoming"
+				type="dhusSystem:incomingConfiguration">
+				<xs:annotation>
+					<xs:appinfo>
+						<jxb:property name="incomingConfiguration" />
+					</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+		</xs:all>
+		<xs:attribute name="path" type="xs:string" />
+	</xs:complexType>
+
+	<xs:complexType name="evictionConfiguration">
+		<xs:annotation>
+			<xs:appinfo>
+				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
+				</inheritance:extends>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:all />
+		<xs:attribute name="keepPeriod" type="xs:int" />
+		<xs:attribute name="maxDiskUsage" type="xs:int" />
+		<xs:attribute name="maxEvictedProducts" type="xs:int" />
+	</xs:complexType>
+
+	<xs:complexType name="incomingConfiguration">
+		<xs:annotation>
+			<xs:appinfo>
+				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
+				</inheritance:extends>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:all />
+		<xs:attribute name="maxFileNo" type="xs:int" />
+		<xs:attribute name="path" type="xs:string" />
+	</xs:complexType>
+
+</xs:schema>

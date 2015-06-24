@@ -1,0 +1,607 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<databaseChangeLog
+   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+         
+    <changeSet author="nico" id="createTableAccessRestriction">
+        <createTable tableName="ACCESS_RESTRICTION">
+            <column name="ACCESS_RESTRICTION" type="VARCHAR(31)">
+                <constraints nullable="false"/>
+            </column>
+            <column autoIncrement="true" name="ID" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="SYS_PK_10110"/>
+            </column>
+            <column name="BLOCKING_REASON" type="VARCHAR(255)"/>
+            <column name="EXPIRED" type="BOOLEAN"/>
+            <column name="REGISTRATION" type="TIMESTAMP"/>
+            <column name="CREATION" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>    
+    <changeSet author="nico" id="createTableActionRecordDownloads">
+        <createTable tableName="ACTION_RECORD_DOWNLOADS">
+            <column autoIncrement="true" name="ID" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="SYS_PK_10122"/>
+            </column>
+            <column name="CREATED" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="UPDATED" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="NAME" type="VARCHAR(255)"/>
+            <column name="STATUS" type="VARCHAR(255)"/>
+            <column name="PRODUCT_IDENTIFIER" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="PRODUCT_SIZE" type="BIGINT"/>
+            <column name="USERS_ID" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableActionRecordLogons">
+        <createTable tableName="ACTION_RECORD_LOGONS">
+            <column autoIncrement="true" name="ID" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="SYS_PK_10129"/>
+            </column>
+            <column name="CREATED" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="UPDATED" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="NAME" type="VARCHAR(255)"/>
+            <column name="STATUS" type="VARCHAR(255)"/>
+            <column name="USERS_ID" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableActionRecordSearches">
+        <createTable tableName="ACTION_RECORD_SEARCHES">
+            <column autoIncrement="true" name="ID" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="SYS_PK_10135"/>
+            </column>
+            <column name="CREATED" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="UPDATED" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="NAME" type="VARCHAR(255)"/>
+            <column name="STATUS" type="VARCHAR(255)"/>
+            <column name="SEARCH" type="VARCHAR(5000)"/>
+            <column name="USERS_ID" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableActionRecordUploads">
+        <createTable tableName="ACTION_RECORD_UPLOADS">
+            <column autoIncrement="true" name="ID" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="SYS_PK_10142"/>
+            </column>
+            <column name="CREATED" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="UPDATED" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="NAME" type="VARCHAR(255)"/>
+            <column name="STATUS" type="VARCHAR(255)"/>
+            <column name="NOTIFICATION" type="BOOLEAN"/>
+            <column name="PRODUCT_IDENTIFIER" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="PRODUCT_SIZE" type="BIGINT"/>
+            <column name="USERS_ID" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableArchives">
+        <createTable tableName="ARCHIVES">
+            <column autoIncrement="true" name="ID" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="SYS_PK_10150"/>
+            </column>
+            <column name="DESCRIPTION" type="VARCHAR(255)"/>
+            <column name="INCOMING_PATH" type="VARCHAR(255)"/>
+            <column defaultValueNumeric="10" name="MARGIN" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="NAME" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="PASSWORD" type="VARCHAR(255)"/>
+            <column name="PATH" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="SIZE" type="BIGINT"/>
+            <column name="USERNAME" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableCartProducts">
+        <createTable tableName="CART_PRODUCTS">
+            <column name="CART_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="PRODUCT_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableCollections">
+        <createTable tableName="COLLECTIONS">
+            <column autoIncrement="true" name="ID" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="SYS_PK_10164"/>
+            </column>
+            <column name="DESCRIPTION" type="VARCHAR(1024)"/>
+            <column name="NAME" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="PARENT_COLLECTION_ID" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableCollectionIdName">
+        <createTable tableName="COLLECTION_ID_NAME">
+            <column name="ACTION_RECORD_UPLOAD_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="COLLECTIONNAMELIST" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableCollectionProduct">
+        <createTable tableName="COLLECTION_PRODUCT">
+            <column name="COLLECTIONS_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="PRODUCTS_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableCollectionUserAuth">
+        <createTable tableName="COLLECTION_USER_AUTH">
+            <column name="COLLECTIONS_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="USERS_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableEviction">
+        <createTable tableName="EVICTION">
+            <column autoIncrement="true" name="ID" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="SYS_PK_10186"/>
+            </column>
+            <column name="KEEP_PERIOD" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="MAX_DISK_USAGE" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="EVICTION_MAX_PRODUCT_NUMBER" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="STRATEGY" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableFilescannerCollections">
+        <createTable tableName="FILESCANNER_COLLECTIONS">
+            <column name="FILE_SCANNER_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="COLLECTIONS_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableFilescanner">
+        <createTable tableName="FILE_SCANNER">
+            <column autoIncrement="true" name="ID" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="SYS_PK_10201"/>
+            </column>
+            <column name="ACTIVE" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CRON_SCHEDULE" type="VARCHAR(255)"/>
+            <column name="PASSWORD" type="VARCHAR(255)"/>
+            <column name="PATTERN" type="VARCHAR(255)"/>
+            <column name="STATUS" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="STATUS_MESSAGE" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="URL" type="VARCHAR(255)"/>
+            <column name="USERNAME" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableFilescannerPreferences">
+        <createTable tableName="FILE_SCANNER_PREFERENCES">
+            <column name="PREFERENCE_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="FILE_SCANNER_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableMetadataIndexes">
+        <createTable tableName="METADATA_INDEXES">
+            <column autoIncrement="true" name="ID" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="SYS_PK_10225"/>
+            </column>
+            <column name="CATEGORY" type="VARCHAR(255)"/>
+            <column name="NAME" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="QUERYABLE" type="VARCHAR(255)"/>
+            <column name="TYPE" type="VARCHAR(255)"/>
+            <column name="VALUE" type="VARCHAR(4096)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableOwner">
+        <createTable tableName="OWNER">
+            <column name="USER_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="OWNEROFPRODUCT" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTablePreferences">
+        <createTable tableName="PREFERENCES">
+            <column autoIncrement="true" name="ID" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="SYS_PK_10232"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableProductCarts">
+        <createTable tableName="PRODUCTCARTS">
+            <column autoIncrement="true" name="ID" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="SYS_PK_10234"/>
+            </column>
+            <column name="USER_ID" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableProducts">
+        <createTable tableName="PRODUCTS">
+            <column autoIncrement="true" name="ID" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="SYS_PK_10242"/>
+            </column>
+            <column name="CREATED" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="UPDATED" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="DOWNLOAD_PATH" type="VARCHAR(255)"/>
+            <column name="FOOTPRINT" type="VARCHAR(4096)"/>
+            <column defaultValueNumeric="0" name="HITS" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="IDENTIFIER" type="VARCHAR(255)"/>
+            <column defaultValueBoolean="false" name="LOCKED" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ORIGIN" type="VARCHAR(255)"/>
+            <column name="PATH" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column defaultValueBoolean="false" name="PROCESSED" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="QUICKLOOK" type="BLOB"/>
+            <column name="SIZE" type="BIGINT"/>
+            <column name="THUMBNAIL" type="BLOB"/>
+            <column name="ARCHIVE_ID" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableProductIndexes">
+        <createTable tableName="PRODUCT_INDEXES">
+            <column name="PRODUCT_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="INDEXES_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableProductUserAuth">
+        <createTable tableName="PRODUCT_USER_AUTH">
+            <column name="PRODUCTS_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="USERS_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableQuotas">
+        <createTable tableName="QUOTAS">
+            <column autoIncrement="true" name="ID" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="SYS_PK_10264"/>
+            </column>
+            <column name="CONNECTIONS" type="numeric(19, 2)"/>
+            <column name="DOWNLOADS" type="numeric(19, 2)"/>
+            <column name="UPLOADS" type="numeric(19, 2)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableSearches">
+        <createTable tableName="SEARCHES">
+            <column autoIncrement="true" name="ID" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="SYS_PK_10266"/>
+            </column>
+            <column name="COMPLETE" type="VARCHAR(5000)"/>
+            <column name="FOOTPRINT" type="VARCHAR(255)"/>
+            <column name="NOTIFY" type="BOOLEAN"/>
+            <column name="VALUE" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableSearchAdvanced">
+        <createTable tableName="SEARCH_ADVANCED">
+            <column name="SEARCH_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ADVANCED" type="VARCHAR(255)"/>
+            <column name="ADVANCED_KEY" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableSearchPreferences">
+        <createTable tableName="SEARCH_PREFERENCES">
+            <column name="PREFERENCE_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="SEARCHES_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableSystem">
+        <createTable tableName="SYSTEM">
+            <column autoIncrement="true" name="ID" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="SYS_PK_10276"/>
+            </column>
+            <column name="SYSTEM_PASSWORD" type="VARCHAR(255)"/>
+            <column name="SYSTEM_USERNAME" type="VARCHAR(255)"/>
+            <column name="MAIL_FROM_EMAIL" type="VARCHAR(255)"/>
+            <column name="MAIL_FROM_NAME" type="VARCHAR(255)"/>
+            <column name="MAIL_REPLY_TO" type="VARCHAR(255)"/>
+            <column name="MAIL_SERVER_HOSTNAME" type="VARCHAR(255)"/>
+            <column name="MAIL_SERVER_PASSWORD" type="VARCHAR(255)"/>
+            <column name="MAIL_SERVER_PORT" type="INT"/>
+            <column name="MAIL_SERVER_TLS" type="BOOLEAN"/>
+            <column name="MAIL_SERVER_USERNAME" type="VARCHAR(255)"/>
+            <column name="PROC_QUICKLOOK_CUTTING" type="BOOLEAN"/>
+            <column name="PROC_QUICKLOOK_HEIGHT" type="INT"/>
+            <column name="PROC_QUICKLOOK_WIDTH" type="INT"/>
+            <column name="SYSTEM_SUPPORT_MAIL" type="VARCHAR(255)"/>
+            <column name="SYSTEM_SUPPORT_NAME" type="VARCHAR(255)"/>
+            <column name="PROC_THUMBNAIL_CUTTING" type="BOOLEAN"/>
+            <column name="PROC_THUMBNAIL_HEIGHT" type="INT"/>
+            <column name="PROC_THUMBNAIL_WIDTH" type="INT"/>
+            <column name="USER_EMAIL_ON_CREATE" type="BOOLEAN"/>
+            <column name="USER_EMAIL_ON_DELETE" type="BOOLEAN"/>
+            <column name="USER_EMAIL_ON_UPDATE" type="BOOLEAN"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableUsers">
+        <createTable tableName="USERS">
+            <column autoIncrement="true" name="ID" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="SYS_PK_10290"/>
+            </column>
+            <column name="CREATED" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="UPDATED" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ADDRESS" type="VARCHAR(255)"/>
+            <column defaultValue="unknown" name="COUNTRY" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="DELETED" type="BOOLEAN"/>
+            <column defaultValue="unknown" name="DOMAIN" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="EMAIL" type="VARCHAR(255)"/>
+            <column name="FIRSTNAME" type="VARCHAR(255)"/>
+            <column name="LASTNAME" type="VARCHAR(255)"/>
+            <column name="PASSWORD" type="VARCHAR(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="PHONE" type="VARCHAR(255)"/>
+            <column defaultValue="unknown" name="SUBDOMAIN" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column defaultValue="unknown" name="SUBUSAGE" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column defaultValue="unknown" name="USAGE" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="LOGIN" type="VARCHAR(255)"/>
+            <column name="PREFERENCES_ID" type="BIGINT"/>
+            <column name="QUOTA_ID" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableUserRestrictions">
+        <createTable tableName="USER_RESTRICTIONS">
+            <column name="USER_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="RESTRICTION_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="createTableUserRoles">
+        <createTable tableName="USER_ROLES">
+            <column name="USER_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ROLES" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="nico" id="addPrimaryKeyCartProducts">
+        <addPrimaryKey columnNames="CART_ID, PRODUCT_ID" constraintName="SYS_PK_10159" tableName="CART_PRODUCTS"/>
+    </changeSet>
+    <changeSet author="nico" id="addPrimaryKeyCollectionProduct">
+        <addPrimaryKey columnNames="COLLECTIONS_ID, PRODUCTS_ID" constraintName="SYS_PK_10172" tableName="COLLECTION_PRODUCT"/>
+    </changeSet>
+    <changeSet author="nico" id="addPrimaryKeyCollectionUserAuth">
+        <addPrimaryKey columnNames="COLLECTIONS_ID, USERS_ID" constraintName="SYS_PK_10178" tableName="COLLECTION_USER_AUTH"/>
+    </changeSet>
+    <changeSet author="nico" id="addPrimaryKeyFilescannerCollections">
+        <addPrimaryKey columnNames="FILE_SCANNER_ID, COLLECTIONS_ID" constraintName="SYS_PK_10194" tableName="FILESCANNER_COLLECTIONS"/>
+    </changeSet>
+    <changeSet author="nico" id="addPrimaryKeyFilescannerPreferences">
+        <addPrimaryKey columnNames="PREFERENCE_ID, FILE_SCANNER_ID" constraintName="SYS_PK_10208" tableName="FILE_SCANNER_PREFERENCES"/>
+    </changeSet>
+    <changeSet author="nico" id="addPrimaryKeyProductIndexes">
+        <addPrimaryKey columnNames="PRODUCT_ID, INDEXES_ID" constraintName="SYS_PK_10252" tableName="PRODUCT_INDEXES"/>
+    </changeSet>
+    <changeSet author="nico" id="addPrimaryKeyProductUserAuth">
+        <addPrimaryKey columnNames="PRODUCTS_ID, USERS_ID" constraintName="SYS_PK_10260" tableName="PRODUCT_USER_AUTH"/>
+    </changeSet>
+    <changeSet author="nico" id="addPrimaryKeySearchPreferences">
+        <addPrimaryKey columnNames="PREFERENCE_ID, SEARCHES_ID" constraintName="SYS_PK_10270" tableName="SEARCH_PREFERENCES"/>
+    </changeSet>
+    <changeSet author="nico" id="addPrimaryKeySearchAdvanced">
+        <addPrimaryKey columnNames="SEARCH_ID, ADVANCED_KEY" constraintName="SYS_PK_10279" tableName="SEARCH_ADVANCED"/>
+    </changeSet>
+    <changeSet author="nico" id="addPrimaryKeyUserRestrictions">
+        <addPrimaryKey columnNames="USER_ID, RESTRICTION_ID" constraintName="SYS_PK_10311" tableName="USER_RESTRICTIONS"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyFileScannerPreferences_FileScannerID">
+        <addForeignKeyConstraint baseColumnNames="FILE_SCANNER_ID" baseTableName="FILE_SCANNER_PREFERENCES" constraintName="FK2A015AB42452CDA0" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="FILE_SCANNER"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyFileScannerPreferences_PreferenceID">
+        <addForeignKeyConstraint baseColumnNames="PREFERENCE_ID" baseTableName="FILE_SCANNER_PREFERENCES" constraintName="FK2A015AB42E8034DB" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="PREFERENCES"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyActionRecordLogons_UsersID">
+        <addForeignKeyConstraint baseColumnNames="USERS_ID" baseTableName="ACTION_RECORD_LOGONS" constraintName="FK2DE06158D6F7C3E" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="USERS"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyCartProducts_ProductID">
+        <addForeignKeyConstraint baseColumnNames="PRODUCT_ID" baseTableName="CART_PRODUCTS" constraintName="FK31F703A36934E9F9" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="PRODUCTS"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyCartProducts_CartID">
+        <addForeignKeyConstraint baseColumnNames="CART_ID" baseTableName="CART_PRODUCTS" constraintName="FK31F703A3C28D3A68" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="PRODUCTCARTS"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyActionRecordUploads_UsersID">
+        <addForeignKeyConstraint baseColumnNames="USERS_ID" baseTableName="ACTION_RECORD_UPLOADS" constraintName="FK36F5EDAD8D6F7C3E" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="USERS"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyProductIndexes_ProductID">
+        <addForeignKeyConstraint baseColumnNames="PRODUCT_ID" baseTableName="PRODUCT_INDEXES" constraintName="FK440695706934E9F9" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="PRODUCTS"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyProductIndexes_IndexesID">
+        <addForeignKeyConstraint baseColumnNames="INDEXES_ID" baseTableName="PRODUCT_INDEXES" constraintName="FK44069570D9F38AFC" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="METADATA_INDEXES"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyUserRestrictions_RestrictionID">
+        <addForeignKeyConstraint baseColumnNames="RESTRICTION_ID" baseTableName="USER_RESTRICTIONS" constraintName="FK442C961B534F0DBD" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="ACCESS_RESTRICTION"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyUserRestrictions_UserID">
+        <addForeignKeyConstraint baseColumnNames="USER_ID" baseTableName="USER_RESTRICTIONS" constraintName="FK442C961B947EA39B" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="USERS"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyOwner_UserID">
+        <addForeignKeyConstraint baseColumnNames="USER_ID" baseTableName="OWNER" constraintName="FK481FA93947EA39B" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="USERS"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyUsers_PreferencesID">
+        <addForeignKeyConstraint baseColumnNames="PREFERENCES_ID" baseTableName="USERS" constraintName="FK4D495E823A4019E" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="PREFERENCES"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyUsers_QuotaID">
+        <addForeignKeyConstraint baseColumnNames="QUOTA_ID" baseTableName="USERS" constraintName="FK4D495E8D693AD19" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="QUOTAS"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyActionRecordDownloads_UserID">
+        <addForeignKeyConstraint baseColumnNames="USERS_ID" baseTableName="ACTION_RECORD_DOWNLOADS" constraintName="FK559425468D6F7C3E" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="USERS"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyCollectionProduct_ProductsID">
+        <addForeignKeyConstraint baseColumnNames="PRODUCTS_ID" baseTableName="COLLECTION_PRODUCT" constraintName="FK780B1C2EA7DD9564" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="PRODUCTS"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyCollectionProduct_CollectionsID">
+        <addForeignKeyConstraint baseColumnNames="COLLECTIONS_ID" baseTableName="COLLECTION_PRODUCT" constraintName="FK780B1C2EF4F14BA4" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="COLLECTIONS"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyActionRecordSearches_UsersID">
+        <addForeignKeyConstraint baseColumnNames="USERS_ID" baseTableName="ACTION_RECORD_SEARCHES" constraintName="FK7F86D07B8D6F7C3E" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="USERS"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeySearchPreferences_PreferenceID">
+        <addForeignKeyConstraint baseColumnNames="PREFERENCE_ID" baseTableName="SEARCH_PREFERENCES" constraintName="FK8B26EEC12E8034DB" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="PREFERENCES"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeySearchPreferences_SearchesID">
+        <addForeignKeyConstraint baseColumnNames="SEARCHES_ID" baseTableName="SEARCH_PREFERENCES" constraintName="FK8B26EEC1372BA4CD" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="SEARCHES"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyFilescannerCollections_FilescannerID">
+        <addForeignKeyConstraint baseColumnNames="FILE_SCANNER_ID" baseTableName="FILESCANNER_COLLECTIONS" constraintName="FK991285982452CDA0" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="FILE_SCANNER"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyFileScannerCollections_CollectionsID">
+        <addForeignKeyConstraint baseColumnNames="COLLECTIONS_ID" baseTableName="FILESCANNER_COLLECTIONS" constraintName="FK99128598F4F14BA4" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="COLLECTIONS"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyProductUserAuth_UsersID">
+        <addForeignKeyConstraint baseColumnNames="USERS_ID" baseTableName="PRODUCT_USER_AUTH" constraintName="FKA2C82E2C8D6F7C3E" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="USERS"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyProductUserAuth_ProductsID">
+        <addForeignKeyConstraint baseColumnNames="PRODUCTS_ID" baseTableName="PRODUCT_USER_AUTH" constraintName="FKA2C82E2CA7DD9564" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="PRODUCTS"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeySearchAdvanced_SearchID">
+        <addForeignKeyConstraint baseColumnNames="SEARCH_ID" baseTableName="SEARCH_ADVANCED" constraintName="FKB838C8B9C0F90E3B" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="SEARCHES"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyUserRoles_UserID">
+        <addForeignKeyConstraint baseColumnNames="USER_ID" baseTableName="USER_ROLES" constraintName="FKC6C79929947EA39B" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="USERS"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyProductCarts_UserID">
+        <addForeignKeyConstraint baseColumnNames="USER_ID" baseTableName="PRODUCTCARTS" constraintName="FKC6C7C1C4947EA39B" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="USERS"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyCollectionIDName_ActionRecordUploadID">
+        <addForeignKeyConstraint baseColumnNames="ACTION_RECORD_UPLOAD_ID" baseTableName="COLLECTION_ID_NAME" constraintName="FKEEC15E8E1EAFDF9D" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="ACTION_RECORD_UPLOADS"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyCollections_ParentCollectionID">
+        <addForeignKeyConstraint baseColumnNames="PARENT_COLLECTION_ID" baseTableName="COLLECTIONS" constraintName="FKEED3B975C726A326" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="COLLECTIONS"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyProducts_ArchiveID">
+        <addForeignKeyConstraint baseColumnNames="ARCHIVE_ID" baseTableName="PRODUCTS" constraintName="FKF2D1C164E057F519" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="ARCHIVES"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyCollectionUserAuth_UsersID">
+        <addForeignKeyConstraint baseColumnNames="USERS_ID" baseTableName="COLLECTION_USER_AUTH" constraintName="FKF65DB93B8D6F7C3E" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="USERS"/>
+    </changeSet>
+    <changeSet author="nico" id="addForeignKeyCollectionUserAuth_CollectionsID">
+        <addForeignKeyConstraint baseColumnNames="COLLECTIONS_ID" baseTableName="COLLECTION_USER_AUTH" constraintName="FKF65DB93BF4F14BA4" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="COLLECTIONS"/>
+    </changeSet>
+    <changeSet author="nico" id="addUniqueArchives_Path">
+        <addUniqueConstraint columnNames="PATH" constraintName="SYS_CT_20151" deferrable="false" disabled="false" initiallyDeferred="false" tableName="ARCHIVES"/>
+    </changeSet>
+    <changeSet author="nico" id="addUniqueFilescannerPreferences_FilescannerID">
+        <addUniqueConstraint columnNames="FILE_SCANNER_ID" constraintName="SYS_CT_20209" deferrable="false" disabled="false" initiallyDeferred="false" tableName="FILE_SCANNER_PREFERENCES"/>
+    </changeSet>
+    <changeSet author="nico" id="addUniqueProductIndexes_IndexesID">
+        <addUniqueConstraint columnNames="INDEXES_ID" constraintName="SYS_CT_10253" deferrable="false" disabled="false" initiallyDeferred="false" tableName="PRODUCT_INDEXES"/>
+    </changeSet>
+    <changeSet author="nico" id="addUniqueSearchPreferences_SearchesID">
+        <addUniqueConstraint columnNames="SEARCHES_ID" constraintName="SYS_CT_20271" deferrable="false" disabled="false" initiallyDeferred="false" tableName="SEARCH_PREFERENCES"/>
+    </changeSet>
+    <changeSet author="nico" id="addUniqueUsers_Login">
+        <addUniqueConstraint columnNames="LOGIN" constraintName="SYS_CT_20291" deferrable="false" disabled="false" initiallyDeferred="false" tableName="USERS"/>
+    </changeSet>
+    <changeSet author="nico" id="addUniqueUserRestrictions_RestrictionID">
+        <addUniqueConstraint columnNames="RESTRICTION_ID" constraintName="SYS_CT_20312" deferrable="false" disabled="false" initiallyDeferred="false" tableName="USER_RESTRICTIONS"/>
+    </changeSet>
+</databaseChangeLog>

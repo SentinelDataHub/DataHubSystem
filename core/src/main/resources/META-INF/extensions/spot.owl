@@ -1,0 +1,394 @@
+<?xml version="1.0"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE rdf:RDF [
+  <!ENTITY rdf  "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#">
+  <!ENTITY owl  "http://www.w3.org/2002/07/owl#">
+  <!ENTITY spot "http://www.gael.fr/fr/spotimage/spot#">
+  <!ENTITY drb  "http://www.gael.fr/drb#">
+  <!ENTITY dhus "http://www.gael.fr/dhus#">
+  <!ENTITY img  "http://www.gael.fr/drb/image#">
+]>
+
+<rdf:RDF xmlns:owl ="&owl;"
+         xmlns:rdf ="&rdf;"
+         xmlns:rdfs="&rdfs;"
+         xmlns:spot="&spot;"
+         xmlns:drb ="&drb;"
+         xmlns:img ="&img;"
+         xmlns:dhus="&dhus;"
+         xml:base  ="http://www.gael.fr/fr/spotimage/spot">
+
+   <owl:Ontology rdf:about="&spot;"/>
+
+    <!-- ======================= -->
+    <!-- SPOT-5                  -->
+    <!-- ======================= -->
+    <owl:Class rdf:about="&spot;SP5">
+       <rdfs:label xml:lang="en">SPOT-5 Product</rdfs:label>
+       <rdfs:subClassOf rdf:resource="&spot;product"/>
+    </owl:Class>
+
+    <!-- ======================= -->
+    <!-- SPOT-5 HRS              -->
+    <!-- ======================= -->
+    <owl:Class rdf:about="&spot;SP5_HRS">
+       <rdfs:label xml:lang="en">SPOT-5 HRS Product</rdfs:label>
+       <rdfs:subClassOf rdf:resource="&spot;SP5"/>
+    </owl:Class>
+
+    <!-- ======================= -->
+    <!-- SPOT-5 HRG            -->
+    <!-- ======================= -->
+    <owl:Class rdf:about="&spot;SP5_HRG">
+       <rdfs:label xml:lang="en">SPOT HRG Product</rdfs:label>
+       <rdfs:subClassOf rdf:resource="&spot;SP5"/>
+    </owl:Class>
+
+   <!-- ***********************************************************************
+   ****************************************************************************
+   *                                                                          *
+   *                                                                          *
+   *                           METADATA EXTRACTION                            *
+   *                                                                          *
+   *                                                                          *
+   ****************************************************************************
+   ************************************************************************ -->
+
+   <rdf:Description rdf:about="&spot;SP5">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         <metadata category="platform" name="Satellite name" type="text/plain">
+            SPOT
+         </metadata>,
+
+         <metadata category="platform" name="Satellite number" type="text/plain">
+            5
+         </metadata>,
+
+         <metadata category="platform" name="NSSDC identifier" type="text/plain">
+            2002-021A
+         </metadata>,
+
+         <metadata category="platform" name="Operator" type="text/plain">
+            Centre National d'Etudes Spatiales
+         </metadata>,
+
+         <metadata category="platform" name="Mission type" type="text/plain">
+            Earth observation
+         </metadata>,
+
+         <metadata category="platform" name="Carrier rocket" type="text/plain">
+            Ariane 4
+         </metadata>,
+
+         <metadata category="platform" name="Launch date" type="text/plain">
+            {xs:dateTime("2002-05-04T00:00:00.000")}
+         </metadata>,
+
+         <metadata category="platform" name="Satellite description" type="text/plain">
+            SPOT-5 is the fifth satellite in the SPOT series of CNES (Space
+            Agency of France), placed into orbit by an Ariane launcher. Since
+            the first SPOT satellite was launched in 1986, the SPOT system has
+            sought to provide continuity of service and constantly improved the
+            quality of its products for the global user community.
+            Background: In 1994 the SPOT-5 program was approved by the French
+            government, consisting initially of two identical S/C in orbit and
+            two new optical imagers for these S/C, called HRG (High Resolution
+            Geometric) and HRS (High Resolution Stereoscopic) to provide a
+            ground resolution of 5m. In 1996, the SPOT-5 program was downsized
+            (to one orbiting S/C) and redefined to improve the spatial
+            resolution of the imagery below 5 m. As a result, an innovative
+            image acquisition and processing scheme has been developed by CNES
+            to obtain spatial resolutions of about 3 m from two 5 m images. In
+            January 1999, a further functional improvement was introduced
+            giving the HRS (High Resolution Stereoscopic) instrument a full
+            stereoscopic capability. It was also decided to continue to fly the
+            Vegetation instrument. The SPOT-5 satellite program continues the
+            partnerships of France (CNES), Belgium (OSTC) and Sweden (SNSB) as
+            established at the beginning of the SPOT program.
+            The overall mission objectives are:
+            * To provide image acquisition and service continuity consistent
+            with previous SPOT satellites to satisfy the user investments.
+            Hence, the same sun-synchronous orbit is used providing the
+            existing functional instrument capabilities with a 26 day repeat
+            cycle, the same off-track viewing capability of +/- 27� about
+            nadir, the same spectral band selection, and the same 60 km double
+            swath.
+            * To improve the spatial resolution of the imagery to < 3 m in the
+            panchromatic band and to 10 m in the multispectral mode. The SWIR
+            band imagery remains at 20 m.
+            * To offer in parallel a stereoscopic along-track observation
+            capability (instead of the previously provided cross-track
+            capability). The intend is to offer high-resolution imagery to be
+            used for DEM (Digital Elevation Model) generation with an accuracy
+            of 10 m.
+            The SPOT-5 satellite configuration takes advantage of the SPOT-4
+            bus design, using the extended platform design (SPOT MK2, provided
+            by MMS) and service module accommodates twice the payload of the
+            SPOT 3 bus. The ACS (Attitude Control Subsystem) provides a
+            pointing accuracy of 0.05� and an attitude restitution of 6 x 10-5
+            radians. This excellent location accuracy [autonomous star tracker
+            SED16 manufactured by EADS- Sodern, France] corresponds to < 50 m
+            without ground control points (instead of 350 m on SPOT 1 to 4).
+            The S/C structure has dimensions of: 3.4 m x 3.1 m x 6 m (excluding
+            the solar array). The OBC (Onboard Processor) consists of a Marconi
+            MDC 31750 processor. The S/C mass is 3030 kg at launch, power =
+            2400 W (EOL), batteries = 4 x 40 Ah, design life = 5-7 years. Note:
+            In 2000 MMS became part of EADS Astrium.
+            The SPOT-5 spacecraft and its payload are operating nominally in
+            2012 (10th year of on-orbit operations). The SPOT-5 local hour is
+            slowly drifting since maneuvers for inclination correction are no
+            more performed (hydrazine is saved for end of life operations). The
+            end-of-life of SPOT-5 has been adjusted to: end of 2014/beginning
+            of 2015.
+         </metadata>,
+
+         <metadata category="instrument" name="Instrument names" type="text/plain">
+            High Resolution Geometric,
+            High Resolution Stereoscopic,
+            Vegetation-2,
+            Doppler Orbitography and Radiopositioning Integrated by Satellite
+         </metadata>,
+
+         <metadata category="instrument" name="Instrument abbreviations" type="text/plain">
+            HRG, HRS, Vegetation, DORIS
+         </metadata>,
+
+         <metadata category="instrument" name="HRG instrument description" type="text/plain">
+            HRG was built by Astrium SAS of V�lizy, France to continue to
+            improve the HRVIR service of SPOT-4. Two HRG instruments are
+            provided in the conventional SPOT-series double-observation
+            configuration, each with a FOV of 4.13� and the same cross-track
+            pointing capabilities of +/- 27+ as the HRVIR imager on SPOT-4. The
+            observation coverage of each HRG is 60 km in the nadir direction
+            and >80 km in the oblique configuration (same two-swath coverage as
+            before). The main components of the HRG instrument are:
+            * Stable structure supporting its mechanisms
+            * Optical subassembly
+            * Detection electronics
+            * Ancillary electronics.
+            HRG features a new linear detector array configuration geometry for
+            the panchromatic band using two parallel rows (i.e., a dual array)
+            of 12000 silicon CCD detectors (6.5 �m in size) for each
+            instrument. The two PAN detector lines are offset in the focal
+            plane in such as way as to provide coincident imagery of the same
+            instantaneous cross-track area, each at a spatial resolution of 5
+            m. [Note: The dual array in the focal plane (offset by one half
+            pixel in one direction and 3.5 pixels in the other to avoid
+            overlapping) is sufficient to improve the sampling grid without
+            doubling each array's acquisition rate. The new sampling concept is
+            based on Shannon's theory of information which states that "the
+            sampling frequency must be equal to or greater than twice the
+            maximum signal frequency" to obtain clean images using
+            interpolation.] The CCD integration time is within 0.75 ms for a
+            dual-array observation in cross-track of 60 km in which the S/C is
+            moving 5 m in the along-track direction.
+         </metadata>,
+
+         <metadata category="instrument" name="HRS instrument description" type="text/plain">
+            The HRS instrument was developed and built by EADS Astrium SAS,
+            sponsored by CNES and SPOT IMAGE.
+            The objective is to provide large-area along-track stereoscopic
+            panchromatic imagery with good altimetric accuracy (5-10 m relative
+            and 10-15 m absolute). Applications of the stereo imagery are seen
+            in various fields such as map making and in the generation of DTMs
+            (Digital Terrain Model) The panchromatic band (0.51-0.73 �m) of
+            SPOT-1, -2, -3 is being reintroduced. The HRS instrument features
+            two telescopes allowing a 20� fore view and a 20� aft view over a
+            120 km swath, respectively. A spatial resolution of 10 m is
+            provided in cross-track and 5 m (parallax direction) in
+            along-track. The stereo acquisition mode can be sustained for scene
+            lengths of up to 600 km. HRS uses the same CCD line detector design
+            as for the HRG instrument. 
+         </metadata>,
+
+         <metadata category="instrument" name="Vegetation-2 instrument description" type="text/plain">
+            An additional sensor for SPOT-5, called Vegetation-2, with a ground
+            swath width of 2200 km, and a resolution close to 1 km [European
+            project with the cooperation of the EC, France (CNES), Sweden
+            (SNSB), Belgium (OSTC) and Italy (ASI), designed by Aerospatiale as
+            the prime contractor and built by SODERN of Limeil-Brivannes],
+            providing the capability of wide-area monitoring of the Earth's
+            vegetation (VMI features advanced optics that allow perfect
+            geometrical rectification of the pictures despite the wide swath
+            width. The VMI optics virtually cancel the curvature of the Earth
+            to provide directly usable geographical information). Calibration
+            accuracy: interband and multitemporal =3%, absolute = 5%; TFOV =
+            101� (swath width of about 2200 km); pixel size = 1.15 km at nadir;
+            location accuracy < 0.5 km, local distortion <0.3 pixel,
+            collocation with HRVIR sensor data = 0.3 km for simultaneous
+            acquisitions. Spatial coverage: about 90% of the equatorial regions
+            are imaged each day (total daily imaging for latitudes >35�).
+            The instrument collects radiation reflected by the earth's surface.
+            Silicon linear detector arrays are used for spectral band B0
+            (blue), B2 (red) and B3 (near infrared), while InGaAs photodiodes
+            (Thomson CSF) are used for the SWIR (Short Wave Infrared) band.
+            Each array features 1728 individual CCD detectors. The output
+            voltage signals are fed to a multiplexer (prior to this, SWIR
+            voltages are adjusted for dark current values), then to a single
+            analog to digital converter(ADC). All sensors are processed by a
+            single high precision 11 bit ADC, thus completely by-passing the
+            problem of electronic interband calibration.
+            The Vegetation package is an independent add-on payload to the SPOT
+            satellite [the package includes the sensor, a solid-state recorder
+            (up to 97 minutes of imagery), an X- and L-band telemetry
+            subsystem, and a computer]. The instrument design uses four
+            cameras, one for each spectral band, each camera is covering the
+            TFOV. Vegetation payload parameters: mass = 152 kg, power = 200 W,
+            instrument size = 0.7 m x 1 m x 1 m, data transmit frequencies in
+            X-band (8153 MHz) at 3.4 Mbit/s, and L-band (1704 MHz), data rate
+            of sensor (L-band) = 510 kbit/s.
+         </metadata>,
+
+         <metadata category="instrument" name="DORIS instrument description" type="text/plain">
+            DORIS is a satellite-based orbit determination and radiopositioning
+            system, designed and developed by CNES, GRGS (Groupe de Recherches
+            de G�od�sie Spatiale), CNRS/Universit� Paul Sabatier) and IGN
+            (Institut G�ographique National). The SPOT-4 DORIS package includes
+            experimental software (DORIS/DIODE experiment) to provide the POD
+            (Precise Orbit Determination) function in real-time to within <0.3
+            m on the radial component. 23)
+            DORIS is an RF system using a dual-frequency Doppler (400 MHz and 2
+            GHz) uplink to measure the velocity of a satellite in orbit
+            relative to a global, permanent network of 51 so-called
+            "orbitography" beacons. At the same time the system can be used to
+            locate beacons on the ground. Two "master" beacons serve as time
+            and frequency references for the system and also handle uploading
+            of the commands and data needed by the onboard receiver.
+            The instrument consists of a receiver (MVR- range rate measuring
+            device), a USO (Ultrastable Oscillator) and an omnidirectional
+            antenna, all carried on the host satellite. The receiver takes
+            Doppler shift measurements of 400 MHz and 2 GHz radio signals
+            transmitted by the beacons. The 400 MHz measurement is being used
+            to correct errors caused by ionospheric signal propagation.
+         </metadata>,
+
+         <metadata category="product" name="Data file format" type="text/plain">
+            {data(*/*[matches(name(),
+             "(?i)METADATA\.DIM")]/Dimap_Document/Data_Access/DATA_FILE_FORMAT)}
+         </metadata>,
+
+         <metadata category="product" name="Dataset location" type="text/plain">
+            {data(*/*[matches(name(),
+             "(?i)METADATA\.DIM")]/Dimap_Document/Dataset_Id/DATASET_LOCATION)}
+         </metadata>,
+
+         <metadata category="product" name="Country code" type="text/plain">
+            {data(*/*[matches(name(),
+             "(?i)METADATA\.DIM")]/Dimap_Document/Dataset_Id/COUNTRY_CODE)}
+         </metadata>,
+
+         <metadata category="product" name="Geometric processing" type="text/plain">
+            {data(*/*[matches(name(),
+             "(?i)METADATA\.DIM")]/Dimap_Document/Data_Processing/GEOMETRIC_PROCESSING)}
+         </metadata>,
+
+         <metadata category="product" name="Relative orbit number" type="text/plain">
+            {data(*/*[matches(name(),
+             "(?i)METADATA\.DIM")]/Dimap_Document/Dataset_Sources/Source_Information[1]/Scene_Source/Imaging_Parameters/REVOLUTION_NUMBER)}
+         </metadata>,
+
+         <metadata category="product" name="Processing time" type="text/plain">
+            {
+                let $tmpdate := data(*/*[matches(name(),
+                 "(?i)METADATA\.DIM")]/Dimap_Document/Production/DATASET_PRODUCTION_DATE)
+                let $processingTime := if(string-length($tmpdate) = 10)
+                                       then concat($tmpdate,"T00:00:00.000Z")
+                                       else $tmpdate
+            }
+         </metadata>,
+
+         <metadata category="product" name="Sensing datetime" type="text/plain">
+            {concat(data(*/*[matches(name(),
+             "(?i)METADATA\.DIM")]/Dimap_Document/Dataset_Sources/Source_Information[SOURCE_TYPE="SCENE"][1]/Scene_Source/IMAGING_DATE),
+             "T",util:data($source/IMAGING_TIME))}
+         </metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+
+   <rdf:Description rdf:about="&spot;footPrintProduct">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         <metadata category="product" name="Footprint" type="application/gml">
+            <gml:Polygon srsName="http://www.opengis.net/gml/srs/epsg.xml#4326"
+               xmlns:gml="http://www.opengis.net/gml">
+               <gml:outerBoundaryIs>
+                  <gml:LinearRing>
+                     <gml:coordinates>
+                     {
+                         concat(
+                            data(*/*[matches(name(),"(?i)METADATA\.DIM")]/Dimap_Document/Dataset_Frame/Vertex[1]/FRAME_LAT),
+                            ","
+                            data(*/*[matches(name(),"(?i)METADATA\.DIM")]/Dimap_Document/Dataset_Frame/Vertex[1]/FRAME_LON),
+                            " "
+                            data(*/*[matches(name(),"(?i)METADATA\.DIM")]/Dimap_Document/Dataset_Frame/Vertex[2]/FRAME_LAT),
+                            ","
+                            data(*/*[matches(name(),"(?i)METADATA\.DIM")]/Dimap_Document/Dataset_Frame/Vertex[2]/FRAME_LON),
+                            " "
+                            data(*/*[matches(name(),"(?i)METADATA\.DIM")]/Dimap_Document/Dataset_Frame/Vertex[3]/FRAME_LAT),
+                            ","
+                            data(*/*[matches(name(),"(?i)METADATA\.DIM")]/Dimap_Document/Dataset_Frame/Vertex[3]/FRAME_LON),
+                            " "
+                            data(*/*[matches(name(),"(?i)METADATA\.DIM")]/Dimap_Document/Dataset_Frame/Vertex[4]/FRAME_LAT),
+                            ","
+                            data(*/*[matches(name(),"(?i)METADATA\.DIM")]/Dimap_Document/Dataset_Frame/Vertex[4]/FRAME_LON),
+                            " "
+                     }
+                      </gml:coordinates>
+                  </gml:LinearRing>
+               </gml:outerBoundaryIs>
+            </gml:Polygon>
+         </metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+
+   <rdf:Description rdf:about="&spot;SP5">
+      <rdfs:subClassOf rdf:resource="&spot;footPrintProduct"/>
+      <dhus:identifier rdf:parseType="Literal">
+      <![CDATA[
+         fn:replace(name (.), '\.(tar|TAR|dir|DIR)', '')
+      ]]>
+      </dhus:identifier>
+      <img:descriptor rdf:parseType="Literal">
+         <img:query>
+         <![CDATA[
+           let $previews := */*[fn:matches(name(), "SPVIEW.*")]/PREVIEW.JPG
+           return 
+              <img:collection xmlns:img="http://www.gael.fr/drb/image#">
+              {
+                 for $p in $previews
+                 return
+                    <img:raster">
+                       <img:source>
+                          {drb:path($p)}
+                       </img:source>
+                    </img:raster>
+              } 
+              </img:collection>
+         ]]>
+         </img:query>
+      </img:descriptor>
+   </rdf:Description>
+
+</rdf:RDF>

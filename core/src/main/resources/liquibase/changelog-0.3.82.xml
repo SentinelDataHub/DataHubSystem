@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<databaseChangeLog
+   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+   <changeSet author="fred" id="product_path_index" runOnChange="true">
+      <createIndex 
+            indexName="idx_product_path"
+            tableName="PRODUCTS"
+            unique="true">
+        <column name="PATH" type="varchar(2048)"/>
+      </createIndex>
+	</changeSet>
+      
+    <changeSet author="nico" id="createTableNetworkUsage" runOnChange="true">
+        <createTable tableName="NETWORK_USAGE">
+            <column autoIncrement="true" name="ID" type="BIGINT" >
+                <constraints nullable="false" primaryKey="true" primaryKeyName="SYS_PK_16110"/>
+            </column>
+            <column name="USER_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="DATE" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="IS_DOWNLOAD" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="SIZE" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>    
+    <changeSet author="nico" id="addForeignKeyNetworUksage_UserID">
+        <addForeignKeyConstraint baseColumnNames="USER_ID" baseTableName="NETWORK_USAGE" constraintName="FKC6C7C1C4947EA3BB" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="USERS"/>
+    </changeSet>
+    
+    <changeSet author="fred" id="createTableProductToEvict">
+      <createTable tableName="PRODUCT_TO_EVICT">
+         <column name="EVICTION_ID" type="BIGINT">
+            <constraints nullable="false"/>
+         </column>
+         <column name="PRODUCT_ID" type="BIGINT">
+            <constraints nullable="false"/>
+         </column>
+      </createTable>
+   </changeSet>
+    
+   <changeSet author="fred" id="addPrimaryKeyProductToEvict">
+      <addPrimaryKey 
+         columnNames="EVICTION_ID, PRODUCT_ID" 
+         constraintName="SYS_PK_12788" 
+         tableName="PRODUCT_TO_EVICT"/>
+   </changeSet>
+    
+   <changeSet author="fred" id="addForeignKeyProductToEvict_EvictionID">
+      <addForeignKeyConstraint 
+         baseColumnNames="EVICTION_ID" 
+         baseTableName="PRODUCT_TO_EVICT" 
+         constraintName="FK2A014245E2CDA59A" 
+         deferrable="false" 
+         initiallyDeferred="false" 
+         onDelete="NO ACTION" 
+         onUpdate="NO ACTION" 
+         referencedColumnNames="ID" 
+         referencedTableName="EVICTION"/>
+   </changeSet>
+   <changeSet author="fred" id="addForeignKeyProductToEvict_ProductID">
+      <addForeignKeyConstraint 
+         baseColumnNames="PRODUCT_ID" 
+         baseTableName="PRODUCT_TO_EVICT" 
+         constraintName="FK2A014265EFCDAB9A" 
+         deferrable="false" 
+         initiallyDeferred="false" 
+         onDelete="NO ACTION" 
+         onUpdate="NO ACTION" 
+         referencedColumnNames="ID" 
+         referencedTableName="PRODUCTS"/>
+   </changeSet>
+</databaseChangeLog>

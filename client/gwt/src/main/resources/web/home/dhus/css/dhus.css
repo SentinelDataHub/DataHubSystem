@@ -1,0 +1,488 @@
+/*
+ * Data Hub Service (DHuS) - For Space data distribution.
+ * Copyright (C) 2013,2014,2015 GAEL Systems
+ *
+ * This file is part of DHuS software sources.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+/****************/
+/***** FONT *****/
+/****************/
+
+@font-face {
+  font-family: 'Yanone Kaffeesatz';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Yanone Kaffeesatz Regular'), local('YanoneKaffeesatz-Regular'), url(//themes.googleusercontent.com/static/fonts/yanonekaffeesatz/v4/YDAoLskQQ5MOAgvHUQCcLRTHiN2BPBirwIkMLKUspj4.woff) format('woff');
+}
+
+/*******************/
+/***** GENERAL *****/
+/*******************/
+*
+{
+	padding: 0px;
+	margin: 0px;
+}
+
+html
+{
+	overflow-y: scroll;
+	height: 100%;
+}
+
+body
+{
+	background: #F9F9F7 url('../images/background.gif') repeat-x;
+	font-size: 12px;
+	font-family: "Trebuchet MS", Helvetica, sans-serif;	
+	color: black;
+	text-align: center;
+	height: 100%;
+}
+
+/** Hack to prevent IE to show clear in textboxes **/
+::-ms-clear { display: none; }
+
+/**********************/
+/***** MAIN TABLE *****/
+/**********************/
+#main
+{	
+	display: table;
+	width: 1024px;
+	margin: 0 auto;
+	height: 100%;
+}
+
+#left
+{
+	display: table-cell;
+	width: 16px;
+	height: 100%;
+	background: transparent url('../images/left.png') repeat-y;
+}
+
+#right
+{
+	display: table-cell;
+	width: 16px;
+	height: 100%;
+	background: transparent url('../images/right.png') repeat-y;
+}
+
+#middle
+{
+	display: table-cell;
+	vertical-align: top;
+	height: 100%;
+}
+
+#middle_inner
+{
+	display: table;
+	width: 100%;
+	height: 100%; /** footer size **/
+	bottom: 0;
+}
+
+/******************/
+/***** HEADER *****/
+/******************/
+#header_row
+{
+	display: table-row;
+}
+
+#header
+{
+	display: table-cell;
+	height: 120px;
+	color: #fff;
+	background: #205887 url('../images/header.gif') repeat-x;
+	position: relative;
+}
+
+#header_inner
+{
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+#title
+{	
+	text-align: center;
+	font-family: "Yanone Kaffeesatz";
+	font-size: 40px;
+	font-weight: normal;
+	color: #bbbbbb;
+}
+
+#title b
+{
+	font-size: 50px;
+	font-weight: bold;
+	color: #ffffff;
+}
+
+#login
+{	
+	position: absolute;
+	bottom: 5px;
+	right: 5px;
+}
+
+#left_logo
+{
+	position: absolute;
+	top: -4px;
+	left: -18px;
+}
+
+#right_logo
+{		
+	position: absolute;
+	top: -12px;
+	right: -25px;
+}
+
+#menu
+{
+	position: absolute;
+	bottom: 0px;
+	left: 2px;
+	font-family: "Yanone Kaffeesatz";
+	font-weight:normal;
+	font-size: 22px;
+}
+
+/****************/
+/***** MENU *****/
+/****************/	
+.menu_item
+{
+	float: left;
+	margin-left: 5px;
+	display: block;
+	padding: 0px 8px 2px 8px;
+	background: #fff url('../images/menu.gif') repeat-x;
+	border: solid 1px #fff;
+	color: #616161;
+	text-decoration: none;
+}
+
+.menu_item:hover
+{
+	float: left;
+	background: #FF790B url('../images/menu_selected.gif') repeat-x;
+	color: #fff;
+	border: solid 1px #DB7623;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+.menu_item_active
+{
+	float: left;
+	margin-left: 5px;
+	display: block;
+	padding: 0px 8px 2px 8px;
+	background: #FF790B url('../images/menu_selected.gif') repeat-x;
+	border: solid 1px #DB7623;
+	color: #fff;
+	text-decoration: none;
+}
+
+.menu_item_active:hover
+{
+	float: left;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+/******************/
+/***** SHADOW *****/
+/******************/
+#shadow_row
+{
+	display: table-row;
+}
+
+#shadow
+{
+	display: table-cell;
+	background: white url('../images/shadow.png') repeat-x;
+	height: 9px;
+}
+
+/*******************/
+/***** CONTENT *****/
+/*******************/
+
+#content_row
+{
+	display: table-row;
+}
+
+#content
+{
+	display: table-cell;
+	background: white;
+}
+
+#content_inner
+{
+	width: 100%;
+	height: 100%;
+}
+
+/*****************/
+/***** BLOCK *****/
+/*****************/
+#block
+{
+	background: #E9E9E7;
+	width: 100%;
+}
+
+#block_title
+{	
+	padding-left: 5px;
+	background: #205887 url('../images/header.gif') repeat-x;
+	height: 30px;
+	text-align: left;
+	font-size: 23px;
+	font-weight: normal;
+	font-family: "Yanone Kaffeesatz";
+	color: #bbbbbb;
+}
+
+#block_title b
+{
+	text-transform: capitalize;
+	color: #ffffff;
+	padding-right: 1px;
+}
+
+#block_title_shadow
+{
+	background: transparent url('../images/shadow.png') repeat-x;
+	height: 5px;
+	line-height: 0;
+	font-size: 0;
+}
+
+#block_data
+{
+	margin-left: 5px;
+	margin-right: 5px;
+	margin-bottom: 5px;
+	margin-top: 0px;
+	font-size: 12px;
+	text-align: justify;
+}
+
+#block_end
+{
+	background: #205887 url('../images/header.gif') repeat-x;
+	height: 1px;
+	line-height: 0;
+	font-size: 0;
+}
+
+#block_end_shadow
+{
+	background: white url('../images/shadow.png') repeat-x;
+	height: 10px;
+	line-height: 0;
+	font-size: 0;
+}
+
+/******************/
+/***** FOOTER *****/
+/******************/
+
+#footer_row
+{
+	display: table-row;
+}
+
+#footer
+{
+   display: table-cell;
+   font-size: 10px;
+   height: 16px;
+   background: white;
+   vertical-align: middle;
+}
+#footer_left
+{
+}
+#footer_right
+{
+}
+
+/****************/
+/***** LINK *****/
+/****************/
+
+.link
+{
+	font-size: 12px;
+	font-weight: bold;
+	color: #205887;
+	text-decoration: none;	
+}
+
+.link:hover
+{
+	font-size: 12px;
+	font-weight:bold;
+	color: #FF790B;
+	text-decoration: none;	
+}
+
+a:link img
+{
+	border-style: none;
+}
+
+/*******************/
+/***** BUTTONS *****/
+/*******************/
+.button
+{
+	display: inline-block;
+	color: #000;
+	background: #fff url('../images/button.gif') repeat-x;
+	border: solid 1px #fff;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	font-weight: normal;	
+}
+
+.button:hover
+{
+	cursor: pointer;
+	color: #fff;
+	background: #FF790B url('../images/button_hover.gif') repeat-x;
+	border: solid 1px #DB7623;
+}
+
+.button_black
+{
+	display: inline-block;
+	color: #000;
+	background: #000 url('../images/button.gif') repeat-x;
+	border: solid 1px #777;
+	padding-top: 2px;
+	padding-bottom: 2px;	
+	font-weight: normal;
+}
+
+.button_black:hover
+{
+	cursor: pointer;
+	color: #fff;
+	background: #FF790B url('../images/button_hover.gif') repeat-x;
+	border: solid 1px #DB7623;
+}
+
+/** disabled is matched in java to not execute click handler **/
+.button_disabled
+{
+	display: inline-block;
+	color: #aaa;
+	background: #000 url('../images/button.gif') repeat-x;
+	border: solid 1px #aaa;
+	padding-top: 2px;
+	padding-bottom: 2px;	
+	font-weight: normal;
+}
+
+/************************/
+/***** AUTOCOMPLETE *****/
+/************************/
+.ac_results {
+	margin-top: 4px;
+	width: 470px;
+	padding: 0px;
+	border:1px solid #7f9db9;
+	background-color: white;
+	overflow: hidden;
+	text-align: left;
+}
+
+.ac_results ul {
+	width: 100%;
+	list-style-position: outside;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.ac_results iframe {
+	display:none;/*sorry for IE5*/
+	display/**/:block;/*sorry for IE5*/
+	position:absolute;
+	top:0;
+	left:0;
+	z-index:-1;
+	filter:mask();
+	width:3000px;
+	height:3000px;
+}
+
+.ac_results li {
+	margin: 0px;
+	padding: 2px 5px;
+	cursor: pointer;
+	display: block;
+	width: 100%;
+	font: menu;
+	font-size: 12px;
+	overflow: hidden;
+}
+
+.ac_loading {
+	background : Window url('./indicator.gif') right center no-repeat;
+}
+
+.ac_over {
+	background-color: Highlight;
+	color: HighlightText;
+}
+
+/************/
+/* ABOUT    */
+/************/
+
+#about_title
+{
+   text-align: left;
+   font-size: 15px;
+   font-weight: normal;
+   color: #222222;
+   text-decoration:underline;
+}
+
+#about_title::first-letter
+{
+	font-weight: bold;
+	text-transform: capitalize;
+   color: #000000;
+   padding-right: 1px;
+}

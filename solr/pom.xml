@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+   <modelVersion>4.0.0</modelVersion>
+   
+   <properties>
+      <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
+   	  <solr.version>4.10.3</solr.version>
+   </properties>
+   
+   <groupId>fr.gael.dhus</groupId>
+   <artifactId>dhus-solr</artifactId>
+   <version>1.0.0</version>
+   <packaging>war</packaging>
+
+   <name>DHuS - Solr Skinny War</name>
+
+   <dependencies>      
+      <!-- SOLR -->
+      <dependency>
+         <groupId>org.apache.solr</groupId>
+         <artifactId>solr</artifactId>
+         <version>${solr.version}</version>
+         <type>war</type>
+      </dependency>      	 
+   </dependencies>
+
+   <build>
+      <plugins>
+         <plugin>
+			 <groupId>org.apache.maven.plugins</groupId>
+			 <artifactId>maven-war-plugin</artifactId>
+			 <version>2.6</version>
+			 <configuration>
+			   <warName>dhus-solr</warName>
+			   <failOnMissingWebXml>false</failOnMissingWebXml>
+			   <!-- <outputDirectory>${project.build.outputDirectory}</outputDirectory> -->
+			   <packagingExcludes>WEB-INF/lib/*,WEB-INF/lib,WEB-INF/classes,META-INF/maven/**,META-INF/maven</packagingExcludes>
+			 </configuration>
+		 </plugin>   
+      </plugins>
+   </build>        
+   
+   <repositories>
+      <repository>
+         <id>osf-public</id>
+         <name>OSF Public Repository</name>
+         <url>
+            https://copernicus.serco.eu/repository/nexus/content/groups/public/
+         </url>
+         <layout>default</layout>
+      </repository>
+   </repositories>
+   
+   <distributionManagement>
+      <repository>
+         <uniqueVersion>true</uniqueVersion>
+         <id>osf-releases</id>
+         <name>OSF Releases Repository</name>
+         <url>
+            https://copernicus.serco.eu/repository/nexus/content/repositories/releases/
+         </url>
+         <layout>default</layout>
+      </repository>
+      <site>
+         <id>gael-site</id>
+         <url>${site.baseUrl}/</url>
+      </site>
+   </distributionManagement> 
+</project>

@@ -1,0 +1,15 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+
+<suite name="Service Suite Test">
+   <test name="Public Services Test">
+      <classes>
+
+      </classes>
+   </test>
+
+   <test name="Internal Service Test">
+      <classes>
+
+      </classes>
+   </test>
+</suite>

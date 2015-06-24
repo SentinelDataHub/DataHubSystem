@@ -1,0 +1,225 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<style>	
+		#cart_div
+		{
+			display: none;
+		}				
+		
+		#cart_table
+		{
+			display: block;
+			width: 982px;
+		}		
+			
+		.cart_tablePreview
+		{
+			height: 64px;
+			width: 64px;
+			border: solid 1px #BBBBBB;
+			text-align: center;
+			vertical-align: middle;
+		}	
+	
+		.cart_thumbnailPreviewImg
+		{		
+			max-height: 64px;
+			max-width: 64px;
+		}
+		
+		.cart_tableProduct
+		{
+			vertical-align: top;
+			height: 64px;
+		}
+		
+		#cart_tableDisplay tbody tr.even, #search_tableDisplay tbody tr.even {
+			background-color: #e3e3e3;
+		}
+	
+		#cart_tableDisplay tbody tr.odd, #search_tableDisplay tbody tr.odd {
+			background-color: #EEEEEE;
+		}
+		
+		#cart_tableDisplay tbody tr.even:hover, #search_tableDisplay tbody tr.even td.highlighted {
+			cursor: default;
+			background-color: #BCD2EE;
+		}
+	
+		#cart_tableDisplay tbody tr.odd:hover, #search_tableDisplay tbody tr.odd td.highlighted {
+			cursor: default;
+			background-color: #BCD2EE;
+		}
+		
+		#cart_space
+		{
+			height: 5px;
+		}
+						
+		#cart_buttons
+		{	
+			text-align: right;
+		}
+		
+		#cart_clear
+		{	
+			font-size: 12px;
+			text-align: center;
+			width: 120px;
+		}
+		
+		#cart_download
+		{	
+			margin-left: 5px;
+			font-size: 12px;
+			text-align: center;
+			width: 120px;
+		}
+	</style>
+	<script>
+		var cart_removeProductFunction;
+		var cart_viewProductFunction;
+		var cart_table;
+		
+		function showCart(getCartFunction, viewProductFunc, removeProductFunc)
+		{		
+			document.getElementById("cart_div").style.display = "block";
+			
+			cart_removeProductFunction = removeProductFunc;
+			cart_viewProductFunction = viewProductFunc;
+			
+			cart_table = initCartTable("cart_table", getCartFunction, [
+					{ "sTitle": "", "sClass": "center",  
+						"mRender": function ( data, type, full )
+						{
+							if (data.thumbnail == null)
+			                  {
+			                     return '<div class="cart_tablePreview"><br>No Quicklook</div>';
+			                  }
+			                  else
+			                  {
+			                    return '<div class="cart_tablePreview">' + 
+			                       '<img class="cart_thumbnailPreviewImg" src="' +
+			                       data.thumbnail + '"/></div>';
+			                  }
+							}
+					},
+					{ "sTitle": "", "mRender": function ( data, type, full ) {
+							return '<div class="cart_tableProduct"><b>'+data.identifier+'</b><br>'+
+									'<a class="link" href="'+data.link+'" target="_blank">'+data.link+'</a>'+
+									'<br><br>'+data.summary+'</div>';
+						}},
+					{ "sTitle": "", "sClass": "center", 
+							"mRender": function ( data, type, full ) {
+						return '<img onclick="cart_viewProductFunction('+data+')" src="home/dhus/images/view.png" style="cursor:pointer;" title="View product"/>';
+					}},
+					{ "sTitle": "", "sClass": "center", 
+						"mRender": function ( data, type, full ) {
+							if (data != null)
+							{
+								return '<a href="'+data+'" target="_blank"><img src="home/dhus/images/download.png" title="Download product"/></a>';
+							}
+							else
+							{
+								return '<img src="home/dhus/images/download_disabled.png" style="cursor:default;" title="You are not allowed to download product"/>';
+							}
+					}},
+					{ "sTitle": "", "sClass": "center", 
+						"mRender": function ( data, type, full )  {
+							return "<img src='home/dhus/images/removeFromCart.png' onclick='cart_removeProductFunction("+data+")' style='cursor:pointer;' title='Add product to your download cart'/>";							
+					}}], "<col style='width: 72px'/><col/><col style='width: 25px'/><col style='width: 25px'/><col style='width: 25px'/>", '<"H"ir>t<"F"lp>',
+				{ "sEmptyTable": "Your cart is empty",
+				  "sLengthMenu": "Page size: _MENU_",
+				  "sInfo": "Display _START_ to _END_ of _TOTAL_ products in your cart",
+				  "sInfoEmpty": "Your cart is empty"
+				  }, 400, [25,50,100]);				  			
+		}			
+			
+		function profile_refreshCart()
+		{
+			cart_table.fnDraw(false);
+		}
+		
+		function initCartTable(tableId, requestDataFunction, aoColumns, columns, sDom, oLanguage, parentHeight, pageLengths, onClickFunction) {
+			$("#"+tableId).html(
+				'<table cellpadding="0" cellspacing="0" border="0" class="display" id="'+
+					tableId+'Display">'+columns+'</table>');
+				
+			var oTable = $("#"+tableId+"Display").dataTable({
+				"aoColumns": aoColumns,
+				"bJQueryUI": true,
+				"sDom" : sDom,
+				"sPaginationType": "full_numbers",	
+				"bSort" : false,
+				"bDeferRender": true,
+				"bServerSide" : true,
+				"sAjaxSource" : "",
+				"fnServerData": requestDataFunction,
+				"oLanguage": oLanguage,
+				"iDisplayLength": pageLengths[0],
+				"aLengthMenu": pageLengths,
+				"sScrollY": "0px",
+				    "fnDrawCallback": function() {
+				        var $dataTable = $("#"+tableId+"Display").dataTable();
+				        $dataTable.fnAdjustColumnSizing(false);
+
+				        if (typeof(TableTools) != "undefined") {
+				            var tableTools = TableTools.fnGetInstance(table);
+				            if (tableTools != null)
+				            {
+				            	if (tableTools.fnResizeRequired()) 
+				            	{
+				                	tableTools.fnResizeButtons();
+				                }
+				            }
+				        }
+
+				        var $dataTableWrapper = $("#"+tableId+"Display").closest(".dataTables_wrapper");
+
+				        var toolbarHeights = 0;
+				        $dataTableWrapper.find(".fg-toolbar").each(function(i, obj) {
+				            toolbarHeights = toolbarHeights + $(obj).height();
+				        });
+						
+						var scrollHeadHeight = $dataTableWrapper.find(".dataTables_scrollHead").height();
+				        var height = parentHeight - toolbarHeights - scrollHeadHeight;
+				        $dataTableWrapper.find(".dataTables_scrollBody").height(height - 24);
+				        
+				        $dataTable._fnScrollDraw();
+				    }
+				});
+				return oTable;
+		}	
+	</script>
+</head>
+<body>
+	<div id="cart_div">	
+		<div id="cart_table"></div>
+		<div id="cart_space"></div>
+		<div id="cart_buttons">
+			<div class="button_disabled" id="cart_clear">Clear your cart</div>
+			<div class="button_disabled" id="cart_download">Download your cart</div>
+		</div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<style>	
+	#overview_div
+	{
+		display: none;
+	}
+
+	#overview_div a
+	{
+		color: #205887;
+		text-decoration: none;
+		cursor: pointer;
+	}
+	#overview_div a:hover
+	{
+		color: #FF790B;
+		text-decoration: none;
+	}
+
+	#overview_registerDiv
+	{
+		width: 100%;
+		text-align: right;
+		font-size: 12px;
+		font-weight: bold;
+	}
+	#overview_registerLink
+	{
+		color: #205887;
+		text-decoration: none;
+		cursor: pointer;
+	}
+
+	#overview_registerLink:hover
+	{
+		color: #FF790B;
+		text-decoration: none;
+	}
+	</style>
+	<script>
+		function showOverview()
+		{
+			document.getElementById("overview_div").style.display = "block";
+		}
+	</script>
+</head>
+<body>
+	<div id="overview_div">
+       <p>
+          The Data Hub is a web based system designed to manage the on-line
+          dissemination of Earth Observation Satellites products.
+       </p>
+       <br />
+       <p>
+          The Data Hub offers dissemination capacity for any configured and
+          mirrored part of any EO mission data, in order to provide direct
+          access to the users.
+       </p>
+       <br>
+	   <div id="overview_registerDiv">
+	      <div id="overview_registerLink">
+		     Are you interested entering Sentinel Data Hub system?
+	      </div>
+	   </div>
+	</div>
+</body>
+</html>

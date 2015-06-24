@@ -1,0 +1,545 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<style>	
+		#managementUser_div
+		{
+			height: 500px;
+			display: none;
+		}
+		
+		#managementUser_table
+		{
+			width: 400px;
+			height: 100%;
+			float: left;
+		}
+		
+		#managementUser_right
+		{
+			width: 538px;
+			height: 488px;
+			float: right;		  
+			border: solid 1px #aaa;
+			background: #DEDEDE;
+			padding: 5px;
+		}
+		
+		#managementUser_form
+		{
+			width: 100%;
+			height: 212px;
+		}	
+		
+		.managementUser_formLabel
+		{
+			width: 80px;
+			display:inline-block;
+		}	
+		
+		.managementUser_formField
+		{
+			width: 440px;
+			font-size: 12px;
+			vertical-align: middle;
+			font-family: "Trebuchet MS", Helvetica, sans-serif;	
+			margin-bottom: 2px;
+			height: 16px;
+		}
+		
+		.managementUser_formFieldSub
+		{
+			width: 216px;
+			font-size: 12px;
+			vertical-align: middle;
+			font-family: "Trebuchet MS", Helvetica, sans-serif;	
+			margin-bottom: 2px;
+			height: 16px;
+		}
+		
+		.managementUser_formFieldSelect
+		{
+			width: 220px;
+			font-size: 12px;
+			vertical-align: middle;
+			font-family: "Trebuchet MS", Helvetica, sans-serif;	
+			margin-bottom: 2px;
+			height: 18px;
+		}
+		
+		.managementUser_formCheckbox
+		{
+			vertical-align: middle;
+			margin-bottom: 2px;
+		}
+		
+		.managementUser_formCheckboxField
+		{
+			width: 423px;
+			font-size: 12px;
+			vertical-align: middle;
+			font-family: "Trebuchet MS", Helvetica, sans-serif;	
+			margin-bottom: 2px;
+		}
+		
+		#managementUser_rolesTable
+		{
+			margin-top: 10px;
+			margin-bottom: 5px;
+			width: 100%;
+		}
+		
+		.managementUser_rolesTableCheckbox
+		{		
+			vertical-align: middle;
+			margin-bottom: 1px;
+		}
+		
+		.managementUser_rolesTableCheckAll
+		{		
+			margin-left: 5px;
+			margin-right: 15px;
+			vertical-align: middle;
+			margin-bottom: 1px;
+		}
+		
+		#managementUser_buttons
+		{
+			position: relative;
+			height: 23px;
+			width: 100%;
+			text-align: right;
+		}
+		
+		#managementUser_buttonReset
+		{	
+			width: 80px;
+			font-size: 12px;
+			text-align: center;	
+			position: absolute;
+			left: -1px;
+			bottom: 0px;		
+		}
+		
+		#managementUser_buttonCreate
+		{	
+			width: 80px;
+			font-size: 12px;
+			text-align: center;
+			position: absolute;
+			left: -1px;
+			bottom: 0px;	
+		}
+			
+		#managementUser_buttonCancel
+		{	
+			width: 80px;
+			font-size: 12px;
+			text-align: center;	
+			position: absolute;
+			right: -1px;
+			bottom: 0px;		
+		}
+		
+		#managementUser_buttonSave
+		{	
+			width: 80px;
+			font-size: 12px;
+			text-align: center;
+			position: absolute;
+			right: 85px;
+			bottom: 0px;			
+		}
+		
+		#managementUser_buttonDelete
+		{	
+			width: 80px;
+			font-size: 12px;
+			text-align: center;	
+			position: absolute;
+			right: 85px;
+			bottom: 0px;		
+		}
+		
+		#managementUser_buttonUpdate
+		{	
+			width: 80px;
+			font-size: 12px;
+			text-align: center;
+			position: absolute;
+			right: 175px;
+			bottom: 0px;		
+		}
+	</style>
+	<script>			
+		var usersTableEnabled = true;
+		var rolesTableEnabled = true;
+		var roleCheckedFunction;
+		var rolesCheckAllFunction;
+		var rolesTable;	
+		var usersTable;	
+		var mailCheck = new RegExp("^[a-zA-Z0-9!#$%\x26'*+/=?^_`{|}~-]+(?:\\.[a-zA-Z0-9!#$%\x26'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$");
+		var usernameCheck = new RegExp("^[^\\-\\\\+&|!(){}\\[\\]^\"~*?:$' \\t]+$");
+		
+		function user_activateSaveButton()
+		{		
+			var userValue = document.getElementById('managementUser_username').value;
+			var mail = document.getElementById('managementUser_mail').value;
+			var firstNameValue = document.getElementById('managementUser_firstname').value;
+			var lastNameValue = document.getElementById('managementUser_lastname').value;
+			var countryValue = document.getElementById('managementUser_country').value;
+			var usageValue = document.getElementById("managementUser_usage").options[document.getElementById("managementUser_usage").value].text;
+			var domainValue = document.getElementById("managementUser_domain").options[document.getElementById("managementUser_domain").value].text;
+									
+			if (userValue == null || userValue == "" ||  !usernameCheck.test(userValue) ||
+				mail == null || mail == "" || !mailCheck.test(mail)||
+				firstNameValue == null || firstNameValue == "" ||
+				lastNameValue == null || lastNameValue == "" ||
+				countryValue == null || countryValue == "" ||
+				(usageValue.toLowerCase() == "other" && (document.getElementById("managementUser_subUsage").value == null || document.getElementById("managementUser_subUsage").value == "")) || 
+				(domainValue.toLowerCase() == "other" && (document.getElementById("managementUser_subDomain").value == null || document.getElementById("managementUser_subDomain").value == "")))
+			{			
+				document.getElementById('managementUser_buttonSave').className = 
+				"button_disabled"; 
+				document.getElementById('managementUser_buttonUpdate').className = 
+				"button_disabled"; 
+			}
+			else
+			{
+				document.getElementById('managementUser_buttonSave').className = 
+				"button_black"; 
+				document.getElementById('managementUser_buttonUpdate').className = 
+				"button_black"; 
+			}
+		}
+		
+		function user_validateUsername()
+		{
+			var username = document.getElementById('managementUser_username').value;
+			if (username ==null || username=="")
+			{
+			  document.getElementById('managementUser_username')
+			  	.setCustomValidity('Username field must be filled')	
+			}
+			else if (!usernameCheck.test(username))	
+			{
+			  document.getElementById('managementUser_username').setCustomValidity('Username contains at least one restricted character or a whitespace')	
+			}
+			else
+			{
+			  document.getElementById('managementUser_username').setCustomValidity('')
+			}			  
+			user_activateSaveButton();
+		}
+		
+		function user_validateMail()
+		{
+			var mail = document.getElementById('managementUser_mail').value;
+			
+			if (mail == null || mail == "" || !mailCheck.test(mail))
+			{
+			  document.getElementById('managementUser_mail')
+			  	.setCustomValidity('E-mail field must be filled and valid');		  
+			}
+			else
+			{
+			  document.getElementById('managementUser_mail').setCustomValidity('');
+			}	
+			user_activateSaveButton();
+		}
+		
+		function user_validateFirstname()
+		{
+			var value = document.getElementById('managementUser_firstname').value;
+			if (value ==null || value=="")
+			{
+			  document.getElementById('managementUser_firstname').setCustomValidity('Firstname field must be filled')	
+			}
+			else
+			{
+			  document.getElementById('managementUser_firstname').setCustomValidity('')
+			}			  
+			user_activateSaveButton();
+		}
+	
+		function user_validateLastname()
+		{
+			var value = document.getElementById('managementUser_lastname').value;
+			if (value ==null || value=="")
+			{
+			  document.getElementById('managementUser_lastname').setCustomValidity('Lastname field must be filled')	
+			}
+			else
+			{
+			  document.getElementById('managementUser_lastname').setCustomValidity('')
+			}			  
+			user_activateSaveButton();
+		}
+	
+		function user_validateCountry()
+		{
+			var value = document.getElementById('managementUser_country').value;
+			if (value ==null || value=="")
+			{
+			  document.getElementById('managementUser_country').setCustomValidity('Country field must be filled')	
+			}
+			else
+			{
+			  document.getElementById('managementUser_country').setCustomValidity('')
+			}			  
+			user_activateSaveButton();
+		}
+	
+		function user_validateSubUsage()
+		{
+			var value = document.getElementById('managementUser_subUsage').value;
+			if (value ==null || value=="")
+			{
+			  document.getElementById('managementUser_subUsage').setCustomValidity('Usage field must be filled')	
+			}
+			else
+			{
+			  document.getElementById('managementUser_subUsage').setCustomValidity('')
+			}			  
+			user_activateSaveButton();
+		}
+	
+		function user_validateSubDomain()
+		{
+			var value = document.getElementById('managementUser_subDomain').value;
+			if (value ==null || value=="")
+			{
+			  document.getElementById('managementUser_subDomain').setCustomValidity('Domain field must be filled')	
+			}
+			else
+			{
+			  document.getElementById('managementUser_subDomain').setCustomValidity('')
+			}			  
+			user_activateSaveButton();
+		}
+			
+		function user_refreshRoles()
+		{
+			rolesTable.fnDraw(false);
+		}
+			
+		function user_refreshUsers()
+		{
+			usersTable.fnDraw(false);
+		}
+		
+		function user_deselectUser()
+		{
+			usersTable.$('tr.row_selected').removeClass('row_selected');
+		}
+		
+		function user_hideUsersCustomValidity()
+		{
+		    document.getElementById('managementUser_username').setCustomValidity('')
+		    document.getElementById('managementUser_mail').setCustomValidity('');
+		}
+		
+		function user_setUsersTableEnabled(enabled)
+		{
+			usersTableEnabled = enabled;
+		}
+		
+		function user_setRolesTableEnabled(enabled)
+		{
+			rolesTableEnabled = enabled;
+			user_refreshRoles();
+		}
+					
+		function showUserManagement (getRoleFunction, getUsersFunction, selectUserFunction, roleCheckedFunc, rolesCheckAllFunc)
+		{	
+			rolesCheckAllFunction = rolesCheckAllFunc;
+			roleCheckedFunction = roleCheckedFunc;
+			document.getElementById("managementUser_div").style.display = "block";	
+			rolesTable = initTable("managementUser_rolesTable", getRoleFunction, [{ "sTitle": "", "sClass": "center", 
+						"mRender": function ( data, type, full ) {
+							return "<input type='checkbox' class='managementUser_rolesTableCheckbox' "+(data.checked ? "checked" : "")+" onclick='roleCheckedFunction(\""+data.authority+"\")' "+(rolesTableEnabled?"":"disabled")+"/>";	
+						}},
+					{ "sTitle": "" }], '<col style="width: 20px"/><col/>', '<"H"lr>t<"F">',
+					{ "sEmptyTable": "No functions defined.",
+					  "sLengthMenu": "<input type='checkbox' class='managementUser_rolesTableCheckAll' id='rolesCheckAll' onclick='rolesCheckAllFunction()' /> Functions"}, 237, [50]);
+			
+			usersTable = initTable("managementUser_table", getUsersFunction, [{ "sTitle": ""}], "<col/>", '<"H"ifr>t<"F"lp>',
+					{ "sEmptyTable": "No users found.",
+					  "sLengthMenu": "Page size: _MENU_",
+					  "sInfo": "Display _START_ to _END_ of _TOTAL_ users",
+					  "sInfoEmpty": "No users found",
+					  "oPaginate": {
+					        "sFirst": "<<",
+					        "sPrevious": "<",
+					        "sNext": ">",
+					        "sLast": ">>"
+					      }
+					  }, 500, [50, 100], function(data) {
+					  	if(usersTableEnabled)
+					  	{
+							selectUserFunction(data);
+						}
+						else
+						{
+							user_deselectUser();
+						}
+					 });
+			
+			$.each(getAllDomains(), function(val, text) {
+				$('#managementUser_domain').append(new Option(text, val));
+			});
+			$.each(getAllUsages(), function(val, text) {
+				$('#managementUser_usage').append(new Option(text, val));
+			});
+		}
+
+		function managementUser_domainChange()
+		{
+			var value = document.getElementById("managementUser_domain").options[document.getElementById("managementUser_domain").value].text;
+			document.getElementById("managementUser_subDomain").disabled = ("other" != value.toLowerCase());
+			if ("other" != value.toLowerCase())
+			{
+				document.getElementById("managementUser_subDomain").value = "";				
+			}
+			user_validateSubDomain();
+		}
+		
+		function managementUser_usageChange()
+		{
+			var value = document.getElementById("managementUser_usage").options[document.getElementById("managementUser_usage").value].text;
+			document.getElementById("managementUser_subUsage").disabled = ("other" != value.toLowerCase());
+			if ("other" != value.toLowerCase())
+			{
+				document.getElementById("managementUser_subUsage").value = "";				
+			}
+			user_validateSubUsage();
+		}
+		
+		function managementUser_selectDomain(domain)
+		{
+			var sel = document.getElementById("managementUser_domain");
+			for(var i = 0; i < sel.options.length; i++) {
+		        if(sel.options[i].text === domain) {
+		           sel.selectedIndex = i;
+		           break;
+		        }
+		    }
+			
+			document.getElementById("managementUser_subDomain").disabled = ("other" != domain.toLowerCase());
+			document.getElementById("managementUser_subDomain").value = "";
+		}
+		
+		function managementUser_selectUsage(usage)
+		{
+			var sel = document.getElementById("managementUser_usage");
+			for(var i = 0; i < sel.options.length; i++) {
+		        if(sel.options[i].text === usage) {
+		           sel.selectedIndex = i;
+		           break;
+		        }
+		    }
+			
+			document.getElementById("managementUser_subUsage").disabled = ("other" != usage.toLowerCase());
+			document.getElementById("managementUser_subUsage").value = "";
+		}
+	</script>
+</head>
+<body>
+	<div id="managementUser_div">   	
+        <div id="managementUser_table"></div>
+    	<div id="managementUser_right">
+    		<div id="managementUser_form">
+				<div>
+					<div class="managementUser_formLabel">Username *</div>
+					<input type="text" name="managementUser_username" 
+						id="managementUser_username" class="managementUser_formField"
+						onkeyup="user_validateUsername()"/>
+				</div>	
+				<div>
+					<div class="managementUser_formLabel">E-mail *</div>
+					<input type="text" name="managementUser_mail" 
+						id="managementUser_mail" class="managementUser_formField" 
+						onkeyup="user_validateMail()"/>
+				</div>	
+				<div>
+					<div class="managementUser_formLabel">Firstname *</div>
+					<input type="text" name="managementUser_firstname" 
+						id="managementUser_firstname" class="managementUser_formField" 
+						onkeyup="user_validateFirstname()"/>
+				</div>	
+				<div>
+					<div class="managementUser_formLabel">Lastname *</div>
+					<input type="text" name="managementUser_lastname" 
+						id="managementUser_lastname" class="managementUser_formField" 
+						onkeyup="user_validateLastname()"/>
+				</div>		
+				<div>
+					<div class="managementUser_formLabel">Domain *</div>
+					<select name="managementUser_domain" onchange="managementUser_domainChange()"
+						id="managementUser_domain" class="managementUser_formFieldSelect" />
+					<input type="text" name="managementUser_subDomain" id="managementUser_subDomain" class="managementUser_formFieldSub" 
+					onkeyup="user_validateSubDomain()"/>
+				</div>
+				<div>
+					<div class="managementUser_formLabel">Usage *</div>
+					<select name="managementUser_usage" onchange="managementUser_usageChange()"
+						id="managementUser_usage" class="managementUser_formFieldSelect" />
+					<input type="text" name="managementUser_subUsage" id="managementUser_subUsage" class="managementUser_formFieldSub" 
+					onkeyup="user_validateSubUsage()"/>
+				</div>
+				<div>
+					<div class="managementUser_formLabel">Country *</div>
+					<input type="text" name="managementUser_country" 
+						id="managementUser_country" class="managementUser_formField"  
+						onkeyup="user_validateCountry()"/>
+				</div>
+				<div>
+					<div class="managementUser_formLabel">Address</div>
+					<input type="text" name="managementUser_address" 
+						id="managementUser_address" class="managementUser_formField" />
+				</div>
+				<div>
+					<div class="managementUser_formLabel">Phone</div>
+					<input type="text" name="managementUser_phone" 
+						id="managementUser_phone" class="managementUser_formField" />
+				</div>	
+				<div>
+					<div class="managementUser_formLabel">Locked</div>
+					<input type="checkbox" name="managementUser_locked" 
+						id="managementUser_locked" class="managementUser_formCheckbox" />
+					<input type="text" name="managementUser_lockedReason" 
+						id="managementUser_lockedReason" class="managementUser_formCheckboxField" />
+				</div>
+    		</div>
+    		<div id="managementUser_rolesTable"></div>
+    		<div id="managementUser_buttons">
+				<div class="button_disabled" id="managementUser_buttonReset">Reset</div>
+				<div class="button_disabled" id="managementUser_buttonCreate">Create</div>
+				<div class="button_disabled" id="managementUser_buttonCancel">Cancel</div>
+				<div class="button_disabled" id="managementUser_buttonSave">Save</div>
+				<div class="button_disabled" id="managementUser_buttonDelete">Delete</div>
+				<div class="button_disabled" id="managementUser_buttonUpdate">Update</div>
+			</div>
+    	</div>
+	</div>
+</body>
+</html>

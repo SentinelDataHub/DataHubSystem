@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<!DOCTYPE rdf:RDF [
+  <!ENTITY rdf  "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#">
+  <!ENTITY owl  "http://www.w3.org/2002/07/owl#">
+  <!ENTITY drb  "http://www.gael.fr/drb#">
+  <!ENTITY dhus "http://www.gael.fr/dhus#">
+  <!ENTITY img  "http://www.gael.fr/drb/image#">
+  <!ENTITY test "http://www.gael.fr/test#">
+]>
+
+<rdf:RDF xmlns:owl ="&owl;"
+         xmlns:rdf ="&rdf;"
+         xmlns:rdfs="&rdfs;"
+         xmlns:test="&test;"
+         xmlns:drb ="&drb;"
+         xmlns:img ="&img;"
+         xmlns:dhus="&dhus;"
+         xml:base  ="&test;">
+
+   <owl:Ontology rdf:about="&test;"/>
+   
+   <owl:Class rdf:about="&test;product1">
+      <rdfs:subClassOf rdf:resource="&drb;item" />
+      <rdfs:label>My product1</rdfs:label>
+       <drb:signature rdf:parseType="Resource">
+         <drb:xqueryTest>
+            matches (name(), "S1(A|B)_.*\.SAFE")
+         </drb:xqueryTest>
+      </drb:signature>
+   </owl:Class>
+   <owl:Class rdf:about="&test;product2">
+      <rdfs:subClassOf rdf:resource="&test;product1" />
+      <rdfs:label>My product2 subcalss of product1</rdfs:label>
+   </owl:Class>
+   
+    <owl:Class rdf:about="&test;product3">
+      <rdfs:subClassOf rdf:resource="&drb;item" />
+      <rdfs:label>My product3</rdfs:label>
+       <drb:signature rdf:parseType="Resource">
+         <drb:xqueryTest>
+            matches (name(), "GOM_.*\.N1")
+         </drb:xqueryTest>
+      </drb:signature>
+   </owl:Class>
+
+   <rdf:Description rdf:about="&test;product1">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         <metadata
+            queryable="test"
+            category="test" name="Test Name" type="text/plain">
+            Test P1
+         </metadata>,
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+
+   <rdf:Description rdf:about="&test;product2">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         <metadata category="test" name="Test2" type="text/plain">Test P2</metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+
+</rdf:RDF>

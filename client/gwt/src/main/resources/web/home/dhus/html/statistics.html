@@ -1,0 +1,584 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<style>	
+		#statistics_div
+		{
+			display: none;
+		}
+		
+		#statistics_tabs 
+		{
+			margin:0px; padding:0px;
+			margin-top:9px;
+			padding-bottom:5px;
+			border-bottom:1px solid #464c54; 
+		}
+		
+		#statistics_tabs div
+		{
+			list-style:none;
+			display:inline;
+			margin-right: 5px;
+			padding:8px 14px 8px 14px;
+			text-decoration:none;
+			border-top:1px solid #2f343a; 
+			border-left:1px solid #2f343a; 
+			border-right:1px solid #2f343a; 
+			font-size:16px;
+			font-family:"Yanone Kaffeesatz";
+			letter-spacing: 1px;
+			text-transform:uppercase;		
+			background-color:#205887;
+			color:#ffffff;
+		}
+		
+		#statistics_tabs div:hover 
+		{
+			cursor: pointer;
+			color: #FF790B;
+			background-color:#205887;
+			border-top:1px solid #2f343a; 
+			border-left:1px solid #2f343a; 
+			border-right:1px solid #2f343a; 
+		}
+		
+		#statistics_tabs div.active 
+		{
+			background-color:#E6E6E6;
+			color:#FF790B;
+			border-top:1px solid #464c54; 
+			border-left:1px solid #464c54; 
+			border-right:1px solid #464c54; 
+		}
+		
+		.statistics_content 
+		{
+			background-color:#E6E6E6;
+			padding:10px;
+			border-bottom:1px solid #464c54; 	
+			border-left:1px solid #464c54; 	
+			border-right:1px solid #464c54; 	
+			z-index: 1000;
+			position: relative;
+			overflow: hidden;
+		}
+		
+		.axis path,
+		.axis line {
+		  fill: none;
+		  stroke: #000;
+		  shape-rendering: crispEdges;
+		}
+		
+		.x.axis path {
+		  display: block;
+		}
+		
+		.line {
+		  fill: none;
+		  stroke: steelblue;
+		  stroke-width: 1.5px;
+		}	
+		.bar {
+		  fill: steelblue;
+		}
+
+	</style>
+	<script>
+		function showStatistics()
+		{
+			document.getElementById("statistics_div").style.display = "block";
+		}	
+		
+		function addStatisticsTab(name, tabInit, refresh, selectedCallback, active, title)
+		{
+			var id = "statistics_"+name.toLowerCase();
+			
+			var content = document.createElement("div");
+			content.className = "statistics_content";
+			content.id = id;
+			
+			var menuItem = document.createElement("div");
+			menuItem.className = "statistics_tab "+(active ? "active" : "");
+			menuItem.textContent = title !== undefined ? title : name;			
+			menuItem.onclick = function()
+			{
+				if (menuItem.className !== "statistics_tab active")
+				{
+					selectedCallback(id.toUpperCase());
+					document.getElementById("statistics_div").appendChild(content);	
+					$(".active").removeClass("active");
+					menuItem.className = "statistics_tab active";
+					$(".statistics_content").slideUp();	
+					$("#"+id).slideDown()	
+					if ($("#"+id).children().length <= 0)
+					{					
+						loadStatisticsTab(id, tabInit);
+					}
+					else
+					{
+						refresh();
+					}
+				}
+				else
+				{
+					refresh();
+				}
+			}
+			document.getElementById("statistics_tabs").appendChild(menuItem);
+			if (active)
+			{	
+				document.getElementById("statistics_div").appendChild(content);				
+				loadStatisticsTab(id, tabInit);
+			}
+		}
+				
+		function loadStatisticsTab(page, func)
+		{			
+			$("#"+page).load("home/dhus/html/"+page.toLowerCase()+".html", func);
+		}	
+		
+		function initStatisticsTable(tableId, requestDataFunction, aoColumns, columns, sDom, oLanguage, parentHeight, pageLengths, onClickFunction) {
+			$("#"+tableId).html(
+				'<table cellpadding="0" cellspacing="0" border="0" class="display" id="'+
+					tableId+'Display">'+columns+'</table>');
+				
+			var oTable = $("#"+tableId+"Display").dataTable({
+				"aoColumns": aoColumns,
+				"bJQueryUI": true,
+				"sDom" : sDom,
+				"sPaginationType": "full_numbers",	
+				"bSort" : false,
+				"bDeferRender": true,
+				"bServerSide" : true,
+				"sAjaxSource" : "",
+				"fnServerData": requestDataFunction,
+				"oLanguage": oLanguage,
+				"iDisplayLength": pageLengths[0],
+				"aLengthMenu": pageLengths,
+				"sScrollY": "0px",
+				    "fnDrawCallback": function() {
+				        var $dataTable = $("#"+tableId+"Display").dataTable();
+				        $dataTable.fnAdjustColumnSizing(false);
+
+				        if (typeof(TableTools) != "undefined") {
+				            var tableTools = TableTools.fnGetInstance(table);
+				            if (tableTools != null)
+				            {
+				            	if (tableTools.fnResizeRequired()) 
+				            	{
+				                	tableTools.fnResizeButtons();
+				                }
+				            }
+				        }
+
+				        var $dataTableWrapper = $("#"+tableId+"Display").closest(".dataTables_wrapper");
+
+				        var toolbarHeights = 0;
+				        $dataTableWrapper.find(".fg-toolbar").each(function(i, obj) {
+				            toolbarHeights = toolbarHeights + $(obj).height();
+				        });
+						
+						var scrollHeadHeight = $dataTableWrapper.find(".dataTables_scrollHead").height();
+				        var height = parentHeight - toolbarHeights - scrollHeadHeight;
+				        $dataTableWrapper.find(".dataTables_scrollBody").height(height - 24);
+				        
+				        $dataTable._fnScrollDraw();
+				    }
+				});
+				return oTable;
+		}
+		
+		// Graphs
+		function doStackedBarGraph(divId, dataSet, yTitle, start, end, perHour, graphWidth)
+		{			
+			document.getElementById(divId).innerHTML = "";
+			var margin = {top: 20, right: 5, bottom: perHour ? 100 : 80, left: 30},
+		   		width = graphWidth - margin.left - margin.right,
+		  		height = 550 - margin.top - margin.bottom;
+			
+			var dateFormat = "%Y-%m-%d"+(perHour?" %H":"");
+			var parseDate = d3.time.format(dateFormat).parse;
+			var parseDomainDate = d3.time.format("%Y-%m-%d").parse;
+			
+			var x = d3.scale.ordinal().rangeRoundBands([0, width], .1);
+			var y = d3.scale.linear().rangeRound([height, 0]);
+								
+			var color = d3.scale.category20();
+						
+			var svg = d3.select("#"+divId).append("svg")
+			    .attr("width", width + margin.left + margin.right)
+			    .attr("height", height + margin.top + margin.bottom)
+			  	.append("g")
+			    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+						
+			var keys = dataSet.shift().slice(0);
+			keys.shift();
+
+			color.domain(keys);
+
+			dataSet.forEach(function(d) {
+			    var y0 = 0;
+			    d.date = parseDate(d[0]);
+			    d.values = color.domain().map(function(name) 
+			    	{ return {name: name, y0: y0, 
+			    		y1: y0 += +parseInt(d[keys.indexOf(name)+1])}; });
+			    d.total = d.values[d.values.length - 1].y1;
+		  	});
+			
+			var x_domain = [parseDomainDate(start), parseDomainDate(end)];
+			
+			var xAxis = d3.svg.axis().scale(x).orient("bottom")
+					.tickFormat( d3.time.format(dateFormat));
+			var yAxis = d3.svg.axis().scale(y).orient("left");
+
+			if (perHour)
+			{
+            	x.domain(d3.time.hour.range(x_domain[0], d3.time.day.offset(x_domain[1],1)));
+			}
+			else
+			{
+            	x.domain(d3.time.day.range(x_domain[0], d3.time.day.offset(x_domain[1],1)));
+			}
+  			y.domain([0, d3.max(dataSet, function(d) { return d.total; })]);
+  			  			
+            var name = svg.selectAll(".name")
+		      .data(dataSet)
+		   	  .enter().append("g")
+		      .attr("class", "g")
+		      .attr("transform", function(d) { return "translate(" + x(d.date) + ",0)"; });
+		
+		  	name.selectAll("rect")
+		      .data(function(d) { return d.values; })
+		      .enter().append("rect")
+		      .attr("width", x.rangeBand())
+		      .attr("y", function(d) { return y(d.y1); })
+		      .attr("height", function(d) { return y(d.y0) - y(d.y1); })
+		      .style("fill", function(d) { return color(d.name); }).append("svg:title").text(function(d) { return d.name+" : "+(d.y1-d.y0) });
+		
+		  	var legend = svg.selectAll(".legend")
+		      .data(color.domain().slice().reverse())
+		      .enter().append("g")
+		      .attr("class", "legend")
+		      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+		
+		  	legend.append("rect")
+		      .attr("x", 30)
+		      .attr("width", 18)
+		      .attr("height", 18)
+		      .style("fill", color);
+		
+		  	legend.append("text")
+		      .attr("x", 51)
+		      .attr("y", 9)
+		      .attr("dy", ".35em")
+		      .text(function(d) { return d; });
+
+            svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")")
+                .call(xAxis)
+			    .selectAll("text")  
+	            .style("text-anchor", "end")
+	            .attr("dx", "-.8em")
+	            .attr("dy", ".15em")
+	            .attr("transform", function(d) {
+	                return "rotate(-65)" 
+	                });
+
+            svg.append("g")
+                .attr("class", "y axis")
+                .call(yAxis)
+              	.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 6)
+                .attr("dy", ".71em")
+                .style("text-anchor", "end")
+                .text(yTitle);
+		}
+		
+		function doPie(divId, dataSet)
+		{			
+			document.getElementById(divId).innerHTML = "";
+			
+			var width = 960, height = 500,
+		    	radius = Math.min(width, height) / 2;
+
+			var color = d3.scale.category20();
+	
+			var arc = d3.svg.arc().outerRadius(radius - 10)
+			    .innerRadius(0);
+	
+			var pie = d3.layout.pie().sort(null)
+			    .value(function(d) { return d.value; });
+	
+			var svg = d3.select("#"+divId).append("svg")
+			    .attr("width", width)
+			    .attr("height", height)
+			  	.append("g")
+			    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+	
+			var data = dataSet.map(function(d) {
+                return {
+                   name: d[0],
+                   value: d[1]
+                };
+			});
+			
+		  	dataSet.forEach(function(d) {
+			    d.value = +d.value;
+			  });
+			var g = svg.selectAll(".arc")
+		      .data(pie(data))
+		      .enter().append("g")
+		      .attr("class", "arc");
+
+		  	g.append("path")
+		      .attr("d", arc)
+		      .style("fill", function(d) { return color(d.data.name); });
+
+		  	g.append("text")
+		      .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
+		      .attr("dy", ".35em")
+		      .style("text-anchor", "middle")
+		      .text(function(d) { return d.data.name; });
+		}
+		
+		// drafts
+		
+		function doLinearGraph(divId, dataSet)
+		{			
+			document.getElementById(divId).innerHTML = "";
+			var margin = {top: 20, right: 20, bottom: 30, left: 50},
+		   		width = 960 - margin.left - margin.right,
+		  		height = 500 - margin.top - margin.bottom;
+			
+			var parseDate = d3.time.format("%Y-%m-%d").parse;
+			
+			var x = d3.time.scale().range([0, width]);		
+			var y = d3.scale.linear().range([height, 0]);
+		
+			var xAxis = d3.svg.axis().scale(x).orient("bottom");
+			var yAxis = d3.svg.axis().scale(y).orient("left");
+			
+			var line = d3.svg.line()
+		    	.x(function(d) { return x(d.date); })
+		    	.y(function(d) { return y(d.close); });
+			
+			var svg = d3.select("#"+divId).append("svg")
+			    .attr("width", width + margin.left + margin.right)
+			    .attr("height", height + margin.top + margin.bottom)
+			  	.append("g")
+			    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+			
+			var data = dataSet.map(function(d) {
+                return {
+                   date: parseDate(d[0]),
+                   close: d[1]
+                };
+			});
+
+            x.domain(d3.extent(data, function(d) { return d.date; }));
+			var yDomain = d3.extent(data, function(d) { return d.close; });
+			yDomain[0] = 0;
+            y.domain(yDomain);
+
+            svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")")
+                .call(xAxis);
+
+            svg.append("g")
+                .attr("class", "y axis")
+                .call(yAxis)
+              	.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 6)
+                .attr("dy", ".71em")
+                .style("text-anchor", "end")
+                .text("XXX");
+
+            svg.append("path")
+                .datum(data)
+                .attr("class", "line")
+                .attr("d", line);			
+		}
+		
+		function doBarGraph(divId, dataSet)
+		{			
+			document.getElementById(divId).innerHTML = "";
+			var margin = {top: 20, right: 20, bottom: 30, left: 50},
+		   		width = 960 - margin.left - margin.right,
+		  		height = 500 - margin.top - margin.bottom;
+
+			var parseDate = d3.time.format("%Y-%m-%d").parse;
+			
+			var x = d3.scale.ordinal().rangeRoundBands([0, width], .1);
+			var y = d3.scale.linear().range([height, 0]);
+		
+			var xAxis = d3.svg.axis().scale(x).orient("bottom");
+			var yAxis = d3.svg.axis().scale(y).orient("left");
+						
+			var svg = d3.select("#"+divId).append("svg")
+			    .attr("width", width + margin.left + margin.right)
+			    .attr("height", height + margin.top + margin.bottom)
+			  	.append("g")
+			    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+			
+			var data = dataSet.map(function(d) {
+                return {
+                   date: d[0],
+                   close: d[1]
+                };
+			});
+
+            x.domain(data.map(function(d) { return d.date; }));
+			var yDomain = d3.extent(data, function(d) { return d.close; });
+			yDomain[0] = 0;
+            y.domain(yDomain);
+
+            svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")")
+                .call(xAxis);
+
+            svg.append("g")
+                .attr("class", "y axis")
+                .call(yAxis)
+              	.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 6)
+                .attr("dy", ".71em")
+                .style("text-anchor", "end")
+                .text("XXX");
+
+            svg.selectAll(".bar")
+	            .data(data)
+	          	.enter().append("rect")
+	            .attr("class", "bar")
+	            .attr("x", function(d) { return x(d.date); })
+	            .attr("width", x.rangeBand())
+	            .attr("y", function(d) { return y(d.close); })
+	            .attr("height", function(d) { return height - y(d.close); });		
+		}
+				
+		function doStackedArea(divId, dataSet)
+		{			
+			document.getElementById(divId).innerHTML = "";
+			
+			var margin = {top: 20, right: 50, bottom: 30, left: 50},
+		    	width = 960 - margin.left - margin.right,
+		    	height = 500 - margin.top - margin.bottom;
+
+			var parseDate = d3.time.format("%Y-%m-%d").parse;
+		    	formatPercent = d3.format(".0%");
+
+			var x = d3.time.scale()
+			    .range([0, width]);
+	
+			var y = d3.scale.linear()
+			    .range([height, 0]);
+	
+			var color = d3.scale.category20();
+	
+			var xAxis = d3.svg.axis()
+			    .scale(x)
+			    .orient("bottom");
+	
+			var yAxis = d3.svg.axis()
+			    .scale(y)
+			    .orient("left");
+	
+			var area = d3.svg.area()
+			    .x(function(d) { return x(d.date); })
+			    .y0(function(d) { return y(d.y0); })
+			    .y1(function(d) { return y(d.y0 + d.y); });
+	
+			var stack = d3.layout.stack()
+			    .values(function(d) { return d.values; });
+	
+			var svg = d3.select("#"+divId).append("svg")
+			    .attr("width", width + margin.left + margin.right)
+			    .attr("height", height + margin.top + margin.bottom)
+			  	.append("g")
+			    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+						
+			var keys = dataSet.shift().slice(0);
+			keys.shift();
+
+			color.domain(keys);
+
+			  var browsers = stack(color.domain().map(function(name) {
+				    return {
+				      name: name,
+				      values: dataSet.map(function(d) {
+				        return {date: parseDate(d[0]), y: parseInt(d[keys.indexOf(name)+1])};
+				      })
+				    };
+				  }));
+			
+			x.domain(d3.extent(dataSet, function(d) { return parseDate(d[0]); }));
+			var yDomain = d3.extent(dataSet, function(d) { var total = 0; for (var i = 1; i < d.length; i ++) { total+=parseInt(d[i]); } return total; });
+			yDomain[0] = 0;
+			y.domain(yDomain);
+		
+			var browser = svg.selectAll(".browser")
+			    .data(browsers)
+			  .enter().append("g")
+			    .attr("class", "browser");
+			
+			browser.append("path")
+			    .attr("class", "area")
+			    .attr("d", function(d) { return area(d.values); })
+			    .style("fill", function(d) { return color(d.name); });
+
+			svg.append("g")
+			    .attr("class", "x axis")
+			    .attr("transform", "translate(0," + height + ")")
+			    .call(xAxis);
+			
+			svg.append("g")
+			    .attr("class", "y axis")
+			    .call(yAxis);
+						
+			var text = svg.selectAll(".text")
+			    .data(browsers).enter()
+			    .append("text")
+			    .attr("class","text") 
+				.datum(function(d) { return {name: d.name, value: d.values[0]}; })
+			      .attr("transform", function(d) { return "translate(0," + y(d.value.y0 + d.value.y/2) + ")"; })
+			      .attr("x", 6)
+			      .attr("dy", ".35em")
+			    .text(function(d) { 
+			    	return d.name;
+					});
+			text.exit().remove();
+		}
+	</script>
+</head>
+<body>
+	<div id="statistics_div">
+        <div id="statistics_tabs"/>       
+	</div>
+</body>
+</html>

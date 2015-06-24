@@ -1,0 +1,375 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<style>	
+		#managementDataRight_div
+		{
+			height: 500px;
+			display: none;
+		}
+		
+		#managementDataRight_table
+		{
+			width: 400px;
+			height: 100%;
+			float: left;
+		}
+		
+		#managementDataRight_right
+		{
+			width: 538px;
+			height: 488px;
+			float: right;		  
+			border: solid 1px #aaa;
+			background: #DEDEDE;
+			padding: 5px;
+		}	
+						
+		#managementDataRight_collectionsTable
+		{
+			margin-bottom: 5px;
+			width: 100%;
+		}
+		
+		.managementDataRight_collectionsTableCheckbox
+		{		
+			vertical-align: middle;
+			margin-bottom: 1px;
+		}
+		
+		.managementDataRight_collectionsTableCheckAll
+		{		
+			margin-left: 5px;
+			margin-right: 15px;
+			vertical-align: middle;
+			margin-bottom: 1px;
+		}
+		
+		.managementDataRight_collectionTreeNode
+		{
+			width: 21px;
+			display:inline-block;
+		}
+		
+		.managementDataRight_collectionTreeNodeImg
+		{
+			vertical-align: middle;
+			margin-bottom: 1px;
+		}
+			
+		#managementDataRight_productsTable
+		{
+			margin-top: 10px;
+			margin-bottom: 5px;
+			width: 100%;
+		}
+		
+		.managementDataRight_productsTableCheckbox
+		{		
+			vertical-align: middle;
+			margin-bottom: 1px;
+		}
+		
+		.managementDataRight_productsTableCheckAll
+		{		
+			margin-left: 5px;
+			margin-right: 15px;
+			vertical-align: middle;
+			margin-bottom: 1px;
+		}
+		
+		#managementDataRight_buttons
+		{
+			position: relative;
+			height: 23px;
+			width: 100%;
+			text-align: right;
+		}
+			
+		#managementDataRight_buttonCancel
+		{	
+			width: 80px;
+			font-size: 12px;
+			text-align: center;	
+			position: absolute;
+			left: -1px;
+			bottom: 0px;	
+		}
+		
+		#managementDataRight_buttonUpdate
+		{	
+			width: 80px;
+			font-size: 12px;
+			text-align: center;
+			position: absolute;
+			right: -1px;
+			bottom: 0px;	
+		}
+		
+		.managementDataRight_publicData
+		{
+			color: #404040;
+		}
+	</style>
+	<script>			
+		var dr_usersTableEnabled = true;
+		var dr_productsTableEnabled = true;
+		var dr_productCheckedFunction;
+		var dr_productsCheckAllFunction;
+		var dr_productsTable;	
+		var dr_collectionsTableEnabled = true;
+		var dr_openDataRightCollectionFunction;
+		var dr_collectionCheckedFunction;
+		var dr_collectionsCheckAllFunction;
+		var dr_collectionsTable;	
+		var dr_usersTable;	
+		var dr_productsScrollPosition = 0;
+		var dr_collectionsScrollPosition = 0;
+		
+		function dr_resetProductsScrollPosition()
+		{
+			dr_productsScrollPosition = 0;
+		}
+		
+		function dr_saveProductsScrollPosition()
+		{
+			dr_productsScrollPosition = $("#managementDataRight_productsTableDisplay").closest(".dataTables_scrollBody").scrollTop();
+		}
+		
+		function dr_resetCollectionsScrollPosition()
+		{
+			dr_collectionsScrollPosition = 0;
+		}
+		
+		function dr_saveCollectionsScrollPosition()
+		{
+			dr_collectionsScrollPosition = $("#managementDataRight_collectionsTableDisplay").closest(".dataTables_scrollBody").scrollTop();
+		}
+				
+		function dr_refreshDRCollections()
+		{
+			dr_collectionsTable.fnDraw(false);
+		}
+				
+		function dr_refreshDRProducts()
+		{
+			dr_productsTable.fnDraw(false);
+		}
+			
+		function dr_refreshDRUsers()
+		{
+			dr_usersTable.fnDraw(false);
+		}
+		
+		function dr_deselectUser()
+		{
+			dr_usersTable.$('tr.row_selected').removeClass('row_selected');
+		}
+				
+		function dr_setUsersTableEnabled(enabled)
+		{
+			dr_usersTableEnabled = enabled;
+		}
+		
+		function dr_setCollectionsTableEnabled(enabled)
+		{
+			dr_collectionsTableEnabled = enabled;
+			dr_refreshDRCollections();
+		}
+		
+		function dr_setProductsTableEnabled(enabled)
+		{
+			dr_productsTableEnabled = enabled;
+			dr_refreshDRProducts();
+		}
+		
+		function initTree(tableId, requestDataFunction, aoColumns, columns, sDom, oLanguage, parentHeight, pageLengths, onClickFunction) {
+			$("#"+tableId).html(
+				'<table cellpadding="0" cellspacing="0" border="0" class="display" id="'+
+					tableId+'Display">'+columns+'</table>');
+				
+			var oTable = $("#"+tableId+"Display").dataTable({
+				"aoColumns": aoColumns,
+				"bJQueryUI": true,
+				"sDom" : sDom,
+				"sPaginationType": "full_numbers",	
+				"bSort" : false,
+				"bDeferRender": true,
+				"bServerSide" : true,
+				"sAjaxSource" : "",
+				"fnServerData": requestDataFunction,
+				"oLanguage": oLanguage,
+				"iDisplayLength": pageLengths[0],
+				"aLengthMenu": pageLengths,
+				"sScrollY": "0px",
+				    "fnDrawCallback": function() {
+				        var $dataTable = $("#"+tableId+"Display").dataTable();
+				        $dataTable.fnAdjustColumnSizing(false);
+
+				        if (typeof(TableTools) != "undefined") {
+				            var tableTools = TableTools.fnGetInstance(table);
+				            if (tableTools != null)
+				            {
+				            	if (tableTools.fnResizeRequired()) 
+				            	{
+				                	tableTools.fnResizeButtons();
+				                }
+				            }
+				        }
+
+				        var $dataTableWrapper = $("#"+tableId+"Display").closest(".dataTables_wrapper");
+
+				        var toolbarHeights = 0;
+				        $dataTableWrapper.find(".fg-toolbar").each(function(i, obj) {
+				            toolbarHeights = toolbarHeights + $(obj).height();
+				        });
+						
+						var scrollHeadHeight = $dataTableWrapper.find(".dataTables_scrollHead").height();
+				        var height = parentHeight - toolbarHeights - scrollHeadHeight;
+				        $dataTableWrapper.find(".dataTables_scrollBody").height(height - 24);
+				        
+				        $dataTable._fnScrollDraw();
+				    }
+				});
+				if (onClickFunction !== undefined)
+				{				
+					jQuery("#"+tableId+"Display").on('click','tr', function() {
+						if ( $(this).hasClass('row_selected') ) {
+				            $(this).removeClass('row_selected');
+      						onClickFunction(oTable.fnGetData( this ));
+				        }
+				        else {
+				            $(this).addClass('row_selected');
+      						onClickFunction(oTable.fnGetData( this ));
+				        }      					
+					});
+				}
+				return oTable;
+		}
+					
+		function showDataRightManagement (getUsersFunction, getProductsFunction, getCollectionsFunction, selectUserFunction, productCheckedFunc, productsCheckAllFunc, openCollectionFunc, collectionCheckedFunc, collectionsCheckAllFunc)
+		{	
+			dr_productsCheckAllFunction = productsCheckAllFunc;
+			dr_productCheckedFunction = productCheckedFunc;
+		    dr_openDataRightCollectionFunction = openCollectionFunc;
+			dr_collectionsCheckAllFunction = collectionsCheckAllFunc;
+			dr_collectionCheckedFunction = collectionCheckedFunc;
+						
+			document.getElementById("managementDataRight_div").style.display = "block";	
+			
+			dr_collectionsTable = initTree("managementDataRight_collectionsTable", getCollectionsFunction, [{ "sTitle": "", "sClass": "center",  
+						"mRender": function ( data, type, full ) {
+							return "<input type='checkbox' class='managementDataRight_collectionssTableCheckbox' "+(data.checked ? "checked" : "")+" onclick='dr_collectionCheckedFunction(\""+data.id+"\")' "+((dr_collectionsTableEnabled)?"":"disabled")+" "+(data.publicData ? " disabled title='This collection is public' " : "")+"/>";	
+						}},{ "sTitle": "",
+					  "mRender": function ( data, type, full ) {
+					  		if (data.hasChildren)
+					  		{
+								return "<div style='display:inline-block; width:calc("+data.deep+"*10px)'/><div class='managementDataRight_collectionTreeNode' onclick='dr_openDataRightCollectionFunction(event, \""+data.id+"\")'><img class='managementDataRight_collectionTreeNodeImg' src='home/dhus/images/Folder"+(data.open?"Open":"Close")+".png' "+(data.open?"onmouseout='this.src=\"home/dhus/images/FolderOpen.png\"' onmouseover='this.src=\"home/dhus/images/FolderClose.png\"'":"onmouseout='this.src=\"home/dhus/images/FolderClose.png\"' onmouseover='this.src=\"home/dhus/images/FolderOpen.png\"'")+"></div>"+data.name;
+							}
+							else
+							{
+								return "<div style='display:inline-block; width:calc("+data.deep+"*10px)'/><div class='managementDataRight_collectionTreeNode'><img class='managementDataRight_collectionTreeNodeImg' src='home/dhus/images/Leaf_folder.png'/></div>"+data.name;
+							}
+						}}], "<col style='width: 20px'/><col/>", '<"H"ir>t<"F">',
+					{ "sEmptyTable": "No collections found",
+					  "sLengthMenu": "Page size: _MENU_",
+					  "sInfo": "<input type='checkbox' class='managementDataRight_collectionsTableCheckAll' id='dr_collectionsCheckAll' onclick='dr_collectionsCheckAllFunction()' /> Collections",
+					  "sInfoEmpty": "<input type='checkbox' class='managementDataRight_collectionsTableCheckAll' id='dr_collectionsCheckAll' onclick='dr_collectionsCheckAllFunction()' /> No collections found",
+					  "oPaginate": {
+					        "sFirst": "<<",
+					        "sPrevious": "<",
+					        "sNext": ">",
+					        "sLast": ">>"
+					      }
+					  }, 200, []);
+
+			dr_collectionsTable.on('draw', function() {$("#managementDataRight_collectionsTableDisplay").closest(".dataTables_scrollBody").scrollTop(dr_collectionsScrollPosition);});
+					
+			dr_productsTable = initTable("managementDataRight_productsTable", getProductsFunction, [{ "sTitle": "", "sClass": "center",  
+						"mRender": function ( data, type, full ) {
+							return "<input type='checkbox' class='managementDataRight_productsTableCheckbox' "+(data.checked ? "checked" : "")+" onclick='dr_productCheckedFunction(\""+data.id+"\")' "+((dr_productsTableEnabled)?"":"disabled")+" "+(data.publicData ? " disabled title='This product is public' " : "")+"/>";	
+						}},
+					{ "sTitle": "" }], '<col style="width: 20px"/><col/>', '<"H"ifr>t<"F"lp>',
+					{ "sEmptyTable": "No products found.",
+					  "sLengthMenu": "Page size: _MENU_",
+					  "sInfo": "<input type='checkbox' class='managementDataRight_productsTableCheckAll' id='dr_productsCheckAll' onclick='dr_productsCheckAllFunction()' />  Display _START_ to _END_ of _TOTAL_ products",
+					  "sInfoEmpty": "<input type='checkbox' class='managementDataRight_productsTableCheckAll' id='dr_productsCheckAll' onclick='dr_productsCheckAllFunction()' />  No products found",
+					  "oPaginate": {
+					        "sFirst": "<<",
+					        "sPrevious": "<",
+					        "sNext": ">",
+					        "sLast": ">>"
+					      }}, 250, [25, 50, 100])
+			
+			dr_productsTable.on('draw', function() {$("#managementDataRight_productsTableDisplay").closest(".dataTables_scrollBody").scrollTop(dr_productsScrollPosition);});
+					
+			dr_usersTable = initTable("managementDataRight_table", getUsersFunction, [{ "sTitle": "",  
+						"mRender": function ( data, type, full ) {
+						    return (data.publicData?"<i class='managementDataRight_publicData'>":"")+data.username+(data.publicData?"</i>":"");
+						}}], "<col/>", '<"H"ifr>t<"F"lp>',
+					{ "sEmptyTable": "No users found.",
+					  "sLengthMenu": "Page size: _MENU_",
+					  "sInfo": "Display _START_ to _END_ of _TOTAL_ users",
+					  "sInfoEmpty": "No users found",
+					  "oPaginate": {
+					        "sFirst": "<<",
+					        "sPrevious": "<",
+					        "sNext": ">",
+					        "sLast": ">>"
+					      }
+					  }, 500, [50, 100], function(data) {
+					  	if(dr_usersTableEnabled)
+					  	{
+							selectUserFunction(data);
+						}
+						else
+						{
+							dr_deselectUser();
+						}
+					 });
+		}
+	</script>
+</head>
+<body>
+	<div id="managementDataRight_div">   	
+        <div id="managementDataRight_table"></div>
+    	<div id="managementDataRight_right">    		
+    		<div id="managementDataRight_collectionsTable"></div>
+    		<div id="managementDataRight_productsTable"></div>
+    		<div id="managementDataRight_buttons">
+				<div class="button_disabled" id="managementDataRight_buttonCancel">Cancel</div>
+				<div class="button_disabled" id="managementDataRight_buttonUpdate">Update</div>
+			</div>
+    	</div>
+	</div>
+	<!--script>
+		showDataRightManagement (
+			function ( sSource, aoData, fnCallback, oSettings ) {            
+	            fnCallback(JSON.parse('{"aaData": [["abc"]], "iTotalRecords" : 1, "iTotalDisplayRecords" : 1}'))}, 
+	        function ( sSource, aoData, fnCallback, oSettings ) {            
+	            fnCallback(JSON.parse('{"aaData": [[{"checked": false, "id": 5},"def"]], "iTotalRecords" : 1, "iTotalDisplayRecords" : 1}'))},
+	        function ( sSource, aoData, fnCallback, oSettings ) {            
+	            fnCallback(JSON.parse('{"aaData": [[{"checked": false, "id": 5},{"name": "abc", "id": 5, "deep": 0, "hasChildren":false, "open":false}]], "iTotalRecords" : 1, "iTotalDisplayRecords" : 1}'))}
+	            , function () {}, function () {}, function () {}, function () {}, function () {}, function () {})
+	</script-->
+</body>
+</html>

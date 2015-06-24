@@ -1,0 +1,44 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+
+<suite name="Unit Testing" verbose="1" parallel="false">
+<!--
+   <test name="fast">
+      <classes>
+         <class name="fr.gael.dhus.init.InitSuite"/>
+         <class name="fr.gael.dhus.search.SolrQueryParserTest"/>
+         <class name="fr.gael.dhus.service.job.SchedulerTest"/>
+         <class name="fr.gael.dhus.statistic.StatisticsTest"/>
+         <class name="fr.gael.dhus.datastore.eviction.EvictionManagerTest"/>
+      </classes>
+   </test>
+-->
+
+    <test name="System" preserve-order="true">
+        <classes>
+            <class name="fr.gael.dhus.system.config.ConfigurationManagerTest" />
+            <class name="fr.gael.dhus.TestDate" />
+        </classes>
+    </test>
+
+    <test name="Search" preserve-order="true" >
+        <classes>
+            <class name="fr.gael.dhus.search.geocoder.impl.NominatimGeocoderTest"/>
+        </classes>
+    </test>
+
+    <test name="Data Store" preserve-order="true">
+        <classes>
+            <class name="fr.gael.dhus.datastore.DefaultDataStoreTest" />
+            <class name="fr.gael.dhus.datastore.HierarchicalDirectoryBuilderTest" />
+            <class name="fr.gael.dhus.datastore.scanner.ScannerFactoryTest" />
+            <class name="fr.gael.dhus.datastore.scanner.AbstractScannerTest"/>
+        </classes>
+    </test>
+
+   <test name="Performances" preserve-order="true">
+      <classes>
+          <!-- to much tests (+1000) -->
+         <!--<class name="fr.gael.dhus.PerformanceTest" />-->
+      </classes>
+   </test>
+</suite>

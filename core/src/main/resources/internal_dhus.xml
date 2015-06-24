@@ -1,0 +1,120 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE configuration [
+  <!ENTITY varFolder "/local_dhus">
+]>
+<configuration xmlns="fr.gael.dhus.database.object.config">
+	<!-- TODO : link xsd in jar -->
+	<crons>
+		<!-- A scheduler is configured according to this pattern: 
+			Seconds Minutes	Hours Day-of-month Month Day-of-week [Year] 
+			You can find more information on http://www.quartz-scheduler.org/documentation/quartz-1.x/tutorials/TutorialLesson06 
+			Here are some simple examples: 
+				- "0 0 */1 ** ?": every hour. 
+				- "0 0 9-17 ? * MON-FRI": on the hour nine to five week days. 
+				- "0 0 0 25 DEC ?": every Christmas Day at midnight 
+				- "0 0 3 ? * *": every day at 3 AM -->
+		<archiveSynchronization active="false" schedule="0 0 0/5 ? * *"/>
+		<cleanDatabase active="true" schedule="0 0 1 ? * *">
+		   <!-- Retension of statistics delay in days -->
+		   <statistics keepPeriod="90" />
+		   <tempUsers keepPeriod="10" />
+		</cleanDatabase>
+		<dumpDatabase active="true" schedule="0 0 3 ? * *" />
+		<cleanDatabaseDump active="true" schedule="0 0 4 ? * *" keep="10" />
+		<eviction active="true" schedule="0 0 21 ? * * " />
+		<fileScanners active="true" schedule="0 0 22 ? * *" sourceRemove="false"/>
+		<searches active="true" schedule="0 0 5 ? * *" />
+		<!-- addresses shall be coma-separated -->
+		<sendLogs active="false" schedule="23 30 0 ? * *" addresses="dhus@xxx.xx" />
+		<systemCheck active="true" schedule="0 30 23 ? * *"/>
+	</crons>
+	<!-- <gui customFolder="custom">
+		<banner height="100" background="" leftImage="" rightImage=""
+			title="" titleBackground="" />
+	</gui> -->
+	<messaging>
+		<!-- <jms folder="&varFolder;/broker" port="61616">
+			<queue name="system">
+				<types>ADMIN SYSTEM</types>
+			</queue>
+			<topic name="dev">
+				<types>ALL_MESSAGES</types>
+			</topic>
+		</jms> -->
+		<mail onUserCreate="true" onUserUpdate="true" onUserDelete="true">
+			<server smtp="smtp.xxx.xx" port="587" tls="false" username="dhus@xxx.xx"
+				password="xxxx">
+				<from name="DHuS Support Team" address="dhus@xxx.xx" />
+				<replyTo>dhus@xxx.xx</replyTo>
+			</server>
+		</mail>
+	</messaging>
+	<products publicData="true">
+		<!-- compressionLevel is a value to build the Deflater, from 1 to 9.
+			The compression level defines how rigorously the compressor looks
+			to find the longest string possible. As a general rule of thumb:
+			- Compressing at the maximum level (9) requires around twice as
+			much processor time as compressing at the minimum level (1) 
+			- For typical input, compressing at the maximum as opposed to
+			the minimum level adds around 5% to the compression ratio.
+			0 value means no compression. -->
+		<!-- checksumAlgorithms shall be coma-separated -->
+		<download compressionLevel="4" checksumAlgorithms="MD5"/>
+		<quicklook height="512" width="512" cutting="false" />
+		<thumbnail height="64" width="64" cutting="false" />
+	</products>
+	<search>
+		<geocoder url="http://nominatim.openstreetmap.org">
+		    <!-- boundingBox property defines if the geocoder is querying only 
+		    	the bounding box of the matching place from the Nominatim Web 
+		    	Service i.e. the four corners encompassing the place. 
+		    	Otherwise, it will query the complete polygon boundaries, that 
+		    	may have lower performance according the the number of vertices 
+		    	composing the place's boundaries. -->
+			<nominatim boundingBox="false" maxPointNumber="50" />
+			<geoname username="dhus" />
+		</geocoder>
+		<odata maxRows="50" />
+		<solr path="&varFolder;/solr" core="dhus" schemaPath=""
+			synonymPath="" />
+	</search>
+	<server protocol="http" host="localhost" port="8080">
+		<!-- External url (protocol://host:port) is the url viewed by users
+			Used in case of an apache proxy redirection for example
+			Empty values mean that server values are used -->
+		<external protocol="" host="" port="" path="" />
+		<ftp port="2121" ftps="false" />
+	</server>
+	<system>
+		<administrator name="root" password="rootpassword" />
+		<archive path="&varFolder;/data">
+			<eviction maxDiskUsage="80" maxEvictedProducts="1000"
+				keepPeriod="10" />
+			<incoming path="&varFolder;/incoming" maxFileNo="255" />
+		</archive>
+		<database path="&varFolder;/database/hsqldb" dumpPath="&varFolder;/database_dump" 
+			settings="hsqldb.write_delay=false;hsqldb.cache_size=1000000;hsqldb.cache_rows=200000;hsqldb.log_size=50;hsqldb.tx=mvcc;hsqldb.default_table_type=cached;" />	
+		<name long="Data Hub Service" short="DHuS" />
+		<processing corePoolSize="1" maxPoolSize = "10" queueCapacity="10000" />
+		<support name="DHuS Support Team" mail="dhus-support@xxx.xx" />
+		<tomcat path="&varFolder;/tomcat" />
+	</system>
+</configuration>

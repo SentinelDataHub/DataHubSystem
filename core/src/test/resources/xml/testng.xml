@@ -1,0 +1,10 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+
+<suite name="DHuS Tests" verbose="1" parallel="false">
+  <suite-files>
+     <suite-file path="./non-regressions.xml" />
+     <suite-file path="./unit-tests.xml" />
+     <suite-file path="./dao-unit-tests.xml" />
+     <suite-file path="./service-unit-tests.xml" />
+  </suite-files>
+</suite>

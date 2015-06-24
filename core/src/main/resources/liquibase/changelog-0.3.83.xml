@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<databaseChangeLog
+   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+   <changeSet author="fred" id="addColumnProductImages">
+      <addColumn tableName="PRODUCTS">
+         <column name="IMAGES_ID" type="BIGINT"/> 
+      </addColumn>
+   </changeSet>
+   
+   <changeSet author="fred" id="createProductImagesTable">
+      <createTable tableName="PRODUCT_IMAGES">
+         <column autoIncrement="true" name="ID" type="BIGINT">
+            <constraints primaryKey="true" primaryKeyName="SYS_PK_18225"/>
+         </column>
+         <column name="QUICKLOOK" type="BLOB"/>
+         <column name="THUMBNAIL" type="BLOB"/>
+      </createTable>
+   </changeSet>
+
+   <changeSet author="fred" id="addForeignKeyProduct_ImagesID">
+      <addForeignKeyConstraint 
+         baseColumnNames="IMAGES_ID" 
+         baseTableName="PRODUCTS" 
+         constraintName="FKF2D1C164E3E426AC" 
+         deferrable="false" 
+         initiallyDeferred="false" 
+         onDelete="NO ACTION" 
+         onUpdate="NO ACTION" 
+         referencedColumnNames="ID" 
+         referencedTableName="PRODUCT_IMAGES"/>
+   </changeSet>
+   
+   <changeSet author="fred" id="createProductImageIndex">
+      <createIndex indexName="SYS_IDX_10440" tableName="PRODUCTS" unique="false">
+         <column name="IMAGES_ID"/>
+      </createIndex>
+    </changeSet>
+   
+   
+   <changeSet author="fred" id="addColumnImagesFlags">
+      <addColumn tableName="PRODUCTS">
+         <column name="QUICKLOOK_FLAG" type="BOOLEAN"/> 
+         <column name="THUMBNAIL_FLAG" type="BOOLEAN"/>
+      </addColumn>
+      <addDefaultValue tableName="PRODUCTS" columnDataType="BOOLEAN"
+            columnName="QUICKLOOK_FLAG" defaultValueBoolean="false"/>
+      <addDefaultValue tableName="PRODUCTS" columnDataType="BOOLEAN"
+            columnName="THUMBNAIL_FLAG" defaultValueBoolean="false"/>
+   </changeSet>
+   
+   <changeSet author="fred" id="copyImagesFromProduct" runOnChange="true">
+      <customChange class="fr.gael.dhus.database.liquibase.CopyProductImages"></customChange>
+   </changeSet>
+
+   <changeSet author="fred" id="dropColumnProductQuicklook">
+      <dropColumn  columnName="QUICKLOOK" tableName="PRODUCTS"/>
+   </changeSet>
+   
+   <changeSet author="fred" id="dropColumnProductThumbnail">
+      <dropColumn  columnName="THUMBNAIL" tableName="PRODUCTS"/>
+   </changeSet>
+   
+   <changeSet author="nico" id="dataManagerRoleCreation" runOnChange="true">
+   		  <customChange class="fr.gael.dhus.database.liquibase.DataManagerRoleCreation"></customChange>
+   </changeSet>
+   
+</databaseChangeLog>

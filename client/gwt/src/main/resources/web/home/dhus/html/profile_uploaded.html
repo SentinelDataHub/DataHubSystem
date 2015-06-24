@@ -1,0 +1,143 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<style>	
+		#profileUploaded_div
+		{
+			height: 420px;
+			display: none;
+		}
+				
+		#profileUploaded_uploaded
+		{
+			display: block;
+			width: 960px;
+		}		
+		
+		.profileUploaded_uploadedPreview
+		{			
+			height: 64px;
+			width: 64px;
+			border: solid 1px #BBBBBB;
+			text-align: center;
+			vertical-align: middle;
+		}
+		
+		.profileUploaded_thumbnailPreviewImg
+		{		
+			max-height: 64px;
+			max-width: 64px;
+		}
+		
+		.profileUploaded_uploadedProduct
+		{
+			vertical-align: top;
+			/* height: 64px; */
+		}
+		
+		#profileUploaded_uploadedDisplay tbody tr.even, #search_tableDisplay tbody tr.even {
+			background-color: #e3e3e3;
+		}
+	
+		#profileUploaded_uploadedDisplay tbody tr.odd, #search_tableDisplay tbody tr.odd {
+			background-color: #EEEEEE;
+		}
+		
+		#profileUploaded_uploadedDisplay tbody tr.even:hover, #search_tableDisplay tbody tr.even td.highlighted {
+			cursor: default;
+			background-color: #BCD2EE;
+		}
+	
+		#profileUploaded_uploadedDisplay tbody tr.odd:hover, #search_tableDisplay tbody tr.odd td.highlighted {
+			cursor: default;
+			background-color: #BCD2EE;
+		}		
+	</style>
+	<script>		
+		var profileUploaded_viewProductFunction;
+		var profileUploaded_uploadedTable;
+		
+		function showProfileUploaded (getUploadedProductsFunction, viewProductFunc)
+		{
+			document.getElementById("profileUploaded_div").style.display = "block";	
+				
+			profileUploaded_viewProductFunction = viewProductFunc;
+			/* profileUploaded_uploadedTable = initProfileTable("profileUploaded_uploaded", getUploadedProductsFunction, [
+				{ "sTitle": "", "sClass": "center",  
+					"mRender": function ( data, type, full ) {
+						if (data == null)
+						{
+							return '<div class="profileUploaded_uploadedPreview"><br>No Quicklook</div>';
+						}
+						else
+						{
+   							return '<div class="profileUploaded_uploadedPreview"><a href="'+data+'Products(\'Quicklook\')/$value" target="_blank"><img class="profileUploaded_thumbnailPreviewImg" src="'+data+'Products(\'Thumbnail\')/$value"/></a></div>';
+   						}}},
+				{ "sTitle": "", "mRender": function ( data, type, full ) {
+						return '<div class="profileUploaded_uploadedProduct"><b>'+data.identifier+'</b><br>'+
+								'<a class="link" href="'+data.link+'" target="_blank">'+data.link+'</a>'+
+								'<br><br>'+data.summary+'</div>';
+					}},
+				{ "sTitle": "", "sClass": "center", 
+						"mRender": function ( data, type, full ) {
+					return '<img onclick="profileUploaded_viewProductFunction('+data+')" src="home/dhus/images/view.png" style="cursor:pointer;" title="View product"/>';
+				}},
+				{ "sTitle": "", "sClass": "center", 
+					"mRender": function ( data, type, full ) {
+						if (data != null)
+						{
+							return '<a href="'+data+'" target="_blank"><img src="home/dhus/images/download.png" title="Download product"/></a>';
+						}
+						else
+						{
+							return '<img src="home/dhus/images/download_disabled.png" style="cursor:default;" title="You are not allowed to download product"/>';
+						}
+				}}], "<col style='width: 72px'/><col/><col style='width: 25px'/><col style='width: 25px'/>", '<"H"ir>t<"F"lp>',
+			{ "sEmptyTable": "You have never upload products",
+			  "sLengthMenu": "Page size: _MENU_",
+			  "sInfo": "Display _START_ to _END_ of _TOTAL_ uploaded products",
+			  "sInfoEmpty": "You have never upload products"
+			  }, 400, [25,50,100]);	 */
+			  
+			profileUploaded_uploadedTable = initProfileTable("profileUploaded_uploaded", getUploadedProductsFunction, [
+				{ "sTitle": "", "mRender": function ( data, type, full ) {
+						return '<div class="profileUploaded_uploadedProduct"><b>'+data+'</b></div>';
+					}}], "<col/>", '<"H"ir>t<"F"lp>',	
+			{ "sEmptyTable": "You have never upload products",
+			  "sLengthMenu": "Page size: _MENU_",
+			  "sInfo": "Display _START_ to _END_ of _TOTAL_ uploaded products",
+			  "sInfoEmpty": "You have never upload products"
+			  }, 400, [25,50,100]);	
+		}
+			
+		function profileUploaded_refreshUploaded()
+		{
+			profileUploaded_uploadedTable.fnDraw(false);
+		}
+	</script>
+</head>
+<body>
+	<div id="profileUploaded_div">
+		<div id="profileUploaded_uploaded"></div>
+	</div>
+</body>
+</html>

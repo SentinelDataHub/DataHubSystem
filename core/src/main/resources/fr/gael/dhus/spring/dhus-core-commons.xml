@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx" 
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="
+	   http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+      http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd
+      http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.2.xsd
+      http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.1.xsd">
+
+   <context:component-scan base-package="fr.gael.dhus.system" />
+   
+   <context:component-scan base-package="fr.gael.dhus.messaging.mail" />
+   <context:component-scan base-package="fr.gael.dhus.service" />
+   <context:component-scan base-package="fr.gael.dhus.search"/>
+   
+   <context:component-scan base-package="fr.gael.dhus.server" />
+   <context:component-scan base-package="fr.gael.dhus.olingo" />
+   
+   <context:component-scan base-package="fr.gael.dhus.datastore" />
+   
+   <context:component-scan base-package="fr.gael.dhus.system.init" />
+   <context:component-scan base-package="fr.gael.dhus.service" />
+   <context:component-scan base-package="fr.gael.dhus.spring.context" />  
+   
+   <!-- Processing task executors -->
+   <bean id="taskExecutor" 
+      class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">      
+      <property name="corePoolSize"
+                value="#{ configurationManager.getProcessingConfiguration ().getCorePoolSize () }" />
+
+      <property name="maxPoolSize"
+                value="#{ configurationManager.getProcessingConfiguration ().getMaxPoolSize () }" />
+
+      <property name="queueCapacity" 
+                value="#{ configurationManager.getProcessingConfiguration ().getQueueCapacity () }" />
+                
+      <!-- Lowering DHuS processing thread has been disabled after 0.3.8-18.4
+           to improve the ingestion performances
+      <property name="threadPriority" value="3"/>
+      -->
+   </bean>
+   <bean id="recordLogsTaskExecutor" 
+      class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">      
+      <property name="corePoolSize"  value="1" />
+      <property name="maxPoolSize"   value="10" />
+      <property name="queueCapacity" value="1000" />
+   </bean>
+   
+   <bean id="ftpServer" class="fr.gael.dhus.server.ftp.DHuSFtpServerBean">
+		<property name="port" 
+			value="#{ configurationManager.getFtpServerConfiguration ().getPort () }" />
+      <property name="ftps"
+			value="#{ configurationManager.getFtpServerConfiguration ().isFtps () }" />
+   </bean>
+   
+</beans>

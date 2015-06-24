@@ -1,0 +1,288 @@
+<?xml version="1.0"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE rdf:RDF [
+  <!ENTITY rdf  "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#">
+  <!ENTITY owl  "http://www.w3.org/2002/07/owl#">
+  <!ENTITY irs  "http://www.euromap.de/irs#">
+  <!ENTITY drb  "http://www.gael.fr/drb#">
+  <!ENTITY dhus "http://www.gael.fr/dhus#">
+]>
+
+<rdf:RDF xmlns:owl ="&owl;"
+         xmlns:rdf ="&rdf;"
+         xmlns:rdfs="&rdfs;"
+         xmlns:irs ="&irs;"
+         xmlns:drb ="&drb;"
+         xmlns:dhus="&dhus;"
+         xml:base  ="http://www.euromap.de/irs">
+
+   <owl:Ontology rdf:about="&irs;"/>
+
+   <!-- ***********************************************************************
+   ****************************************************************************
+   *                                                                          *
+   *                                                                          *
+   *                           METADATA EXTRACTION                            *
+   *                                                                          *
+   *                                                                          *
+   ****************************************************************************
+   ************************************************************************ -->
+
+   <rdf:Description rdf:about="&irs;product">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         <metadata category="platform" name="Satellite name" type="text/plain">
+            IRS
+         </metadata>,
+
+         <metadata category="platform" name="Satellite number" type="text/plain">
+            P6
+         </metadata>,
+
+         <metadata category="platform" name="NSSDC identifier" type="text/plain">
+            2003-046A
+         </metadata>,
+
+         <metadata category="platform" name="Operator" type="text/plain">
+            Indian Space Research Organisation
+         </metadata>,
+
+         <metadata category="platform" name="Mission type" type="text/plain">
+            Earth observation
+         </metadata>,
+
+         <metadata category="platform" name="Carrier rocket" type="text/plain">
+            PSLV
+         </metadata>,
+
+         <metadata category="platform" name="Launch date" type="text/plain">
+            {xs:dateTime("2003-10-17T00:00:00.000")}
+         </metadata>,
+
+         <metadata category="platform" name="Satellite description" type="text/plain">
+            IRS-P6, also known as ResourceSat-1, is an Earth observation
+            mission within the IRS (Indian Remote-Sensing Satellite) series of
+            ISRO (Indian Space Research Organization). IRS-P6 is the
+            continuation of the IRS-1C/1D missions with considerably enhanced
+            capabilities.
+            The overall objectives of the mission are to provide continued
+            remote sensing data services on an operational basis for integrated
+            land and water resources management.
+            The S/C mainframe is of IRS-1C/1D -P3 heritage (built by ISRO/ISAC,
+            Bangalore). The S/C structure consists of two modules, the main
+            platform and the payload module. The main platform is built around
+            a central load bearing cylinder of 915 mm diameter and consists of
+            four vertical panels and two horizontal decks. The bottom of
+            cylinder is attached to an interface ring which interfaces with the
+            launch vehicle. The vertical panels and the horizontal decks carry
+            various subsystem packages. Various attitude sensors, SPS
+            (Satellite Positioning System) and data transmitting antennas are
+            mounted on the outside surfaces of the equipment panels and the
+            bottom deck. Two star trackers are mounted with skewed orientation
+            on the top deck. The payload module in turn is comprised of a
+            two-tier system, the payload module deck and the rotating deck. The
+            payload module deck accommodates LISS-3, AWIFS-A and AWIFS-B camera
+            modules.
+            The LISS-4 camera is mounted on a rotating deck which is attached
+            to a PSM (Payload Steering Motor) which can rotate by 26 degrees. The
+            entire payload module assembly is attached to a CFRP monocoque
+            cylinder, which in turn is attached to the main cylinder of the
+            main platform through a strut assembly for effective load transfer.
+            The overall S/C size is about 2 m in diameter and 2.1 m in height.
+            The total S/C mass at launch is 1360 kg, including fuel for five
+            years of operation. Power is provided by a solar array generating
+            1250 W (EOL), the array is articulated into the sun; in addition
+            there are 2 NiCD batteries with a capacity of 24 Ah each.
+            The platform is three-axis stabilized [2 star sensors in loop,
+            magnetic bearing reaction wheels, RCS (Reaction Control System)
+            with 12 nozzles, 8 with 1 N thrusters, 4 nozzles with 11 N
+            thrusters], the pointing accuracies are 0.15 degrees, the stability is 3
+            x 10-4 degrees/s. An onboard solid-state recorder (SSR) provides 120 Gbit
+            capacity to store about 20 minutes of LISS-4 data. The S/C design
+            life is 5 years.
+         </metadata>,
+
+         <metadata category="instrument" name="Instrument names" type="text/plain">
+            Linear Imaging Self-Scanning Sensor-IV,
+            Linear Imaging Self-Scanning Sensor-III,
+            Advanced Wide Field Sensor
+         </metadata>,
+
+         <metadata category="instrument" name="Instrument abbreviations" type="text/plain">
+            LISS-IV, LISS-III, AWiFS
+         </metadata>,
+
+         <metadata category="instrument" name="LISS-IV instrument description" type="text/plain">
+            The LISS-IV camera is a high resolution multi-spectral camera
+            operating in three spectral bands (B2, B3, B4). LISS-IV can be
+            operated in either of the two modes. In the multi-spectral mode
+            (Mx), a swath of 23 Km (selectable out of 70 Km total swath) is
+            covered in three bands, while in mono mode (Mono), the full swath
+            of 70 Km can be covered in any one single band, which is selectable
+            by ground command (nominal is B3 - Red band). The LISS-IV camera
+            can be tilted in the across track direction thereby providing a
+            revisit period of 5 days.
+            The Data products are categorized as Standard and have a system
+            level accuracy.
+            LISS-IV Standard Products comprise Path/Row Based products, Shift
+            Along Track product, Georeferenced products and Basic Stereo
+            products. Path/Row Based products are generated based on the
+            referencing scheme of each sensor. Shift Along Track applies to
+            those products covering a user's area of interest which falls in
+            between two successive scenes of the same path, then the data can
+            be supplied by sliding the scene in the along track direction.
+            Georeferenced products are true north oriented products. These
+            products are supplied on digital media only. Basic Stereo products
+            comprise pairs of two images of the same area, acquired on
+            different dates and from different angles. One of the parameters
+            from which the quality of a stereo pair can be judged is the
+            base/height (B/H) ratio. B/H ratio is the ratio of distance between
+            two satellite passes and satellite altitude. Stereo products are
+            available from LISS-IV Mono mode only. The inputs required, in
+            addition to path/row details is B/H ratio. Two scenes selected on
+            two different dates, satisfying the user's B/H ratio are supplied
+            as a stereo pair. The data is only radiometrically corrected and
+            are supplied on digital media.
+            Standard Based and Geo Referenced products cover an area of 23 x 23
+            km (3Mx bands) and 70 x 70 km (Mono mode). Basic Stereo products
+            are Radiometrically corrected and cover an area of 70 x 70 km (Mono mode).
+         </metadata>,
+
+         <metadata category="instrument" name="LISS-III instrument description" type="text/plain">
+            The Linear Imaging Self Scanning Sensor (LISS-III) is a
+            multi-spectral camera operating in four spectral bands, three in
+            the visible and near infrared and one in the SWIR region, as in the
+            case of IRS-1C/1D. The new feature in LISS-III camera is the SWIR
+            band (1.55 to 1.7 microns), which provides data with a spatial
+            resolution of 23.5 m unlike in IRS-1C/1D (where the spatial
+            resolution is 70.5 m).
+            The Data products are categorized as Standard and have a system
+            level accuracy.
+            LISS-III Standard Products comprise Path/Row Based products, Shift
+            Along Track product, Quadrant products and Georeferenced products.
+            Path/Row Based products are generated based on the referencing
+            scheme of each sensor. Shift Along Track applies to those products
+            covering a user's area of interest which falls in between two
+            successive scenes of the same path, then the data can be supplied
+            by sliding the scene in the along track direction. LISS-III full
+            scene is divided into four nominal and eight derived quadrants.
+            LISS-III photographic quadrant products are generated on 1:125,000
+            scale. Georeferenced products are true north oriented products.
+            These products are supplied on digital media only.
+            Standard Path/Row Based products cover an area of 141 x 141 km and
+            are characterised by 3 Bands. Path/Row Based products comprise Raw,
+            Radiometrically corrected and Geo referenced levels of corrections.
+            Quadrant products cover an area of 70 x 70 km and are characterised
+            by 3 or 4 Bands (Geo Referenced). Quadrant products comprise
+            Standard and Geo referenced levels of corrections.
+         </metadata>,
+
+         <metadata category="instrument" name="AWiFS instrument description" type="text/plain">
+            The Advanced Wide Field Sensor (AWiFS) camera is an improved
+            version compared to the WiFS camera flown in IRS-1C/1D. AWiFS
+            operates in four spectral bands identical to LISS-III, providing a
+            spatial resolution of 56 m and covering a swath of 740 Km. To cover
+            this wide swath, the AWiFS camera is split into two separate
+            electrooptic modules, AWiFS-A and AWiFS-B.
+            The Data products are categorized as Standard and have a system
+            level accuracy.
+            AWiFS Standard Products comprise Path/Row Based products, Shift
+            Along Track product and Georeferenced products. Path/Row Based
+            products are generated based on the referencing scheme of each
+            sensor. Shift Along Track applies to those products covering a
+            user's area of interest which falls in between two successive
+            scenes of the same path, then the data can be supplied by sliding
+            the scene in the along track direction. Georeferenced products are
+            true north oriented products. These products are supplied on
+            digital media only.
+            Standard Path/Row Based products cover an area of 370 x 370 km and
+            are characterised by 3 or 4 Bands. Path/Row Based products comprise
+            Raw, Radiometrically corrected and Geo referenced levels of
+            corrections.
+         </metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+
+   <!-- TIF products (juste un .*_inf.txt qui a quelques mdt pas necceremet
+   interessantes)
+   <rdf:Description rdf:about="&irs;level1Metadata">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         <metadata category="product" name="" type="application/gml">
+            {data()}
+         </metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+   -->
+
+   <!-- BIL products (.*_metadata.xml) -->
+   <rdf:Description rdf:about="&irs;level3Metadata">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         <metadata category="product" name="Dataset producer name" type="application/gml">
+            {data(*/*/*[matches(name(),
+             "(?i).*metadata\.xml")]/Document/Production/DATASET_PRODUCER_NAME)}
+         </metadata>,
+
+         <metadata category="product" name="Dataset production date" type="application/gml">
+            {data(*/*/*[matches(name(),
+             "(?i).*metadata\.xml")]/Document/Production/DATASET_PRODUCTION_DATE)}
+         </metadata>,
+
+         <metadata category="product" name="Dataset production type" type="application/gml">
+            {data(*/*/*[matches(name(),
+             "(?i).*metadata\.xml")]/Document/Production/DATASET_PRODUCTION_TYPE)}
+         </metadata>,
+
+         <metadata category="product" name="Dataset sensor" type="application/gml">
+            {data(*/*/*[matches(name(),
+             "(?i).*metadata\.xml")]/Document/Production/DATASET_SENSOR)}
+         </metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+
+   <!--
+   <rdf:Description rdf:about="&irs;irsLevel1GppDir">
+      <rdfs:subClassOf rdf:resource="&irs;product"/>
+      <rdfs:subClassOf rdf:resource="&irs;level1Metadata"/>
+   </rdf:Description>
+
+   <rdf:Description rdf:about="&irs;irsLevel1GppTar">
+      <rdfs:subClassOf rdf:resource="&irs;product"/>
+      <rdfs:subClassOf rdf:resource="&irs;level1Metadata"/>
+   </rdf:Description>
+   -->
+
+   <rdf:Description rdf:about="&irs;irsLevel3GppDir">
+      <rdfs:subClassOf rdf:resource="&irs;product"/>
+      <rdfs:subClassOf rdf:resource="&irs;level3Metadata"/>
+   </rdf:Description>
+
+   <rdf:Description rdf:about="&irs;irsLevel3GppTar">
+      <rdfs:subClassOf rdf:resource="&irs;product"/>
+      <rdfs:subClassOf rdf:resource="&irs;level3Metadata"/>
+   </rdf:Description>
+
+</rdf:RDF>

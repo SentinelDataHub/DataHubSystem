@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	version="1.0" elementFormDefault="qualified" xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+	jxb:version="2.1" xmlns:inheritance="http://jaxb2-commons.dev.java.net/basic/inheritance"
+	xmlns:annox="http://annox.dev.java.net" jxb:extensionBindingPrefixes="inheritance annox"
+	xmlns:dhusGui="fr.gael.dhus.database.object.config.gui"
+	targetNamespace="fr.gael.dhus.database.object.config.gui">
+
+	<xs:annotation>
+		<xs:appinfo>
+			<jxb:schemaBindings>
+				<jxb:package name="fr.gael.dhus.database.object.config.gui" />
+			</jxb:schemaBindings>
+		</xs:appinfo>
+	</xs:annotation>
+
+	<xs:complexType name="guiConfiguration">
+		<xs:annotation>
+			<xs:appinfo>
+				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
+				</inheritance:extends>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element minOccurs="0" name="banner"
+				type="dhusGui:bannerConfiguration">
+				<xs:annotation>
+					<xs:appinfo>
+						<jxb:property name="bannerConfiguration" />
+					</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="customFolder" type="xs:string" />
+	</xs:complexType>
+
+	<xs:complexType name="bannerConfiguration">
+		<xs:annotation>
+			<xs:appinfo>
+				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
+				</inheritance:extends>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:all />
+		<xs:attribute name="background" type="xs:string" />
+		<xs:attribute name="height" type="xs:int" />
+		<xs:attribute name="leftImage" type="xs:string" />
+		<xs:attribute name="rightImage" type="xs:string" />
+		<xs:attribute name="title" type="xs:string" />
+		<xs:attribute name="titleBackground" type="xs:string" />
+	</xs:complexType>
+
+</xs:schema>

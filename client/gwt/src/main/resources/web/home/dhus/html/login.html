@@ -1,0 +1,157 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<style>
+		#login_div
+		{
+			text-align: right;
+			font-weight: bold;
+			font-size: 12px;
+			font-family: "Trebuchet MS", Helvetica, sans-serif;	
+			display: none;
+			width: 980px;
+		}
+		
+		.login_field
+		{
+			width: 90px;
+			font-size: 12px;
+			vertical-align: middle;
+			font-family: "Trebuchet MS", Helvetica, sans-serif;	
+			margin-bottom: 1px;
+			height: 16px;
+		}
+		
+		#login_space
+		{
+			display: inline-block;
+			width: 5px;
+		}
+		
+		#login_button
+		{		
+			font-size: 12px;
+			text-align: center;
+			width: 50px;
+		}
+		
+		#login_msg
+		{
+    			overflow: hidden;
+			padding-top: 5px;
+			padding-bottom: 5px;
+		}
+		
+		#login_error
+		{
+			overflow: hidden;
+			text-align: right;
+			color: #FF790B;
+		}
+		
+		#login_forgot
+		{
+			float: right;
+			font-weight: bold;
+			color: white;
+			text-decoration: none;
+			cursor: pointer;
+		}
+		
+		#login_forgot:hover
+		{
+			color: #FF790B;
+			text-decoration: none;	
+		}
+		
+		#logout_div
+		{
+			text-align: right;
+			font-weight: bold;
+			font-size: 12px;
+			font-family: "Trebuchet MS", Helvetica, sans-serif;	
+			display: none;
+		}
+		
+		#logout_welcome
+		{
+			display: inline-block;
+		}
+		
+		#logout_user
+		{
+			display: inline-block;
+			color: #FF790B;
+		}
+		
+		#logout_welcomeEnd
+		{
+			display: inline-block;
+		}
+		
+		#logout_button
+		{	
+			font-size: 12px;
+			text-align: center;
+			width: 50px;
+		}
+	</style>
+	<script>
+		function showLogin()
+		{
+			document.getElementById("login_div").style.display = "block";
+			document.getElementById("logout_div").style.display = "none";
+			loginError("");
+		}
+		
+		function showLogout(name)
+		{
+			document.getElementById("login_div").style.display = "none";
+			document.getElementById("logout_div").style.display = "block";
+			document.getElementById("logout_user").textContent = name;
+		}
+		
+		function loginError(error)
+		{
+			document.getElementById("login_error").textContent = error;
+		}
+	</script>
+</head>
+<body>
+	<div id="login_div">
+		<div id="login_msg">
+			<div id="login_forgot">&nbsp;Forgot your password?</div>
+			<div id="login_error"></div>
+		</div>	
+		username: <input type="text" name="login_username" id="login_username" class="login_field" /> 
+		password: <input type="password" name="login_password" id="login_password" class="login_field" />
+		<div id="login_space" /> 
+		<div class="button" id="login_button">Login</div>
+	</div>
+	<div id="logout_div">
+		<div id="logout_welcome">Welcome</div>
+		<div id="logout_user"></div>
+		<div id="logout_welcomeEnd">!&nbsp;</div>
+		<div class="button" id="logout_button">Logout</div>
+	</div>
+</body>
+</html>

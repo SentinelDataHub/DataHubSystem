@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	version="1.0" elementFormDefault="qualified" xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+	jxb:version="2.1" xmlns:inheritance="http://jaxb2-commons.dev.java.net/basic/inheritance"
+	xmlns:annox="http://annox.dev.java.net" jxb:extensionBindingPrefixes="inheritance annox"
+	xmlns:dhus="fr.gael.dhus.database.object.config" targetNamespace="fr.gael.dhus.database.object.config"
+	xmlns:dhusCron="fr.gael.dhus.database.object.config.cron"
+	xmlns:dhusGui="fr.gael.dhus.database.object.config.gui"
+	xmlns:dhusMessaging="fr.gael.dhus.database.object.config.messaging"
+	xmlns:dhusNetwork="fr.gael.dhus.database.object.config.network"
+	xmlns:dhusProduct="fr.gael.dhus.database.object.config.product"
+	xmlns:dhusSearch="fr.gael.dhus.database.object.config.search"
+	xmlns:dhusServer="fr.gael.dhus.database.object.config.server"
+	xmlns:dhusSystem="fr.gael.dhus.database.object.config.system">
+
+	<xs:import namespace="fr.gael.dhus.database.object.config.cron"
+		schemaLocation="dhus-cron.xsd" />
+	<xs:import namespace="fr.gael.dhus.database.object.config.gui"
+		schemaLocation="dhus-gui.xsd" />
+	<xs:import namespace="fr.gael.dhus.database.object.config.network"
+		schemaLocation="dhus-network.xsd" />
+	<xs:import namespace="fr.gael.dhus.database.object.config.messaging"
+		schemaLocation="dhus-messaging.xsd" />
+	<xs:import namespace="fr.gael.dhus.database.object.config.product"
+		schemaLocation="dhus-product.xsd" />
+	<xs:import namespace="fr.gael.dhus.database.object.config.search"
+		schemaLocation="dhus-search.xsd" />
+	<xs:import namespace="fr.gael.dhus.database.object.config.server"
+		schemaLocation="dhus-server.xsd" />
+	<xs:import namespace="fr.gael.dhus.database.object.config.system"
+		schemaLocation="dhus-system.xsd" />
+
+	<xs:annotation>
+		<xs:appinfo>
+			<jxb:schemaBindings>
+				<jxb:package name="fr.gael.dhus.database.object.config" />
+			</jxb:schemaBindings>
+		</xs:appinfo>
+	</xs:annotation>
+
+	<xs:element name="configuration">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:appinfo>
+					<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
+					</inheritance:extends>
+					<annox:annotate>@javax.persistence.Entity</annox:annotate>
+					<annox:annotate>@javax.persistence.Table (name = "CONFIGURATION")
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+			<xs:all>
+				<xs:element minOccurs="0" name="crons"
+					type="dhusCron:cronConfiguration">
+					<xs:annotation>
+						<xs:appinfo>
+							<jxb:property name="cronConfiguration" />
+							<annox:annotate target="field">@javax.persistence.Embedded
+							</annox:annotate>
+						</xs:appinfo>
+					</xs:annotation>
+				</xs:element>
+				<xs:element minOccurs="0" name="gui" type="dhusGui:guiConfiguration">
+					<xs:annotation>
+						<xs:appinfo>
+							<jxb:property name="guiConfiguration" />
+							<annox:annotate target="field">@javax.persistence.Transient
+							</annox:annotate>
+						</xs:appinfo>
+					</xs:annotation>
+				</xs:element>
+				<xs:element minOccurs="0" name="messaging"
+					type="dhusMessaging:messagingConfiguration">
+					<xs:annotation>
+						<xs:appinfo>
+							<jxb:property name="messagingConfiguration" />
+							<annox:annotate target="field">@javax.persistence.Embedded
+							</annox:annotate>
+						</xs:appinfo>
+					</xs:annotation>
+				</xs:element>
+				<xs:element minOccurs="0" name="network"
+					type="dhusNetwork:networkConfiguration">
+					<xs:annotation>
+						<xs:appinfo>
+							<jxb:property name="networkConfiguration" />
+							<annox:annotate target="field">@javax.persistence.Transient
+							</annox:annotate>
+						</xs:appinfo>
+					</xs:annotation>
+				</xs:element>
+				<xs:element minOccurs="0" name="products"
+					type="dhusProduct:productConfiguration">
+					<xs:annotation>
+						<xs:appinfo>
+							<jxb:property name="productConfiguration" />
+							<annox:annotate target="field">@javax.persistence.Embedded
+							</annox:annotate>
+						</xs:appinfo>
+					</xs:annotation>
+				</xs:element>
+				<xs:element minOccurs="0" name="search"
+					type="dhusSearch:searchConfiguration">
+					<xs:annotation>
+						<xs:appinfo>
+							<jxb:property name="searchConfiguration" />
+							<annox:annotate target="field">@javax.persistence.Embedded
+							</annox:annotate>
+						</xs:appinfo>
+					</xs:annotation>
+				</xs:element>
+				<xs:element minOccurs="0" name="server"
+					type="dhusServer:abstractServerConfiguration">
+					<xs:annotation>
+						<xs:appinfo>
+							<jxb:property name="serverConfiguration" />
+							<annox:annotate target="field">@javax.persistence.Transient
+							</annox:annotate>
+						</xs:appinfo>
+					</xs:annotation>
+				</xs:element>
+				<xs:element minOccurs="0" name="system"
+					type="dhusSystem:systemConfiguration">
+					<xs:annotation>
+						<xs:appinfo>
+							<jxb:property name="systemConfiguration" />
+							<annox:annotate target="field">@javax.persistence.Embedded
+							</annox:annotate>
+						</xs:appinfo>
+					</xs:annotation>
+				</xs:element>
+			</xs:all>
+			<!-- Not used, only for class generation -->
+			<xs:attribute name="ID" use="optional" type="xs:long">
+				<xs:annotation>
+					<xs:appinfo>
+						<annox:annotate target="field">@javax.persistence.Id
+						</annox:annotate>
+						<annox:annotate target="field">@javax.persistence.GeneratedValue
+							(strategy = GenerationType.AUTO)</annox:annotate>
+						<annox:annotate target="field">@javax.persistence.Column
+							(name = "ID")</annox:annotate>
+					</xs:appinfo>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

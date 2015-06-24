@@ -1,0 +1,119 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<head>
+	<style>	
+		#statisticsUploads_div
+		{
+			display: none;
+			height: 100%;
+		}				
+		
+		.statisticsUploads_bloc
+		{
+			width: 948px;
+			border: solid 1px #aaa;
+			background: #DEDEDE;
+			padding: 5px;
+			margin-bottom: 10px;
+		}	
+		
+		.statisticsUploads_label
+		{
+			width: 170px;
+			display: inline-block;
+		}		
+		
+		.statisticsUploads_inline
+		{
+			display: inline-block;
+		}		
+		
+		.statisticsUploads_graphTitleDiv
+		{
+			width: 100%;
+			text-align: right;
+		}
+		
+		.statisticsUploads_graphTitle
+		{
+			width: 180px;
+			font-size: 12px;	
+			text-align: center;		
+		}
+	</style>
+	<script>	
+		function showStatisticsUploads()
+		{
+			document.getElementById("statisticsUploads_div").style.display = "block";		
+			
+			// graph
+			var dataSet = [["2012-10-02", 200], ["2012-10-09", 300], ["2012-10-12", 150]];
+			doLinearGraph("statisticsUploads_graph",dataSet);
+		}
+		
+		function switchA()
+		{
+			var dataSet = [["2012-10-02", 400], ["2012-10-09", 600], ["2012-10-11", 300], ["2012-10-12", 850]];
+			doBarGraph("statisticsUploads_graph",dataSet);
+		}
+		
+		function switchB()
+		{
+			var dataSet = [["2012-10-02", 400], ["2012-10-09", 50], ["2012-10-12", 850]];
+			doLinearGraph("statisticsUploads_graph",dataSet);
+		}
+		
+		function switchC()
+		{
+			var dataSet = [["2012-10-02", 400], ["2012-10-09", 50], ["2012-10-12", 850]];
+			doPie("statisticsUploads_graph",dataSet);
+		}
+	</script>
+</head>
+<body>      
+	<div id="statisticsUploads_div"> Coming soon...
+		<!--div class="statisticsUploads_bloc">			
+			<div class="statisticsUploads_label">Total Uploads : </div><div id="statisticsUploads_totalUploads" class="statisticsUploads_inline">.</div><br>
+			<div class="statisticsUploads_label">Total Succeeded Uploads : </div><div id="statisticsUploads_totalUploads" class="statisticsUploads_inline">.</div><br>
+			<div class="statisticsUploads_label">Total Failed Uploads : </div><div id="statisticsUploads_totalUploads" class="statisticsUploads_inline">.</div><br>
+		</div>
+		<div class="statisticsUploads_bloc">
+			<div class="statisticsUploads_graphTitleDiv">
+				<div class="statisticsUploads_graphTitle button_black" onclick="switchA()">Uploads</div>	
+				<div class="statisticsUploads_graphTitle button_black" onclick="switchA()">Uploads (volume)</div>	
+				<div class="statisticsUploads_graphTitle button_black" onclick="switchA()">Uploads / user</div>	
+				<div class="statisticsUploads_graphTitle button_black" onclick="switchA()">Uploads / company</div>	
+				<div class="statisticsUploads_graphTitle button_black" onclick="switchB()">Succeeded uploads</div>	
+				<div class="statisticsUploads_graphTitle button_black" onclick="switchB()">Succeeded uploads (volume)</div>	
+				<div class="statisticsUploads_graphTitle button_black" onclick="switchB()">Succeeded uploads / user</div>	
+				<div class="statisticsUploads_graphTitle button_black" onclick="switchB()">Succeeded uploads / company</div>	
+				<div class="statisticsUploads_graphTitle button_black" onclick="switchC()">Failed uploads</div>
+				<div class="statisticsUploads_graphTitle button_black" onclick="switchC()">Failed uploads (volume)</div>
+				<div class="statisticsUploads_graphTitle button_black" onclick="switchC()">Failed uploads / user</div>
+				<div class="statisticsUploads_graphTitle button_black" onclick="switchC()">Failed uploads / company</div>
+			</div>	
+			<div id="statisticsUploads_graph"></div>
+		</div-->
+	</div>
+</body>
+</html>

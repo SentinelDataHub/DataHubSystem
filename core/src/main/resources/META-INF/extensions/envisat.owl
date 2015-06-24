@@ -1,0 +1,641 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE rdf:RDF [
+  <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#">
+  <!ENTITY owl "http://www.w3.org/2002/07/owl#">
+  <!ENTITY n1 "http://www.esa.int/envisat#">
+  <!ENTITY drb "http://www.gael.fr/drb#">
+  <!ENTITY dhus "http://www.gael.fr/dhus#">
+]>
+
+<rdf:RDF xmlns:owl="&owl;"
+         xmlns:rdf="&rdf;"
+         xmlns:rdfs="&rdfs;"
+         xmlns:n1="&n1;"
+         xmlns:drb="&drb;"
+         xmlns:dhus="&dhus;"
+         xml:base="http://www.esa.int/envisat">
+
+   <owl:Ontology rdf:about="&n1;">
+      <rdfs:label xml:lang="en">ENVISAT sensors descriptions</rdfs:label>
+      <owl:imports rdf:resource="file:META-INF/extensions/gomos.owl"/>
+      <owl:imports rdf:resource="file:META-INF/extensions/meris.owl"/>
+   </owl:Ontology>
+
+   <!-- ***********************************************************************
+   ****************************************************************************
+   *                                                                          *
+   *                                                                          *
+   *                           METADATA EXTRACTION                            *
+   *                                                                          *
+   *                                                                          *
+   ****************************************************************************
+   ************************************************************************ -->
+
+   <rdf:Description rdf:about="&n1;product">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         <metadata 
+            queryable="platformName"
+            category="platform" name="Satellite name" type="text/plain">
+            ENVISAT
+         </metadata>,
+
+         <metadata category="platform" name="Satellite number" type="text/plain">
+            1
+         </metadata>,
+
+         <metadata queryable="platformIdentifier" 
+            category="platform" name="NSSDC identifier" type="text/plain">
+            2002-009A
+         </metadata>,
+
+         <metadata category="platform" name="Operator" type="text/plain">
+            European Space Agency
+         </metadata>,
+
+         <metadata category="platform" name="Mission type" type="text/plain">
+            Earth observation
+         </metadata>,
+
+         <metadata category="platform" name="Carrier rocket" type="text/plain">
+            Ariane 5
+         </metadata>,
+
+         <metadata category="platform" name="Launch date" type="text/date+iso8601">
+            2002-03-01T02:07:59.000Z
+         </metadata>, 
+
+         <metadata category="platform" name="Ceased operations" type="text/date+iso8601">
+            2012-04-08T00:00:00.000Z
+         </metadata>,
+
+         <metadata category="platform" name="Satellite description" type="text/plain">
+             ENVISAT (ENVIronmental SATellite) is an inoperative
+             Earth-observing satellite. It was launched on 2002, March 1st aboard
+             an Ariane 5 from the Guyana Space Centre in Kourou, French Guyana,
+             into a Sun synchronous polar orbit at an altitude of 790 km (490
+             mi) (± 10 km (6.2 mi)). It orbits the Earth in about 101 minutes
+             with a repeat cycle of 35 days. After losing contact with the
+             satellite on 2012, April 8th, ESA formally announced the end of
+             Envisat's mission on 2012, May 9th.
+             This European Space Agency (ESA) satellite is the most advanced
+             environmental spacecraft ever built and the largest civilian Earth
+             observation satellite put into space.
+         </metadata>,
+
+         <metadata category="product" name="Reference document" type="text/plain">
+            {data(product/mph/referenceDocument)}
+         </metadata>,
+
+         <metadata queryable="processingCenter" 
+            category="product" name="Acquisition station" type="text/plain">
+            {data(product/mph/acquisitionStationId)}
+         </metadata>,
+
+         <metadata category="product" name="Processing center" type="text/plain">
+            {data(product/mph/processing/center)}
+         </metadata>,
+
+         <metadata queryable="beginPosition" 
+            category="product" name="Sensing start" type="text/date+iso8601">
+            { 
+               if(fn:not(fn:empty(product/mph/sensingTime/start)))
+               then
+                  drb:Iso8601DateFormatter(data(product/mph/sensingTime/start),
+                     "dd-MMM-yyyy hh:mm:ss.SSSSSS")
+               else
+                  ()
+            }
+                  
+         </metadata>,
+
+         <metadata queryable="endPosition"
+            category="product" name="Sensing stop" type="text/date+iso8601">
+            {
+               if (fn:not(fn:empty(product/mph/sensingTime/stop)))
+               then
+                  drb:Iso8601DateFormatter(data(product/mph/sensingTime/stop),
+                     "dd-MMM-yyyy hh:mm:ss.SSSSSS")
+               else
+                  ()
+            }
+         </metadata>,
+
+         <metadata category="product" name="Phase" type="text/plain">
+            {data(product/mph/phase)}
+         </metadata>,
+
+         <metadata category="product" name="Cycle" type="text/plain">
+            {data(product/mph/cycle)}
+         </metadata>,
+
+         <metadata queryable="orbitNumber" 
+            category="product" name="Absolute orbit" type="text/integer">
+            {data(product/mph/orbit)}
+         </metadata>,
+
+         <metadata category="product" name="Relative orbit" type="text/plain">
+            {data(product/mph/orbit/absolute)}
+         </metadata>,
+
+         <metadata category="product" name="Platform position X" type="text/plain">
+            {data(product/mph/position/x)}
+         </metadata>,
+
+         <metadata category="product" name="Platform position Y" type="text/plain">
+            {data(product/mph/position/y)}
+         </metadata>,
+
+         <metadata category="product" name="Platform position Z" type="text/plain">
+            {data(product/mph/position/z)}
+         </metadata>,
+
+         <metadata  queryable="size"
+            category="summary" name="Size" type="text/plain">
+         {
+            let $size  := @size*8
+            return
+               if (($size div (8*1024)) < 1024)
+               then concat (($size div 8), " bytes")
+               else
+               (
+                  if (($size div (8*1024*1024)) < 1024)
+                  then concat (($size div (8*1024*1024)), " MB")
+                  else
+                  (
+                     if (($size div (8*1024*1024*1024)) < 1024)
+                     then concat (($size div (8*1024*1024*1024)), " GB")
+                     else concat (($size div (8*1024*1024*1024*1024)), " TB")
+                  )
+               )
+         }
+         </metadata>,
+         <metadata category="summary" name="Satellite" type="text/plain">ENVISAT</metadata>,
+         <metadata category="summary" name="Sensing start" type="text/date+iso8601">
+           { 
+               if(fn:not(fn:empty(product/mph/sensingTime/start)))
+               then
+                  drb:Iso8601DateFormatter(data(product/mph/sensingTime/start),
+                     "dd-MMM-yyyy hh:mm:ss.SSSSSS")
+               else
+                  ()
+            }
+         </metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+   
+   <rdf:Description rdf:about="&n1;product">
+      <dhus:identifier rdf:parseType="Literal">
+      <![CDATA[
+         declare function local:formatDateTime ($datetime as xs:string)
+            as xs:string
+         {
+            let $splited := fn:tokenize($datetime,"-")
+            let $day    := $splited[1]
+            let $month  := local:formatMonth($splited[2])
+            let $year   := fn:tokenize($splited[3]," ")[1]
+            let $time   := fn:tokenize($splited[3]," ")[2]
+            let $hour   := fn:tokenize($time, ":")[1]
+            let $minute := fn:tokenize($time, ":")[2]
+            let $second := fn:tokenize(fn:tokenize($time, ":")[3], ".")[1]
+
+            return concat($year, $month, $day, "T", $hour, $minute, $second)
+         };
+
+         declare function local:formatMonth ($month as xs:string) as xs:string
+         {
+            if($month = "JAN") then "01"
+            else if($month = "FEB") then "02"
+            else if($month = "MAR") then "03"
+            else if($month = "APR") then "04"
+            else if($month = "MAY") then "05"
+            else if($month = "JUN") then "06"
+            else if($month = "JUL") then "07"
+            else if($month = "AUG") then "08"
+            else if($month = "SEP") then "09"
+            else if($month = "OCT") then "10"
+            else if($month = "NOV") then "11"
+            else if($month = "DEC") then "12"
+            else error(concat("Cannot convert: ", $month))
+         };
+         
+         
+         if (empty (product/mph/productName))
+         then
+            name (.)
+         else
+            let $start := local:formatDateTime(xs:string(data(product/mph/sensingTime/start)))
+            let $stop  := local:formatDateTime(xs:string(data(product/mph/sensingTime/stop)))
+            let $center := data(product/mph/center)
+            let $orbit := data(product/mph/orbit/absolute)
+            return
+            concat (
+               replace (data (product/mph/productName),
+                  "(.{10}).*\.[Nn]1", "EN01_$1"), "_",
+               $start, "_", $stop, "_", $orbit)
+      ]]>
+      </dhus:identifier>
+   </rdf:Description>
+
+   
+
+   <!-- ***********************************************************************
+   ****************************************************************************
+   *                                                                          *
+   *                                                                          *
+   *                         METADATA FOOTPRINTS                              *
+   *                                                                          *
+   *                                                                          *
+   ****************************************************************************
+   ************************************************************************ -->
+   <!-- The principle of this section is to minimize the number of duplicated
+        metadata extraction definitions by gathering most of product classes
+        that have a common SPH elements regarding footprints under the same
+        class &n1;sphFootPrintProduct created here bellow for that specific
+        purpose -->
+        
+   <!-- The common class described above -->
+   <owl:Class rdf:about="&n1;sphFootPrintProduct"/>
+
+   <!-- The common metadata extractor connected to the &n1;sphFootPrintProduct
+        class -->
+   <rdf:Description rdf:about="&n1;sphFootPrintProduct">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         <metadata 
+            queryable="GMLfootprint" 
+            category="product" 
+            name="Footprint" 
+            type="application/gml+xml">
+            <gml:Polygon srsName="http://www.opengis.net/gml/srs/epsg.xml#4326"
+               xmlns:gml="http://www.opengis.net/gml">
+               <gml:outerBoundaryIs>
+                  <gml:LinearRing>
+                     <gml:coordinates>
+                     {
+                        (: Extract west and east tie points in one pass :)
+                        let $modulo := count (product/tiePoints/adsr) div 10
+                        let $tiePointLines :=
+                           for $tiePointLine in product/tiePoints/adsr[
+                              position() mod $modulo = 0]
+                           return
+                              <line>
+                                 <westColumn>
+                                 {
+                                    concat(data($tiePointLine/longitude)[1] * 1E-6, "," ,
+                                           data($tiePointLine/latitude)[1] * 1E-6, ",0.0 ") 
+                                 }
+                                 </westColumn>
+                                 <eastColumn>
+                                 {
+                                    concat(data($tiePointLine/longitude)[last()] * 1E-6, "," ,
+                                           data($tiePointLine/latitude)[last()] * 1E-6, ",0.0 ") 
+                                 }
+                                 </eastColumn>
+                              </line>
+
+                        (: Get number of extracted tie points to avoid recomputing:)
+                        let $tiePointNum := count($tiePointLines)
+
+                        (: Revert east column order :)
+                        let $orderedTiePointLines :=
+                           for $tiePointLine at $lineNum in $tiePointLines
+                           return
+                              <line>
+                              {
+                                 $tiePointLine/westColumn,
+                                 
+                                 $tiePointLines[$tiePointNum - $lineNum + 1]/eastColumn
+                              }
+                              </line>
+
+                        return
+
+                           (: Concatenate columns and close linear ring :)
+                           concat(
+                              string-join(data($orderedTiePointLines/westColumn), " "),
+                              string-join(data($orderedTiePointLines/eastColumn), " "),
+                              data($orderedTiePointLines[1]/westColumn))
+                      }
+                      </gml:coordinates>
+                  </gml:LinearRing>
+               </gml:outerBoundaryIs>
+            </gml:Polygon>
+         </metadata>,
+         <metadata queryable="footprint"
+            category="product" 
+            name="JTS Footprint" 
+            type="application/jts">
+            {
+               let $modulo := count (product/tiePoints/adsr) div 10
+               let $tiePointLines :=
+               for $tiePointLine in product/tiePoints/adsr[position() mod $modulo = 0]
+                  return
+                     <line>
+                        <westColumn>
+                        {
+                           concat(data($tiePointLine/longitude)[1] * 1E-6, " " ,
+                              data($tiePointLine/latitude)[1] * 1E-6) 
+                        }
+                        </westColumn>
+                        <eastColumn>
+                        {
+                           concat(data($tiePointLine/longitude)[last()] * 1E-6, " " ,
+                              data($tiePointLine/latitude)[last()] * 1E-6) 
+                        }
+                        </eastColumn>
+                     </line>
+
+               (: Get number of extracted tie points to avoid recomputing:)
+               let $tiePointNum := count($tiePointLines)
+
+               (: Revert east column order :)
+               let $orderedTiePointLines :=
+                  for $tiePointLine at $lineNum in $tiePointLines
+                  return
+                     <line>
+                     {
+                       $tiePointLine/westColumn, 
+                       $tiePointLines[$tiePointNum - $lineNum + 1]/eastColumn
+                     }
+                     </line>
+               let $polygon := concat(
+                  string-join(data($orderedTiePointLines/westColumn), ","), ",",
+                  string-join(data($orderedTiePointLines/eastColumn), ","), ",",
+                  data($orderedTiePointLines[1]/westColumn)) 
+               return
+                  concat ("POLYGON((", $polygon, "))")
+            }
+         </metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+   
+   
+   <!--  To be inserted into sensors description -->
+   
+   <rdf:Description rdf:about="&n1;N1SensorListNotconnected">
+      <dhus:identifier rdf:parseType="Literal">
+      <![CDATA[
+         <metadata category="instrument" name="Instrument names" type="text/plain">
+            Advanced Synthetic Aperture Radar,
+            Advanced Along Track Scanning Radiometer,
+            Doppler Orbitography and Radiopositioning Integrated by Satellite,
+            Global Ozone Monitoring by Occultation of Stars,
+            MEdium Resolution Imaging Spectrometer,
+            Michelson Interferometer for Passive Atmospheric Sounding,
+            MicroWave Radiometer,
+            Radar Altimeter 2,
+            SCanning Imaging Absorption SpectroMeter for Atmospheric CHartographY 
+         </metadata>,
+
+         <metadata category="instrument" name="Instrument  abbreviation" type="text/plain">
+            ASAR, AATSR, DORIS, GOMOS, MERIS, MIPAS, MWR, RA-2, SCIAMACHY
+         </metadata>,
+
+         <metadata category="instrument" name="ASAR instrument description" type="text/plain">
+            ASAR is a high resolution imaging radar. It can be operated in 5
+            distinct Measurement Modes, Image Mode (IM), Alternating
+            Polarization Mode (AP), Wide Swath Mode (WS), Global Monitoring
+            Mode (GM), and Wave Mode (WV). Within each mode, several different
+            image swaths may be used. The swath layout is depicted in the
+            following table. IM, AP, and WS modes are designated as High Rate
+            (HR) modes and have a downlink rate of 100 Mbps. GM and WV are Low
+            Rate (LR) modes and have a data generation of 0.9 Mbps. 
+            In addition, ASAR supports 2 Auxiliary Modes (Test Mode, and Module
+            Stepping Mode) and one Calibration Mode (External Characterization
+            Mode) which are used for testing, calibration and instrument
+            monitoring. Finally, one of five possible on- board data
+            quantization methods may be used for each mode, though each has a
+            default choice which will be used in most cases.
+         </metadata>,
+
+         <metadata category="instrument" name="AATSR instrument description" type="text/plain">
+            The AATSR is an advanced version of the ATSR system operated
+            successfully on ERS-1 and ERS-2. The main objective of the AATSR is
+            the precise measurement of Sea Surface Temperature (SST). The AATSR
+            will have a similar performance to the ATSR, but will include 3
+            visible channels in addition to the 4 infrared channels, thus
+            allowing it to observe land surface parameters such as temperature
+            and vegetation characteristics. AATSR performs a conical scan with
+            only those parts of the cone that fall inside the 500 km wide
+            ground swath being sampled. The rearward part of the scan cone
+            views the ground at approximately nadir, while the forward part
+            looks at about 47 degrees from nadir. As a result, the AATSR
+            produces two superimposed 500 km wide images, one from the nadir
+            view and one from the forward view. These two views may be combined
+            to correct for atmospheric effects. Spatial resolution is
+            approximately 1km by 1km at nadir. On-board calibration sources
+            provide internal references for the data to derive Brightness
+            Temperature values from the radiance.
+         </metadata>,
+
+         <metadata category="instrument" name="DORIS instrument description" type="text/plain">
+            The DORIS instrument is a microwave tracking system that can be
+            utilized to determine the precise location of the ENVISAT
+            satellite. Versions of the DORIS instrument are currently flying on
+            the SPOT-2 and Topex-Poseidon missions. DORIS operates by measuring
+            the Doppler frequency shift of a radio signal transmitted from
+            ground stations and received on-board the satellite. The reference
+            frequency for the measurement is generated by identical
+            ultra-stable oscillators on the ground and on-board the space-
+            craft. Currently there are about 50 ground beacons placed around
+            the globe which cover about 75% of the ENVISAT orbit. 
+            On board measurements are performed every 7 - 10 seconds. Precise
+            Doppler shift measurements are taken using an S-band frequency of
+            2.03625 GHz, while a second VHS band signal at 401.25 MHz is used
+            for ionospheric correction of the propagation delay. 
+            On the ground, DORIS data is used to create precise orbit
+            reconstruction models which are then used for all satellite
+            instruments requiring precise orbit position information. In
+            addition, DORIS operates in a "Navigator" mode in which on-board
+            positioning calculations are performed in real-time and relayed to
+            the ground segment. The accuracy of the various levels of orbit
+            estimation provided by DORIS are shown in in the following table.
+            As well, the use of a Laser Retro-Reflector will complement the
+            positioning data achieved using DORIS.
+         </metadata>,
+
+         <metadata category="instrument" name="GOMOS instrument description" type="text/plain">
+            The accurate mapping of the ozone layer with GOMOS intends to
+            search for daily and long term trends in the ozone distribution in
+            the Earth's atmosphere through measurements with a precise self
+            calibrating instrument. GOMOS measures tangential atmospheric
+            ultraviolet, visual, and infrared light as a function of wavelength
+            and altitude. Measurements are made by observation of stars through
+            the atmosphere using a steerable Ritchey Chretien telescope and two
+            spectrometers. Fast Photometers monitor the stellar scintillation.
+            GOMOS performs multi-spectral observation of a selected set of star
+            occultations of the Earth's limb caused as a result of satellite
+            motion. In addition to monitoring ozone, GOMOS monitors other
+            atmospheric trace gases (H20, NO2, NO3, OClO), temperature, and
+            aerosols.
+            The GOMOS telescope acquires and tracks the light from a
+            predetermined number (about 25 per orbit) of stars, and passes the
+            collected light to spectrometers and photometers. The ultraviolet,
+            visible, and infrared spectrometers monitor selected spectral
+            regions to deduce (in later ground processing) the amount and
+            height distribution of the trace gases in the Earth's atmosphere.
+            For each of the two spectrometers a two-dimensional image is
+            recorded 2 times a second, yielding spectral information in one CCD
+            dimension and spatial information in the other CCD dimension. The
+            central region records light from a star plus light scattered in
+            the atmosphere. The upper and lower CCD detector rows collect only
+            scattered light which is used to correct the central region data.
+            The Fast Photometers monitor stellar scintillation on two
+            wavelength bands to correct for this atmospheric effect which would
+            otherwise distort the spectrometer measurements.
+            GOMOS operates in five modes:
+            * Occultation mode, to monitor multispectral stellar absorption
+            through the limb.
+            * Linearity Monitoring Mode, to periodically (nominally once a
+            week) check GOMOS response linearity. Spectrometer A and B central
+            band spectra data are provided with variable integration times, and
+            Spectrometer A and B upper and lower background band spectra are
+            acquired simultaneously with the target spectra. This data enables
+            the generation of LUTs for ground processing correction for
+            non-linear pixel response.
+            * Uniformity Monitoring Mode, to check (nominally once a week)
+            pixel-to- pixel response uniformity while observing an extended
+            source. Spectrometer A and B pixel by pixel data of 33 successive
+            lines is provided with integration times within the range 0.25 to
+            10 sec, and Fast Photometer 1 and 2 data on a pixel-by-pixel basis
+            is provided with an integration time of 1 msec. This data enables
+            the generation of LUTs to correct, during ground processing, the
+            response non-uniformity of the CCD image.
+            * Spatial Spread Monitoring Mode, to periodically check (nominally
+            once a month) the pixel-to-pixel spectral image spreading response
+            by tracking selected stars. Spectrometer A and B pixel by pixel
+            data of 33 successive lines is provided with integration times
+            within the range 0.25 to 10 sec, and Fast Photometer 1 and 2 data
+            on a pixel-by-pixel basis is provided with an integration time of 1
+            msec. This determines which CCD pixels of the star image to utilize
+            for the Occultation Mode measurements.
+            * Pause Mode, reached between any of the previous operating modes.
+         </metadata>,
+
+         <metadata category="instrument" name="MERIS instrument description" type="text/plain">
+            The MERIS instrument produces multi-spectral images (in 15 selected
+            spectral bands between 390 nm and 1040 nm) obtained in a downward
+            viewing pushbroom imaging manner. The 15 bands acquire radiance in
+            the visible and near infra-red bands. MERIS measurement data are
+            used to derive information including: 
+            * ocean color parameters in open waters such as chlorophyll and
+            coastal waters parameters such as chlorophyll, dissolved organic
+            matter, and suspended solid matter concentrations, 
+            * characteristics of clouds, such as top pressure and optical
+            thickness, 
+            * the presence of vegetation and derived indices to characterize
+            vegetation vigor, and 
+            * atmosphere parameters such as aerosol optical thickness, aerosol
+            type, and water vapor column contents. 
+            The MERIS instrument may operate at Full Resolution (FR) of
+            approximately 0.3 km pixels at nadir, or at Reduced Resolution (RR)
+            of approximately 1.2 km pixels at nadir. RR data is acquired on a
+            global basis whereas FR data is acquired regionally by direct
+            reception. In both the FR and the RR modes, the radiometric
+            corrections are normally done on-board, although radiometrically
+            uncorrected data may be acquired for correction on-ground. A
+            Reduced Field of View (RV) mode is available primarily for
+            performance verification purposes with data from 231 pixels
+            selected within +/- 40 degrees from the subsatellite point and
+            transmitted in FR for four lines. In RV mode, no radiometric
+            corrections are done on-board.
+         </metadata>,
+
+         <metadata category="instrument" name="MIPAS instrument description" type="text/plain">
+            The MIPAS instrument measures atmospheric radiation emitted by
+            trace gases in the infrared spectral range 4.15 µm to 14.6 µm. Its
+            primary mission is to perform global observations of atmospheric
+            vertical pressure and temperature profiles, and the vertical Volume
+            Mixing Ratios (VMR) of five primary trace gases in the Earth' s
+            atmosphere (O3, H2O, HNO3, CH4, and N2O). MIPAS information has
+            application in ozone chemistry, monitoring of global distribution
+            of major greenhouse gases, and atmospheric dynamics. 
+            MIPAS measures emitted radiation while elevation scanning through
+            the Earths' atmospheric limb within the LOS which has an
+            instantaneous field of view of 3 km vertically and 30 km
+            horizontally. Two scan mirrors enable viewing in both rearward
+            (anti-flight) and sideways geometries (anti-sun), with scanning
+            ranges of 35 and 30 degrees respectively. Sideways geometries can
+            be used during special events monitoring only. 
+            To acquire vertical distribution information for the trace gases in
+            the atmosphere, vertical pointing covers a limb height from about 8
+            to 70 km. A typical elevation scan sequence starts at 50 km and
+            descends in 3 km steps to 5 km resulting in a duration of about 72
+            seconds per scan. A maximum number of 75 acquisition heights (74
+            step increments) can be commanded. In general, the duration of an
+            individual scan depends on both the number of height steps and the
+            commanded spectral resolution.
+         </metadata>,
+
+         <metadata category="instrument" name="MWR instrument description" type="text/plain">
+           The MWR is a nadir-viewing, 2-channel passive microwave sensor which
+           provides radiometric measurements at 23.8 and 36.5 GHz. The signals
+           received can be related to surface temperature, but more importantly
+           they provide an estimate of the total water vapour content in the
+           atmosphere. This data is necessary to correct the RA2 data for
+           atmospheric effects. 
+         </metadata>,
+
+         <metadata category="instrument" name="RA-2 instrument description" type="text/plain">
+           The RA2 measures with high precision the distance from the satellite
+           to the closest point on the Earth's surface directly beneath it. If
+           the orbit of the satellite is determined by independent means (such
+           as by DORIS) the RA2 data can be used to accurately map the Earth's
+           topography. In addition, signal analysis of the returning radar echo
+           can be used to provide insight into ground characteristics. 
+            The RA2 is a nadir looking pulse limited radar operating at a
+            nominal frequency of 13.575 GHz (Ku-band). A second channel,
+            operating at a nominal frequency of 3.2 GHz (S-band) is also used,
+            primarily to estimate the effects of the ionosphere on the Ku-band
+            channel. 
+         </metadata>,
+
+         <metadata category="instrument" name="SCIAMACHY instrument description" type="text/plain">
+            The SCIAMACHY instrument provides spectra measured from light
+            transmitted, back scattered or reflected by trace gases in the
+            atmosphere. The instrument is designed for the global measurement
+            of trace gases in the troposphere and stratosphere by means of a
+            spectrometer scanning the atmosphere either at nadir or in limb. It
+            records radiation in the range 0.24 µm to 2.4 µm with 8 detector
+            modules. The goal is to allow small optical absorptions (as small
+            as 2E-4 in some regions of the spectrum) to be detected. 
+            SCIAMACHY is designed to measure the global distribution of trace
+            gases, aerosols and clouds in both the troposphere and the
+            stratosphere. The abundances of a number of atmospheric
+            constituents which are targeted species include: 
+            * in the troposphere - O3, O4, N2O, NO2, CH4, CO, CO2, H2O, HCHO
+            and aerosols and, in polluted conditions, SO2; 
+            * in the stratosphere - O3, O2, O2*, O4, NO, NO2, BrO, N2O, CO,
+            CO2, H2O, CH4 plus under volcanic eruption SO2, plus under ozone
+            hole conditions OClO and ClO. 
+            SCIAMACHY makes spectral measurements in passive limb and nadir
+            looking spectrometer observations to permit ground based
+            computation of the trace constituent concentrations.
+         </metadata>
+         ]]>
+      </dhus:identifier>
+   </rdf:Description>
+</rdf:RDF>

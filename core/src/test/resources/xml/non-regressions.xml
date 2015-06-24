@@ -1,0 +1,15 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+
+<suite name="Non-Regressions Tests" verbose="1" parallel="false">
+   <test name="Non-Regressions">
+      <groups>
+         <run>
+            <include name="non-regression"/>
+            <exclude name="broken*"/>
+         </run>
+      </groups>
+      <packages>
+         <package name="fr.gael.dhus.*" />
+      </packages>
+   </test>
+</suite>

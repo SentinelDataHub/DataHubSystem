@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+   <modelVersion>4.0.0</modelVersion>
+
+   <parent>
+      <groupId>fr.gael.dhus</groupId>
+      <artifactId>dhus-parent</artifactId>
+      <version>0.4.3-5-2</version>
+      <relativePath>../../parent</relativePath>
+   </parent>
+
+   <artifactId>dhus-gwt-client</artifactId>
+   <packaging>jar</packaging>
+
+   <name>DHuS - GWT Client</name>
+
+   <profiles>
+      <profile>
+         <id>sources</id>
+         <build>
+            <plugins>
+               <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-source-plugin</artifactId>
+                  <version>2.1.2</version>
+                  <executions>
+                     <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                           <goal>jar-no-fork</goal>
+                        </goals>
+                     </execution>
+                  </executions>
+               </plugin> 
+            </plugins>
+         </build>
+      </profile>
+   </profiles>
+
+   <dependencies>
+      <!-- GWT -->
+      <dependency>
+         <groupId>com.allen-sauer.gwt.log</groupId>
+         <artifactId>gwt-log</artifactId>
+         <version>3.2.1</version>
+      </dependency>
+      <dependency>
+         <groupId>com.google.gwt</groupId>
+         <artifactId>gwt-servlet</artifactId>
+         <version>2.5.0</version>
+      </dependency>
+
+      <!-- Openlayers -->
+      <dependency>
+         <groupId>org.gwtopenmaps.openlayers</groupId>
+         <artifactId>gwt-openlayers-client</artifactId>
+         <version>0.9</version>
+         <exclusions>
+            <exclusion>
+               <groupId>com.google.gwt</groupId>
+               <artifactId>gwt-user</artifactId>
+            </exclusion>
+         </exclusions>
+      </dependency>
+      
+      <dependency>
+         <groupId>javax.servlet</groupId>
+         <artifactId>javax.servlet-api</artifactId>
+         <version>3.0.1</version>
+      </dependency>
+
+      <dependency>
+         <groupId>fr.gael.dhus</groupId>
+         <artifactId>dhus-core</artifactId>
+         <scope>provided</scope>   
+         <exclusions>
+            <exclusion>                     
+               <groupId>org.eclipse.jdt.core.compiler</groupId>
+               <artifactId>ecj</artifactId>
+            </exclusion>
+         </exclusions>            
+      </dependency>   
+      <dependency>
+         <groupId>com.google.gwt</groupId>
+         <artifactId>gwt-user</artifactId>
+         <version>2.5.0</version>
+         <scope>provided</scope>
+      </dependency>
+    </dependencies>
+      
+    <build>
+      <plugins>
+         <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>gwt-maven-plugin</artifactId>
+            <version>2.5.0</version>
+            <executions>
+               <execution>
+                  <goals>
+                     <goal>compile</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-war-plugin</artifactId>
+            <version>2.3</version>
+            <executions>
+               <execution>
+                  <goals>
+                     <goal>war</goal>
+                  </goals>
+                  <phase>prepare-package</phase>
+               </execution>
+            </executions>
+            <configuration>
+               <warName>dhus-gwt-client</warName>
+               <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                  <packagingExcludes>WEB-INF/lib/*,WEB-INF/lib,WEB-INF/classes</packagingExcludes>
+               <archiveClasses>true</archiveClasses>
+               <webResources>
+                  <resource>
+                     <directory>src/main/resources/web/home</directory>
+                     <targetPath>home</targetPath>
+                  </resource>
+                  <resource>
+                     <directory>src/main/resources/web</directory>
+                     <includes>
+                     	<include>dhus-api-servlet.xml</include>
+                        <include>spring.xml</include>
+                        <include>web.xml</include>
+                     </includes>
+                     <targetPath>WEB-INF</targetPath>
+                  </resource>
+               </webResources>
+               <failOnMissingWebXml>false</failOnMissingWebXml>
+            </configuration>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <version>2.4</version>
+         </plugin>
+      </plugins>
+   </build>
+</project>

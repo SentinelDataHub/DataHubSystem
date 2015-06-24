@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+   <changeSet author="fred" id="createIndexUserName">
+      <preConditions onFail="MARK_RAN" onFailMessage="change already applied.">
+         <sqlCheck expectedResult="0">
+            select count(*) 
+            from DATABASECHANGELOG 
+            where ID LIKE 'createIndexUserName'
+         </sqlCheck>
+      </preConditions>
+      <createIndex 
+         indexName="INDEX_USERS"
+         tableName="USERS"
+         unique="false">
+         <column name="ID" />
+         <column name="LOGIN" />
+      </createIndex>
+   </changeSet>
+
+   <changeSet author="fred" id="createIndexActionRecordDownload">
+      <preConditions onFail="MARK_RAN" onFailMessage="change already applied.">
+         <sqlCheck expectedResult="0">
+            select count(*) 
+            from DATABASECHANGELOG 
+            where ID LIKE 'createIndexActionRecordDownload'
+         </sqlCheck>
+      </preConditions>
+   
+      <createIndex 
+         indexName="INDEX_ACTION_RECORD_DOWNLOADS"
+         tableName="ACTION_RECORD_DOWNLOADS"
+         unique="false">
+         <column name="ID" />
+         <column name="USERS_ID" />
+      </createIndex>
+   </changeSet>
+   
+   <changeSet author="fred" id="createIndexActionRecordLogon">
+      <preConditions onFail="MARK_RAN" onFailMessage="change already applied.">
+         <sqlCheck expectedResult="0">
+            select count(*) 
+            from DATABASECHANGELOG 
+            where ID LIKE 'createIndexActionRecordLogon'
+         </sqlCheck>
+      </preConditions>
+      <createIndex 
+         indexName="INDEX_ACTION_RECORD_LOGONS"
+         tableName="ACTION_RECORD_LOGONS"
+         unique="false">
+         <column name="ID" />
+         <column name="USERS_ID" />
+      </createIndex>
+   </changeSet>
+   
+   <changeSet author="fred" id="createIndexActionRecordSearch">
+      <preConditions onFail="MARK_RAN" onFailMessage="change already applied.">
+         <sqlCheck expectedResult="0">
+            select count(*) 
+            from DATABASECHANGELOG 
+            where ID LIKE 'createIndexActionRecordSearch'
+         </sqlCheck>
+      </preConditions>
+      <createIndex 
+         indexName="INDEX_ACTION_RECORD_SEARCHES"
+         tableName="ACTION_RECORD_SEARCHES"
+         unique="false">
+         <column name="ID" />
+         <column name="USERS_ID" />
+      </createIndex>
+   </changeSet>
+
+   <changeSet author="fred" id="createIndexActionRecordUpload">
+      <preConditions onFail="MARK_RAN" onFailMessage="change already applied.">
+         <sqlCheck expectedResult="0">
+            select count(*) 
+            from DATABASECHANGELOG 
+            where ID LIKE 'createIndexActionRecordSearch'
+         </sqlCheck>
+      </preConditions>
+      <createIndex 
+         indexName="INDEX_ACTION_RECORD_UPLOADS"
+         tableName="ACTION_RECORD_UPLOADS"
+         unique="false">
+         <column name="ID" />
+         <column name="USERS_ID" />
+      </createIndex>
+   </changeSet>   
+   
+</databaseChangeLog>

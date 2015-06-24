@@ -1,0 +1,342 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<head>
+	<style>	
+		#statisticsConnections_div
+		{
+			display: none;
+			height: 100%;
+		}				
+		
+		.statisticsConnections_bloc
+		{
+			width: 948px;
+			border: solid 1px #aaa;
+			background: #DEDEDE;
+			padding: 5px;
+			margin-bottom: 10px;
+		}	
+
+		#statisticsConnections_graphBloc
+		{
+			height: 601px;
+		}
+		
+		.statisticsConnections_label
+		{
+			width: 170px;
+			display: inline-block;
+		}		
+		
+		.statisticsConnections_inline
+		{
+			display: inline-block;
+		}		
+		
+		.statisticsConnections_graphTitleDiv
+		{
+			width: 100%;
+			text-align: right;
+		}
+		
+		.statisticsConnections_graphTitle
+		{
+			width: 150px;
+			font-size: 12px;	
+			text-align: center;		
+		}
+		
+		#statisticsConnections_graphOptions
+		{
+			padding-top: 3px;
+			padding-bottom: 3px;
+			text-align: center;
+			width: 100%;
+			float: left;
+		}
+
+		#statisticsConnections_emptyGraphOptions
+		{
+			padding-top: 3px;
+			padding-bottom: 3px;
+			width: 100%;
+			height: 30px;
+		}
+
+		.statisticsConnections_dateField
+		{
+			display: inline-block;
+		}
+
+		.statisticsConnections_dateFieldLabelCol3
+		{
+			display: inline-block;
+			width: 115px;
+		}
+
+		.statisticsConnections_dateFieldInput
+		{
+			display: inline-block;
+			width: 190px;
+			border:1px solid #7f9db9;
+			height: 20px;
+	    	margin-top: 2px;
+			font-family: "Trebuchet MS", Helvetica, sans-serif;	
+			font-size: 12px;
+		}
+
+		.statisticsConnections_dateFieldToLabel
+		{
+			display: inline-block;
+			width: 15px;
+		}	
+	
+		.statisticsConnections_datepicker
+		{
+			background: white url(home/dhus/images/calendar.png) no-repeat right 2px center;
+			border:1px solid #7f9db9;
+			height: 20px;
+			padding-right: 20px;
+			width: 73px;
+			cursor: pointer;
+		}
+		
+		#statisticsConnections_refresh 
+		{
+			width: 80px;
+			font-size: 12px;	
+			text-align: center;		
+			margin-left: 5px;	
+			margin-right: 5px;
+		}
+		
+		.statisticsConnections_selected
+		{
+			cursor: pointer;
+			color: #fff;
+			background: #FF790B url('home/dhus/images/button_hover.gif') repeat-x;
+			border: solid 1px #DB7623;
+		}			
+		
+		.statisticsConnections_scaleButton
+		{
+			vertical-align: middle;
+			margin-top: -2px;
+			cursor: pointer;
+		}
+		
+		#statisticsConnections_scaleBloc
+		{		
+			display: inline-block;
+			border: solid 1px #aaa;
+			background: #CDCDCD;
+			padding: 5px;
+			margin-top: 5px;
+			text-align: left;
+			width: 340px;
+		}
+		
+		.statisticsConnections_scaleOption
+		{
+			width: 49%; 
+			display: inline-block;
+			cursor: pointer;
+		}
+				
+		#statisticsConnections_table
+		{
+			width: 330px;
+			float: left;
+			padding-top: 5px;
+			text-align: left;
+		}
+			
+		.statisticsConnections_tableCheckbox
+		{		
+			vertical-align: middle;
+			margin-bottom: 1px;
+		}
+
+		#statisticsConnections_graph
+		{		
+			float: right;
+		}
+		
+		.statisticsConnections_deletedUser
+		{
+			color: gray;
+		}
+	</style>
+	<script>	
+		var connectionsPerUserDataset = [];
+		var connectionsPerDomainDataset = [];
+		var connectionsPerUsageDataset = [];
+		var statisticsConnections_table;	
+		var statisticsConnections_checkedFunction;
+		var statisticsConnections_scaleChangedFunction;
+	
+		function showStatisticsConnections(getUsersFunction, userCheckedFunc, scaleChangedFunc)
+		{
+			document.getElementById("statisticsConnections_div").style.display = "block";		
+
+			statisticsConnections_checkedFunction = userCheckedFunc;
+			statisticsConnections_scaleChangedFunction = scaleChangedFunc;
+			
+			var today = new Date();
+			var dd = today.getDate();
+			var mm = today.getMonth()+1; //January is 0!
+			var yyyy = today.getFullYear();
+			if(dd<10){dd='0'+dd} if(mm<10){mm='0'+mm} today = yyyy+'-'+mm+'-'+dd;
+
+			$( "#statisticsConnections_dateFieldDate" ).Zebra_DatePicker({
+				select_other_months: true,
+				direction: false,
+				show_clear_date: false,
+				onSelect: function(format, date, jsDate, element)
+				{
+					$( "#statisticsConnections_dateFieldDateEnd" ).data('Zebra_DatePicker').update({
+						direction: [date, today]
+					});
+					statisticsConnections_scaleChangedFunction();
+				},
+				onClear: function(format, date, jsDate, element)
+				{
+					$( "#statisticsConnections_dateFieldDateEnd" ).data('Zebra_DatePicker').update({
+						direction: false
+					});
+				}
+			});
+			$( "#statisticsConnections_dateFieldDateEnd" ).Zebra_DatePicker({
+				select_other_months: true,
+				direction: false,
+				show_clear_date: false,
+				onSelect: function(format, date, jsDate, element)
+				{
+					var one_day=1000*60*60*24;
+					var today = new Date();
+					var delta = Math.ceil((jsDate.getTime()-today.getTime())/(one_day));
+					$( "#statisticsConnections_dateFieldDate" ).data('Zebra_DatePicker').update({
+						direction: delta
+					});
+					statisticsConnections_scaleChangedFunction();
+				},
+				onClear: function(format, date, jsDate, element)
+				{
+					$( "#statisticsConnections_dateFieldDate" ).data('Zebra_DatePicker').update({
+						direction: false
+					});
+				}
+			});	
+
+			statisticsConnections_table = initStatisticsTable("statisticsConnections_table", getUsersFunction, [
+						{ "sTitle": "", "sClass": "center",  
+						"mRender": function ( data, type, full ) {
+							return "<input type='checkbox' class='statisticsConnections_tableCheckbox' "+(data.checked ? "checked" : "")+" onclick='statisticsConnections_checkedFunction(\""+data.name+"\")' />";
+						}},
+					{ "sTitle": "","mRender": function ( data, type, full ) {
+							return (data.deleted?"<i class='statisticsConnections_deletedUser'>":"")+data.name+(data.deleted?"</i>":"");
+						}}], '<col style="width: 20px"/><col/>', '<"H"ifr>t<"F"lp>',
+					{ "sEmptyTable": "No users found.",
+					  "sLengthMenu": "Page size: _MENU_",
+					  "sInfo": "Display _START_ to _END_ of _TOTAL_ users",
+					  "sInfoEmpty": "No users found",
+					  "oPaginate": {
+					        "sFirst": "<<",
+					        "sPrevious": "<",
+					        "sNext": ">",
+					        "sLast": ">>"
+					      }
+					  }, 530, [50, 100]
+					  );
+		}
+			
+		function statisticsConnections_refreshUsers()
+		{
+			statisticsConnections_table.fnDraw(false);
+		}
+		
+		function setConnectionsPerUserDataset(dataSet, start, end, perHour)
+		{
+			connectionsPerUserDataset = dataSet;
+			document.getElementById("statisticsConnections_table").style.display = "block";	
+			document.getElementById("statisticsConnections_graphOptions").style.display = "block";
+			document.getElementById("statisticsConnections_emptyGraphOptions").style.display = "none";	
+			doStackedBarGraph('statisticsConnections_graph',connectionsPerUserDataset.slice(0), 'Connections', start, end, perHour, 600);
+		}
+		
+		function setConnectionsPerDomainDataset(dataSet, start, end, perHour)
+		{
+			connectionsPerDomainDataset = dataSet;
+			document.getElementById("statisticsConnections_table").style.display = "none";	
+			document.getElementById("statisticsConnections_graphOptions").style.display = "block";
+			document.getElementById("statisticsConnections_emptyGraphOptions").style.display = "none";			
+			doStackedBarGraph('statisticsConnections_graph',connectionsPerDomainDataset.slice(0), 'Connections', start, end, perHour, 930);
+		}
+		
+		function setConnectionsPerUsageDataset(dataSet, start, end, perHour)
+		{
+			connectionsPerUsageDataset = dataSet;
+			document.getElementById("statisticsConnections_table").style.display = "none";	
+			document.getElementById("statisticsConnections_graphOptions").style.display = "block";
+			document.getElementById("statisticsConnections_emptyGraphOptions").style.display = "none";			
+			doStackedBarGraph('statisticsConnections_graph',connectionsPerUsageDataset.slice(0), 'Connections', start, end, perHour, 930);
+		}
+	</script>
+</head>
+<body>      
+	<div id="statisticsConnections_div"> 
+		<div class="statisticsConnections_bloc" id="statisticsConnections_graphBloc">
+			<div class="statisticsConnections_graphTitleDiv">
+				<div class="statisticsConnections_graphTitle button_black"
+					id="statisticsConnections_connectionsPerUserButton">Connections per user</div>	
+				<div class="statisticsConnections_graphTitle button_black"
+					id="statisticsConnections_connectionsPerDomainButton">Connections per domain</div>
+				<div class="statisticsConnections_graphTitle button_black"
+					id="statisticsConnections_connectionsPerUsageButton">Connections per usage</div>
+			</div>	
+			<div id="statisticsConnections_graphOptions">
+				<div class="statisticsConnections_dateField" class="statisticsConnections_datepicker">
+					<input class="statisticsConnections_dateFieldInput statisticsConnections_datepicker" type="text" id="statisticsConnections_dateFieldDate">
+					<div class="statisticsConnections_dateFieldToLabel">to </div> 
+					<input class="statisticsConnections_dateFieldInput statisticsConnections_datepicker" type="text" id="statisticsConnections_dateFieldDateEnd">
+					<div class="button_black" id="statisticsConnections_refresh">Refresh</div>	
+				</div>
+				<div id="statisticsConnections_scaleBloc">
+					<div class="statisticsConnections_scaleOption" id="statisticsConnections_scaleDayOption">
+						<input class="statisticsConnections_scaleButton" type="radio" name="statisticsConnections_scale" id="statisticsConnections_scaleDay" value="day">&nbsp;
+						<p id="statisticsConnections_scaleDayLabel" style="display: inline-block;">Per day</p>
+					</div>
+					<div class="statisticsConnections_scaleOption" id="statisticsConnections_scaleHourOption">
+						<input class="statisticsConnections_scaleButton" type="radio" name="statisticsConnections_scale" id="statisticsConnections_scaleHour" value="hour">&nbsp;
+						<p id="statisticsConnections_scaleHourLabel" style="display: inline-block;">Per hour</p>
+					</div>
+				</div>
+			</div>
+			<div id ="statisticsConnections_emptyGraphOptions"></div>
+        	<div id="statisticsConnections_table"></div>
+			<div id="statisticsConnections_graph"></div>
+		<!-- div>download serie</div -->
+		</div>
+	</div>
+</body>
+</html>

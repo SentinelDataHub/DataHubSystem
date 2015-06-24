@@ -1,0 +1,217 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<style>	
+		#management_div
+		{
+			display: none;
+			height: 550px;
+		}
+		
+		#management_tabs 
+		{
+			margin:0px; padding:0px;
+			margin-top:9px;
+			padding-bottom:5px;
+			border-bottom:1px solid #464c54; 
+		}
+		
+		#management_tabs div
+		{
+			list-style:none;
+			display:inline;
+			margin-right: 5px;
+			padding:8px 14px 8px 14px;
+			text-decoration:none;
+			border-top:1px solid #2f343a; 
+			border-left:1px solid #2f343a; 
+			border-right:1px solid #2f343a; 
+			font-size:16px;
+			font-family:"Yanone Kaffeesatz";
+			letter-spacing: 1px;
+			text-transform:uppercase;		
+			background-color:#205887;
+			color:#ffffff;
+		}
+		
+		#management_tabs div:hover 
+		{
+			cursor: pointer;
+			color: #FF790B;
+			background-color:#205887;
+			border-top:1px solid #2f343a; 
+			border-left:1px solid #2f343a; 
+			border-right:1px solid #2f343a; 
+		}
+		
+		#management_tabs div.active 
+		{
+			background-color:#E6E6E6;
+			color:#FF790B;
+			border-top:1px solid #464c54; 
+			border-left:1px solid #464c54; 
+			border-right:1px solid #464c54; 
+		}
+		
+		.management_content 
+		{
+			background-color:#E6E6E6;
+			padding:10px;
+			border-bottom:1px solid #464c54; 	
+			border-left:1px solid #464c54; 	
+			border-right:1px solid #464c54; 	
+			z-index: 1000;
+			position: relative;
+			overflow: hidden;
+			height: 500px;
+		}
+	</style>
+	<script>		
+		function showManagement ()
+		{
+			document.getElementById("management_div").style.display = "block";				
+		}
+				
+		function addManagementTab(name, tabInit, refresh, selectedCallback, active, title)
+		{
+			var id = "management_"+name.toLowerCase();
+			
+			var content = document.createElement("div");
+			content.className = "management_content";
+			content.id = id;
+			
+			var menuItem = document.createElement("div");
+			menuItem.className = "management_tab "+(active ? "active" : "");
+			menuItem.textContent = title !== undefined ? title : name;			
+			menuItem.onclick = function()
+			{
+				if (menuItem.className !== "management_tab active")
+				{
+					selectedCallback(id.toUpperCase());
+					document.getElementById("management_div").appendChild(content);	
+					$(".active").removeClass("active");
+					menuItem.className = "management_tab active";
+					$(".management_content").slideUp();	
+					$("#"+id).slideDown()	
+					if ($("#"+id).children().length <= 0)
+					{					
+						loadManagementTab(id, tabInit);
+					}
+					else
+					{
+						refresh();
+					}
+				}
+				else
+				{
+					refresh();
+				}
+			}
+			document.getElementById("management_tabs").appendChild(menuItem);
+			if (active)
+			{	
+				document.getElementById("management_div").appendChild(content);				
+				loadManagementTab(id, tabInit);
+			}
+		}
+				
+		function loadManagementTab(page, func)
+		{			
+			$("#"+page).load("home/dhus/html/"+page.toLowerCase()+".html", func);
+		}	
+			
+		function initTable(tableId, requestDataFunction, aoColumns, columns, sDom, oLanguage, parentHeight, pageLengths, onClickFunction) {
+			$("#"+tableId).html(
+				'<table cellpadding="0" cellspacing="0" border="0" class="display" id="'+
+					tableId+'Display">'+columns+'</table>');
+				
+			var oTable = $("#"+tableId+"Display").dataTable({
+				"aoColumns": aoColumns,
+				"bJQueryUI": true,
+				"sDom" : sDom,
+				"sPaginationType": "full_numbers",	
+				"bSort" : false,
+				"bDeferRender": true,
+				"bServerSide" : true,
+				"sAjaxSource" : "",
+				"fnServerData": requestDataFunction,
+				"oLanguage": oLanguage,
+				"iDisplayLength": pageLengths[0],
+				"aLengthMenu": pageLengths,
+				"sScrollY": "0px",
+				    "fnDrawCallback": function() {
+				        var $dataTable = $("#"+tableId+"Display").dataTable();
+				        $dataTable.fnAdjustColumnSizing(false);
+
+				        if (typeof(TableTools) != "undefined") {
+				            var tableTools = TableTools.fnGetInstance(table);
+				            if (tableTools != null)
+				            {
+				            	if (tableTools.fnResizeRequired()) 
+				            	{
+				                	tableTools.fnResizeButtons();
+				                }
+				            }
+				        }
+
+				        var $dataTableWrapper = $("#"+tableId+"Display").closest(".dataTables_wrapper");
+
+				        var toolbarHeights = 0;
+				        $dataTableWrapper.find(".fg-toolbar").each(function(i, obj) {
+				            toolbarHeights = toolbarHeights + $(obj).height();
+				        });
+						
+						var scrollHeadHeight = $dataTableWrapper.find(".dataTables_scrollHead").height();
+				        var height = parentHeight - toolbarHeights - scrollHeadHeight;
+				        $dataTableWrapper.find(".dataTables_scrollBody").height(height - 24);
+				        
+				        $dataTable._fnScrollDraw();
+				    }
+				});
+				if (onClickFunction !== undefined)
+				{				
+					jQuery("#"+tableId+"Display").on('click','tr', function() {
+						if ( $(this).hasClass('row_selected') ) {
+				            $(this).removeClass('row_selected');
+      						onClickFunction(null);
+				        }
+				        else {
+				            oTable.$('tr.row_selected').removeClass('row_selected');
+				            $(this).addClass('row_selected');
+      						onClickFunction(oTable.fnGetData( this ));
+				        }      					
+					});
+				}
+				return oTable;
+		}
+	</script>
+</head>
+<body>
+	<div id="management_div">   	
+        	<div id="management_tabs"/>        
+	</div>
+	<!--script>
+		showManagement ();
+		addManagementTab("dataright", function(){}, function(){}, true, "Data Right Access")
+	</script-->
+</body>
+</html>

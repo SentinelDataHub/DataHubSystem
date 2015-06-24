@@ -1,0 +1,156 @@
+<!DOCTYPE configuration [
+  <!ENTITY varFolder "local_dhus">
+]>
+<configuration xmlns="fr.gael.dhus.database.object.config">
+	<crons>
+		<!-- A scheduler is configured according to this pattern: 
+			Seconds Minutes	Hours Day-of-month Month Day-of-week [Year] 
+			You can find more information on http://www.quartz-scheduler.org/documentation/quartz-1.x/tutorials/TutorialLesson06 
+			Here are some simple examples: 
+				- "0 0 */1 ** ?": every hour. 
+				- "0 0 9-17 ? * MON-FRI": on the hour nine to five week days. 
+				- "0 0 0 25 DEC ?": every Christmas Day at midnight 
+				- "0 0 3 ? * *": every day at 3 AM -->
+		<archiveSynchronization active="false" schedule="0 0 0/5 ? * *"/>
+		<cleanDatabase active="true" schedule="0 0 1 ? * *">
+         <statistics keepPeriod="90" />
+			<tempUsers keepPeriod="10" />
+		</cleanDatabase>
+		<dumpDatabase active="true" schedule="0 0 3 ? * *" />
+		<cleanDatabaseDump active="true" schedule="0 0 4 ? * *" keep="10" />
+		<eviction active="true" schedule="0 0 21 ? * * " />
+		<fileScanners active="true" schedule="0 0 22 ? * *" sourceRemove="false"/>
+		<searches active="true" schedule="0 0 5 ? * *" />
+		<!-- addresses shall be coma-separated -->
+		<sendLogs active="true" schedule="0 30 23 ? * *" addresses="dhus@gael.fr" />
+		<systemCheck active="true" schedule="0 30 23 ? * *"/>
+	</crons>
+	<messaging>
+		<mail onUserCreate="true" onUserUpdate="true" onUserDelete="true">
+			<server smtp="smtp.xxx.xx" port="587" tls="false" username="dhus@xxx.xx"
+				password="password">
+				<from name="DHuS Support Team" address="dhus@xxx.xx" />
+				<replyTo>dhus@xxx.xx</replyTo>
+			</server>
+		</mail>
+	</messaging>
+	<network>
+	   <outbound>
+	      <channel name="PriorityChannel" weight="75">
+	         <classifier>
+	            <includes>
+	               <include>
+	                  <userEmailPattern>.*@gael.fr</userEmailPattern>
+	               </include>
+	            </includes>
+	         </classifier>
+	      </channel>
+	      <channel name="SelfRegisteredChannel" weight="25">
+	         <defaultUserQuotas>	            
+	         	<!-- maxConcurrent defines the maximum simultaneous accepted 
+                 transfers. -->
+	            <maxConcurrent>5</maxConcurrent>
+	            <!-- maxCount defines the maximum number of accepted transfers on
+	                a customizable period.
+	                "periodUnit" attribute defines the unit of the period. Possible 
+	                units are "DAYS", "HOURS", "MICROSECONDS", "MILLISECONDS", 
+	                "MINUTES", "NANOSECONDS", "SECONDS".
+	                "period" attribute is a sliding time window used to count 
+	                number of transfered product from now to the past period delay. -->
+	            <maxCount period="1" periodUnit="DAYS">50</maxCount>
+            	<!-- Maximum accepted size of transfer file. -->
+	            <maxSize>10737418240</maxSize> <!-- 10Gb -->
+                <!-- maxCumulativeSize defines the maximum cumulated accepted 
+             		transfers size on a customizable period.
+               		period/periodUnit attributes are defined in maxCount description. -->
+	            <!-- <maxCumulativeSize period="7" periodUnit="DAYS">1099511627776</maxCumulativeSize> -->
+	            <!-- maxBandwidth maximum bandwidth authorized for this channel. -->
+	            <maxBandwidth>13107200</maxBandwidth> <!-- 100Mb/s -->
+	         </defaultUserQuotas>
+	      </channel>
+	   </outbound>
+	   <inbound>
+	      <channel name="PriorityChannel" weight="75">
+	         <classifier>
+	            <includes>
+	               <include>
+	                  <userEmailPattern>.*@gael.fr</userEmailPattern>
+	               </include>
+	            </includes>
+	         </classifier>
+	      </channel>
+	      <channel name="SelfRegisteredChannel" weight="25">
+	         <defaultUserQuotas>	            
+	         	<!-- maxConcurrent defines the maximum simultaneous accepted 
+                 transfers. -->
+	            <maxConcurrent>5</maxConcurrent>
+	            <!-- maxCount defines the maximum number of accepted transfers on
+	                a customizable period.
+	                "periodUnit" attribute defines the unit of the period. Possible 
+	                units are "DAYS", "HOURS", "MICROSECONDS", "MILLISECONDS", 
+	                "MINUTES", "NANOSECONDS", "SECONDS".
+	                "period" attribute is a sliding time window used to count 
+	                number of transfered product from now to the past period delay. -->
+	            <maxCount period="1" periodUnit="DAYS">50</maxCount>
+            	<!-- Maximum accepted size of transfer file. -->
+	            <maxSize>10737418240</maxSize> <!-- 10Gb -->
+                <!-- maxCumulativeSize defines the maximum cumulated accepted 
+             		transfers size on a customizable period.
+               		period/periodUnit attributes are defined in maxCount description. -->
+	            <!-- <maxCumulativeSize period="7" periodUnit="DAYS">1099511627776</maxCumulativeSize> -->
+	            <!-- maxBandwidth maximum bandwidth authorized for this channel. -->
+	            <maxBandwidth>13107200</maxBandwidth> <!-- 100Mb/s -->
+	         </defaultUserQuotas>
+	      </channel>
+	   </inbound>
+	</network>
+	<products publicData="false">
+		<!-- compressionLevel is a value to build the Deflater, from 1 to 9.
+			The compression level defines how rigorously the compressor looks
+			to find the longest string possible. As a general rule of thumb:
+			- Compressing at the maximum level (9) requires around twice as
+			much processor time as compressing at the minimum level (1) 
+			- For typical input, compressing at the maximum as opposed to
+			the minimum level adds around 5% to the compression ratio.
+			0 value means no compression. -->
+		<!-- checksumAlgorithms shall be coma-separated -->
+		<download compressionLevel="4" checksumAlgorithms="MD5"/>
+		<quicklook height="512" width="512" cutting="false" />
+		<thumbnail height="64" width="64" cutting="false" />
+	</products>
+	<search>
+		<geocoder url="http://nominatim.openstreetmap.org">
+		    <!-- boundingBox property defines if the geocoder is querying only 
+		    	the bounding box of the matching place from the Nominatim Web 
+		    	Service i.e. the four corners encompassing the place. 
+		    	Otherwise, it will query the complete polygon boundaries, that 
+		    	may have lower performance according the the number of vertices 
+		    	composing the place's boundaries. -->
+			<nominatim boundingBox="false" maxPointNumber="50" />
+			<geoname username="dhus" />
+		</geocoder>
+		<odata maxRows="50" />
+		<solr path="&varFolder;/solr" core="dhus" schemaPath=""
+			synonymPath="" />
+	</search>
+	<server protocol="http" host="localhost" port="8080">
+		<!-- External url (protocol://host:port) is the url viewed by users
+			Used in case of an apache proxy redirection for example
+			Empty values mean that server values are used -->
+		<external protocol="" host="" port="" path="" />
+		<ftp port="2121" ftps="false" />
+	</server>
+	<system>
+		<administrator name="root" password="a" />
+		<archive path="&varFolder;/data">
+			<eviction maxDiskUsage="80" maxEvictedProducts="1000"
+				keepPeriod="10" />
+			<incoming path="&varFolder;/incoming" maxFileNo="10" />
+		</archive>
+		<database path="&varFolder;/database/hsqldb" dumpPath="&varFolder;/database_dump" />
+		<name long="Data Hub Service" short="DHuS" />
+		<processing corePoolSize="4" maxPoolSize = "10" queueCapacity="10000" />
+		<support name="DHuS Support Team" mail="dhus@gael.fr" />
+		<tomcat path="&varFolder;/tomcat" />
+	</system>
+</configuration>

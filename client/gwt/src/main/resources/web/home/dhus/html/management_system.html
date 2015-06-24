@@ -1,0 +1,613 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<style>	
+		#managementSystem_div
+		{
+			height: 100%;
+			display: none;
+		}
+		
+		.managementSystem_label
+		{
+			width: 100px;
+			display:inline-block;
+		}
+		
+		.managementSystem_field
+		{
+			width: 359px;
+			font-size: 12px;
+			vertical-align: middle;
+			font-family: "Trebuchet MS", Helvetica, sans-serif;	
+			margin-bottom: 2px;
+			height: 14px;
+		}
+				
+		.managementSystem_checkbox
+		{
+			vertical-align: middle;
+			margin-bottom: 2px;
+		}		
+				
+		.managementSystem_title
+		{
+			font-weight: bold;
+			font-size: 13px;
+			margin-bottom: 5px;	
+		}
+		
+		.managementSystem_title2
+		{
+			font-weight: bold;
+			font-size: 13px;
+			margin-bottom: 5px;	
+			display:inline-block;
+			width: 470px;
+		}
+        	
+		#managementSystem_mailPanel
+		{
+		  width: 948px;
+		  height: 120px;	  
+		  border: solid 1px #aaa;
+		  background: #DEDEDE;
+		  padding: 5px;
+		  margin-bottom: 10px;
+		}
+		
+		.managementSystem_labelTls
+		{
+			display:inline-block;
+		}	
+		
+		.managementSystem_labelPort
+		{
+			width: 100px;
+			display:inline-block;
+		}
+		
+		.managementSystem_fieldPort
+		{
+			width: 50px;
+			font-size: 12px;
+			vertical-align: middle;
+			font-family: "Trebuchet MS", Helvetica, sans-serif;	
+			margin-bottom: 2px;
+			height: 14px;
+		}
+		
+		.managementSystem_labelMailUser
+		{
+			width: 100px;
+			display:inline-block;
+		}		
+		
+		.managementSystem_labelMailUser2
+		{
+			width: 200px;
+			display:inline-block;
+		}			
+		
+		.managementSystem_checkboxMailUser
+		{
+			vertical-align: middle;
+			margin-bottom: 2px;
+			margin-right: 35px;
+		}
+		
+		#managementSystem_supportPanel
+		{
+		  width: 948px;
+		  height: 45px;	  
+		  border: solid 1px #aaa;
+		  background: #DEDEDE;
+		  padding: 5px;
+		  margin-bottom: 10px;
+		}
+		
+		#managementSystem_processingPanel
+		{
+		  width: 948px;
+		  height: 81px;	  
+		  border: solid 1px #aaa;
+		  background: #DEDEDE;
+		  padding: 5px;
+		  margin-bottom: 10px;
+		}
+		
+		.managementSystem_checkboxSpace
+		{
+			display:inline-block;
+			width: 343px;
+		}
+		
+		#managementSystem_buttonsPanel
+		{
+		  width: 948px;
+		  height: 23px;	  
+		  border: solid 1px #aaa;
+		  background: #DEDEDE;
+		  padding: 5px;
+		  margin-bottom: 10px;
+		  position: relative;
+		}
+				
+		#managementSystem_resetArchive
+		{	
+			width: 160px;
+			font-size: 12px;	
+			position: absolute;
+			left: 4px;
+			bottom: 5px;	
+			text-align: center;	
+		}
+		
+		#managementSystem_resetDefault
+		{	
+			width: 140px;
+			font-size: 12px;	
+			position: absolute;
+			right: 155px;
+			bottom: 5px;	
+			text-align: center;	
+		}
+		
+		#managementSystem_saveModifications
+		{	
+			width: 140px;
+			font-size: 12px;	
+			position: absolute;
+			right: 5px;
+			bottom: 5px;
+			text-align: center;	
+		}
+		
+		#managementSystem_rootPanel
+		{
+		  width: 948px;
+		  height: 70px;	  
+		  border: solid 1px #aaa;
+		  background: #DEDEDE;
+		  padding: 5px;
+		  margin-bottom: 10px;
+		  position: relative;
+		}
+		
+		#managementSystem_saveRoot
+		{
+			width: 140px;
+			font-size: 12px;	
+			position: absolute;
+			right: 5px;
+			bottom: 5px;
+			text-align: center;	
+		}
+		
+		#managementSystem_restorePanel
+		{
+		  width: 948px;
+		  height: 45px;	  
+		  border: solid 1px #aaa;
+		  background: #DEDEDE;
+		  padding: 5px;
+		  position: relative;
+		}
+		
+		#managementSystem_labelRestore
+		{
+			width: 300px;
+			display:inline-block;
+		}
+				
+		#managementSystem_restoreButton
+		{	
+			position: absolute;
+			right: 5px;
+			bottom: 5px;
+			width: 140px;
+			font-size: 12px;	
+			text-align: center;	
+		}
+	</style>
+	<script>
+		var mailCheck = new RegExp("^[a-zA-Z0-9!#$%\x26'*+/=?^_`{|}~-]+(?:\\.[a-zA-Z0-9!#$%\x26'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$");
+		var intCheck = new RegExp("^[0-9]+$");		
+		var rootPasswordConfirmFocused = false;
+		
+		function activateSaveModificationsButton()
+		{	
+			var port = document.getElementById('managementSystem_port').value;	
+					
+			var fromMail = document.getElementById('managementSystem_expeditorMail').value;
+			var supportMail = document.getElementById('managementSystem_supportMail').value;
+			var replyTo = document.getElementById('managementSystem_reply').value;
+				
+			var smtp = document.getElementById('managementSystem_server').value;
+			var username = document.getElementById('managementSystem_username').value;
+			var password = document.getElementById('managementSystem_password').value;
+			var fromName = document.getElementById('managementSystem_expeditorName').value;
+			var supportName = document.getElementById('managementSystem_supportName').value;
+					
+			if (port == null || port == "" || !intCheck.test(port) ||
+				fromMail == null || fromMail == "" || !mailCheck.test(fromMail) ||
+				supportMail == null || supportMail == "" || !mailCheck.test(supportMail) ||
+				replyTo == null || replyTo == "" || !mailCheck.test(replyTo) ||
+				smtp == null || smtp == "" ||
+				username == null || username == "" ||
+				password == null || password == "" ||
+				fromName == null || fromName == "" ||
+				supportName == null || supportName == "" )
+			{			
+				document.getElementById('managementSystem_saveModifications').className = 
+				"button_disabled"; 
+			}
+			else
+			{
+				document.getElementById('managementSystem_saveModifications').className = 
+				"button_black"; 
+			}
+		}
+		
+		function validatePort()
+		{
+			var port = document.getElementById('managementSystem_port').value;	
+						
+			if (port == null || port == "" || !intCheck.test(port))
+			{		
+				document.getElementById('managementSystem_port').setCustomValidity('Port must be an int');			  
+			}
+			else
+			{
+			 	document.getElementById('managementSystem_port').setCustomValidity('');
+			}	
+								  
+			activateSaveModificationsButton();
+		}
+						
+		function validateExpeditorMail()
+		{			
+			var fromMail = document.getElementById('managementSystem_expeditorMail').value;
+			
+			if (fromMail == null || fromMail == "" || !mailCheck.test(fromMail))
+			{		
+				document.getElementById('managementSystem_expeditorMail').setCustomValidity('Expeditor mail must be valid');			  
+			}
+			else
+			{
+			 	document.getElementById('managementSystem_expeditorMail').setCustomValidity('');
+			}	
+								  
+			activateSaveModificationsButton();
+		}
+		
+		function validateSupportMail()
+		{
+			var supportMail = document.getElementById('managementSystem_supportMail').value;
+			
+			if (supportMail == null || supportMail == "" || !mailCheck.test(supportMail))
+			{		
+				document.getElementById('managementSystem_supportMail').setCustomValidity('Support mail must be valid');			  
+			}
+			else
+			{
+			 	document.getElementById('managementSystem_supportMail').setCustomValidity('');
+			}	
+								  
+			activateSaveModificationsButton();
+		}
+		
+		function validateReply()
+		{
+			var replyTo = document.getElementById('managementSystem_reply').value;
+			
+			if (replyTo == null || replyTo == "" || !mailCheck.test(replyTo))
+			{		
+				document.getElementById('managementSystem_reply').setCustomValidity('Reply mail must be valid');			  
+			}
+			else
+			{
+			 	document.getElementById('managementSystem_reply').setCustomValidity('');
+			}	
+								  
+			activateSaveModificationsButton();
+		}
+		
+		function validateServer()
+		{
+			var smtp = document.getElementById('managementSystem_server').value;
+			
+			if (smtp == null || smtp == "")
+			{		
+				document.getElementById('managementSystem_server').setCustomValidity('Server must be filled');			  
+			}
+			else
+			{
+			 	document.getElementById('managementSystem_server').setCustomValidity('');
+			}	
+								  
+			activateSaveModificationsButton();
+		}
+		
+		function validateUsername()
+		{
+			var username = document.getElementById('managementSystem_username').value;
+			
+			if (username == null || username == "")
+			{		
+				document.getElementById('managementSystem_username').setCustomValidity('Username must be filled');			  
+			}
+			else
+			{
+			 	document.getElementById('managementSystem_username').setCustomValidity('');
+			}	
+								  
+			activateSaveModificationsButton();
+		}
+		
+		function validatePassword()
+		{
+			var password = document.getElementById('managementSystem_password').value;
+			
+			if (password == null || password == "")
+			{		
+				document.getElementById('managementSystem_password').setCustomValidity('Password must be filled');			  
+			}
+			else
+			{
+			 	document.getElementById('managementSystem_password').setCustomValidity('');
+			}	
+								  
+			activateSaveModificationsButton();
+		}
+		
+		function validateExpeditorName()
+		{
+			var fromName = document.getElementById('managementSystem_expeditorName').value;
+			
+			if (fromName == null || fromName == "")
+			{		
+				document.getElementById('managementSystem_expeditorName').setCustomValidity('Expeditor name must be filled');			  
+			}
+			else
+			{
+			 	document.getElementById('managementSystem_expeditorName').setCustomValidity('');
+			}	
+								  
+			activateSaveModificationsButton();
+		}
+		
+		function validateSupportName()
+		{
+			var supportName = document.getElementById('managementSystem_supportName').value;
+			
+			if (supportName == null || supportName == "" )
+			{		
+				document.getElementById('managementSystem_supportName').setCustomValidity('Support name must be filled');			  
+			}
+			else
+			{
+			 	document.getElementById('managementSystem_supportName').setCustomValidity('');
+			}	
+								  
+			activateSaveModificationsButton();
+		}
+		
+		function activateSaveRootPasswordButton()
+		{	
+			var oldValue = document.getElementById('managementSystem_oldRootPassword').value;	
+			var newValue = document.getElementById('managementSystem_newRootPassword').value;
+			var newValueConfirm = document.getElementById('managementSystem_newRootPasswordConfirm').value;
+									
+			if (oldValue == null || oldValue == "" || newValue == null || newValue == "" ||
+					newValue !== newValueConfirm)
+			{			
+				document.getElementById('managementSystem_saveRoot').className = 
+				"button_disabled"; 
+			}
+			else
+			{
+				document.getElementById('managementSystem_saveRoot').className = 
+				"button_black"; 
+			}
+		}		
+		
+		function validateRootPassword()
+		{
+			var newValue = document.getElementById('managementSystem_newRootPassword').value;
+			var newValueConfirm = document.getElementById('managementSystem_newRootPasswordConfirm').value;
+			
+			if (!rootPasswordConfirmFocused)
+			{			
+				if (newValue == null || newValue == "" || newValue !== newValueConfirm)
+				{
+					document.getElementById('managementSystem_newRootPassword').setCustomValidity('New password fields must be filled and equals');			  
+				}
+				else
+				{
+				 	document.getElementById('managementSystem_newRootPassword').setCustomValidity('');
+				}	
+			}
+			else
+			{
+				if (newValue == null || newValue == "" || newValue !== newValueConfirm)
+				{
+					document.getElementById('managementSystem_newRootPassword').setCustomValidity('New password fields must be filled and equals');	
+					document.getElementById('managementSystem_newRootPasswordConfirm').setCustomValidity('New password fields must be filled and equals');			  
+				}
+				else
+				{
+			  		document.getElementById('managementSystem_newRootPassword').setCustomValidity('');
+			  		document.getElementById('managementSystem_newRootPasswordConfirm').setCustomValidity('');
+				}	
+			}							  
+			activateSaveRootPasswordButton();
+		}
+		
+		function validateOldRootPassword()
+		{
+			var password = document.getElementById('managementSystem_oldRootPassword').value;
+				
+			if (password == null || password == "")
+			{
+				document.getElementById('managementSystem_oldRootPassword').setCustomValidity('Old password field must be filled');			  
+			}
+			else
+			{
+			 	document.getElementById('managementSystem_oldRootPassword').setCustomValidity('');
+			}	
+								  
+			activateSaveRootPasswordButton();
+		}
+		
+		function validateRootPasswordConfirm()
+		{
+			rootPasswordConfirmFocused = true;
+			validateRootPassword();
+		}
+		
+		function system_reCheckAll()
+		{
+			validatePort();
+			validateExpeditorMail();
+			validateSupportMail();
+			validateReply();
+			validateServer();
+			validateUsername();
+			validatePassword();
+			validateExpeditorName();
+			validateSupportName();
+		}
+	
+		function showSystemManagement()
+		{
+			document.getElementById("managementSystem_div").style.display = "block";	
+		}	
+	</script>
+</head>
+<body>
+	<div id="managementSystem_div"> 
+		<div id="managementSystem_mailPanel">   
+    		<div class="managementSystem_title">Mail configuration</div>     			
+			<div>
+				<div class="managementSystem_label">SMTP Server</div>
+				<input type="text" name="managementSystem_server" 
+					id="managementSystem_server" class="managementSystem_field"
+					onkeyup="validateServer()"/>
+				<div class="managementSystem_labelPort">Port</div>
+				<input type="text" name="managementSystem_port" 
+					id="managementSystem_port" class="managementSystem_fieldPort"
+					onkeyup="validatePort()"/>
+				<div class="managementSystem_labelTls">TLS</div>
+				<input type="checkbox" name="managementSystem_tls" 
+					id="managementSystem_tls" class="managementSystem_checkbox"/>
+			</div>	        			
+			<div>
+				<div class="managementSystem_label">Username</div>
+				<input type="text" name="managementSystem_username" 
+					id="managementSystem_username" class="managementSystem_field"
+					onkeyup="validateUsername()"/>
+				<div class="managementSystem_label">Password</div>
+				<input type="password" name="managementSystem_password" 
+					id="managementSystem_password" class="managementSystem_field"
+					onkeyup="validatePassword()"/>
+			</div>	        			
+			<div>
+				<div class="managementSystem_label">Expeditor mail</div>
+				<input type="text" name="managementSystem_expeditorMail" 
+					id="managementSystem_expeditorMail" class="managementSystem_field"
+					onkeyup="validateExpeditorMail()"/>
+				<div class="managementSystem_label">Expeditor name</div>
+				<input type="text" name="managementSystem_expeditorName" 
+					id="managementSystem_expeditorName" class="managementSystem_field"
+					onkeyup="validateExpeditorName()"/>
+			</div>	        			
+			<div>
+				<div class="managementSystem_label">Reply to</div>
+				<input type="text" name="managementSystem_reply" 
+					id="managementSystem_reply" class="managementSystem_field"
+					onkeyup="validateReply()"/>
+			</div>	        			
+			<div>
+				<div class="managementSystem_label">Mail user when : </div>
+				<div class="managementSystem_labelMailUser">creating account</div>
+				<input type="checkbox" name="managementSystem_mailOnCreate" 
+					id="managementSystem_mailOnCreate" class="managementSystem_checkboxMailUser"/>
+				<div class="managementSystem_labelMailUser2">administrator updates his account</div>
+				<input type="checkbox" name="managementSystem_mailOnUpdate" 
+					id="managementSystem_mailOnUpdate" class="managementSystem_checkboxMailUser"/>
+				<div class="managementSystem_labelMailUser">deleting account</div>
+				<input type="checkbox" name="managementSystem_mailOnDelete" 
+					id="managementSystem_mailOnDelete" class="managementSystem_checkboxMailUser"/>
+			</div>	
+    	</div>
+    	<div id="managementSystem_supportPanel">   
+    		<div class="managementSystem_title">Support</div>       		        			
+			<div>
+				<div class="managementSystem_label">Mail</div>
+				<input type="text" name="managementSystem_supportMail" 
+					id="managementSystem_supportMail" class="managementSystem_field"
+					onkeyup="validateSupportMail()"/>
+				<div class="managementSystem_label">Name</div>
+				<input type="text" name="managementSystem_supportName" 
+					id="managementSystem_supportName" class="managementSystem_field"
+					onkeyup="validateSupportName()"/>
+			</div>	
+    	</div>    	
+    	<div id="managementSystem_buttonsPanel">        	
+				<div class="button_black" id="managementSystem_resetArchive">Synchronize local archive</div>
+				<div class="button_black" id="managementSystem_resetDefault">Reset to default values</div>
+				<div class="button_disabled" id="managementSystem_saveModifications">Save</div>
+    	</div>
+    	<div id="managementSystem_rootPanel">
+    		<div class="managementSystem_title">Root configuration</div> 
+			<div>
+				<div class="managementSystem_label">Old password</div>
+				<input type="password" name="managementSystem_oldRootPassword" 
+					id="managementSystem_oldRootPassword" class="managementSystem_field" 
+					onkeyup="validateOldRootPassword()"/>
+				<div class="managementSystem_label">New password</div>
+				<input type="password" name="managementSystem_newRootPassword" 
+					id="managementSystem_newRootPassword" class="managementSystem_field" 
+					onkeyup="validateRootPassword()"/>
+			</div>
+			<div>
+				<div class="managementSystem_label">Confirm it</div>
+				<input type="password" name="managementSystem_newRootPasswordConfirm" 
+					id="managementSystem_newRootPasswordConfirm" class="managementSystem_field" 
+					onkeyup="validateRootPasswordConfirm()"/>
+			</div>
+			<div class="button_disabled" id="managementSystem_saveRoot">Save</div>
+    	</div>
+    	<div id="managementSystem_restorePanel">
+    		<div class="managementSystem_title">Restore database</div> 
+			<div id="managementSystem_labelRestore">
+				Choose database dump that will be restored
+			</div>
+			<select id="managementSystem_restoreSelect"
+				style="width: 350px; margin-right: 20px; margin-left: 20px;">
+			</select>
+			<div class="button_disabled" id="managementSystem_restoreButton">Restore</div>
+    	</div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,313 @@
+<?xml version="1.0"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE rdf:RDF [
+  <!ENTITY rdf  "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#">
+  <!ENTITY owl  "http://www.w3.org/2002/07/owl#">
+  <!ENTITY n1   "http://www.esa.int/envisat#">
+  <!ENTITY drb  "http://www.gael.fr/drb#">
+  <!ENTITY dhus "http://www.gael.fr/dhus#">
+]>
+
+<rdf:RDF xmlns:owl ="&owl;"
+         xmlns:rdf ="&rdf;"
+         xmlns:rdfs="&rdfs;"
+         xmlns:n1  ="&n1;"
+         xmlns:drb ="&drb;"
+         xmlns:dhus="&dhus;"
+         xml:base  ="http://www.esa.int/envisat">
+
+   <owl:Ontology rdf:about="&n1;"/>
+
+   <!-- ***********************************************************************
+   ****************************************************************************
+   *                                                                          *
+   *                                                                          *
+   *                           METADATA EXTRACTION                            *
+   *                                                                          *
+   *                                                                          *
+   ****************************************************************************
+   ************************************************************************ -->
+
+   <rdf:Description rdf:about="&n1;gomosExtractor">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+      <metadata 
+            queryable="instrumentName" 
+            category="instrument" name="Instrument Name" type="text/plain">
+            Global Ozone Monitoring by Occultation of Stars
+         </metadata>,
+
+         <metadata queryable="instrumentShortName"
+            category="instrument" name="Instrument Abbreviation" type="text/plain">
+            GOMOS
+         </metadata>,
+
+         <metadata category="instrument" name="Instrument description" type="text/plain">
+            The accurate mapping of the ozone layer with GOMOS intends to
+            search for daily and long term trends in the ozone distribution in
+            the Earth's atmosphere through measurements with a precise self
+            calibrating instrument. GOMOS measures tangential atmospheric
+            ultraviolet, visual, and infrared light as a function of wavelength
+            and altitude. Measurements are made by observation of stars through
+            the atmosphere using a steerable Ritchey Chretien telescope and two
+            spectrometers. Fast Photometers monitor the stellar scintillation. 
+            GOMOS performs multi-spectral observation of a selected set of star
+            occultations of the Earth's limb caused as a result of satellite
+            motion. In addition to monitoring ozone, GOMOS monitors other
+            atmospheric trace gases (H20, NO2, NO3, OClO), temperature, and
+            aerosols. 
+            The GOMOS telescope acquires and tracks the light from a
+            predetermined number (about 25 per orbit) of stars, and passes the
+            collected light to spectrometers and photometers. The ultraviolet,
+            visible, and infrared spectrometers monitor selected spectral
+            regions to deduce (in later ground processing) the amount and
+            height distribution of the trace gases in the Earth's atmosphere.
+            For each of the two spectrometers a two-dimensional image is
+            recorded 2 times a second, yielding spectral information in one CCD
+            dimension and spatial information in the other CCD dimension. The
+            central region records light from a star plus light scattered in
+            the atmosphere. The upper and lower CCD detector rows collect only
+            scattered light which is used to correct the central region data. 
+            The Fast Photometers monitor stellar scintillation on two
+            wavelength bands to correct for this atmospheric effect which would
+            otherwise distort the spectrometer measurements. 
+            GOMOS operates in five modes: 
+            * Occultation mode, to monitor multispectral stellar absorption
+            through the limb. 
+            * Linearity Monitoring Mode, to periodically (nominally once a
+            week) check GOMOS response linearity. Spectrometer A and B central
+            band spectra data are provided with variable integration times, and
+            Spectrometer A and B upper and lower background band spectra are
+            acquired simultaneously with the target spectra. This data enables
+            the generation of LUTs for ground processing correction for
+            non-linear pixel response. 
+            * Uniformity Monitoring Mode, to check (nominally once a week)
+            pixel-to- pixel response uniformity while observing an extended
+            source. Spectrometer A and B pixel by pixel data of 33 successive
+            lines is provided with integration times within the range 0.25 to
+            10 sec, and Fast Photometer 1 and 2 data on a pixel-by-pixel basis
+            is provided with an integration time of 1 msec. This data enables
+            the generation of LUTs to correct, during ground processing, the
+            response non-uniformity of the CCD image. 
+            * Spatial Spread Monitoring Mode, to periodically check (nominally
+            once a month) the pixel-to-pixel spectral image spreading response
+            by tracking selected stars. Spectrometer A and B pixel by pixel
+            data of 33 successive lines is provided with integration times
+            within the range 0.25 to 10 sec, and Fast Photometer 1 and 2 data
+            on a pixel-by-pixel basis is provided with an integration time of 1
+            msec. This determines which CCD pixels of the star image to utilize
+            for the Occultation Mode measurements. 
+            * Pause Mode, reached between any of the previous operating modes. 
+         </metadata>,
+         <metadata category="product" name="Start tangent latitude" type="text/double">
+            {xs:double(data(product/sph/startTangentLatitude)) div 1000000.0}
+         </metadata>,
+
+         <metadata category="product" name="Start tangent longitude" type="text/double">
+            {xs:double(data(product/sph/startTangentLongitude)) div 1000000.0}
+         </metadata>,
+
+         <metadata category="product" name="Stop tangent latitude" type="text/double">
+            {xs:double(data(product/sph/stopTangentLatitude)) div 1000000.0}
+         </metadata>,
+
+         <metadata category="product" name="Stop tangent longitude" type="text/plain">
+            {xs:double(data(product/sph/stopTangentLongitude)) div 1000000.0}
+         </metadata>,
+
+         <metadata category="product" name="Star name" type="text/plain">
+            {data(product/sph/star/name)}
+         </metadata>,
+
+         <metadata category="product" name="Star identifier" type="text/plain">
+            {data(product/sph/star/identifier)}
+         </metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+
+   <rdf:Description rdf:about="&n1;GOM_LIM_1P">
+      <rdfs:subClassOf rdf:resource="&n1;gomosExtractor"/>
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+       <![CDATA[
+      <metadata queryable="processingLevel" category="product" name="Level" type="text/plain">1P</metadata>,
+      <metadata queryable="sensorOperationalMode" category="product" name="Mode" type="text/plain">LIM</metadata>,
+      <metadata category="product" name="Mode name" type="text/plain">LIMb</metadata>,
+      <metadata category="product" name="Mode Description" type="text/plain">
+         The limb products are used for the calibration and the validation of 
+         the instrument. The limb products contain the geolocated and calibrated 
+         background spectra actually measured with the two external bands of CCD 
+         spectrometers. Those products also contain a copy or a reference to the
+         auxiliary data, a reference to the algorithms used to generate the 
+         product, the datation of the measurements and of the processing, the
+         product confidence indicators at product level and at data level.
+         Each limb product contains the data corresponding to a whole occultation.
+      </metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+
+   <rdf:Description rdf:about="&n1;GOM_TRA_1P">
+      <rdfs:subClassOf rdf:resource="&n1;gomosExtractor"/>
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+       <![CDATA[
+      <metadata queryable="processingLevel" category="product" name="Level" type="text/plain">1P</metadata>,
+      <metadata queryable="sensorOperationalMode" category="product" name="Mode" type="text/plain">TRA</metadata>,
+      <metadata category="product" name="Mode name" type="text/plain">Transmission spectra</metadata>,
+      <metadata category="product" name="Mode Description" type="text/plain">
+          Those products are the main Level 1b products. They are the basis for
+          further Level 2 processing. The transmission spectra products contain
+          the geolocated and calibrated data, mainly the full transmission 
+          (computed as the ratio of the estimated star spectrum to the reference
+           spectrum of the current occultation, without any correction for
+           scintillations and dilution), and the covariance spectra needed by 
+           the Level 2 processing. The full transmission spectra show the 
+           perturbation of the star spectra due to the presence of the 
+           atmospheric constituents. The covariance spectra give an estimation
+           of the errors due to both instrument measurements and Level 1b 
+           processing tasks.
+           Those products also contain a copy or a reference to the auxiliary 
+           data, a reference to the algorithms used to generate the product, 
+           the datation of the measurements and of the processing, the product 
+           confidence indicators at product level and at data level.
+           Each Level 1b transmission spectra product contains the data 
+           corresponding to a whole occultation.
+      </metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+
+   <rdf:Description rdf:about="&n1;GOM_EXT_2P">
+      <rdfs:subClassOf rdf:resource="&n1;gomosExtractor"/>
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+      <metadata queryable="processingLevel" category="product" name="Level" type="text/plain">2P</metadata>,
+      <metadata queryable="sensorOperationalMode" category="product" name="Mode" type="text/plain">EXT</metadata>,
+      <metadata category="product" name="Mode name" type="text/plain">Residual extinction</metadata>,
+      <metadata category="product" name="Mode Description" type="text/plain">
+          The residual extinction products are used for instrument calibration 
+          and validation purposes.
+          They also contain information needed to build a high resolution 
+          aerosol product.
+          The residual extinction products are generated by the GOMOS Level 2 
+          processing. They contain the spectral transmission corrected for 
+          scintillation and dilution effects.
+          Each residual extinction product contains the data corresponding to a 
+          whole occultation.
+      </metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+
+   <rdf:Description rdf:about="&n1;GOM_NL__0P">
+      <rdfs:subClassOf rdf:resource="&n1;gomosExtractor"/>
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+      <metadata queryable="processingLevel" category="product" name="Level" type="text/plain">0P</metadata>,
+      <metadata queryable="sensorOperationalMode" category="product" name="Mode" type="text/plain">NL</metadata>,
+      <metadata category="product" name="Mode name" type="text/plain">Level 0 nominal products</metadata>,
+      <metadata category="product" name="Mode Description" type="text/plain">
+         The Level 0 nominal products contain the GOMOS source packets in 
+         occultation mode for a full orbit (time ordered Annotated Instrument 
+         Source Packets recording the occultation measurements of the GOMOS 
+         instrument). They are generated from raw data and they are produced 
+         systematically when the instrument is in occultation mode. They are the 
+         basis for all higher level processing.
+      </metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+   
+   <rdf:Description rdf:about="&n1;GOM_MM__0P">
+      <rdfs:subClassOf rdf:resource="&n1;gomosExtractor"/>
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+      <metadata queryable="processingLevel" category="product" name="Level" type="text/plain">0P</metadata>,
+      <metadata queryable="sensorOperationalMode" category="product" name="Mode" type="text/plain">MM</metadata>,
+      <metadata category="product" name="Mode name" type="text/plain">monitoring Level 0 product</metadata>,
+      <metadata category="product" name="Mode Description" type="text/plain">
+         The GOMOS Monitoring Modes Level 0 Product contains time ordered AISPs
+         which hold data acquired while the instrument is in self-calibration 
+         monitoring modes.
+         There are three modes in which GOMOS is acquiring data which is used 
+         to establish operating parameters, and to set up look-up tables which 
+         are used in subsequent GOMOS data processing. These modes are:
+         - Linearity Monitoring Mode,
+         - Uniformity Monitoring Mode,
+         - Spatial Spread Monitoring Mode.
+      </metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+
+   <rdf:Description rdf:about="&n1;GOM_NL__2P">
+      <rdfs:subClassOf rdf:resource="&n1;gomosExtractor"/>
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+      <metadata queryable="processingLevel" category="product" name="Level" type="text/plain">2P</metadata>,
+      <metadata queryable="sensorOperationalMode" category="product" name="Mode" type="text/plain">NL</metadata>,
+      <metadata category="product" name="Mode name" type="text/plain">Temperature and atmospheric constituent profiles</metadata>,
+      <metadata category="product" name="Mode Description" type="text/plain">
+         The Level 2 temperature and atmospheric constituent products are 
+         generated from Level 1b data. They contain the retrieved vertical 
+         profiles, the retrieved tangent line densities, the auxiliary data 
+         and reference of the algorithms used to generate the product, datation
+         of the measurement and of the processing, product confidence
+         indicators at product level and at data level.
+         A set of flags is raised at several stages of the Level 2 processing.
+         These flags give information concerning the validity of the outputs of
+         spectral inversion, vertical inversion, aerosol processing, turbulence
+         processing, and GOMOS atmospheric profiles.
+         Each Level 2 temperature and atmospheric constituent product contains 
+         the data corresponding to a whole occultation.
+      </metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+
+   <rdf:Description rdf:about="&n1;GOM_RR__2P">
+      <rdfs:subClassOf rdf:resource="&n1;gomosExtractor"/>
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+      <metadata queryable="processingLevel" category="product" name="Level" type="text/plain">2P</metadata>,
+      <metadata queryable="sensorOperationalMode" category="product" name="Mode" type="text/plain">RR</metadata>,
+      <metadata category="product" name="Mode name" type="text/plain">Meteo products</metadata>,
+      <metadata category="product" name="Mode Description" type="text/plain">
+       These products contain selected vertical profiles processed in NRT. 
+       They are distributed mainly to meteo users. The primary application is 
+       NRT global atmospheric modelling and monitoring.
+       The processing is identical to the standard processing, but the 
+       atmospheric model used is based on meteorological forecast for pressure 
+       levels up to 1 hPa (if available) and MSIS90 model above. If the 
+       meteorological forecast is not available, data from the MSIS90 model are 
+       used from the bottom of the atmosphere. For the processing of off-line 
+       products, the atmospheric model is based on the meteorological analysis 
+       up to 1 hPa, and on MSIS90 above. Thus, the available orbit data may be 
+       less precise than for off-line processing, and some external data may be 
+       sub-optimal. But in all cases, the most accurate orbit at the time of 
+       processing is used.
+      </metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+
+</rdf:RDF>

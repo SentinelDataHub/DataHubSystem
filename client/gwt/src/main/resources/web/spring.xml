@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="
+      http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+      http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+      http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.2.xsd">
+
+	<bean class="fr.gael.dhus.spring.context.DHuSContextLoader" />
+	
+ 	<bean id="apiAuthEntryPoint"
+		class="org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint">
+		<property name="realmName" value="#{ configurationManager.getNameConfiguration ().getLongName () } API" />
+	</bean>
+	
+	<security:http entry-point-ref="apiAuthEntryPoint" use-expressions="true"
+		disable-url-rewriting="true" pattern="/search">
+
+		<security:custom-filter position="PRE_AUTH_FILTER"
+			ref="preAuthFilter" />
+		<security:custom-filter position="BASIC_AUTH_FILTER"
+			ref="basicAuthFilter" />
+
+		<security:logout invalidate-session="true"
+			success-handler-ref="logoutSuccessHandler" />
+
+		<security:intercept-url pattern="/user/validation/*" access="permitAll"/>
+		<security:intercept-url pattern="/**" access="isAuthenticated()" />
+	</security:http>
+	
+	<security:http entry-point-ref="apiAuthEntryPoint" use-expressions="true"
+		disable-url-rewriting="true" pattern="/statistic/download/get">
+
+		<security:custom-filter position="PRE_AUTH_FILTER"
+			ref="preAuthFilter" />
+		<security:custom-filter position="BASIC_AUTH_FILTER"
+			ref="basicAuthFilter" />
+
+		<security:logout invalidate-session="true"
+			success-handler-ref="logoutSuccessHandler" />
+
+		<security:intercept-url pattern="/user/validation/*" access="permitAll"/>
+		<security:intercept-url pattern="/**" access="isAuthenticated()" />
+	</security:http>
+	 	 	
+	<security:http use-expressions="true" disable-url-rewriting="true" auto-config="false"
+		create-session="ifRequired">
+
+		<security:custom-filter ref="preAuthFilter"
+			position="PRE_AUTH_FILTER" />
+
+		<security:form-login username-parameter="login_username"
+			password-parameter="login_password" login-processing-url="/login"
+			authentication-success-handler-ref="loginSuccessHandler"
+			authentication-failure-handler-ref="loginFailureHandler"
+			authentication-details-source-ref="proxyWebAuthenticationDetailsSource"
+			login-page="/" />
+
+		<security:logout success-handler-ref="logoutSuccessHandler"
+			invalidate-session="true" logout-url="/logout" />
+
+	</security:http>
+</beans>

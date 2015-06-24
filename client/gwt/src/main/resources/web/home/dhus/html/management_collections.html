@@ -1,0 +1,364 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<style>	
+		#managementCollection_div
+		{
+			height: 100%;
+			display: none;
+		}
+		
+		#managementCollection_table
+		{
+			width: 400px;
+			height: 100%;
+			float: left;
+		}
+		
+		.managementCollection_treeNode
+		{
+			width: 21px;
+			display:inline-block;
+		}
+		
+		.managementCollection_treeNodeImg
+		{
+			vertical-align: middle;
+			margin-bottom: 1px;
+		}
+		
+		#managementCollection_right
+		{
+			width: 538px;
+			height: 488px;
+			float: right;		  
+			border: solid 1px #aaa;
+			background: #DEDEDE;
+			padding: 5px;
+		}
+
+		#managementCollection_form
+		{
+			width: 100%;
+			height: 140px;
+		}
+		
+		.managementCollection_formLabel
+		{
+			width: 80px;
+			display:inline-block;
+		}	
+		
+		.managementCollection_formField
+		{
+			width: 440px;
+			font-size: 12px;
+			vertical-align: middle;
+			font-family: "Trebuchet MS", Helvetica, sans-serif;	
+			margin-bottom: 2px;
+		}	
+		
+		#managementCollection_productsTable
+		{
+			margin-top: 10px;
+			margin-bottom: 5px;
+			width: 100%;
+		}
+		
+		.managementCollection_productsTableCheckbox
+		{		
+			vertical-align: middle;
+			margin-bottom: 1px;
+		}
+		
+		.managementCollection_productsTableCheckAll
+		{		
+			margin-left: 5px;
+			margin-right: 15px;
+			vertical-align: middle;
+			margin-bottom: 1px;
+		}
+		
+		#managementCollection_buttons
+		{
+		  position: relative;
+		  height: 23px;
+		  width: 100%;
+		  text-align: right;
+		}
+		
+		#managementCollection_buttonReset
+		{	
+			width: 80px;
+			font-size: 12px;	
+			position: absolute;
+			left: -1px;
+			bottom: 0px;	
+			text-align: center;		
+		}
+		
+		#managementCollection_buttonCreate
+		{	
+			width: 80px;
+			font-size: 12px;
+			position: absolute;
+			left: -1px;
+			bottom: 0px;	
+			text-align: center;	
+		}
+		
+		#managementCollection_buttonCreateSub
+		{	
+			width: 90px;
+			font-size: 12px;
+			position: absolute;
+			left: 88px;
+			bottom: 0px;
+			text-align: center;	
+		}
+				
+		#managementCollection_buttonCancel
+		{	
+			width: 80px;
+			font-size: 12px;	
+			position: absolute;
+			right: -1px;
+			bottom: 0px;	
+			text-align: center;		
+		}
+		
+		#managementCollection_buttonSave
+		{	
+			width: 80px;
+			font-size: 12px;
+			position: absolute;
+			right: 85px;
+			bottom: 0px;	
+			text-align: center;			
+		}
+		
+		#managementCollection_buttonDelete
+		{	
+			width: 80px;
+			font-size: 12px;	
+			position: absolute;
+			right: 85px;
+			bottom: 0px;	
+			text-align: center;		
+		}
+		
+		#managementCollection_buttonUpdate
+		{	
+			width: 80px;
+			font-size: 12px;	
+			position: absolute;
+			right: 175px;
+			bottom: 0px;	
+			text-align: center;		
+		}
+	</style>
+	<script>	
+		var collectionsTableEnabled = true;
+		var productsTableEnabled = true;
+		var productsCheckedFunction;
+		var productsCheckAllFunction;
+		var openCollectionFunction;
+		var productsTable;	
+		var collectionsTable;	
+		var scrollPosition = 0;
+	
+		function coll_activateSaveButton()
+		{		
+			var nameValue = document.getElementById('managementCollection_name').value;
+									
+			if (nameValue == null || nameValue == "" || nameValue.indexOf("/") != -1 ||  nameValue.indexOf("\\") != -1 ||
+				nameValue.startsWith("."))
+			{			
+				document.getElementById('managementCollection_buttonSave').className = 
+				"button_disabled"; 
+			}
+			else
+			{
+				document.getElementById('managementCollection_buttonSave').className = 
+				"button_black"; 
+			}
+		}
+		
+		function coll_validateCollectionName()
+		{
+			var nameValue = document.getElementById('managementCollection_name').value;
+			if (nameValue ==null || nameValue=="")
+			{
+			  document.getElementById('managementCollection_name').setCustomValidity('Name field must be filled');	
+			}
+			else if (nameValue.indexOf("/") != -1 ||  nameValue.indexOf("\\") != -1)
+			{
+			  document.getElementById('managementCollection_name').setCustomValidity('Name can not contain a / or \\ character.');	
+			}
+			else if (nameValue.startsWith("."))
+			{
+			  document.getElementById('managementCollection_name').setCustomValidity('Name can not start with . character.');	
+			}
+			else
+			{
+			  document.getElementById('managementCollection_name').setCustomValidity('')
+			}			  
+			coll_activateSaveButton();
+		}			
+		
+		function coll_resetScrollPosition()
+		{
+			scrollPosition = 0;
+		}
+		
+		function coll_saveScrollPosition()
+		{
+			scrollPosition = $("#managementCollection_productsTableDisplay").closest(".dataTables_scrollBody").scrollTop();
+		}
+			
+		function coll_refreshProducts()
+		{
+			productsTable.fnDraw(false);
+		}
+			
+		function coll_refreshCollections()
+		{
+			collectionsTable.fnDraw(false);
+		}
+		
+		function coll_deselectCollection()
+		{
+			collectionsTable.$('tr.row_selected').removeClass('row_selected');
+		}
+		
+		function coll_hideCollectionsCustomValidity()
+		{
+		    document.getElementById('managementCollection_name').setCustomValidity('')
+		}
+		
+		function coll_setCollectionsTableEnabled(enabled)
+		{
+			collectionsTableEnabled = enabled;
+		}
+		
+		function coll_setProductsTableEnabled(enabled)
+		{
+			productsTableEnabled = enabled;
+			coll_refreshProducts();
+		}			
+		
+		function showCollectionManagement(getProductsFunction, getCollectionsFunction, selectCollectionFunction, productsCheckedFunc, productsCheckAllFunc, openCollectionFunc)
+		{		
+		    productsCheckedFunction = productsCheckedFunc;
+		    productsCheckAllFunction = productsCheckAllFunc;
+		    openCollectionFunction = openCollectionFunc;
+			document.getElementById("managementCollection_div").style.display = "block";
+			productsTable = initTable("managementCollection_productsTable",getProductsFunction, [{ "sTitle": "", "sClass": "center",  
+						"mRender": function ( data, type, full ) {
+							return "<input type='checkbox' class='managementCollection_productsTableCheckbox' "+(data.checked ? "checked" : "")+" onclick='productsCheckedFunction(\""+data.id+"\")' "+(productsTableEnabled?"":"disabled")+"/>";
+						}},
+					{ "sTitle": "" }], '<col style="width: 20px"/><col/>', '<"H"ifr>t<"F"lp>',
+					{ "sEmptyTable": "No products found.",
+					  "sLengthMenu": "Page size: _MENU_",
+					  "sInfo": "<input type='checkbox' class='managementCollection_productsTableCheckAll' id='productsCheckAll' onclick='productsCheckAllFunction()' />  Display _START_ to _END_ of _TOTAL_ products",
+					  "sInfoEmpty": "<input type='checkbox' class='managementCollection_productsTableCheckAll' id='productsCheckAll' onclick='productsCheckAllFunction()' />  No products found",
+					  "oPaginate": {
+					        "sFirst": "<<",
+					        "sPrevious": "<",
+					        "sNext": ">",
+					        "sLast": ">>"
+					      }}, 310, [25, 50, 100]);
+			
+			productsTable.on('draw', function() {$("#managementCollection_productsTableDisplay").closest(".dataTables_scrollBody").scrollTop(scrollPosition);});
+					  
+			collectionsTable = initTable("managementCollection_table", getCollectionsFunction, [{ "sTitle": "",
+					  "mRender": function ( data, type, full ) {
+					  		if (data.hasChildren)
+					  		{
+								return "<div style='display:inline-block; width:calc("+data.deep+"*10px)'/><div class='managementCollection_treeNode' onclick='openCollectionFunction(event, \""+data.id+"\")'><img class='managementCollection_treeNodeImg' src='home/dhus/images/Folder"+(data.open?"Open":"Close")+".png' "+(data.open?"onmouseout='this.src=\"home/dhus/images/FolderOpen.png\"' onmouseover='this.src=\"home/dhus/images/FolderClose.png\"'":"onmouseout='this.src=\"home/dhus/images/FolderClose.png\"' onmouseover='this.src=\"home/dhus/images/FolderOpen.png\"'")+"></div>"+data.name;
+							}
+							else
+							{
+								return "<div style='display:inline-block; width:calc("+data.deep+"*10px)'/><div class='managementCollection_treeNode'><img class='managementCollection_treeNodeImg' src='home/dhus/images/Leaf_folder.png'/></div>"+data.name;
+							}
+						}}], "<col/>", '<"H"ir>t<"F">',
+					{ "sEmptyTable": "No collections found.",
+					  "sLengthMenu": "Page size: _MENU_",
+					  "sInfo": "Collections",
+					  "sInfoEmpty": "No collections found",
+					  "oPaginate": {
+					        "sFirst": "<<",
+					        "sPrevious": "<",
+					        "sNext": ">",
+					        "sLast": ">>"
+					      }
+					  }, 500, [], function(data) {
+					  	if(collectionsTableEnabled)
+					  	{
+							selectCollectionFunction(data);
+						}
+						else
+						{
+							coll_deselectCollection();
+						}
+					 });
+		}		
+	</script>
+</head>
+<body>
+	<div id="managementCollection_div">   
+		<div id="managementCollection_table"></div>
+    	<div id="managementCollection_right">
+    		<div id="managementCollection_form">
+				<div>
+					<div class="managementCollection_formLabel">Name *</div>
+					<input type="text" name="managementCollection_name" 
+						id="managementCollection_name" class="managementCollection_formField"
+						onkeyup="coll_validateCollectionName()"/>
+				</div>
+				<div>
+					<div class="managementCollection_formLabel">Description</div>
+					<textarea  name="managementCollection_description" 
+						id="managementCollection_description" class="managementCollection_formField" 
+						rows="5" style="resize: none"></textarea>
+				</div>	
+				<div>
+					<div class="managementCollection_formLabel">Parent</div>
+					<input type="text" name="managementCollection_parent" 
+						id="managementCollection_parent" class="managementCollection_formField" 
+						disabled="disabled"/>
+				</div>						
+    		</div>
+    		<div id="managementCollection_productsTable"></div>
+    		<div id="managementCollection_buttons">
+				<div class="button_disabled" id="managementCollection_buttonReset">Reset</div>
+				<div class="button_disabled" id="managementCollection_buttonCreate">Create</div>
+				<div class="button_disabled" id="managementCollection_buttonCreateSub">SubCollection</div>
+				<div class="button_disabled" id="managementCollection_buttonCancel">Cancel</div>
+				<div class="button_disabled" id="managementCollection_buttonSave">Save</div>
+				<div class="button_disabled" id="managementCollection_buttonDelete">Delete</div>
+				<div class="button_disabled" id="managementCollection_buttonUpdate">Update</div>
+			</div>
+    	</div>
+	</div>
+</body>
+</html>

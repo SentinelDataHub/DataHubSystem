@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+   <modelVersion>4.0.0</modelVersion>
+   
+   <properties>
+      <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
+   </properties>
+   
+   <groupId>fr.gael.dhus</groupId>
+   <artifactId>dhus-liquibase-logs</artifactId>
+   <version>1.0.0</version>
+   <packaging>jar</packaging>
+
+   <name>DHuS - Liquibase logs</name>
+  
+   <dependencies>
+      <dependency>
+         <groupId>org.liquibase</groupId>
+         <artifactId>liquibase-core</artifactId>
+         <version>3.1.1</version>
+         <scope>provided</scope>
+      </dependency> 
+	  <dependency>
+		 <groupId>org.apache.logging.log4j</groupId>
+	 	 <artifactId>log4j-api</artifactId>
+		 <version>2.1</version>
+         <scope>provided</scope>
+	  </dependency>
+   </dependencies>
+  
+   <build>
+      <plugins>      
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.2</version>
+            <configuration>
+               <source>1.7</source>
+               <target>1.7</target>
+               <encoding>ISO-8859-1</encoding>
+            </configuration>
+         </plugin>
+      </plugins>
+   </build>
+  
+   <repositories>
+      <repository>
+         <id>osf-public</id>
+         <name>OSF Public Repository</name>
+         <url>
+            https://copernicus.serco.eu/repository/nexus/content/groups/public/
+         </url>
+         <layout>default</layout>
+      </repository>
+   </repositories>
+   
+   <distributionManagement>
+      <repository>
+         <uniqueVersion>true</uniqueVersion>
+         <id>osf-releases</id>
+         <name>OSF Releases Repository</name>
+         <url>
+           https://copernicus.serco.eu/repository/nexus/content/repositories/releases/
+         </url>
+         <layout>default</layout>
+      </repository>
+      <site>
+         <id>gael-site</id>
+         <url>${site.baseUrl}/</url>
+      </site>
+   </distributionManagement> 
+</project>

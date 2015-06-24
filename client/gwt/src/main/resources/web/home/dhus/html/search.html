@@ -1,0 +1,1112 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<style>	
+	#search_div
+	{	
+		display: none;
+		width: 100%;
+	}	
+	
+	#map
+	{
+		width: 90%;
+		height: 350px;
+		border: solid 1px #BBBBBB;
+	}
+	
+	#search_line
+	{
+		width: 90%;
+		margin-top: 10px;
+		margin-bottom: 10px;
+		overflow: visible;
+	}
+	
+	.search_image
+	{
+		float: left;
+		cursor: pointer;
+		margin-right: 5px;
+	}
+	
+	#search_navigate
+	{
+		display: none;
+	}
+	
+	#search_saveImage
+	{
+		vertical-align: top;
+		margin-top: 2px;
+		margin-right: 2px;
+		margin-left: 2px;
+		cursor: pointer;
+	}
+	
+	#search_valueDiv
+	{
+		display: inline-block;
+		margin-left: 0px;
+		width: 450px;
+		position: relative;
+		border:1px solid #7f9db9;
+		height:20px;	
+		z-index: 1000;
+		text-align: left;
+		background: white;
+		overflow: visible;
+	}
+	
+	#search_value
+	{
+		border:0px;
+		width: 430px;
+    		margin-top: 2px;
+		font-family: "Trebuchet MS", Helvetica, sans-serif;	
+		font-size: 12px;
+	}
+	
+	#search_requestDiv
+	{
+		width: 90%;
+		margin-bottom: 10px;
+		overflow: visible;
+	}
+	
+	#search_request
+	{
+		height:20px;	
+		width: 790px;
+		font-family: "Trebuchet MS", Helvetica, sans-serif;	
+		font-size: 12px;
+	}
+	
+	#search_value:focus 
+	{
+	    outline-width: 0;
+	}
+	
+	#arrowSelectBox
+	{
+		margin-top:1px;
+		float:left;
+		position:absolute;
+		right:1px;
+	}
+	
+	#selectBoxOptions{
+		position:absolute;
+		border:1px solid #7f9db9;
+		width: 450px;
+		background-color:#FFF;
+		font-family: "Trebuchet MS", Helvetica, sans-serif;	
+		font-size: 12px;
+		left:-1px;
+		top:20px;
+		visibility:hidden;
+		overflow: visible;
+		z-index:1000;
+	}
+	
+	#suggesterBox{
+		position:absolute;
+		border:1px solid #7f9db9;
+		width: 450px;
+		background-color:#FFF;
+		font-family: "Trebuchet MS", Helvetica, sans-serif;	
+		font-size: 12px;
+		left:-1px;
+		top:20px;
+		visibility:hidden;
+		overflow: visible;
+		z-index:1000;
+	}
+	
+	.selectBoxAnOption{
+		cursor:pointer;
+		margin:1px;
+		overflow:hidden;
+		white-space:nowrap;
+	}
+	
+	#search_button
+	{
+		font-size: 12px;
+		text-align: center;
+		width: 60px;
+		vertical-align: top;
+	}
+	
+	#search_advancedLabel
+	{
+		display: inline-block;
+		cursor: pointer;
+		float: right;
+	}
+	
+	#search_advanced
+	{
+		width: 90%;
+		background: #CCCCCC;
+		margin-bottom: 10px;
+		display: none;
+		padding: 5px;
+		padding-bottom: 7px;
+		text-align: left;
+	}
+
+	.search_advancedField
+	{
+		display: inline-block;
+	}
+
+	.search_advancedFieldLabelCol1
+	{
+		display: inline-block;
+		width: 80px;
+	}
+
+	.search_advancedFieldLabelCol2
+	{
+		display: inline-block;
+		width: 90px;
+	}
+
+	.search_advancedFieldLabelCol3
+	{
+		display: inline-block;
+		width: 115px;
+	}
+
+	.search_advancedFieldToLabel
+	{
+		display: inline-block;
+		width: 15px;
+	}
+
+	.search_advancedFieldInput
+	{
+		display: inline-block;
+		width: 180px;
+		border:1px solid #7f9db9;
+		height: 20px;
+    	margin-top: 2px;
+		font-family: "Trebuchet MS", Helvetica, sans-serif;	
+		font-size: 12px;
+	}	
+	
+	.datepicker
+	{
+		background: white url(home/dhus/images/calendar.png) no-repeat right 2px center;
+		border:1px solid #7f9db9;
+		height: 20px;
+		padding-right: 20px;
+		width: 73px;
+		cursor: pointer;
+	}
+	
+	#search_table
+	{
+		width: 982px;
+	}
+			
+	.thumbnailPreview
+	{
+		height: 64px;
+		width: 64px;
+		border: solid 1px #BBBBBB;
+		text-align: center;
+		vertical-align: middle;
+	}
+	
+	.thumbnailPreviewImg
+	{		
+		max-height: 64px;
+		max-width: 64px;
+	}
+	
+	.search_product
+	{
+		vertical-align: top;
+		height: 64px;
+	}
+	
+	#search_tableDisplay tbody tr.even, #search_tableDisplay tbody tr.even {
+		background-color: #e3e3e3;
+	}
+
+	#search_tableDisplay tbody tr.odd, #search_tableDisplay tbody tr.odd {
+		background-color: #EEEEEE;
+	}
+	
+	#search_tableDisplay tbody tr.even:hover, #search_tableDisplay tbody tr.even td.highlighted {
+		cursor: default;
+		background-color: #BCD2EE;
+	}
+
+	#search_tableDisplay tbody tr.odd:hover, #search_tableDisplay tbody tr.odd td.highlighted {
+		cursor: default;
+		background-color: #BCD2EE;
+	}
+	
+	#search_div .ac_results {
+		padding: 0px;
+		border: 10px solid WindowFrame;
+		background-color: Window;
+		overflow: hidden;
+		text-align: left;
+	}
+	</style>
+	<script>
+		var apiKey = "Aj33PP3yOf0ysw8LJx2RnGfMVRVpHkr2kANuiPWQhhgLCxI1qlSm6kUAJ6U822x-";
+		var map;
+		var vectorLayer;
+		var drawFeature;
+		var searchTable;
+		var currentPolygon = "";
+		var currentPolygonSearchString = "";
+		var allFootprintLayer;
+		var footprintLayer;
+		var viewItem;
+		var deleteItem;
+		var search_modifyItemInCartFunction;
+		var search_advancedActivatedFunction;
+		var search_selectSavedSearchFunction;
+		var resetScroll = true;
+		
+        function init(){      
+        	var lineSymbolizer = new OpenLayers.Symbolizer.Line({
+        		strokeColor: "#ccccff",
+        		strokeOpacity: 0.75,
+        		strokeWidth: 1,
+        		strokeLinecap: "square",
+        		strokeDashstyle: "dash"
+        	});
+        	
+        	var labelSymbolizer = new OpenLayers.Symbolizer.Text({
+        		fontColor: "#ccccff",
+        		fontSize: "11px",
+        		fontWeight: "bold",
+        		opacity: 0.75
+        	});
+              
+        	var graticule = new OpenLayers.Control.Graticule({
+        			targetSize: 250,
+        			labelled: true,
+        			displayInLayerSwitcher : true,
+					lineSymbolizer : lineSymbolizer,
+					labelSymbolizer : labelSymbolizer
+                });
+        
+        	var mapOptions = {
+	            controls: [new OpenLayers.Control.LayerSwitcher(), 
+	            	new OpenLayers.Control.Navigation(),
+	            	new OpenLayers.Control.ArgParser(),
+	            	new OpenLayers.Control.PanZoom(),
+	            	new OpenLayers.Control.ScaleLine(),
+	            	graticule], 
+	            numZoomLevels: 16
+	        };
+        
+            map = new OpenLayers.Map('map', mapOptions);
+
+            var road = new OpenLayers.Layer.Bing({
+                name: "Road",
+                key: apiKey,
+                type: "Road"
+            });
+            var hybrid = new OpenLayers.Layer.Bing({
+                name: "Hybrid",
+                key: apiKey,
+                type: "AerialWithLabels"
+            });
+            var aerial = new OpenLayers.Layer.Bing({
+                name: "Aerial",
+                key: apiKey,
+                type: "Aerial"
+            });
+            
+            vectorLayer = new OpenLayers.Layer.Vector("Vector Layer");
+            vectorLayer.displayInLayerSwitcher = false;
+            
+            var footPrintTemplate = {
+                strokeColor: "#0000FF",
+                strokeWidth: 1,
+                strokeOpacity: 0.75,
+                fillColor: "#0000FF",
+                fillOpacity: 0.5,
+            };
+            var footPrintStyle = new OpenLayers.Style(footPrintTemplate);
+                        
+            footprintLayer = new OpenLayers.Layer.Vector("Footprint Layer", {
+                styleMap: new OpenLayers.StyleMap(footPrintStyle)});
+            footprintLayer.displayInLayerSwitcher = false;
+            
+            var allFootPrintTemplate = {
+                strokeColor: "#0000FF",
+                strokeWidth: 1,
+                strokeOpacity: 0.5,
+                fillColor: "#0000FF",
+                fillOpacity: 0.3,
+            };
+            var allFootPrintStyle = new OpenLayers.Style(allFootPrintTemplate);
+                        
+            allFootprintLayer = new OpenLayers.Layer.Vector("All Footprint Layer", {
+                styleMap: new OpenLayers.StyleMap(allFootPrintStyle)});
+            allFootprintLayer.displayInLayerSwitcher = true;
+
+            map.addLayers([hybrid, road, aerial, vectorLayer, footprintLayer, allFootprintLayer ]);
+                        
+            map.setCenter(new OpenLayers.LonLat(2.21, 48.51).transform(new OpenLayers.Projection("EPSG:4326"),map.getProjection()),2);
+            
+            
+            drawFeature = new OpenLayers.Control.DrawFeature(vectorLayer,
+            	OpenLayers.Handler.RegularPolygon, {
+                            handlerOptions: {
+                                irregular: true
+                            },
+                            callbacks: {
+                            	create: function() { vectorLayer.destroyFeatures() }
+                            },
+                            featureAdded: function(feature) {
+                            	if (feature == null)
+                            	{
+                            		currentPolygon = "";
+                            		currentPolygonSearchString = "";
+                            	}
+                            	else
+                            	{
+                            		var gml = new OpenLayers.Format.GML();
+                            		src = map.getProjection();
+                            		dst = new OpenLayers.Projection("EPSG:4326");
+                            		
+                            		var geomtransformed = feature.geometry.transform(src, dst);
+                            		var poly = gml.buildGeometry.polygon.apply(gml,[geomtransformed]);
+                            		currentPolygon = (new XMLSerializer()).serializeToString(poly);
+                            		
+                            		console.log (currentPolygon);
+                            		
+									if (feature.geometry.getBounds().getWidth() > 180)
+									{
+										var top = feature.geometry.getBounds().top;
+										var bottom = feature.geometry.getBounds().bottom;
+										var left = feature.geometry.getBounds().left;
+										var right = feature.geometry.getBounds().right;
+										currentPolygonSearchString = "( ";
+										var start = left;
+										while ((start+179) < feature.geometry.getBounds().right)
+                            			{
+											var polygon = new OpenLayers.Geometry.Polygon(
+												new OpenLayers.Geometry.LinearRing(
+													[new OpenLayers.Geometry.Point(start, bottom),
+													 new OpenLayers.Geometry.Point(start+179, bottom),
+													 new OpenLayers.Geometry.Point(start+179, top),
+													 new OpenLayers.Geometry.Point(start, top)
+												]));
+                            				start += 179;
+                            				currentPolygonSearchString += 'footprint:"Intersects('+polygon.toString()+')" OR ';
+                            			}
+										var polygon = new OpenLayers.Geometry.Polygon(
+												new OpenLayers.Geometry.LinearRing(
+													[new OpenLayers.Geometry.Point(start, bottom),
+													 new OpenLayers.Geometry.Point(right, bottom),
+													 new OpenLayers.Geometry.Point(right, top),
+													 new OpenLayers.Geometry.Point(start, top)
+												]));
+                            			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" )';
+									}  
+                            		else
+                            		{
+                            			var top = feature.geometry.getBounds().top;
+										var bottom = feature.geometry.getBounds().bottom;
+										var left = feature.geometry.getBounds().left;
+										var right = feature.geometry.getBounds().right;
+										currentPolygonSearchString = "( ";
+										var polygon = new OpenLayers.Geometry.Polygon(
+												new OpenLayers.Geometry.LinearRing(
+													[new OpenLayers.Geometry.Point(left, bottom),
+													 new OpenLayers.Geometry.Point(right, bottom),
+													 new OpenLayers.Geometry.Point(right, top),
+													 new OpenLayers.Geometry.Point(left, top)
+												]));
+                            			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" )';
+                            		}                          		                            		
+                            		
+                            		// To fixup solr bug : a 0.1 deg rotation is required.
+                            		/*var angle = 0.1;                            		
+                            		var origin = feature.geometry.getCentroid();
+                            		feature.geometry.rotate(angle,origin);
+                            		
+
+                            		feature.geometry.rotate(-angle,origin);*/
+                            		feature.geometry.transform(dst, src);
+                            		
+                            	}
+                            }
+                        });
+            
+            map.addControl(drawFeature);
+            navigateSearch();
+        }
+        
+		function clearSearch()
+		{
+			currentPolygon = "";
+			currentPolygonSearchString = "";
+			vectorLayer.destroyFeatures();
+		}
+		
+		function search_setSearchedFootprint(features)
+		{
+			currentPolygon = "";
+			currentPolygonSearchString = "";
+			vectorLayer.destroyFeatures();
+			if (features !== null)
+			{
+				var v = new OpenLayers.Feature.Vector(features.geometry);
+				
+				var gml = new OpenLayers.Format.GML();
+            src = map.getProjection();
+            dst = new OpenLayers.Projection("EPSG:4326");
+                
+             var geomtransformed = v.geometry.transform(src, dst);
+             var poly = gml.buildGeometry.polygon.apply(gml,[geomtransformed]);
+             currentPolygon = (new XMLSerializer()).serializeToString(poly);
+				
+             console.log (currentPolygon);
+				 //currentPolygon = v.geometry.toString();   
+				
+				
+				
+				if (v.geometry.getBounds().getWidth() > 180)
+				{
+					var top = v.geometry.getBounds().top;
+					var bottom = v.geometry.getBounds().bottom;
+					var left = v.geometry.getBounds().left;
+					var right = v.geometry.getBounds().right;
+					currentPolygonSearchString = "( ";
+					var start = left;
+					while ((start+179) < v.geometry.getBounds().right)
+        			{
+						var polygon = new OpenLayers.Geometry.Polygon(
+							new OpenLayers.Geometry.LinearRing(
+								[new OpenLayers.Geometry.Point(start, bottom),
+								 new OpenLayers.Geometry.Point(start+179, bottom),
+								 new OpenLayers.Geometry.Point(start+179, top),
+								 new OpenLayers.Geometry.Point(start, top)
+							]));
+        				start += 179;
+        				currentPolygonSearchString += 'footprint:"Intersects('+polygon.toString()+')" OR ';
+        			}
+					var polygon = new OpenLayers.Geometry.Polygon(
+							new OpenLayers.Geometry.LinearRing(
+								[new OpenLayers.Geometry.Point(start, bottom),
+								 new OpenLayers.Geometry.Point(right, bottom),
+								 new OpenLayers.Geometry.Point(right, top),
+								 new OpenLayers.Geometry.Point(start, top)
+							]));
+        			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" )';
+				}  
+        		else
+        		{
+        			var top = v.geometry.getBounds().top;
+					var bottom = v.geometry.getBounds().bottom;
+					var left = v.geometry.getBounds().left;
+					var right = v.geometry.getBounds().right;
+					currentPolygonSearchString = "( ";
+					var polygon = new OpenLayers.Geometry.Polygon(
+							new OpenLayers.Geometry.LinearRing(
+								[new OpenLayers.Geometry.Point(left, bottom),
+								 new OpenLayers.Geometry.Point(right, bottom),
+								 new OpenLayers.Geometry.Point(right, top),
+								 new OpenLayers.Geometry.Point(left, top)
+							]));
+        			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" )';
+        		}    
+				v.geometry.transform(dst, src);
+				vectorLayer.addFeatures([v]);
+			}
+		}
+		
+		function navigateSearch()
+		{
+			drawFeature.deactivate();
+			document.getElementById("search_navigate").style.display = "none";
+			document.getElementById("search_draw").style.display = "block";
+		}
+		
+		function drawSearch()
+		{
+			drawFeature.activate();
+			document.getElementById("search_navigate").style.display = "block";
+			document.getElementById("search_draw").style.display = "none";
+		}
+			
+		function showSearch(searchFunction, viewItemFunction, modifyItemInCartFunc, advancedActivatedFunc, selectSavedSearchFunc, deleteItemFunc)
+		{
+			search_selectSavedSearchFunction = selectSavedSearchFunc;
+			search_advancedActivatedFunction = advancedActivatedFunc;
+			search_modifyItemInCartFunction = modifyItemInCartFunc;
+			viewItem = viewItemFunction;
+			deleteItem = deleteItemFunc;
+			document.getElementById("search_div").style.display = "block";
+			init();
+			
+			searchTable = initTable("search_table", searchFunction,
+         [
+            { "sTitle": "", "sClass": "center",  
+               "mRender": function ( data, type, full )
+               {
+                  if (data.thumbnail == null)
+                  {
+                     return '<div class="thumbnailPreview"><br>No Quicklook</div>';
+                  }
+                  else
+                  {
+                	  return '<div class="thumbnailPreview">' +
+                	     '<img class="thumbnailPreviewImg" src="' +
+                	     data.thumbnail + '"/></div>';
+                	}
+				   }
+            },
+            { "sTitle": "", "mRender": function ( data, type, full )
+               {
+            	   return '<div class="search_product"><b>' +
+            	      data.identifier + '</b><br><a class="link" href="' +
+            	      data.link + '" target="_blank">' +
+            	      data.link + '</a><br><br>' +
+            	      data.summary + '</div>';
+               }
+            },
+				{ "sTitle": "", "sClass": "center", 
+              "mRender": function ( data, type, full )
+              {
+            	  return '<img onclick="viewItem(' + data + ')" src="home/dhus/images/view.png" style="cursor:pointer;" title="View product"/>';
+              }
+            },
+            { "sTitle": "", "sClass": "center", 
+              "mRender": function ( data, type, full )
+               {
+            	   if (data != null)
+            	   {
+                    return '<a href="'+data+'" target="_blank"><img src="home/dhus/images/download.png" title="Download product"/></a>';
+                  }
+                  else
+                  {
+                	  return '<img src="home/dhus/images/download_disabled.png" style="cursor:default;" title="You are not allowed to download product"/>';
+                  }
+               }
+            },
+            { "sTitle": "", "sClass": "center", 
+              "mRender": function ( data, type, full )
+               {
+            	  res = "";
+                 size = data.deletable ? 70 : 25;
+                 if (data.id != null)
+                 {
+                	 res = "<div style='width:"+size+"px'><img src='home/dhus/images/"+(data.inUserCart?"removeFromCart.png":"addToCart.png")+"' onclick='search_modifyItemInCartFunction("+data.id+", "+ data.inUserCart+")' style='cursor:pointer;' title='Add product to your download cart'/>";
+                 }
+                 else
+                 {
+                	 res = '<img src="home/dhus/images/addToCart_disabled.png" style="cursor:default;" title="You are not allowed to download product"/>';
+                 }
+							if (data.deletable)
+							{
+								res += '<img onclick="deleteItem('+data.id+', \''+data.name+'\')" src="home/dhus/images/delete_product.png" style="padding-left: 20px; cursor:pointer;" title="Delete product"/>';
+							}
+							res += "</div>"
+							return res;
+               }
+            }
+         ], 
+         "<col style='width: 72px'/><col/><col style='width: 25px'/><col style='width: 25px'/><col style='width: 25px'/>", '<"H"ir>t<"F"lp>',
+			{ "sEmptyTable": "No search done yet...",
+			  "sLengthMenu": "Page size: _MENU_",
+			  "sInfo": "Display _START_ to _END_ of _TOTAL_ products",
+			  "sInfoEmpty": "No search done yet..."
+			  /* "oPaginate": {
+			        "sFirst": "<<",
+			        "sPrevious": "<",
+			        "sNext": ">",
+			        "sLast": ">>"
+			      } */
+			}, 500, [25,50,100]);
+		}	
+		
+		function destroyFeaturesFromAllFootprintLayer()
+		{
+			allFootprintLayer.destroyFeatures();
+		}
+		
+		function addFeatureToAllFootprintLayer(features)
+		{
+    		src = map.getProjection();
+    		dst = new OpenLayers.Projection("EPSG:4326");
+			var v = new OpenLayers.Feature.Vector(features.geometry);
+			v.geometry.transform(dst, src);
+			allFootprintLayer.addFeatures([v]);
+		}
+		
+		function searchTableDefined()
+		{
+			return searchTable !== undefined;
+		}
+		
+		function initTable(tableId, requestDataFunction, aoColumns, columns, sDom, oLanguage, parentHeight, pageLengths, onClickFunction) {
+			$("#"+tableId).html(
+				'<table cellpadding="0" cellspacing="0" border="0" class="display" id="'+
+					tableId+'Display">'+columns+'</table>');
+				
+			var oTable = $("#"+tableId+"Display").dataTable({
+				"aoColumns": aoColumns,
+				"bJQueryUI": true,
+				"sDom" : sDom,
+				"sPaginationType": "full_numbers",	
+				"bSort" : false,
+				"bDeferRender": true,
+				"bServerSide" : true,
+				"sAjaxSource" : "",
+				"fnServerData": requestDataFunction,
+				"oLanguage": oLanguage,
+				"iDisplayLength": pageLengths[0],
+				"aLengthMenu": pageLengths,
+				"sScrollY": "0px",
+				    "fnDrawCallback": function() {
+				        var $dataTable = $("#"+tableId+"Display").dataTable();
+				        $dataTable.fnAdjustColumnSizing(false);
+
+				        if (typeof(TableTools) != "undefined") {
+				            var tableTools = TableTools.fnGetInstance(table);
+				            if (tableTools != null)
+				            {
+				            	if (tableTools.fnResizeRequired()) 
+				            	{
+				                	tableTools.fnResizeButtons();
+				                }
+				            }
+				        }
+
+				        var $dataTableWrapper = $("#"+tableId+"Display").closest(".dataTables_wrapper");
+
+				        var toolbarHeights = 0;
+				        $dataTableWrapper.find(".fg-toolbar").each(function(i, obj) {
+				            toolbarHeights = toolbarHeights + $(obj).height();
+				        });
+						
+						var scrollHeadHeight = $dataTableWrapper.find(".dataTables_scrollHead").height();
+				        var height = parentHeight - toolbarHeights - scrollHeadHeight;
+				        $dataTableWrapper.find(".dataTables_scrollBody").height(height - 24);
+				        
+				        $dataTable._fnScrollDraw();
+
+						if (resetScroll)
+						{						
+				        	$("#"+tableId+"Display").closest(".dataTables_scrollBody").scrollTop(0);
+						}
+						else
+						{
+							resetScroll = true;
+						}
+				    }
+				});
+				if (onClickFunction !== undefined)
+				{				
+					jQuery("#"+tableId+"Display").on('click','tr', function() {
+						if ( $(this).hasClass('row_selected') ) {
+				            $(this).removeClass('row_selected');
+      						onClickFunction(null);
+				        }
+				        else {
+				            oTable.$('tr.row_selected').removeClass('row_selected');
+				            $(this).addClass('row_selected');
+      						onClickFunction(oTable.fnGetData( this ));
+				        }      					
+					});
+				}
+		 
+						
+			jQuery("#"+tableId+"Display").
+   				on('mouseover', 'tr', function() {
+   					if (oTable.fnGetData( this ) !== null)
+   					{
+					var data = oTable.fnGetData( this )[1].footprint; 
+					var points = [];
+					for (var i=0;i<data.length/2;i++)
+					{ 		
+						points[i] = new OpenLayers.Geometry.Point(data[i*2], data[i*2+1]);
+					}
+					var ring = new OpenLayers.Geometry.LinearRing(points);
+					var polygon = new OpenLayers.Geometry.Polygon([ring]);
+
+			    		src = map.getProjection();
+			    		dst = new OpenLayers.Projection("EPSG:4326");
+					var v = new OpenLayers.Feature.Vector(polygon);
+					v.geometry.transform(dst, src);
+					footprintLayer.addFeatures([v]);
+    					}
+				 }).
+  				on('mouseout', 'tr', function() { 
+  					footprintLayer.destroyFeatures();
+  				});
+			
+			return oTable;
+			}
+		
+		function getCurrentPolygon()
+		{
+			return currentPolygon;
+		}
+		
+		function getCurrentPolygonSearchString()
+		{
+			return currentPolygonSearchString;
+		}
+		
+		function search_filling()
+		{
+			var optionDiv = document.getElementById('selectBoxOptions');
+			if(optionDiv.style.display=='block'){
+				optionDiv.style.display='none';
+				document.getElementById("arrowSelectBox").src = arrowImageOver;	
+			}
+			//val = document.getElementById("search_value").value;
+			// str.replace(/^\s+|\s+$/g, '') = trim
+			//if (val == null || val.replace(/^\s+|\s+$/g, '').length == 0)
+			//{
+			//	document.getElementById("search_saveImage").src = "home/dhus/images/saveSearch_disabled.png";
+			//	document.getElementById("search_saveImage").style.cursor = "default";
+			//}
+			//else
+			//{
+			//	document.getElementById("search_saveImage").src = "home/dhus/images/saveSearch.png";
+			//	document.getElementById("search_saveImage").style.cursor = "pointer";
+			//}
+		}
+		
+		function doSearch()
+		{
+			var oSettings = searchTable.fnSettings();
+			if (oSettings !== null)
+			{
+ 				oSettings.oLanguage.sEmptyTable = "No products found...";
+ 				oSettings.oLanguage.sInfoEmpty = "No products found...";
+ 			}
+			resetScroll = true;
+			searchTable.fnPageChange(0);
+		}
+		
+		function search_refreshSearch()
+		{
+			resetScroll = false;
+			searchTable.fnDraw (false);
+		}
+		
+		function search_selectItem(li) {
+			document.getElementById('search_value').focus();
+		}
+		
+		$(document).ready(function() {
+			$("#search_value").autocomplete("api/search/suggest",		
+				{
+					delay:10,
+					minChars:1,
+					matchSubset:1,
+					onItemSelect:search_selectItem,
+					maxItemsToShow:10,
+					width: 450
+				}
+			);
+			
+			$('html').click(function() {
+				selectBox_hideOptions();
+			});
+
+			$('#arrowSelectBox').click(function(event) {
+				event.stopPropagation();
+			});
+
+			// one day in ms
+			var one_day=1000*60*60*24;
+			var today = new Date();
+			var dd = today.getDate();
+			var mm = today.getMonth()+1; //January is 0!
+			var yyyy = today.getFullYear();
+			if(dd<10){dd='0'+dd} if(mm<10){mm='0'+mm} today = yyyy+'-'+mm+'-'+dd;
+			
+			$( "#search_advancedFieldIngestionDate" ).Zebra_DatePicker({
+				select_other_months: true,
+				direction: false,
+				onSelect: function(format, date, jsDate, element)
+				{
+					$( "#search_advancedFieldIngestionDateEnd" ).data('Zebra_DatePicker').update({
+						direction: [date, today]
+					});
+				},
+				onClear: function(format, date, jsDate, element)
+				{
+					$( "#search_advancedFieldIngestionDateEnd" ).data('Zebra_DatePicker').update({
+						direction: false
+					});
+				}
+			});
+			$( "#search_advancedFieldIngestionDateEnd" ).Zebra_DatePicker({
+				select_other_months: true,
+				direction: false,
+				onSelect: function(format, date, jsDate, element)
+				{
+					var one_day=1000*60*60*24;
+					var today = new Date();
+					var delta = Math.ceil((jsDate.getTime()-today.getTime())/(one_day));
+					$( "#search_advancedFieldIngestionDate" ).data('Zebra_DatePicker').update({
+						direction: delta
+					});
+				},
+				onClear: function(format, date, jsDate, element)
+				{
+					$( "#search_advancedFieldIngestionDate" ).data('Zebra_DatePicker').update({
+						direction: false
+					});
+				}
+			});
+
+			$( "#search_advancedFieldSensingDate" ).Zebra_DatePicker({
+				select_other_months: true,
+				direction: false,
+				onSelect: function(format, date, jsDate, element)
+				{
+					$( "#search_advancedFieldSensingDateEnd" ).data('Zebra_DatePicker').update({
+						direction: [date, today]
+					});
+				},
+				onClear: function(format, date, jsDate, element)
+				{
+					$( "#search_advancedFieldSensingDateEnd" ).data('Zebra_DatePicker').update({
+						direction: false
+					});
+				}
+			});
+			$( "#search_advancedFieldSensingDateEnd" ).Zebra_DatePicker({
+				select_other_months: true,
+				direction: false,
+				onSelect: function(format, date, jsDate, element)
+				{
+					var one_day=1000*60*60*24;
+					var today = new Date();
+					var delta = Math.ceil((jsDate.getTime()-today.getTime())/(one_day));
+					$( "#search_advancedFieldSensingDate" ).data('Zebra_DatePicker').update({
+						direction: delta
+					});
+				},
+				onClear: function(format, date, jsDate, element)
+				{
+					$( "#search_advancedFieldSensingDate" ).data('Zebra_DatePicker').update({
+						direction: false
+					});
+				}
+			});	
+		});
+		
+		// Input with saved searches
+		var arrowImage = 'home/dhus/images/select_arrow.gif';	// Regular arrow
+		var arrowImageOver = 'home/dhus/images/select_arrow_over.gif';	// Mouse over
+		var arrowImageDown = 'home/dhus/images/select_arrow_down.gif';	// Mouse down
+		
+		var currentlyOpenedOptionBox = false;
+		
+		function selectBox_switchImageUrl()
+		{
+			if(document.getElementById("arrowSelectBox").src.indexOf(arrowImage)>=0){
+				document.getElementById("arrowSelectBox").src = document.getElementById("arrowSelectBox").src.replace(arrowImage,arrowImageOver);	
+			}else{
+				document.getElementById("arrowSelectBox").src = document.getElementById("arrowSelectBox").src.replace(arrowImageOver,arrowImage);
+			}
+		}
+		
+		function selectBox_showOptions()
+		{		
+			var optionDiv = document.getElementById('selectBoxOptions');
+			if(optionDiv.style.display=='block'){
+				optionDiv.style.display='none';
+				document.getElementById("arrowSelectBox").src = arrowImageOver;	
+			}else{			
+				optionDiv.style.display='block';
+				document.getElementById("arrowSelectBox").src = arrowImageDown;		
+			}
+		}
+		
+		function selectBox_hideOptions()
+		{		
+			var optionDiv = document.getElementById('selectBoxOptions');
+			if(optionDiv.style.display=='block'){
+				optionDiv.style.display='none';
+				document.getElementById("arrowSelectBox").src = arrowImageOver;	
+			}
+		}
+		
+		function selectOptionValue()
+		{
+			var parentNode = this.parentNode.parentNode;
+			this.parentNode.style.display='none';	
+			document.getElementById('arrowSelectBox' + parentNode.id.replace(/[^\d]/g,'')).src = arrowImageOver;
+	        search_filling();
+	        search_selectSavedSearchFunction(this.getAttribute("searchId"));	
+		}
+		
+		function highlightSelectBoxOption()
+		{
+			this.style.backgroundColor='#316AC5';
+			this.style.color='#FFF';
+		}
+		
+		function unhighlightSelectBoxOption()
+		{
+			this.style.backgroundColor='';
+			this.style.color='';
+		}
+		
+		function setSearches(searches)
+		{
+			$("#selectBoxOptions").empty();
+			optionDiv = document.getElementById("selectBoxOptions");
+			if (searches == null)
+			{
+				optionDiv.style.display='none';
+				optionDiv.style.visibility='hidden';
+				return;
+			}
+
+			var optionsTotalHeight = 0;
+			var optionArray = new Array();
+			for(var no=0;no<searches.length;no++){
+
+				var anOption = document.createElement('DIV');
+				anOption.innerHTML = searches[no].value;
+				anOption.setAttribute("searchId", searches[no].id);				
+				anOption.className='selectBoxAnOption';
+				anOption.onclick = selectOptionValue;
+				anOption.title = searches[no].value.replace('<i>','').replace('</i>','');
+				anOption.style.width = optionDiv.style.width.replace('px','') - 2 + 'px'; 
+				anOption.onmouseover = highlightSelectBoxOption;
+				anOption.onmouseout = unhighlightSelectBoxOption;
+				optionDiv.appendChild(anOption);	
+				optionsTotalHeight = optionsTotalHeight + anOption.offsetHeight;
+				optionArray.push(anOption);
+			}
+			if(optionsTotalHeight > optionDiv.offsetHeight){				
+				for(var no=0;no<optionArray.length;no++){
+					optionArray[no].style.width = optionDiv.style.width.replace('px','') - 22 + 'px'; 	
+				}	
+			}		
+			optionDiv.style.display='none';
+			optionDiv.style.visibility='visible';
+		}	
+		
+		function search_advancedSwitchDisplay()
+		{
+			if (document.getElementById("search_advanced").style.display == "block")
+			{
+				$("#search_advanced").slideUp();
+				search_advancedActivatedFunction(false);
+			}
+			else
+			{
+				$("#search_advanced").slideDown();
+				search_advancedActivatedFunction(true);
+			}
+		}
+		
+		function search_displayAdvancedSearch(displayed)
+		{
+			if (displayed)
+			{
+				$("#search_advanced").slideDown();
+			}
+			else
+			{
+				$("#search_advanced").slideUp();
+			}
+			search_advancedActivatedFunction(displayed);		
+		}
+	</script>
+</head>
+<body>
+	<div id="search_div">
+		<center>
+		<div id="map"></div>
+		<div id="search_line">
+			<img id="search_clear" class="search_image" src="home/dhus/images/clear.png" 
+				onclick="clearSearch()" title="Clear map"/>
+			<img id="search_navigate" class="search_image" src="home/dhus/images/navigate.png"  
+				onclick="navigateSearch()" title="Navigate on map"/>
+			<img id="search_draw" class="search_image" src="home/dhus/images/draw.png"  
+				onclick="drawSearch()" title="Draw region of interest"/>
+			<div id="search_valueDiv">
+				<input type="text" id="search_value" value=""/>
+				<img src="home/dhus/images/select_arrow.gif" class="selectBoxArrow" onmouseover="selectBox_switchImageUrl()" onmouseout="selectBox_switchImageUrl()"
+					onclick="selectBox_showOptions()" id="arrowSelectBox" title="Display saved searches">
+				<div id="selectBoxOptions"/>
+				<div id="suggesterBox"/>
+			</div>
+			<img src="home/dhus/images/saveSearch.png" id="search_saveImage" title="Save current search">
+			<div class="button_black" id="search_button">Search</div>
+			<div id="search_advancedLabel" class="link" onclick="search_advancedSwitchDisplay()">advanced search</div>
+		</div>
+		<div id="search_requestDiv">
+			Request done : <input type="text" id="search_request" value="" readonly/>
+		</div>
+		<div id="search_advanced">
+			<div class="search_advancedField">
+				<div class="search_advancedFieldLabelCol1">Product Type:</div> 
+				<input class="search_advancedFieldInput" type="text" id="search_advancedFieldProductType">				
+			</div>
+			<div class="search_advancedField">
+				<div class="search_advancedFieldLabelCol2">&nbsp;&nbsp;Sensor Mode:</div>  
+				<input class="search_advancedFieldInput" type="text" id="search_advancedFieldSensorMode">
+			</div>
+			<div class="search_advancedField" class="datepicker">
+				<div class="search_advancedFieldLabelCol3">&nbsp;&nbsp;Sensing Period:</div> 
+				<input class="search_advancedFieldInput datepicker" type="text" id="search_advancedFieldSensingDate">
+				<div class="search_advancedFieldToLabel">to </div> 
+				<input class="search_advancedFieldInput datepicker" type="text" id="search_advancedFieldSensingDateEnd">
+			</div>
+			<div class="search_advancedField">
+				<div class="search_advancedFieldLabelCol1">Polarisation:</div> 
+				<input class="search_advancedFieldInput" type="text" id="search_advancedFieldPolarisation">
+			</div>
+			<div class="search_advancedField">
+				<div class="search_advancedFieldLabelCol2">&nbsp;&nbsp;Swath:</div>
+				<input class="search_advancedFieldInput" type="text" id="search_advancedFieldSwath">
+			</div>
+			<div class="search_advancedField" class="datepicker">
+				<div class="search_advancedFieldLabelCol3">&nbsp;&nbsp;Ingestion Period:</div>  
+				<input class="search_advancedFieldInput datepicker" type="text" id="search_advancedFieldIngestionDate">
+				<div class="search_advancedFieldToLabel">to </div>  
+				<input class="search_advancedFieldInput datepicker" type="text" id="search_advancedFieldIngestionDateEnd">
+			</div>
+			
+		</center>
+		<div id="search_table"></div>
+	</div>
+	<!--script type="text/javascript">showSearch();</script-->
+</body>
+</html>

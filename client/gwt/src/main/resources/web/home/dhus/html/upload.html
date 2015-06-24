@@ -1,0 +1,553 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<style>	
+		#upload_div
+		{
+			height: 600px;
+			display: none;
+			position: relative;
+		}
+		
+		#upload_collectionTable
+		{
+			display: inline-block;
+			width: 400px;
+			height: 100%;
+			position: absolute;
+			right: 0px;
+			top: 0px;
+		}
+		
+		.upload_collectionsTableCheckbox
+		{		
+			vertical-align: middle;
+			margin-bottom: 1px;
+		}
+		
+		.upload_collectionsTableCheckAll
+		{		
+			margin-left: 5px;
+			margin-right: 15px;
+			vertical-align: middle;
+			margin-bottom: 1px;
+		}
+		
+		.upload_collectionTreeNode
+		{
+			width: 21px;
+			display:inline-block;
+		}
+		
+		.upload_collectionTreeNodeImg
+		{
+			vertical-align: middle;
+			margin-bottom: 1px;
+		}
+		
+		.upload_title
+		{
+			font-weight: bold;
+			font-size: 13px;
+			margin-bottom: 5px;	
+		}
+		
+		#upload_product
+		{
+			width: 565px;
+			height: 80px;
+			border: solid 1px #aaa;
+			background: #DEDEDE;
+			padding: 5px;
+			position: absolute;
+			top: 0px;
+		}
+		
+		#upload_productFile
+		{
+			width: 100%;
+		}
+
+		#upload_uploadButton
+		{	
+			font-size: 12px;
+			text-align: center;
+			width: 70px;
+			position: absolute;
+			right: 5px;
+			bottom: 5px;
+		}
+		
+		#upload_scanner
+		{
+			width: 565px;
+			height: 491px;
+			border: solid 1px #aaa;
+			background: #DEDEDE;
+			padding: 5px;
+			position: absolute;
+			top: 97px;
+		}
+		
+		.upload_label
+		{
+			display: inline-block;
+			font-size: 12px;
+			font-family: "Trebuchet MS", Helvetica, sans-serif;	
+			width: 70px;
+		}
+		
+		#upload_url
+		{
+			width: 491px;
+			vertical-align: middle;
+			font-size: 12px;
+			font-family: "Trebuchet MS", Helvetica, sans-serif;	
+			margin-bottom: 3px;
+			height: 16px;
+		}
+		
+		#upload_username
+		{
+			font-size: 12px;
+			width: 200px;
+			vertical-align: middle;
+			font-family: "Trebuchet MS", Helvetica, sans-serif;	
+			margin-bottom: 3px;
+			height: 16px;
+		}
+		
+		#upload_password
+		{
+			font-size: 12px;
+			width: 200px;
+			vertical-align: middle;
+			font-family: "Trebuchet MS", Helvetica, sans-serif;	
+			margin-bottom: 3px;
+			height: 16px;
+		}
+		
+		#upload_pattern
+		{
+			font-size: 12px;
+			width: 200px;
+			vertical-align: middle;
+			font-family: "Trebuchet MS", Helvetica, sans-serif;	
+			margin-bottom: 3px;
+			height: 16px;
+		}
+
+		#upload_patternResult
+		{
+			display:inline-block;
+			margin-left: 5px;
+			font-weight:bold;
+			color: red;
+		}
+		
+		#upload_status
+		{
+			height: 60px;
+			width: 565px;
+			background: #EEEEEE;
+			font-style: italic;
+			text-align: left;
+			overflow-x: auto;
+			overflow-y: auto;
+		}
+
+		#upload_statusLabel
+		{
+			display: inline-block;
+			font-size: 12px;
+			font-family: "Trebuchet MS", Helvetica, sans-serif;	
+		}
+
+		#upload_refreshButton
+		{
+			font-size: 12px;
+			text-align: center;
+			width: 70px;
+			margin-bottom: 5px;
+			margin-top: 5px;
+			display: inline-block;
+		}
+
+		#upload_scannerButtonDiv
+		{
+			width: 489px;
+			display: inline-block;
+			text-align: right;
+		}
+		
+		#upload_scanButton, #upload_addButton
+		{	
+			font-size: 12px;
+			text-align: center;
+			width: 70px;
+			margin-bottom: 5px;
+			margin-top: 5px;
+		}
+		
+		#upload_saveButton, #upload_cancelButton, #upload_deleteButton, #upload_stopButton
+		{
+			font-size: 12px;
+			text-align: center;
+			width: 70px;
+			margin-bottom: 5px;
+			margin-top: 5px;
+			display: none;
+		}
+		
+		#upload_scanners
+		{
+			display: block;
+			width: 565px;
+		}	
+
+		.upload_statusImgDiv
+		{
+			display: inline-block;
+			padding-right: 5px;
+			padding-top: 2px;
+		}	
+
+		.upload_scannerLabel
+		{
+			display: inline-block;
+			vertical-align: top;
+			padding-top: 2px;
+		}	
+				
+		#upload_scannerInfos
+		{
+			width: 100%;
+			padding-top: 3px;
+			text-align: center;
+			display: inline-block;
+			font-size: 10px;
+			font-style: italic;
+		}
+	</style>
+	<script>
+		var uploadCollectionTableEnabled = true;
+		var upload_scannersEnabled = true;
+		var openUploadCollectionFunction;
+		var uploadCollectionsTable;
+		var upload_collectionsCheckAllFunction;
+		var upload_collectionCheckedFunction;
+		var upload_scannerTable;
+		var upload_editScannerFunction;
+		var upload_deleteScannerFunction;
+		var upload_switchScannerActiveFunction;
+		var scrollPosition = 0;
+		
+		function upload_resetScrollPosition()
+		{
+			scrollPosition = 0;
+		}
+		
+		function upload_saveScrollPosition()
+		{
+			scrollPosition = $("#upload_collectionTableDisplay").closest(".dataTables_scrollBody").scrollTop();
+		}			
+			
+		function upload_productFileChanged()
+		{
+			document.getElementById('upload_uploadButton').className = 
+				(document.getElementById('upload_productFile').value) ? 
+				"button_black" : "button_disabled"; 
+		}
+		
+		function upload_urlChanged()
+		{
+			value = document.getElementById('upload_url').value;
+			document.getElementById('upload_scanButton').className = 
+				( value == null || value.trim().length == 0) ? 
+				"button_disabled" : "button_black"; 
+			document.getElementById('upload_addButton').className = 
+				( value == null || value.trim().length == 0) ? 
+				"button_disabled" : "button_black"; 
+			document.getElementById('upload_saveButton').className = 
+				( value == null || value.trim().length == 0) ? 
+				"button_disabled" : "button_black"; 
+		}
+		
+		function upload_refreshCollections()
+		{	
+			var oSettings = uploadCollectionsTable.fnSettings();
+			if (oSettings !== null)
+			{
+ 				oSettings.oLanguage.sEmptyTable = "Loading...";
+ 				oSettings.oLanguage.sInfoEmpty = "Loading...";
+ 			}
+
+			uploadCollectionsTable.fnDraw(false);
+		}
+
+		function upload_refreshingCollections()
+		{
+			if (uploadCollectionsTable == null)
+			{
+				return;
+			}
+			var oSettings = uploadCollectionsTable.fnSettings();
+			if (oSettings !== null)
+			{
+ 				oSettings.oLanguage.sEmptyTable = "No collections found";
+ 				oSettings.oLanguage.sInfoEmpty = "<input type='checkbox' class='upload_collectionsTableCheckAll' id='upload_collectionsCheckAll' onclick='upload_collectionsCheckAllFunction()' /> No collections found";
+ 			}
+		}
+		
+		function upload_setCollectionsTableEnabled(enabled)
+		{
+			uploadCollectionTableEnabled = enabled;
+		}
+		
+		function upload_setScannersTableEnabled(enabled)
+		{
+			upload_scannersEnabled = enabled;
+		}
+				
+		function upload_refreshScanners()
+		{
+			upload_scannerTable.fnDraw(false);
+		}
+		
+		function upload_disableButtons()
+		{
+			document.getElementById('upload_uploadButton').className = 
+				"button_disabled"; 
+			document.getElementById('upload_addButton').className = 
+				"button_disabled"; 
+			document.getElementById('upload_scanButton').className = 
+				"button_disabled"; 
+			document.getElementById('upload_stopButton').className = 
+				"button_disabled"; 
+			document.getElementById('upload_refreshButton').className = 
+				"button_disabled"; 
+		}
+		
+		function upload_enableRefreshButton()
+		{
+			document.getElementById('upload_refreshButton').className = 
+				"button_black"; 
+		}
+		
+		function upload_switchToEditMode(running)
+		{
+			document.getElementById('upload_addButton').style.display = "none";
+			document.getElementById('upload_scanButton').style.display = "inline-block";
+			document.getElementById('upload_stopButton').style.display = "inline-block";
+			
+			document.getElementById('upload_cancelButton').style.display = "inline-block";
+			document.getElementById('upload_saveButton').style.display = "inline-block";
+			document.getElementById('upload_deleteButton').style.display = "inline-block";
+			document.getElementById('upload_cancelButton').className = 
+				"button_black"; 
+			document.getElementById('upload_saveButton').className = 
+				"button_disabled"; 
+			document.getElementById('upload_scanButton').className = 
+				"button_disabled"; 
+			document.getElementById('upload_stopButton').className = 
+				running ? "button_black" : "button_disabled"; 
+			document.getElementById('upload_deleteButton').className = 
+				"button_black"; 
+			upload_urlChanged();
+		}
+		
+		function upload_exitEditMode()
+		{
+			document.getElementById('upload_addButton').style.display = "inline-block";
+			document.getElementById('upload_scanButton').style.display = "inline-block";
+			document.getElementById('upload_stopButton').style.display = "none";
+			document.getElementById('upload_uploadButton').className = 
+				"button_disabled"; 
+			document.getElementById('upload_addButton').className = 
+				"button_disabled"; 
+			document.getElementById('upload_scanButton').className = 
+				"button_disabled"; 
+			
+			document.getElementById('upload_cancelButton').style.display = "none";
+			document.getElementById('upload_saveButton').style.display = "none";
+			document.getElementById('upload_deleteButton').style.display = "none";
+			upload_urlChanged();
+		}
+					
+		function initUploadTable(tableId, requestDataFunction, aoColumns, columns, sDom, oLanguage, parentHeight, pageLengths) {
+			$("#"+tableId).html(
+				'<table cellpadding="0" cellspacing="0" border="0" class="display" id="'+
+					tableId+'Display">'+columns+'</table>');
+				
+			var oTable = $("#"+tableId+"Display").dataTable({
+				"aoColumns": aoColumns,
+				"bJQueryUI": true,
+				"sDom" : sDom,
+				"sPaginationType": "full_numbers",	
+				"bSort" : false,
+				"bDeferRender": true,
+				"bProcessing": true,
+				"bServerSide" : true,
+				"sAjaxSource" : "",
+				"fnServerData": requestDataFunction,
+				"oLanguage": oLanguage,
+				"iDisplayLength": pageLengths[0],
+				"aLengthMenu": pageLengths,
+				"sScrollY": "0px",
+				    "fnDrawCallback": function() {
+				        var $dataTable = $("#"+tableId+"Display").dataTable();
+				        $dataTable.fnAdjustColumnSizing(false);
+
+				        if (typeof(TableTools) != "undefined") {
+				            var tableTools = TableTools.fnGetInstance(table);
+				            if (tableTools != null)
+				            {
+				            	if (tableTools.fnResizeRequired()) 
+				            	{
+				                	tableTools.fnResizeButtons();
+				                }
+				            }
+				        }
+
+				        var $dataTableWrapper = $("#"+tableId+"Display").closest(".dataTables_wrapper");
+
+				        var toolbarHeights = 0;
+				        $dataTableWrapper.find(".fg-toolbar").each(function(i, obj) {
+				            toolbarHeights = toolbarHeights + $(obj).height();
+				        });
+						
+						var scrollHeadHeight = $dataTableWrapper.find(".dataTables_scrollHead").height();
+				        var height = parentHeight - toolbarHeights - scrollHeadHeight;
+				        $dataTableWrapper.find(".dataTables_scrollBody").height(height - 24);
+				        
+				        $dataTable._fnScrollDraw();
+				    }
+				});
+				return oTable;
+		}
+				
+		function showUpload (getCollectionsFunction, openCollectionFunc, collectionCheckedFunc, collectionsCheckAllFunc, getScannersFunction, deleteScannerFunc, editScannerFunc, switchScannerActiveFunc)
+		{
+			document.getElementById("upload_div").style.display = "block";
+		    openUploadCollectionFunction = openCollectionFunc;
+			upload_collectionsCheckAllFunction = collectionsCheckAllFunc;
+			upload_collectionCheckedFunction = collectionCheckedFunc;
+			upload_deleteScannerFunction = deleteScannerFunc;
+			upload_switchScannerActiveFunction = switchScannerActiveFunc;
+		    
+			uploadCollectionsTable = initUploadTable("upload_collectionTable", getCollectionsFunction, [{ "sTitle": "", "sClass": "center",  
+						"mRender": function ( data, type, full ) {
+							return "<input type='checkbox' class='upload_collectionssTableCheckbox' "+(data.checked ? "checked" : "")+" onclick='upload_collectionCheckedFunction(\""+data.id+"\")' "+(uploadCollectionTableEnabled?"":"disabled")+"/>";	
+						}},{ "sTitle": "",
+					  "mRender": function ( data, type, full ) {
+					  		if (data.hasChildren)
+					  		{
+								return "<div style='display:inline-block; width:calc("+data.deep+"*10px)'/><div class='upload_collectionTreeNode' onclick='openUploadCollectionFunction(event, \""+data.id+"\")'><img class='upload_collectionTreeNodeImg' src='home/dhus/images/Folder"+(data.open?"Open":"Close")+".png' "+(data.open?"onmouseout='this.src=\"home/dhus/images/FolderOpen.png\"' onmouseover='this.src=\"home/dhus/images/FolderClose.png\"'":"onmouseout='this.src=\"home/dhus/images/FolderClose.png\"' onmouseover='this.src=\"home/dhus/images/FolderOpen.png\"'")+"></div>"+data.name;
+							}
+							else
+							{
+								return "<div style='display:inline-block; width:calc("+data.deep+"*10px)'/><div class='upload_collectionTreeNode'><img class='upload_collectionTreeNodeImg' src='home/dhus/images/Leaf_folder.png'/></div>"+data.name;
+							}
+						}}], "<col style='width: 20px'/><col/>", '<"H"ir>t<"F">',
+					{ "sEmptyTable": "No collections found",
+					  "sLengthMenu": "Page size: _MENU_",
+					  "sInfo": "<input type='checkbox' class='upload_collectionsTableCheckAll' id='upload_collectionsCheckAll' onclick='upload_collectionsCheckAllFunction()' /> Collections",
+					  "sInfoEmpty": "<input type='checkbox' class='upload_collectionsTableCheckAll' id='upload_collectionsCheckAll' onclick='upload_collectionsCheckAllFunction()' /> No collections found",
+					  "oPaginate": {
+					        "sFirst": "<<",
+					        "sPrevious": "<",
+					        "sNext": ">",
+					        "sLast": ">>"
+					      }
+					  }, 600, []);
+			
+			uploadCollectionsTable.on('draw', function() {$("#upload_collectionTableDisplay").closest(".dataTables_scrollBody").scrollTop(scrollPosition);});
+					  
+			upload_scannerTable = initUploadTable("upload_scanners", getScannersFunction, [
+				   { "sTitle": "",
+						"mRender": function ( data, type, full ) {
+							var statusTitle = (data.status == "added" ? "Never launched" : (data.status == "error" ? "Error" : (data.status == "ok" ? "Succeeded" : "Running")));
+						return '<div class="upload_statusImgDiv"><img src="home/dhus/images/status_'+data.status+'.png" title="'+statusTitle+'"/></div><div class="upload_scannerLabel">'+data.label+'</div>';
+				   }},
+			       { "sTitle": "", "sClass": "center", 
+						"mRender": function ( data, type, full ) {
+						return '<img onclick="upload_switchScannerActiveFunction(event, '+data.id+')" src="home/dhus/images/schedule_'+(data.active?'on':'off')+'.png" title="'+(data.active?'Dea':'A')+'ctivate file scanner"/>';
+					}},
+			       { "sTitle": "", "sClass": "center", 
+						"mRender": function ( data, type, full ) {
+						return '<img onclick="upload_deleteScannerFunction('+data+')" src="home/dhus/images/delete.png" style="cursor:pointer;" title="Delete file scanner"/>';
+					}}], 
+					"<col/><col style='width: 16px'/><col style='width: 16px'/>", '<"H"ir>t<"F"lp>',
+					{ "sEmptyTable": "No file scanner saved",
+					  "sInfo": "Display _START_ to _END_ of _TOTAL_ file scanners",
+					  "sInfoEmpty": "No file scanner saved",
+					  "sLengthMenu": "Page size: _MENU_"}, 250, [25,50,100]);
+					  
+					  
+					jQuery("#upload_scannersDisplay").on('click','tr', function() {
+						if (!upload_scannersEnabled) return;
+						if ( $(this).hasClass('row_selected') ) {
+				            $(this).removeClass('row_selected');
+      						editScannerFunc(null);
+				        }
+				        else {
+				            upload_scannerTable.$('tr.row_selected').removeClass('row_selected');
+				            $(this).addClass('row_selected');
+      						editScannerFunc(upload_scannerTable.fnGetData( this ));
+				        }      					
+					}); 
+		}	
+	</script>
+</head>
+<body>
+	<div id="upload_div">	       
+		<div id="upload_product">
+			<div class="upload_title">Upload product</div>
+			<div id="upload_form">
+				<input type="file" name="product" id="upload_productFile" onchange="upload_productFileChanged()"/> 				
+				<input type="hidden" name="collections" id="upload_collections" />	
+			</div>
+			<div class="button_disabled" id="upload_uploadButton">Upload</div>			
+		</div>      	       
+		<div id="upload_scanner">
+			<div class="upload_title">File scanners</div>
+			<div><div class="upload_label">Url to scan</div><input type="text" name="upload_url" id="upload_url" onkeyup="upload_urlChanged()"/></div>
+			<div><div class="upload_label">Username</div><input type="text" name="upload_username" id="upload_username" /></div>
+			<div><div class="upload_label">Password</div><input type="password" name="upload_password" id="upload_password" /></div>
+			<div><div class="upload_label">Pattern</div><input type="text" name="upload_pattern" id="upload_pattern" /><div id="upload_patternResult"></div></div>
+			<div><div class="upload_statusLabel">Scanning information</div><div id="upload_status"></div></div>
+			<div class="button_black" id="upload_refreshButton">Refresh all</div>
+			<div id="upload_scannerButtonDiv">
+				<div class="button_disabled" id="upload_saveButton">Save</div>
+				<div class="button_disabled" id="upload_addButton">Add</div>
+				<div class="button_black" id="upload_deleteButton">Delete</div>
+				<div class="button_disabled" id="upload_stopButton">Stop</div>
+				<div class="button_disabled" id="upload_scanButton">Scan</div>
+				<div class="button_black" id="upload_cancelButton">Cancel</div>
+			</div>
+			<div id="upload_scanners"></div>
+			<div id="upload_scannerInfos"></div>
+		</div>  	
+		<div id="upload_collectionTable"></div>
+	</div>
+</body>
+</html>

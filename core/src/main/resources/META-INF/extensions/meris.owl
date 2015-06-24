@@ -1,0 +1,137 @@
+<?xml version="1.0"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE rdf:RDF [
+  <!ENTITY rdf            "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <!ENTITY rdfs           "http://www.w3.org/2000/01/rdf-schema#">
+  <!ENTITY owl            "http://www.w3.org/2002/07/owl#">
+  <!ENTITY n1             "http://www.esa.int/envisat#">
+  <!ENTITY drb            "http://www.gael.fr/drb#">
+  <!ENTITY dhus           "http://www.gael.fr/dhus#">
+]>
+
+<rdf:RDF xmlns:owl=           "&owl;"
+         xmlns:rdf=           "&rdf;"
+         xmlns:rdfs=          "&rdfs;"
+         xmlns:n1=            "&n1;"
+         xmlns:drb=           "&drb;"
+         xmlns:dhus=          "&dhus;"
+         xml:base=            "http://www.esa.int/envisat">
+
+   <owl:Ontology rdf:about="&n1;"/>
+
+   <!-- ***********************************************************************
+   ****************************************************************************
+   *                                                                          *
+   *                                                                          *
+   *                           METADATA EXTRACTION                            *
+   *                                                                          *
+   *                                                                          *
+   ****************************************************************************
+   ************************************************************************ -->
+
+  <rdf:Description rdf:about="&n1;MERIS_extractor">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         <metadata queryable="instrumentName" category="product" name="Product Sensor Description" type="text/plain">Medium Resolution Imaging Spectrometer</metadata>,
+         <metadata queryable="instrumentShortName" category="product" name="Product Sensor" type="text/plain">MERIS</metadata>,
+         <metadata category="product" name="Product Sensor keys" type="text/plain">Optical MERIS MER</metadata>,
+         <metadata category="product" name="Sensor laius" type="text/plain">
+           The oceanographic mission is radiometrically the most demanding in 
+           terms of low radiance levels and their associated high signal-to 
+           noise ratios. Therefore, the instrument must be capable of detecting 
+           the low levels of radiation emerging from the ocean (linked to the 
+           water constituents by the processes of absorption and scattering). 
+           But at the same time, for the acquisition of e.g. cloud and land 
+           information, the instrument must have a high dynamic range in order 
+           to detect bright objects. The characteristics of MERIS are also of 
+           great value for the retrieval of information on land surfaces, in 
+           particular that of global biomass.
+           
+           MERIS is a wide field-of-view pushbroom imaging spectrometer with 
+           a swath width of 1150km (field-of-view (FOV) = 68.5degrees) measuring 
+           the solar radiation reflected by the Earth in 15 spectral bands from
+           about 412.5nm to 900nm. All bands are programmable in width 
+           (variable between 1.25 and 30 nm) and position, but are fixed before
+           launch in response to the recommendations of the Science Advisory 
+           Group (SAG) for the main period of the mission (see Table 1).
+           The most crucial requirements for MERIS is the radiometric 
+           performance because signals coming from the ocean are weak while 
+           signals emanating from clouds or land surfaces are strong. A 
+           radiometric resolution of 0.03 mWm-2sr-1nm-1 is required to 
+           discriminate a pigment concentration of 1mg/m3 . For ocean 
+           applications a total signal of about 50 mWm-2sr-1nm-1 (including 
+           the atmosphere) is expected at the sensor at a solar zenith angle 
+           of 40 degress from the sub-satellite point around 450nm assuming 
+           low chlorophyll concentrations. This requires a dynamic range of 
+           more than 3 magnitudes. Taking into account that MERIS is designed 
+           to monitor all targets on Earth a much higher dynamic range is 
+           required and realised.
+           MERIS allows global coverage of the Earth in 3 days. 
+           ENVISAT flies on a sun-synchronous orbit with a mean altitude of 
+           799,8km and an inclination of 98,55Ã‚Â°. The orbit time is 100,6 
+           minutes with a repeat cycle of 35 days.
+           
+           Each MERIS pixel has a field of view of 0.019 degrees. Due to the 
+           wide instrument field of view (68.5 degrees), spatial sampling 
+           varies in the across track direction, between 0.26 km at nadir 
+           and 0.39 km at swath extremities. Along-track sampling is close 
+           to 0.29 km. 
+           </metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+   
+   <rdf:Description rdf:about="&n1;MER_FR__1P">
+      <rdfs:subClassOf rdf:resource="&n1;sphFootPrintProduct"/>
+      <rdfs:subClassOf rdf:resource="&n1;MERIS_extractor"/>
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         <metadata category="summary" name="Sensor" type="text/plain">MERIS</metadata>,
+         <metadata queryable="processingLevel" category="summary" name="Level" type="text/plain">1P</metadata>,
+         <metadata queryable="sensorOperationalMode" category="summary" name="Mode" type="text/plain">Full Resolution</metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+   
+   <rdf:Description rdf:about="&n1;MER_RR__1P">
+      <rdfs:subClassOf rdf:resource="&n1;sphFootPrintProduct"/>
+      <rdfs:subClassOf rdf:resource="&n1;MERIS_extractor"/>
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         <metadata category="summary" name="Sensor" type="text/plain">MERIS</metadata>,
+         <metadata queryable="processingLevel" category="summary" name="Level" type="text/plain">1P</metadata>,
+         <metadata queryable="sensorOperationalMode" category="summary" name="Mode" type="text/plain">Reduced Resolution</metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+   <rdf:Description rdf:about="&n1;MER_FRS_1P">
+      <rdfs:subClassOf rdf:resource="&n1;sphFootPrintProduct"/>
+      <rdfs:subClassOf rdf:resource="&n1;MERIS_extractor"/>
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         <metadata category="summary" name="Sensor" type="text/plain">MERIS</metadata>,
+         <metadata queryable="processingLevel" category="summary" name="Level" type="text/plain">1P</metadata>,
+         <metadata queryable="sensorOperationalMode" category="summary" name="Mode" type="text/plain">Full Swath</metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+
+</rdf:RDF>

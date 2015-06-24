@@ -1,0 +1,211 @@
+<!DOCTYPE configuration [
+  <!ENTITY varFolder "/data_1/tmp/dhus/var">
+  <!ENTITY dataFolder "/data_1/tmp/dhus/data">
+]>
+<configuration xmlns="fr.gael.dhus.database.object.config">
+   <!-- TODO : link xsd in jar -->
+   <crons>
+      <archiveSynchronization 
+         active="false" 
+         schedule="0 0 0/5 ? * *"/>
+         
+      <cleanDatabase 
+         active="true" 
+         schedule="0 0 1 ? * *">
+         <tempUsers keepPeriod="10" />
+         <statistics keepPeriod="90" />
+      </cleanDatabase>
+      
+      <dumpDatabase 
+         active="true" 
+         schedule="0 0 3 ? * *" />
+         
+      <cleanDatabaseDump 
+         active="true" 
+         schedule="0 0 4 ? * *" 
+         keep="10" />
+         
+      <eviction 
+         active="true" 
+         schedule="0 0 21 ? * * " />
+         
+      <fileScanners 
+         active="true" 
+         schedule="0 0 22 ? * *" 
+         sourceRemove="false"/>
+         
+      <searches 
+         active="true" 
+         schedule="0 0 5 ? * *" />
+         
+      <!-- addresses shall be coma-separated -->
+      <sendLogs 
+         active="false" 
+         schedule="0 0 0 ? * *" 
+         addresses="dhus@gael.fr" />
+         
+      <systemCheck 
+         active="true" 
+         schedule="0 30 23 ? * *"/>
+         
+   </crons>
+   <gui customFolder="/data/test">
+      <banner 
+         background="#0000000"
+         height="100" 
+         leftImage="/data/images/image_left.jpg"
+         rightImage="/data/images/image_right.jpg"
+         title="TESTS"
+         titleBackground="DhuS Testing file"/>
+   </gui>
+   
+   <messaging>
+      <mail 
+         onUserCreate="true" 
+         onUserUpdate="true" 
+         onUserDelete="true">
+         <server 
+            smtp="smtp.gael.fr" 
+            port="587" 
+            tls="false" 
+            username="dhus@gael.fr"
+            password="HkuM34Ue77">
+            <from name="DHuS Support Team" address="dhus@gael.fr" />
+            <replyTo>dhus@gael.fr</replyTo>
+         </server>
+      </mail>
+      <jms folder="/tmp/folder" port="9999">
+         <queue name="queue">
+            <types>
+               ALL_MESSAGES
+            </types>
+         </queue>
+         <topic name="queue">
+            <types>
+               NORMAL_LOGS
+            </types>
+         </topic>
+      </jms>
+   </messaging>
+   
+   <network>
+      <outbound>
+         <channel name="OutboundPriorityChannel" weight="75">
+            <classifier>
+               <includes>
+                  <include>
+                     <userEmailPattern>outbound_classifier_include</userEmailPattern>
+                  </include>
+               </includes>
+               <excludes><exclude>outbound_classifier_excludes</exclude></excludes>
+            </classifier>
+            <defaultUserQuotas>
+               <maxConcurrent>10</maxConcurrent>
+               <maxCount period="1" periodUnit="DAYS">50</maxCount>
+               <maxSize>10000000000</maxSize> <!-- 10Gb -->
+               <maxCumulativeSize period="7" periodUnit="DAYS">
+                  1099511627776
+               </maxCumulativeSize> <!-- 1Tb -->
+               <maxBandwidth>1000000</maxBandwidth> <!-- 10Mb/s -->
+            </defaultUserQuotas>
+         </channel>
+         <channel name="OutboundSelfRegisteredChannel" weight="25">
+            <classifier>
+               <includes>
+                  <include>
+                     <userEmailPattern>outbound_classifier_include</userEmailPattern>
+                  </include>
+               </includes>
+               <excludes><exclude>outbound_classifier_excludes</exclude></excludes>
+            </classifier>
+         
+            <defaultUserQuotas>              
+               <maxConcurrent>1</maxConcurrent>
+               <maxCount period="1" periodUnit="DAYS">50</maxCount>
+               <maxSize>10737418240</maxSize> <!-- 10Gb -->
+               <maxCumulativeSize period="7" periodUnit="DAYS">
+                  1099511627776
+               </maxCumulativeSize>
+               <maxBandwidth>13107200</maxBandwidth> <!-- 100Mb/s -->
+            </defaultUserQuotas>
+         </channel>
+      </outbound>
+      <inbound>
+         <channel name="InboundPriorityChannel" weight="75">
+            <classifier>
+               <includes>
+                  <include>
+                     <userEmailPattern>inbound_classifier_include</userEmailPattern>
+                  </include>
+               </includes>
+               <excludes><exclude>inbound_classifier_excludes</exclude></excludes>
+            </classifier>
+            <defaultUserQuotas>
+               <maxConcurrent>10</maxConcurrent>
+               <maxCount period="1" periodUnit="DAYS">50</maxCount>
+               <maxSize>10000000000</maxSize> <!-- 10Gb -->
+               <maxCumulativeSize period="7" periodUnit="DAYS">1099511627776</maxCumulativeSize> <!-- 1Tb -->
+               <maxBandwidth>1000000</maxBandwidth> <!-- 10Mb/s -->
+            </defaultUserQuotas>
+         </channel>
+         <channel name="InboundSelfRegisteredChannel" weight="25">
+            <classifier>
+               <includes>
+                  <include>
+                     <userEmailPattern>inbound_classifier_include</userEmailPattern>
+                  </include>
+               </includes>
+               <excludes><exclude>inbound_classifier_excludes</exclude></excludes>
+            </classifier>
+         
+            <defaultUserQuotas>              
+               <maxConcurrent>5</maxConcurrent>
+               <maxCount period="1" periodUnit="DAYS">50</maxCount>
+               <maxSize>10737418240</maxSize> <!-- 10Gb -->
+               <maxBandwidth>13107200</maxBandwidth> <!-- 100Mb/s -->
+               <maxCumulativeSize period="7" periodUnit="DAYS">
+                  1099511627776
+               </maxCumulativeSize> <!-- 1Tb -->
+               
+            </defaultUserQuotas>
+         </channel>
+      </inbound>
+   </network>
+   <products publicData="false">
+      <download 
+         compressionLevel="4"
+         checksumAlgorithms="MD5,SHA-1,SHA-256"/>
+         
+      <quicklook height="512" width="512" cutting="false" />
+      <thumbnail height="64" width="64" cutting="false" />
+   </products>
+   <search>
+      <geocoder url="http://nominatim.openstreetmap.org">
+         <nominatim boundingBox="false" maxPointNumber="50" />
+         <geoname username="dhus" />
+      </geocoder>
+      <odata maxRows="50" />
+      <solr 
+         path="&varFolder;/solr"
+         core="dhus"
+         schemaPath=""
+         synonymPath="" />
+   </search>
+   <server protocol="http" host="localhost" port="8080">
+      <external protocol="" host="" port="" path="" />
+      <ftp port="2121" ftps="false" />
+   </server>
+   <system>
+      <name long="Data Hub Service" short="DHuS" />
+      <administrator name="root" password="a" />
+      <support name="DHuS Support Team" mail="dhus@gael.fr" />
+      <archive path="&dataFolder;">
+         <eviction maxDiskUsage="80" maxEvictedProducts="1000"
+            keepPeriod="10" />
+         <incoming path="&varFolder;/incoming" maxFileNo="10" />
+      </archive>
+      <database path="&varFolder;/database/hsqldb" dumpPath="&varFolder;/database_dump"/> 
+      <processing corePoolSize="4" maxPoolSize = "10" queueCapacity="10000" />
+      <tomcat path="&varFolder;/tomcat" />
+   </system>
+</configuration>

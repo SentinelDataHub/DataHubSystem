@@ -1,0 +1,417 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<style>		
+		#register_div
+		{
+			display: none;
+		}
+		
+		#register_panel
+		{
+			text-align: left;
+			width: 600px;
+		}
+		
+		.register_line
+		{
+		}
+		
+		.register_label
+		{
+			width: 80px;
+			display:inline-block;
+		}	
+		
+		.register_field
+		{
+			width: 200px;
+			font-size: 12px;
+			vertical-align: middle;
+			font-family: "Trebuchet MS", Helvetica, sans-serif;	
+			margin-bottom: 3px;
+			margin-right: 5px;
+			height: 16px;
+		}
+		
+		#register_space
+		{
+			height: 5px;
+		}
+		
+		#register_button_div
+		{
+			text-align: center;
+		}
+		
+		#register_button
+		{	
+			font-size: 12px;
+			text-align: center;
+			width: 70px;
+		}
+		
+		#register_domain
+		{
+			height: 18px;
+			width: 202px;
+		}
+		
+		#register_usage
+		{
+			height: 18px;
+			width: 202px;
+		}
+		
+		#register_subDomainLabel
+		{
+			display: none;
+		}
+		
+		#register_subDomain
+		{
+			display: none;
+		}
+		
+		#register_subUsageLabel
+		{
+			display: none;
+		}
+		
+		#register_subUsage
+		{
+			display: none;
+		}
+		
+		/* bot field */
+		#username
+		{
+			visibility: hidden;
+		}
+	</style>
+	<script>	
+		var passwordConfirmFocused = false;
+		var mailConfirmFocused = false;	
+		var mailCheck = new RegExp("^[a-zA-Z0-9!#$%\x26'*+/=?^_`{|}~-]+(?:\\.[a-zA-Z0-9!#$%\x26'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$");
+		var usernameCheck = new RegExp("^[^\\-\\\\+&|!(){}\\[\\]^\"~*?:$' \\t]+$");
+		
+		function activateRegisterButton()
+		{		
+			var userValue = document.getElementById('register_username').value;
+			var password = document.getElementById('register_password').value;
+			var passConfirm = document.getElementById('register_password_confirm').value;
+			var mail = document.getElementById('register_mail').value;
+			var mailConfirm = document.getElementById('register_mail_confirm').value;
+			var firstNameValue = document.getElementById('register_firstname').value;
+			var lastNameValue = document.getElementById('register_lastname').value;
+			var countryValue = document.getElementById('register_country').value;
+			var usageValue = document.getElementById("register_usage").options[document.getElementById("register_usage").value].text;
+			var domainValue = document.getElementById("register_domain").options[document.getElementById("register_domain").value].text;
+			
+			if (userValue == null || userValue == "" || !usernameCheck.test(userValue) ||
+				password == null || password == "" || password != passConfirm ||
+				mail == null || mail == "" || mail != mailConfirm || !mailCheck.test(mail) ||
+				firstNameValue == null || firstNameValue == "" ||
+				lastNameValue == null || lastNameValue == "" ||
+				countryValue == null || countryValue == "" ||
+				(usageValue.toLowerCase() == "other" && (document.getElementById("register_subUsage").value == null || document.getElementById("register_subUsage").value == "")) || 
+				(domainValue.toLowerCase() == "other" && (document.getElementById("register_subDomain").value == null || document.getElementById("register_subDomain").value == "")))
+			{		
+				document.getElementById('register_button').className = "button_disabled";
+			}
+			else
+			{
+				document.getElementById('register_button').className = "button_black";
+			}
+		}
+	
+		function validateUsername()
+		{
+			var username = document.getElementById('register_username').value;
+			if (username ==null || username=="")
+			{
+			  document.getElementById('register_username').setCustomValidity('Username field must be filled')	
+			}
+			else if (!usernameCheck.test(username))	
+			{
+			  document.getElementById('register_username').setCustomValidity('Username contains at least one restricted character or a whitespace')	
+			}		
+			else
+			{
+			  document.getElementById('register_username').setCustomValidity('')
+			}			  
+			activateRegisterButton();
+		}
+		
+		function validatePassword()
+		{
+			var password = document.getElementById('register_password').value;
+			var confirm = document.getElementById('register_password_confirm').value;
+			
+			if (!passwordConfirmFocused)
+			{			
+				if (password == null || password == "")
+				{
+					document.getElementById('register_password').setCustomValidity('Password fields must be filled and equals');			  
+				}
+				else
+				{
+				 	document.getElementById('register_password').setCustomValidity('');
+				}	
+			}
+			else
+			{
+				if (password == null || password == "" || confirm != password)
+				{
+					document.getElementById('register_password').setCustomValidity('Password fields must be filled and equals');	
+					document.getElementById('register_password_confirm').setCustomValidity('Password fields must be filled and equals');			  
+				}
+				else
+				{
+			  		document.getElementById('register_password').setCustomValidity('');
+			  		document.getElementById('register_password_confirm').setCustomValidity('');
+				}	
+			}							  
+			activateRegisterButton();
+		}
+		
+		function validatePasswordConfirm()
+		{
+			passwordConfirmFocused = true;
+			validatePassword();
+		}
+		
+		function validateMail()
+		{
+			var mail = document.getElementById('register_mail').value;
+			var confirm = document.getElementById('register_mail_confirm').value;
+			
+			if (!mailConfirmFocused)
+			{			
+				if (mail == null || mail == "" || !mailCheck.test(mail))
+				{
+				  document.getElementById('register_mail').setCustomValidity('E-mail fields must be filled and equals');			  
+				}
+				else
+				{
+				  document.getElementById('register_mail').setCustomValidity('');
+				}	
+			}
+			else
+			{
+				if (mail == null || mail == "" || !mailCheck.test(mail) || confirm != mail)
+				{
+				  document.getElementById('register_mail').setCustomValidity('E-mail fields must be filled and equals');
+				  document.getElementById('register_mail_confirm').setCustomValidity('E-mail fields must be filled and equals');			  
+				}
+				else
+				{
+				  document.getElementById('register_mail').setCustomValidity('');
+				  document.getElementById('register_mail_confirm').setCustomValidity('');
+				}	
+			}					 
+			activateRegisterButton();
+		}
+		
+		function validateMailConfirm()
+		{
+			mailConfirmFocused = true;
+			validateMail();
+		}
+	
+		function validateFirstname()
+		{
+			var value = document.getElementById('register_firstname').value;
+			if (value ==null || value=="")
+			{
+			  document.getElementById('register_firstname').setCustomValidity('Firstname field must be filled')	
+			}
+			else
+			{
+			  document.getElementById('register_firstname').setCustomValidity('')
+			}			  
+			activateRegisterButton();
+		}
+	
+		function validateLastname()
+		{
+			var value = document.getElementById('register_lastname').value;
+			if (value ==null || value=="")
+			{
+			  document.getElementById('register_lastname').setCustomValidity('Lastname field must be filled')	
+			}
+			else
+			{
+			  document.getElementById('register_lastname').setCustomValidity('')
+			}			  
+			activateRegisterButton();
+		}
+	
+		function validateCountry()
+		{
+			var value = document.getElementById('register_country').value;
+			if (value ==null || value=="")
+			{
+			  document.getElementById('register_country').setCustomValidity('Country field must be filled')	
+			}
+			else
+			{
+			  document.getElementById('register_country').setCustomValidity('')
+			}			  
+			activateRegisterButton();
+		}
+	
+		function validateSubUsage()
+		{
+			var value = document.getElementById('register_subUsage').value;
+			if (value ==null || value=="")
+			{
+			  document.getElementById('register_subUsage').setCustomValidity('Usage field must be filled')	
+			}
+			else
+			{
+			  document.getElementById('register_subUsage').setCustomValidity('')
+			}			  
+			activateRegisterButton();
+		}
+	
+		function validateSubDomain()
+		{
+			var value = document.getElementById('register_subDomain').value;
+			if (value ==null || value=="")
+			{
+			  document.getElementById('register_subDomain').setCustomValidity('Domain field must be filled')	
+			}
+			else
+			{
+			  document.getElementById('register_subDomain').setCustomValidity('')
+			}			  
+			activateRegisterButton();
+		}
+		
+		function showRegister(notBotFunction)
+		{
+			document.getElementById("register_div").style.display = "block";
+						
+			$.each(getAllDomains(), function(val, text) {
+				$('#register_domain').append(new Option(text, val));
+			});
+			$.each(getAllUsages(), function(val, text) {
+				$('#register_usage').append(new Option(text, val));
+			});
+			
+			document.getElementById("register_password").onpaste = function(e) {
+				   e.preventDefault();
+			 };
+				
+			document.getElementById("register_password_confirm").onpaste = function(e) {
+				   e.preventDefault();
+			 };
+			 
+			 $(document).one('mousemove', function() {
+				 notBotFunction();
+			 });
+		}
+		
+		function register_domainChange()
+		{
+			var value = document.getElementById("register_domain").options[document.getElementById("register_domain").value].text;
+			document.getElementById("register_subDomainLabel").style.display = ("other" == value.toLowerCase() ? "inline-block" : "none");
+			document.getElementById("register_subDomain").style.display = ("other" == value.toLowerCase() ? "inline-block" : "none");
+			validateSubDomain();
+		}
+		
+		function register_usageChange()
+		{
+			var value = document.getElementById("register_usage").options[document.getElementById("register_usage").value].text;
+			document.getElementById("register_subUsageLabel").style.display = ("other" == value.toLowerCase() ? "inline-block" : "none");
+			document.getElementById("register_subUsage").style.display = ("other" == value.toLowerCase() ? "inline-block" : "none");
+			validateSubUsage();
+		}
+		
+	</script>
+</head>
+<body>
+	<div id="register_div">
+	<center>
+	Please fill this form to start the registration procedure then you will receive a mail with a link to validate your mail address. Finally an administrator will be able to let you access to the Sentinel Data Hub.<br/>
+   Please note that username and e-mail address should be provided in lower case only.<br/><br/>
+	<div id="register_panel">
+		<div class="register_line">
+			<div class="register_label">Username</div>
+			<input type="text" name="register_username" id="register_username" class="register_field"
+				onkeyup="validateUsername()"/>
+		</div>	
+		<div class="register_line">
+			<div class="register_label">Password</div>
+			<input type="password" name="register_password" id="register_password" class="register_field"
+				onkeyup="validatePassword()"/>	
+			<div class="register_label">Confirm it</div>
+			<input type="password" name="register_password_confirm" id="register_password_confirm" 
+				onkeyup="validatePasswordConfirm()" class="register_field"/>
+		</div>	
+		<div class="register_line">
+			<div class="register_label">E-mail</div>
+			<input type="text" name="register_mail" id="register_mail" class="register_field" 
+				onkeyup="validateMail()"/>
+			<div class="register_label">Confirm it</div>
+			<input type="text" name="register_mail_confirm" id="register_mail_confirm" 
+				onkeyup="validateMailConfirm()" class="register_field" />
+		</div>	
+		<div class="register_line">
+			<div class="register_label">Firstname</div>
+			<input type="text" name="register_firstname" id="register_firstname" class="register_field" 
+				onkeyup="validateFirstname()"/>
+			<div class="register_label">Lastname</div>
+			<input type="text" name="register_lastname" id="register_lastname" class="register_field" 
+				onkeyup="validateLastname()"/>
+		</div>	
+		<div class="register_line">
+			<div class="register_label">Domain</div>
+			<select name="register_domain" id="register_domain" class="register_field" onchange="register_domainChange()"/>
+			<div class="register_label" id="register_subDomainLabel">Please specify</div>
+			<input type="text" name="register_subDomain" id="register_subDomain" class="register_field" 
+				onkeyup="validateSubDomain()"/>
+		</div>	
+		<div class="register_line">
+			<div class="register_label">Usage</div>
+			<select name="register_usage" id="register_usage" class="register_field" onchange="register_usageChange()"/>
+			<div class="register_label" id="register_subUsageLabel">Please specify</div>
+			<input type="text" name="register_subUsage" id="register_subUsage" class="register_field" 
+				onkeyup="validateSubUsage()"/>
+		</div>	
+		<div class="register_line">
+			<div class="register_label">Country</div>
+			<input type="text" name="register_country" id="register_country" class="register_field" 
+				onkeyup="validateCountry()"/>
+		</div>	
+		<input type="text" name="username" id="username" class="register_field"/>
+		
+		<div id="register_space"></div>	
+		By registering in this website you are deemed to have accepted the <a href="https://sentinel.esa.int/documents/247904/690755/TC_Sentinel_Data_31072014.pdf">T&amp;C for Sentinel data use</a>.
+		<div id="register_space"></div> 
+		<div id="register_button_div"><div class="button_disabled" id="register_button">Register</div></div>
+	</div>
+	</center>
+	</div>
+</body>
+</html>

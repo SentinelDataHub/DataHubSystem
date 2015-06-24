@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+	<changeSet author="nico" id="createConfigurationTable2"
+		runOnChange="true">
+		<createTable tableName="CONFIGURATION">
+            <column autoIncrement="true" name="ID" type="BIGINT">
+                <constraints primaryKey="true" primaryKeyName="SYS_PK_20110"/>
+            </column>
+            <!-- Products Configuration -->
+            <column name="DOWNLOAD_COMPRESSIONLEVEL" type="INT"/>
+            <column name="DOWNLOAD_CHECKSUMSALGORITHMS" type="varchar (255)"/>
+            <column name="QUICKLOOK_CUTTING" type="BOOLEAN"/>
+            <column name="QUICKLOOK_HEIGHT" type="INT"/>
+            <column name="QUICKLOOK_WIDTH" type="INT"/>
+            <column name="THUMBNAIL_CUTTING" type="BOOLEAN"/>
+            <column name="THUMBNAIL_HEIGHT" type="INT"/>
+            <column name="THUMBNAIL_WIDTH" type="INT"/>
+            <!-- Jobs Configuration -->
+            <column name="ARCHIVE_SYNCHRONIZATION_ACTIVE" type="BOOLEAN"/>
+            <column name="ARCHIVE_SYNCHRONIZATION_SCHEDULE" type="varchar (255)"/>
+            <column name="DBCLEAN_ACTIVE" type="BOOLEAN"/>
+            <column name="DBCLEAN_SCHEDULE" type="varchar (255)"/>
+            <column name="TMPUSERS_KEEPPERIOD" type="INT"/>
+			<column name="LOGS_KEEP_PERIOD" type="INT" />
+            <column name="DBDUMP_ACTIVE" type="BOOLEAN"/>
+            <column name="DBDUMP_SCHEDULE" type="varchar (255)"/>
+            <column name="DBDUMPCLEAN_ACTIVE" type="BOOLEAN"/>
+            <column name="DBDUMPCLEAN_SCHEDULE" type="varchar (255)"/>
+            <column name="DBDUMPCLEAN_KEEP" type="INT"/>
+            <column name="EVICTION_ACTIVE" type="BOOLEAN"/>
+            <column name="EVICTION_SCHEDULE" type="varchar (255)"/>
+            <column name="FILESCANNERS_ACTIVE" type="BOOLEAN"/>
+            <column name="FILESCANNERS_SCHEDULE" type="varchar (255)"/>
+            <column name="FILESCANNERS_SOURCEREMOVE" type="BOOLEAN"/>
+            <column name="SEARCHES_ACTIVE" type="BOOLEAN"/>
+            <column name="SEARCHES_SCHEDULE" type="varchar (255)"/>
+            <column name="SENDLOGS_ACTIVE" type="BOOLEAN"/>
+            <column name="SENDLOGS_ADDRESSES" type="varchar (255)"/>
+            <column name="SENDLOGS_SCHEDULE" type="varchar (255)"/>
+            <column name="SYSTEMCHECK_ACTIVE" type="BOOLEAN"/>
+            <column name="SYSTEMCHECK_SCHEDULE" type="varchar (255)"/>
+            <!-- Messaging Configuration -->
+            <column name="MAIL_ONUSERCREATE" type="BOOLEAN"/>
+            <column name="MAIL_ONUSERUPDATE" type="BOOLEAN"/>
+            <column name="MAIL_ONUSERDELETE" type="BOOLEAN"/>
+            <column name="MAILSERVER_SMTP" type="varchar (255)"/>
+            <column name="MAILSERVER_PORT" type="INT"/>
+            <column name="MAILSERVER_TLS" type="BOOLEAN"/>
+            <column name="MAILSERVER_USERNAME" type="varchar (255)"/>
+            <column name="MAILSERVER_PASSWORD" type="varchar (255)"/>
+            <column name="MAILSERVER_REPLYTO" type="varchar (255)"/>
+            <column name="MAILSERVER_FROMNAME" type="varchar (255)"/>
+            <column name="MAILSERVER_FROMADDRESS" type="varchar (255)"/>
+            <!-- System Configuration -->
+            <column name="SYSTEM_LONGNAME" type="varchar (255)"/>
+            <column name="SYSTEM_SHORTNAME" type="varchar (255)"/>
+            <column name="SYSTEM_SUPPORTNAME" type="varchar (255)"/>
+            <column name="SYSTEM_SUPPORTMAIL" type="varchar (255)"/>
+            <!-- Search Configuration -->
+            <column name="GEOCODER_URL" type="varchar (255)"/>
+            <column name="NOMINATIM_BOUNDINGBOX" type="BOOLEAN"/>
+            <column name="NOMINATIM_MAXPOINT" type="INT"/>
+            <column name="GEONAME_USERNAME" type="varchar (255)"/>
+            <column name="ODATA_MAXROWS" type="INT"/>        
+		</createTable>
+		<customChange
+			class="fr.gael.dhus.database.liquibase.ReplaceSystemByConfigurationObject">
+		</customChange>
+		<dropTable tableName="SYSTEM"/>
+	</changeSet>
+   
+    <!-- <changeSet author="nico" id="createUsernameColumnInActionRecords"
+		runOnChange="true">
+		<addColumn tableName="ACTION_RECORD_DOWNLOADS">
+			<column defaultValue="unknown" name="USER" type="varchar(255)">
+				<constraints nullable="true" />
+			</column>
+		</addColumn>
+		<addColumn tableName="ACTION_RECORD_LOGONS">
+			<column defaultValue="unknown" name="USER" type="varchar(255)">
+				<constraints nullable="true" />
+			</column>
+		</addColumn>
+		<addColumn tableName="ACTION_RECORD_SEARCHES">
+			<column defaultValue="unknown" name="USER" type="varchar(255)">
+				<constraints nullable="true" />
+			</column>
+		</addColumn>
+		<addColumn tableName="ACTION_RECORD_UPLOADS">
+			<column defaultValue="unknown" name="USER" type="varchar(255)">
+				<constraints nullable="true" />
+			</column>
+		</addColumn>
+	 </changeSet>
+
+	 <changeSet author="nico" id="transformActionRecordUsers"
+		runOnChange="true">
+		<customChange
+			class="fr.gael.dhus.database.liquibase.TransformActionRecordUsers"></customChange>
+	 </changeSet>
+
+	 <changeSet author="nico" id="dropForeignKeyActionRecords_UsersID"
+		runOnChange="true">
+		<dropForeignKeyConstraint baseTableName="ACTION_RECORD_UPLOADS"
+			constraintName="FK36F5EDAD8D6F7C3E" />
+		<dropForeignKeyConstraint baseTableName="ACTION_RECORD_LOGONS"
+			constraintName="FK2DE06158D6F7C3E" />
+		<dropForeignKeyConstraint baseTableName="ACTION_RECORD_DOWNLOADS"
+			constraintName="FK559425468D6F7C3E" />
+		<dropForeignKeyConstraint baseTableName="ACTION_RECORD_SEARCHES"
+			constraintName="FK7F86D07B8D6F7C3E" />
+	 </changeSet>
+
+	 <changeSet author="nico" id="dropUsersIdColumnsInActionRecords"
+		runOnChange="true">
+		<dropColumn tableName="ACTION_RECORD_DOWNLOADS" columnName="USERS_ID" />
+		<dropColumn tableName="ACTION_RECORD_LOGONS" columnName="USERS_ID" />
+		<dropColumn tableName="ACTION_RECORD_SEARCHES" columnName="USERS_ID" />
+		<dropColumn tableName="ACTION_RECORD_UPLOADS" columnName="USERS_ID" />
+	 </changeSet> -->
+	 	 
+	 <changeSet author="nico" id="addProductQLAndThumbSizes"
+		runOnChange="true">
+		<addColumn tableName="PRODUCTS">
+			<column name="QUICKLOOK_SIZE" type="BIGINT" />
+			<column name="THUMBNAIL_SIZE" type="BIGINT" />
+		</addColumn>
+		<customChange
+			class="fr.gael.dhus.database.liquibase.StoreProductQLAndThumbSizes">
+		</customChange>
+	 </changeSet>
+
+	 <changeSet author="nico" id="ownerMovedIntoProduct"
+		runOnChange="true">
+		<addColumn tableName="PRODUCTS">
+			<column name="OWNER_ID" type="BIGINT" />
+		</addColumn>
+		<addForeignKeyConstraint baseColumnNames="OWNER_ID"
+			baseTableName="PRODUCTS" constraintName="FK2DE06158D6F7C3F"
+			deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+			onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="USERS" />
+		<customChange class="fr.gael.dhus.database.liquibase.MoveOwnerInProduct" />
+		<dropTable tableName="OWNER" />
+	 </changeSet>
+	 
+	 <changeSet author="nico" id="dropArchives" runOnChange="true">
+		<dropForeignKeyConstraint baseTableName="PRODUCTS"
+			constraintName="FKF2D1C164E057F519" />
+		<dropColumn tableName="PRODUCTS" columnName="ARCHIVE_ID" />
+		<dropTable tableName="ARCHIVES" />
+	 </changeSet>
+		 
+	 <changeSet author="nico" id="removeLFUStrategy" runOnChange="true">
+		<customChange class="fr.gael.dhus.database.liquibase.RemoveLFUStrategy" />
+	 </changeSet>
+	 
+	 <changeSet author="nico" id="dropHits" runOnChange="true">
+		<dropColumn tableName="PRODUCTS" columnName="HITS" />
+	 </changeSet>
+	 
+    <changeSet author="fred" id="increaseScannerMessageLength" runOnChange="true">
+      <modifyDataType tableName="FILE_SCANNER"
+          columnName="STATUS_MESSAGE" newDataType="VARCHAR(4096)"/>
+   </changeSet>
+</databaseChangeLog>

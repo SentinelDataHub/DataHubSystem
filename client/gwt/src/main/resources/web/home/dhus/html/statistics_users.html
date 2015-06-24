@@ -1,0 +1,365 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<head>
+	<style>	
+		#statisticsUsers_div
+		{
+			display: none;
+			height: 100%;
+		}				
+		
+		.statisticsUsers_bloc
+		{
+			width: 948px;
+			border: solid 1px #aaa;
+			background: #DEDEDE;
+			padding: 5px;
+			margin-bottom: 10px;
+		}	
+
+		#statisticsUsers_graphBloc
+		{
+			height: 601px;
+		}
+		
+		.statisticsUsers_label
+		{
+			width: 170px;
+			display: inline-block;
+		}		
+		
+		.statisticsUsers_inline
+		{
+			display: inline-block;
+		}		
+		
+		.statisticsUsers_graphTitleDiv
+		{
+			width: 100%;
+			text-align: right;
+		}
+		
+		.statisticsUsers_graphTitle
+		{
+			width: 150px;
+			font-size: 12px;	
+			text-align: center;		
+		}
+		
+		#statisticsUsers_graphOptions
+		{
+			padding-top: 3px;
+			padding-bottom: 3px;
+			text-align: center;
+			width: 100%;
+			float: left;
+		}
+
+		#statisticsUsers_emptyGraphOptions
+		{
+			padding-top: 3px;
+			padding-bottom: 3px;
+			width: 100%;
+			height: 30px;
+		}
+
+		.statisticsUsers_dateField
+		{
+			display: inline-block;
+		}
+
+		.statisticsUsers_dateFieldLabelCol3
+		{
+			display: inline-block;
+			width: 115px;
+		}
+
+		.statisticsUsers_dateFieldInput
+		{
+			display: inline-block;
+			width: 190px;
+			border:1px solid #7f9db9;
+			height: 20px;
+	    	margin-top: 2px;
+			font-family: "Trebuchet MS", Helvetica, sans-serif;	
+			font-size: 12px;
+		}
+
+		.statisticsUsers_dateFieldToLabel
+		{
+			display: inline-block;
+			width: 15px;
+		}	
+	
+		.statisticsUsers_datepicker
+		{
+			background: white url(home/dhus/images/calendar.png) no-repeat right 2px center;
+			border:1px solid #7f9db9;
+			height: 20px;
+			padding-right: 20px;
+			width: 73px;
+			cursor: pointer;
+		}
+		
+		#statisticsUsers_refresh 
+		{
+			width: 80px;
+			font-size: 12px;	
+			text-align: center;		
+			margin-left: 5px;	
+			margin-right: 5px;
+		}
+		
+		.statisticsUsers_selected
+		{
+			cursor: pointer;
+			color: #fff;
+			background: #FF790B url('home/dhus/images/button_hover.gif') repeat-x;
+			border: solid 1px #DB7623;
+		}			
+		
+		.statisticsUsers_scaleButton
+		{
+			vertical-align: middle;
+			margin-top: -2px;
+			cursor: pointer;
+		}
+		
+		#statisticsUsers_scaleBloc
+		{		
+			display: inline-block;
+			border: solid 1px #aaa;
+			background: #CDCDCD;
+			padding: 5px;
+			margin-top: 5px;
+			text-align: left;
+			width: 340px;
+		}
+		
+		.statisticsUsers_scaleOption
+		{
+			width: 49%; 
+			display: inline-block;
+			cursor: pointer;
+		}
+				
+		#statisticsUsers_table
+		{
+			display: none;
+			width: 330px;
+			float: left;
+			padding-top: 5px;
+			text-align: left;
+		}
+			
+		.statisticsUsers_tableCheckbox
+		{		
+			vertical-align: middle;
+			margin-bottom: 1px;
+		}
+
+		#statisticsUsers_graph
+		{		
+			float: right;
+		}
+	</style>
+	<script>	
+		var restrictedUsersDataset = [];
+		var usersPerDomainDataset = [];
+		var usersPerUsageDataset = [];
+		var activeUsersPerDomainDataset = [];
+		var activeUsersPerUsageDataset = [];
+		var statisticsUsers_table;	
+		var statisticsUsers_checkedFunction;
+		var statisticsUsers_scaleChangedFunction;
+	
+		function showStatisticsUsers(getUsersFunction, userCheckedFunc, scaleChangedFunc)
+		{
+			document.getElementById("statisticsUsers_div").style.display = "block";		
+
+			statisticsUsers_checkedFunction = userCheckedFunc;
+			statisticsUsers_scaleChangedFunction = scaleChangedFunc;
+			
+			var today = new Date();
+			var dd = today.getDate();
+			var mm = today.getMonth()+1; //January is 0!
+			var yyyy = today.getFullYear();
+			if(dd<10){dd='0'+dd} if(mm<10){mm='0'+mm} today = yyyy+'-'+mm+'-'+dd;
+
+			$( "#statisticsUsers_dateFieldDate" ).Zebra_DatePicker({
+				select_other_months: true,
+				direction: false,
+				show_clear_date: false,
+				onSelect: function(format, date, jsDate, element)
+				{
+					$( "#statisticsUsers_dateFieldDateEnd" ).data('Zebra_DatePicker').update({
+						direction: [date, today]
+					});
+					statisticsUsers_scaleChangedFunction();
+				},
+				onClear: function(format, date, jsDate, element)
+				{
+					$( "#statisticsUsers_dateFieldDateEnd" ).data('Zebra_DatePicker').update({
+						direction: false
+					});
+				}
+			});
+			$( "#statisticsUsers_dateFieldDateEnd" ).Zebra_DatePicker({
+				select_other_months: true,
+				direction: false,
+				show_clear_date: false,
+				onSelect: function(format, date, jsDate, element)
+				{
+					var one_day=1000*60*60*24;
+					var today = new Date();
+					var delta = Math.ceil((jsDate.getTime()-today.getTime())/(one_day));
+					$( "#statisticsUsers_dateFieldDate" ).data('Zebra_DatePicker').update({
+						direction: delta
+					});
+					statisticsUsers_scaleChangedFunction();
+				},
+				onClear: function(format, date, jsDate, element)
+				{
+					$( "#statisticsUsers_dateFieldDate" ).data('Zebra_DatePicker').update({
+						direction: false
+					});
+				}
+			});	
+
+			statisticsUsers_table = initStatisticsTable("statisticsUsers_table", getUsersFunction, [
+						{ "sTitle": "", "sClass": "center",  
+						"mRender": function ( data, type, full ) {
+							return "<input type='checkbox' class='statisticsUsers_tableCheckbox' "+(data.checked ? "checked" : "")+" onclick='statisticsUsers_checkedFunction(\""+data.name+"\")' />";
+						}},
+					{ "sTitle": "" }], '<col style="width: 20px"/><col/>', '<"H"ifr>t<"F"lp>',
+					{ "sEmptyTable": "No users found.",
+					  "sLengthMenu": "Page size: _MENU_",
+					  "sInfo": "Display _START_ to _END_ of _TOTAL_ users",
+					  "sInfoEmpty": "No users found",
+					  "oPaginate": {
+					        "sFirst": "<<",
+					        "sPrevious": "<",
+					        "sNext": ">",
+					        "sLast": ">>"
+					      }
+					  }, 530, [50, 100]
+					  );
+		}
+			
+		function statisticsUsers_refreshUsers()
+		{
+			statisticsUsers_table.fnDraw(false);
+		}
+				
+		function setActiveUsersPerDomainDataset(dataSet, start, end, perHour)
+		{
+			activeUsersPerDomainDataset = dataSet;
+			document.getElementById("statisticsUsers_table").style.display = "none";	
+			document.getElementById("statisticsUsers_graphOptions").style.display = "block";
+			document.getElementById("statisticsUsers_emptyGraphOptions").style.display = "none";		
+			doStackedBarGraph('statisticsUsers_graph',activeUsersPerDomainDataset.slice(0), 'Active users', start, end, perHour, 930);
+		}
+		
+		function setActiveUsersPerUsageDataset(dataSet, start, end, perHour)
+		{
+			activeUsersPerUsageDataset = dataSet;
+			document.getElementById("statisticsUsers_table").style.display = "none";	
+			document.getElementById("statisticsUsers_graphOptions").style.display = "block";
+			document.getElementById("statisticsUsers_emptyGraphOptions").style.display = "none";		
+			doStackedBarGraph('statisticsUsers_graph',activeUsersPerUsageDataset.slice(0), 'Active users', start, end, perHour, 930);
+		}
+		
+		function setRestrictedUsersDataset(dataSet)
+		{
+			restrictedUsersDataset = dataSet;
+			document.getElementById("statisticsUsers_table").style.display = "none";	
+			document.getElementById("statisticsUsers_graphOptions").style.display = "none";	
+			document.getElementById("statisticsUsers_emptyGraphOptions").style.display = "block";	
+			doPie('statisticsUsers_graph',restrictedUsersDataset.slice(0));
+		}
+		
+		function setUsersPerDomainDataset(dataSet)
+		{
+			usersPerDomainDataset = dataSet;
+			document.getElementById("statisticsUsers_table").style.display = "none";	
+			document.getElementById("statisticsUsers_graphOptions").style.display = "none";	
+			document.getElementById("statisticsUsers_emptyGraphOptions").style.display = "block";	
+			doPie('statisticsUsers_graph',usersPerDomainDataset.slice(0));
+		}
+		
+		function setUsersPerUsageDataset(dataSet)
+		{
+			usersPerUsageDataset = dataSet;
+			document.getElementById("statisticsUsers_table").style.display = "none";	
+			document.getElementById("statisticsUsers_graphOptions").style.display = "none";	
+			document.getElementById("statisticsUsers_emptyGraphOptions").style.display = "block";	
+			doPie('statisticsUsers_graph',usersPerUsageDataset.slice(0));
+		}
+	</script>
+</head>
+<body>      
+	<div id="statisticsUsers_div"> 
+		<div class="statisticsUsers_bloc">			
+			<div class="statisticsUsers_label">Number of active users : </div><div id="statisticsUsers_totalUsers" class="statisticsUsers_inline">.</div><br>
+			<div class="statisticsUsers_label">Number of restricted users : </div><div id="statisticsUsers_restrictedUsers" class="statisticsUsers_inline"></div><br>
+			<div class="statisticsUsers_label">Number of deleted users : </div><div id="statisticsUsers_deletedUsers" class="statisticsUsers_inline"></div><br>
+		</div>
+		<div class="statisticsUsers_bloc" id="statisticsUsers_graphBloc">
+			<div class="statisticsUsers_graphTitleDiv">
+				<div class="statisticsUsers_graphTitle button_black"
+					id="statisticsUsers_activeUsersPerDomainButton">Active users per domain</div>
+				<div class="statisticsUsers_graphTitle button_black"
+					id="statisticsUsers_activeUsersPerUsageButton">Active users per usage</div>
+				<div class="statisticsUsers_graphTitle button_black"
+					id="statisticsUsers_restrictedUsersButton">Restricted users</div>
+				<div class="statisticsUsers_graphTitle button_black"
+					id="statisticsUsers_usersPerDomainButton">Users per domain</div>	
+				<div class="statisticsUsers_graphTitle button_black"
+					id="statisticsUsers_usersPerUsageButton">Users per usage</div>	
+			</div>	
+			<div id="statisticsUsers_graphOptions">
+				<div class="statisticsUsers_dateField" class="statisticsUsers_datepicker">
+					<input class="statisticsUsers_dateFieldInput statisticsUsers_datepicker" type="text" id="statisticsUsers_dateFieldDate">
+					<div class="statisticsUsers_dateFieldToLabel">to </div> 
+					<input class="statisticsUsers_dateFieldInput statisticsUsers_datepicker" type="text" id="statisticsUsers_dateFieldDateEnd">
+					<div class="button_black" id="statisticsUsers_refresh">Refresh</div>	
+				</div>
+				<div id="statisticsUsers_scaleBloc">
+					<div class="statisticsUsers_scaleOption" id="statisticsUsers_scaleDayOption">
+						<input class="statisticsUsers_scaleButton" type="radio" name="statisticsUsers_scale" id="statisticsUsers_scaleDay" value="day">&nbsp;
+						<p id="statisticsUsers_scaleDayLabel" style="display: inline-block;">Per day</p>
+					</div>
+					<div class="statisticsUsers_scaleOption" id="statisticsUsers_scaleHourOption">
+						<input class="statisticsUsers_scaleButton" type="radio" name="statisticsUsers_scale" id="statisticsUsers_scaleHour" value="hour">&nbsp;
+						<p id="statisticsUsers_scaleHourLabel" style="display: inline-block;">Per hour</p>
+					</div>
+				</div>
+			</div>
+			<div id ="statisticsUsers_emptyGraphOptions"></div>
+        	<div id="statisticsUsers_table"></div>
+			<div id="statisticsUsers_graph"></div>
+		<!-- div>download serie</div -->
+		</div>
+	</div>
+</body>
+</html>

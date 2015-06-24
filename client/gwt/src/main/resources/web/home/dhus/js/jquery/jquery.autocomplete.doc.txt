@@ -1,0 +1,153 @@
+Autocomplete - a jQuery plugin
+
+NOTE: This is a modification of the jQuery Autocomplete Plug-in written by Dylan Verheul. The documentation is also based on Dylan's documentation, I made additions/changes as need to support my modifications.
+
+Usage:
+======
+$("selector").autocomplete(url [, options]);
+$("selector").autocompleteArray(array [, options]);
+
+Demo page (search for City names in the state of Ohio (US)):
+==================================================================
+http://www.pengoworks.com/workshop/jquery/autocomplete.htm
+
+Advice:
+=======
+Make sure that selector selects only one element, unless you really, really know what you are doing.
+
+Example 1:
+==========
+$("#input_box").autocomplete("autocomplete_ajax.cfm");
+
+In the above example, Autocomplete expects an input element with the id "input_box" to exist. When a user starts typing in the input box, the autocompleter will request autocomplete_ajax.cfm with a GET parameter named q that contains the current value of the input box. Let's assume that the user has typed "sp" (without quotes). Autocomplete will then request autocomplete_ajax.cfm?q=sp.
+
+You can see an example of the output here:
+http://www.pengoworks.com/workshop/jquery/autocomplete_ajax.cfm?q=sp
+
+The backend should output possible values for the autocompleter, each on a single line. Output cannot contain the pipe symbol "|", since that is considered a separator (more on that later).
+
+An appropiate simple output would be:
+
+Sparta
+Spencer
+Spencerville
+Spring Valley
+Springboro
+Springfield
+
+NOTE: The autocompleter will present the options in the order the backend sends them.
+
+Example 2:
+==========
+$("#input_box").autocompleteArray(["Allen","Albert","Alberto","Alladin"]);
+
+In the above example, and autocomplete box would be populated based on an array containing the items listed above. There are times when you have a very small subset of data you need to allow a user to select from and in those case AJAX operations are often overkill. You can load all the data locally and use an array to build your autocomplete suggestion list.
+
+
+Plug-in Mod/Enhancements
+========================
+* Supports local data array (can now use w/out AJAX).
+* Limit dropdown to XX number of results (good for limiting the results to users)
+* Autofill pre-populates text box as you type
+* New findValue() method can be used to programmatically determine if the value in the box is a valid option. (Useful for verifying the text entered is an existing value option.)
+* Dropdown options now correctly re-position themselves on each display (which means they adjust for changing to the DOM)
+* Dropdown box defaults to the width of the input field its attached to (you can manually specify a larger width as well)
+* Better emulates Windows autocomplete boxes (for example: hitting delete and retyping the same box will now bring back the dropdown menu)
+* Miscellaneous bug fixes
+
+
+Advanced options:
+=================
+
+You can pass advanced options as a JavaScript object, notation { name:value, ..., name: value }
+Example: $("#input_box").autocomplete("my_autocomplete_backend.php", { minChars:3 });
+
+These options are available:
+
+autoFill (default value: false)
+	Whether or not the first match should be used to autofill in the input element. As you type, the first match will be filled in the input element as a best guess as to what you're looking for. Text you did not manually type will be pre-selected so typing the next character will make the guess go away and the next best match will be populated. 
+
+inputClass (default value: "ac_input")
+	This class will be added to the input box.
+
+resultsClass (default value: "ac_results")
+	The class for the UL that will contain the result items (result items are LI elements).
+
+loadingClass = (default value: "ac_loading")
+	The class for the input box while results are being fetched from the server.
+
+lineSeparator = (default value: "\n")
+	The character that separates lines in the results from the backend.
+
+cellSeparator (default value: "|")
+	The character that separates cells in the results from the backend.
+
+minChars (default value: 1)
+	The minimum number of characters a user has to type before the autocompleter activates.
+
+delay (default value: 400)
+	The delay in milliseconds the autocompleter waits after a keystroke to activate itself. If you're using the data property to set a local array, you may wish to increase the delay to a shorter time frame (such as 40ms.)
+
+cacheLength (default value: 1)
+	The number of backend query results to store in cache. If set to 1 (the current result), no caching will happen. Do not set below 1.
+
+matchSubset (default value: 1)
+	Whether or not the autocompleter can use a cache for more specific queries. This means that all matches of "foot" are a subset of all matches for "foo". Usually this is true, and using this options decreases server load and increases performance. Remember to set cacheLength to a bigger number, like 10.
+
+matchCase (default value: 0)
+	Whether or not the comparison is case sensitive. Only important only if you use caching.
+
+matchContains = options.matchContains || 0;
+	Whether or not the comparison looks inside (i.e. does "ba" match "foo bar") the search results. Only important if you use caching.
+
+maxItemsToShow  (default value: -1)
+	Limits the number of results that will be showed in the drop down. This is useful if you have a large dataset and don't want to provide the user with a list that could contain hundreds of items. To disable this feature, set the value to -1.
+
+mustMatch (default value: 0)
+	If set to 1 (true), the autocompleter will only allow results that are presented by the backend. Note that illegal values result in an empty input box. In the example at the beginning of this documentation, typing "footer" would result in an empty input box.
+
+extraParams (default value: {})
+	Extra parameters for the backend. If you were to specify { bar:4 }, the autocompleter would call my_autocomplete_backend.php?q=foo&bar=4 (assuming the input box contains "foo").
+	
+width (default value: 0)
+	Sets the width of the drop down layer. If a non-positive integer is specified, then the width of the box will be determined by the width of the input element. Generally speaking, you'll want to leave this value alone. However, in some circumstances you may have a small input element where the drop down layer needs to display a lot of options. In that case, you can specify a larger size.
+
+selectFirst (default value: false)
+	If this is set to true, the first autocomplete value will be automatically selected on tab/return, even if it has not been handpicked by keyboard or mouse action. If there is a handpicked (highlighted) result, that result will take precedence.
+
+selectOnly (default value: false)
+	If this is set to true, and there is only one autocomplete when the user hits tab/return, it will be selected even if it has not been handpicked by keyboard or mouse action. This overrides selectFirst.
+
+formatItem (default value: none)
+	A JavaScript funcion that can provide advanced markup for an item. For each row of results, this function will be called. The returned value will be displayed inside an LI element in the results list. Autocompleter will provide 3 parameters: the results row, the position of the row in the list of results, and the number of items in the list of results. See the source code of http://www.dyve.net/jquery?autocomplete for an example.
+
+onItemSelect (default value: none)
+	A JavaScript function that will be called when an item is selected. The autocompleter will specify a single argument, being the LI element selected. This LI element will have an attribute "extra" that contains an array of all cells that the backend specified. See the source code of http://www.dyve.net/jquery?autocomplete for an example.
+
+onFindValue (default value: none)
+	A JavaScript function that will be called when the findValue() method is called. The function will be passed the select LI element--just like the onItemSelect function is.
+
+More advanced options
+=====================
+
+If you want to do more with your autocompleter, you can change some options on the fly.
+The autocompleter is accessed as an attribute of the input box.
+
+Example:
+// set the autocompleter
+var ac = $("#input_box").autocomplete("my_autocomplete_backend.php"); 
+// would look up the value of the autocomplete box based on the text in the input element
+ac[0].autocompleter.findValue(); 
+
+There following functions that can be called to influence the behaviour at run-time:
+
+findValue()
+	This will examine the value currently in the input element and look it's value up to see if it can find a matching value. This function can potentially perform an AJAX operation, therefore the findValue() function does not return a value. Instead, you need to specific a onFindValue callback function that will run. This method is valuable if you need to set the Autocomplete input element to a value via JavaScript and the "value" of the text field is mapped to extended properties stored in the LI element's "extra" property.
+
+flushCache()
+	This flushes the cache.
+
+setExtraParams(obj)
+	This sets the extra parameters of the autocompleter to obj (which should be a JavaScript object, see above).
+
+It's often wise to flush the cache after calling setExtraParameters.

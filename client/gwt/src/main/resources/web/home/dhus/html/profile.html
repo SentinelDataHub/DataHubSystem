@@ -1,0 +1,197 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<style>	
+		#profile_div
+		{
+			display: none;
+		}
+		
+		#profile_tabs 
+		{
+			margin:0px; padding:0px;
+			margin-top:9px;
+			padding-bottom:5px;
+			border-bottom:1px solid #464c54; 
+		}
+		
+		#profile_tabs div
+		{
+			list-style:none;
+			display:inline;
+			margin-right: 5px;
+			padding:8px 14px 8px 14px;
+			text-decoration:none;
+			border-top:1px solid #2f343a; 
+			border-left:1px solid #2f343a; 
+			border-right:1px solid #2f343a; 
+			font-size:16px;
+			font-family:"Yanone Kaffeesatz";
+			letter-spacing: 1px;
+			text-transform:uppercase;		
+			background-color:#205887;
+			color:#ffffff;
+		}
+		
+		#profile_tabs div:hover 
+		{
+			cursor: pointer;
+			color: #FF790B;
+			background-color:#205887;
+			border-top:1px solid #2f343a; 
+			border-left:1px solid #2f343a; 
+			border-right:1px solid #2f343a; 
+		}
+		
+		#profile_tabs div.active 
+		{
+			background-color:#E6E6E6;
+			color:#FF790B;
+			border-top:1px solid #464c54; 
+			border-left:1px solid #464c54; 
+			border-right:1px solid #464c54; 
+		}
+		
+		.profile_content 
+		{
+			background-color:#E6E6E6;
+			padding:10px;
+			border-bottom:1px solid #464c54; 	
+			border-left:1px solid #464c54; 	
+			border-right:1px solid #464c54; 	
+			z-index: 1000;
+			position: relative;
+			overflow: hidden;
+		}
+	</style>
+	<script>
+		function showProfile()
+		{
+			document.getElementById("profile_div").style.display = "block";
+		}	
+		
+		function addProfileTab(name, tabInit, refresh, selectedCallback, active, title)
+		{
+			var id = "profile_"+name.toLowerCase();
+			
+			var content = document.createElement("div");
+			content.className = "profile_content";
+			content.id = id;
+			
+			var menuItem = document.createElement("div");
+			menuItem.className = "profile_tab "+(active ? "active" : "");
+			menuItem.textContent = title !== undefined ? title : name;			
+			menuItem.onclick = function()
+			{
+				if (menuItem.className !== "profile_tab active")
+				{
+					selectedCallback(id.toUpperCase());
+					document.getElementById("profile_div").appendChild(content);	
+					$(".active").removeClass("active");
+					menuItem.className = "profile_tab active";
+					$(".profile_content").slideUp();	
+					$("#"+id).slideDown()	
+					if ($("#"+id).children().length <= 0)
+					{					
+						loadProfileTab(id, tabInit);
+					}
+					else
+					{
+						refresh();
+					}
+				}
+				else
+				{
+					refresh();
+				}
+			}
+			document.getElementById("profile_tabs").appendChild(menuItem);
+			if (active)
+			{	
+				document.getElementById("profile_div").appendChild(content);				
+				loadProfileTab(id, tabInit);
+			}
+		}
+				
+		function loadProfileTab(page, func)
+		{			
+			$("#"+page).load("home/dhus/html/"+page.toLowerCase()+".html", func);
+		}	
+		
+		function initProfileTable(tableId, requestDataFunction, aoColumns, columns, sDom, oLanguage, parentHeight, pageLengths, onClickFunction) {
+			$("#"+tableId).html(
+				'<table cellpadding="0" cellspacing="0" border="0" class="display" id="'+
+					tableId+'Display">'+columns+'</table>');
+				
+			var oTable = $("#"+tableId+"Display").dataTable({
+				"aoColumns": aoColumns,
+				"bJQueryUI": true,
+				"sDom" : sDom,
+				"sPaginationType": "full_numbers",	
+				"bSort" : false,
+				"bDeferRender": true,
+				"bServerSide" : true,
+				"sAjaxSource" : "",
+				"fnServerData": requestDataFunction,
+				"oLanguage": oLanguage,
+				"iDisplayLength": pageLengths[0],
+				"aLengthMenu": pageLengths,
+				"sScrollY": "0px",
+				    "fnDrawCallback": function() {
+				        var $dataTable = $("#"+tableId+"Display").dataTable();
+				        $dataTable.fnAdjustColumnSizing(false);
+
+				        if (typeof(TableTools) != "undefined") {
+				            var tableTools = TableTools.fnGetInstance(table);
+				            if (tableTools != null)
+				            {
+				            	if (tableTools.fnResizeRequired()) 
+				            	{
+				                	tableTools.fnResizeButtons();
+				                }
+				            }
+				        }
+
+				        var $dataTableWrapper = $("#"+tableId+"Display").closest(".dataTables_wrapper");
+
+				        var toolbarHeights = 0;
+				        $dataTableWrapper.find(".fg-toolbar").each(function(i, obj) {
+				            toolbarHeights = toolbarHeights + $(obj).height();
+				        });
+						
+						var scrollHeadHeight = $dataTableWrapper.find(".dataTables_scrollHead").height();
+				        var height = parentHeight - toolbarHeights - scrollHeadHeight;
+				        $dataTableWrapper.find(".dataTables_scrollBody").height(height - 24);
+				        
+				        $dataTable._fnScrollDraw();
+				    }
+				});
+				return oTable;
+		}
+	</script>
+</head>
+<body>
+	<div id="profile_div">
+        <div id="profile_tabs"/>       
+	</div>
+</body>
+</html>

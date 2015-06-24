@@ -1,0 +1,24 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+
+<suite name="Database Suite Test" verbose="1" parallel="false">
+
+	<test name="Entities Test">
+		<classes>
+
+        </classes>
+	</test>
+
+	<test name="Data Access Objects Test" preserve-order="true">
+		<classes>
+			<class name="fr.gael.dhus.database.dao.TestAccessRestrictionDao" />
+			<class name="fr.gael.dhus.database.dao.TestCollectionDao" />
+			<class name="fr.gael.dhus.database.dao.TestEvictionDao" />
+			<class name="fr.gael.dhus.database.dao.TestFileScannerDao" />
+			<class name="fr.gael.dhus.database.dao.TestNetworkUsageDao" />
+			<class name="fr.gael.dhus.database.dao.TestProductCartDao" />
+			<class name="fr.gael.dhus.database.dao.TestProductDao" />
+			<class name="fr.gael.dhus.database.dao.TestSearchDao" />
+			<class name="fr.gael.dhus.database.dao.TestUserDao" />
+		</classes>
+	</test>
+</suite>

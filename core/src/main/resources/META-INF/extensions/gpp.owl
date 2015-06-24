@@ -1,0 +1,805 @@
+<?xml version="1.0"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE rdf:RDF [
+  <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#">
+  <!ENTITY owl "http://www.w3.org/2002/07/owl#">
+  <!ENTITY drb "http://www.gael.fr/drb#">
+  <!ENTITY dhus "http://www.gael.fr/dhus#">
+  <!ENTITY gpp "http://www.esa.int/gpp#">
+  <!ENTITY img "http://www.gael.fr/drb/image#">
+  
+]>
+<rdf:RDF xmlns:owl="&owl;"
+         xmlns:rdf="&rdf;"
+         xmlns:rdfs="&rdfs;" 
+         xmlns:drb="&drb;"
+         xmlns:dhus="&dhus;"
+         xmlns:img="&img;"
+         xmlns:gpp="&gpp;">
+
+   <owl:Ontology rdf:about="&gpp;"/>
+
+   <!-- ============================= -->
+   <!-- GSC Product Package (GPP)     -->
+   <!-- ============================= -->
+   <owl:Class rdf:about="&gpp;gpp">
+      <rdfs:label xml:lang="en">GSC Product Package (GPP)</rdfs:label>
+      <rdfs:subClassOf rdf:resource="&drb;item"/>
+      <rdfs:subClassOf rdf:resource="&gpp;circulationReportCommonExtractor"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>[A-Z]{2}\d{2}_[A-Z]{3}_..._.._\d{8}T\d{6}_\d{8}T\d{6}\w{10,15}\.\w{1,4}\.(?i)(tar|dir)</drb:nameMatch>
+      </drb:signature>
+     
+      <dhus:identifier rdf:parseType="Literal">
+      <![CDATA[
+         fn:tokenize(name (.), '\.')[1]
+      ]]>
+      </dhus:identifier>
+   </owl:Class>
+
+   <!-- ============================= -->
+   <!-- GSC Product Package (GPP) TAR -->
+   <!-- ============================= -->
+   <owl:Class rdf:about="&gpp;gppTar">
+      <rdfs:label xml:lang="en">GSC Product Package (GPP) Tar</rdfs:label>
+      <rdfs:subClassOf rdf:resource="&gpp;gpp"/>
+      <rdfs:subClassOf rdf:resource="&drb;tar"/>
+      <rdfs:subClassOf rdf:resource="&gpp;tarMetadataExtractor"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>.*\.(?i)tar</drb:nameMatch>
+      </drb:signature>
+   </owl:Class>
+
+   <!-- ============================= -->
+   <!-- GSC Product Package (GPP) DIR -->
+   <!-- ============================= -->
+   <owl:Class rdf:about="&gpp;gppDir">
+      <rdfs:label xml:lang="en">GSC Product Package (GPP) Directory</rdfs:label>
+      <rdfs:subClassOf rdf:resource="&gpp;gpp"/>
+      <rdfs:subClassOf rdf:resource="&gpp;dirMetadataExtractor"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>.*\.(?i)dir</drb:nameMatch>
+      </drb:signature>
+   </owl:Class>
+
+   <!-- ================== -->
+   <!-- Circulation Report -->
+   <!-- ================== -->
+   <owl:Class rdf:about="&gpp;circulationReport">
+      <rdfs:label xml:lang="en">Circulation Report</rdfs:label>
+      <rdfs:subClassOf rdf:resource="&drb;xml"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:parentIsSubClassTest>&gpp;gpp</drb:parentIsSubClassTest>
+         <drb:nameMatch>GSC.CR.*\.(?i)xml</drb:nameMatch>
+      </drb:signature>
+   </owl:Class>
+
+   <!-- =========================================== -->
+   <!-- GSC Product Package (GPP) TAR: IRS products -->
+   <!-- =========================================== -->
+   <owl:Class rdf:about="&gpp;irsGppTar">
+      <rdfs:label xml:lang="en">GSC Product Package (GPP) Tar: IRS products</rdfs:label>
+      <rdfs:subClassOf rdf:resource="&gpp;gppTar"/>
+      <rdfs:subClassOf rdf:resource="&gpp;circulationReportOpticalMetadataExtractor"/>
+      <rdfs:subClassOf rdf:resource="&gpp;circulationReportFootprintMetadataExtractor"/>
+      <rdfs:subClassOf rdf:resource="&gpp;irsMetadataExtractor"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>IR\d{2}_.*</drb:nameMatch>
+      </drb:signature>
+      <img:descriptor rdf:parseType="Literal">
+         <img:raster xmlns:img="http://www.gael.fr/drb/image">
+         <img:source>*[matches(name(), "(?i).*\.zip")]/*[1]</img:source>
+      </img:raster>
+    </img:descriptor>
+   </owl:Class>
+
+   <!-- =================================================== -->
+   <!-- GSC Product Package (GPP) TAR: IRS Level-1 products -->
+   <!-- =================================================== -->
+   <owl:Class rdf:about="&gpp;irsLevel1GppTar">
+      <rdfs:label xml:lang="en">GSC Product Package (GPP) Tar: IRS Level-1 products</rdfs:label>
+      <rdfs:subClassOf rdf:resource="&gpp;irsGppTar"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>IR\d{2}_[A-Z]{3}_..._1.*\.TIF\..*</drb:nameMatch>
+      </drb:signature>
+   </owl:Class>
+
+   <!-- =================================================== -->
+   <!-- GSC Product Package (GPP) TAR: IRS Level-3 products -->
+   <!-- =================================================== -->
+   <owl:Class rdf:about="&gpp;irsLevel3GppTar">
+      <rdfs:label xml:lang="en">GSC Product Package (GPP) Tar: IRS Level-3 products</rdfs:label>
+      <rdfs:subClassOf rdf:resource="&gpp;irsGppTar"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>IR\d{2}_[A-Z]{3}_..._3.*\.BIL\..*</drb:nameMatch>
+      </drb:signature>
+   </owl:Class>
+
+   <!-- =========================================== -->
+   <!-- GSC Product Package (GPP) DIR: IRS products -->
+   <!-- =========================================== -->
+   <owl:Class rdf:about="&gpp;irsGppDir">
+      <rdfs:label xml:lang="en">GSC Product Package (GPP) Dir: IRS products</rdfs:label>
+      <rdfs:subClassOf rdf:resource="&gpp;gppDir"/>
+      <rdfs:subClassOf rdf:resource="&gpp;circulationReportOpticalMetadataExtractor"/>
+      <rdfs:subClassOf rdf:resource="&gpp;circulationReportFootprintMetadataExtractor"/>
+      <rdfs:subClassOf rdf:resource="&gpp;irsMetadataExtractor"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>IR\d{2}_.*</drb:nameMatch>
+      </drb:signature>
+      <img:descriptor rdf:parseType="Literal">
+         <img:raster xmlns:img="http://www.gael.fr/drb/image">
+         <img:source>*[matches(name(), "(?i).*\.zip")]/*[1]</img:source>
+      </img:raster>
+    </img:descriptor>
+   </owl:Class>
+
+   <!-- =================================================== -->
+   <!-- GSC Product Package (GPP) DIR: IRS Level-1 products -->
+   <!-- =================================================== -->
+   <owl:Class rdf:about="&gpp;irsLevel1GppDir">
+      <rdfs:label xml:lang="en">GSC Product Package (GPP) Dir: IRS Level-1 products</rdfs:label>
+      <rdfs:subClassOf rdf:resource="&gpp;irsGppDir"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>IR\d{2}_[A-Z]{3}_..._1.*\.TIF\..*</drb:nameMatch>
+      </drb:signature>
+   </owl:Class>
+
+   <!-- =================================================== -->
+   <!-- GSC Product Package (GPP) DIR: IRS Level-3 products -->
+   <!-- =================================================== -->
+   <owl:Class rdf:about="&gpp;irsLevel3GppDir">
+      <rdfs:label xml:lang="en">GSC Product Package (GPP) Dir: IRS Level-3 products</rdfs:label>
+      <rdfs:subClassOf rdf:resource="&gpp;irsGppDir"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>IR\d{2}_[A-Z]{3}_..._3.*\.BIL\..*</drb:nameMatch>
+      </drb:signature>
+   </owl:Class>
+
+   <!-- ============================================ -->
+   <!-- GSC Product Package (GPP) TAR: SPOT products -->
+   <!-- ============================================ -->
+   <owl:Class rdf:about="&gpp;spotGppImage">
+      <rdfs:label xml:lang="en">Image description for SPOT05 GPP datasets</rdfs:label>
+      <img:descriptor rdf:parseType="Literal">
+         <img:query>
+         <![CDATA[
+         declare function local:getLon ($spot_entry as xs:string) as xs:double
+         {
+            xs:double(fn:data(*[fn:name()=$spot_entry]/*[fn:matches(name(), "SPVIEW.*")]/
+               METADATA.DIM/Dimap_Document/Geoposition/Geoposition_Insert/ULXMAP))
+         };
+         
+         declare function local:insertUniq ($sequence, $values)
+         {
+            let $value := for $val at $index in $values where $index = 1 return $val
+            let $others := for $val at $index in $values where $index != 1 return $val
+
+            let $newseq := (
+               for $iseq in $sequence 
+                  where (local:getLon($iseq) < local:getLon($value)) 
+                  return $iseq ,
+               $value,
+               for $iseq in $sequence 
+                  where (local:getLon($iseq) > local:getLon($value)) 
+                  return $iseq )
+
+            return
+            if (count($others) > 0)
+            then
+               local:insertUniq($newseq,$others)
+            else
+               $newseq
+         };
+
+         declare function local:sort($values)
+         {
+            local:insertUniq((),$values)
+         };
+         
+         declare function local:listdata()
+         {
+            for $node in *[fn:matches(fn:name(),"DATA_.*")]
+            return
+               name($node) 
+         };
+         
+         declare function local:createCollection ()
+         {
+            <img:collection xmlns:img="http://www.gael.fr/drb/image#">
+            {
+               for $data in local:sort(local:listdata())
+               return
+                  (: look at all the PREVIEW.JPG files :)
+                  <img:raster name="previews">
+                     <img:source>
+                        {$data}/
+                        *[fn:matches(fn:name(),"SPVIEW_.*")]/
+                        *[fn:matches(fn:name(), "(?i)preview.jpg")]
+                     </img:source>
+                  </img:raster>
+            }
+            </img:collection>
+         };
+         
+         local:createCollection()
+         ]]>
+         </img:query>
+      </img:descriptor>
+      <img:rendering rdf:parseType="Literal">
+         <img:operator name="natural-colors" xmlns:img="&img;">
+            <img:script language="beanshell" version="1.0">
+               // Prepare output mosaic layout
+               ImageLayout layout = new ImageLayout();
+               boolean isLayoutTileSet = false;
+
+               // Prepare variables for building output strip mosaic
+               int stripCounter = 0;
+               int currentWidth = 0;
+               ParameterBlock mosaicParameters = new ParameterBlock();
+               mosaicParameters.add(javax.media.jai.operator.MosaicDescriptor.MOSAIC_TYPE_BLEND);
+               
+               for (Object current_component : source.getChildren())
+               {
+                  // Cast current component as an image
+                  RenderedImage current_image = (RenderedImage)current_component;
+
+                  // Set layout tile size if not already done
+                  if (!isLayoutTileSet)
+                  {
+                     layout.setTileWidth(current_image.getTileWidth());
+                     layout.setTileHeight(current_image.getTileHeight());
+                     layout.setColorModel(current_image.getColorModel());
+                     layout.setSampleModel(current_image.getSampleModel());
+
+                     isLayoutTileSet = true;
+                  }
+
+                  // Translate strip to the output coordinate (vertical shift)
+                  ParameterBlock translateParameters = new ParameterBlock();
+
+                  translateParameters.addSource(current_image);
+                  translateParameters.add((float) currentWidth);
+                  translateParameters.add((float) 0.0);
+                  translateParameters.add(new InterpolationNearest());
+
+                  current_image = JAI.create("translate", translateParameters,
+                     new RenderingHints(JAI.KEY_IMAGE_LAYOUT,layout));
+
+                  // Update following strip translation
+                  currentWidth += current_image.getWidth();
+
+                  // Add current strip to the output mosaic
+                  mosaicParameters.addSource(current_image);
+
+               } // Loop among quick look image components
+
+               // Create output mosaic
+               quicklook_image = JAI.create("mosaic", mosaicParameters,
+                  new RenderingHints(JAI.KEY_IMAGE_LAYOUT, layout));
+                  
+               return quicklook_image;
+            </img:script>
+         </img:operator>
+      </img:rendering>
+   </owl:Class>
+
+   <owl:Class rdf:about="&gpp;spotGppTar">
+      <rdfs:label xml:lang="en">GSC Product Package (GPP) Tar: SPOT products</rdfs:label>
+      <rdfs:subClassOf rdf:resource="&gpp;gppTar"/>
+      <rdfs:subClassOf rdf:resource="&gpp;spotGppImage"/>
+      <rdfs:subClassOf rdf:resource="&gpp;circulationReportOpticalMetadataExtractor"/>
+      <rdfs:subClassOf rdf:resource="&gpp;circulationReportFootprintMetadataExtractor"/>
+      <rdfs:subClassOf rdf:resource="&gpp;spotMetadataExtractor"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>SP\d{2}_.*</drb:nameMatch>
+      </drb:signature>
+   </owl:Class>
+
+   <!-- ============================================ -->
+   <!-- GSC Product Package (GPP) DIR: SPOT products -->
+   <!-- ============================================ -->
+   <owl:Class rdf:about="&gpp;spotGppDir">
+      <rdfs:label xml:lang="en">GSC Product Package (GPP) Dir: SPOT products</rdfs:label>
+      <rdfs:subClassOf rdf:resource="&gpp;gppDir"/>
+      <rdfs:subClassOf rdf:resource="&gpp;spotGppImage"/>
+      <rdfs:subClassOf rdf:resource="&gpp;circulationReportOpticalMetadataExtractor"/>
+      <rdfs:subClassOf rdf:resource="&gpp;circulationReportFootprintMetadataExtractor"/>
+      <rdfs:subClassOf rdf:resource="&gpp;spotMetadataExtractor"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>SP\d{2}_.*</drb:nameMatch>
+      </drb:signature>
+   </owl:Class>
+
+   <!-- ===================================================== -->
+   <!-- GSC Product Package (GPP) TAR: ENVISAT GOMOS products -->
+   <!-- ===================================================== -->
+   <!-- Not available in GPP for the time being
+   <owl:Class rdf:about="&gpp;envisatGomosGppTar">
+      <rdfs:label xml:lang="en">GSC Product Package (GPP) Tar: ENVISAT GOMOS products</rdfs:label>
+      <rdfs:subClassOf rdf:resource="&gpp;gppTar"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>EN01_GOM.*</drb:nameMatch>
+      </drb:signature>
+   </owl:Class>
+   -->
+
+   <!-- ===================================================== -->
+   <!-- GSC Product Package (GPP) DIR: ENVISAT GOMOS products -->
+   <!-- ===================================================== -->
+   <!-- Not available in GPP for the time being
+   <owl:Class rdf:about="&gpp;envisatGomosGppDir">
+      <rdfs:label xml:lang="en">GSC Product Package (GPP) Dir: ENVISAT GOMOS products</rdfs:label>
+      <rdfs:subClassOf rdf:resource="&gpp;gppDir"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>EN01_GOM.*</drb:nameMatch>
+      </drb:signature>
+   </owl:Class>
+   -->
+
+   <!-- ===================================================== -->
+   <!-- GSC Product Package (GPP) TAR: Sentinel-1 products -->
+   <!-- ===================================================== -->
+   <!-- Not available in GPP for the time being
+   <owl:Class rdf:about="&gpp;sentinel-1GppTar">
+      <rdfs:label xml:lang="en">GSC Product Package (GPP) Tar: Sentinel-1 products</rdfs:label>
+      <rdfs:subClassOf rdf:resource="&gpp;gppTar"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>SE1A_.*</drb:nameMatch>
+      </drb:signature>
+   </owl:Class>
+   -->
+
+   <!-- ===================================================== -->
+   <!-- GSC Product Package (GPP) DIR: Sentinel-1 products -->
+   <!-- ===================================================== -->
+   <!-- Not available in GPP for the time being
+   <owl:Class rdf:about="&gpp;sentinel-1GppDir">
+      <rdfs:label xml:lang="en">GSC Product Package (GPP) Dir: Sentinel-1 products</rdfs:label>
+      <rdfs:subClassOf rdf:resource="&gpp;gppDir"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>SE1A_.*</drb:nameMatch>
+      </drb:signature>
+   </owl:Class>
+   -->
+
+   <!-- ***********************************************************************
+   ****************************************************************************
+   *                                                                          *
+   *                                                                          *
+   *                           METADATA EXTRACTION                            *
+   *                                                                          *
+   *                                                                          *
+   ****************************************************************************
+   ************************************************************************ -->
+
+   <rdf:Description rdf:about="&gpp;circulationReportCommonExtractor">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         declare function local:circulation ()
+         {
+            let $report := *[matches(name(),"GSC.CR.*\.(?i)xml")]
+            return
+            if (fn:empty($report))
+            then
+               fn:error ("No circulation report found.")
+            else
+               if (count ($report) = 1)
+               then
+                  $report
+               else
+                  $report[1]
+         };
+         <metadata category="product" name="Report file issuer" type="text/plain">
+            {data(local:circulation ()/report/responsibleOrgName)}
+         </metadata>,
+
+         <metadata category="product" name="Report type" type="text/plain">
+            {data(local:circulation ()/report/reportType)}
+         </metadata>,
+         <metadata category="summary" 
+            name="Date" 
+            type="text/date+iso8601">
+            {data(local:circulation ()/report/opt_metadata/validTime/TimePeriod/beginPosition)}
+         </metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+
+   <rdf:Description rdf:about="&gpp;circulationReportOpticalMetadataExtractor">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         declare function local:circulation ()
+         {
+            let $report := *[matches(name(),"GSC.CR.*\.(?i)xml")]
+            return
+            if (fn:empty($report))
+            then
+               fn:error ("No circulation report found.")
+            else
+               if (count ($report)=1)
+               then
+                  $report
+               else
+                  $report[1]
+         };
+
+         <metadata queryable="acquisitionType" 
+            category="product" name="Acquisition type" type="text/plain">
+            {data(local:circulation ()/report/opt_metadata/metaDataProperty/EarthObservationMetaData/acquisitionType)}
+         </metadata>,
+
+         <metadata queryable="productType" category="product" name="Product type" type="text/plain">
+            {data(local:circulation ()/report/opt_metadata/metaDataProperty/EarthObservationMetaData/productType)}
+         </metadata>,
+         
+         <metadata queryable="status" category="product" name="Status" type="text/plain">
+            {data(local:circulation ()/report/opt_metadata/metaDataProperty/EarthObservationMetaData/status)}
+         </metadata>,
+
+         <metadata category="product" name="Archiving center code" type="text/plain">
+            {data(local:circulation ()/report/opt_metadata/metaDataProperty/EarthObservationMetaData/archivingCenter)}
+         </metadata>,
+
+         <metadata queryable="beginPosition" 
+            category="product" 
+            name="Start time" 
+            type="text/date+iso8601">
+            {
+               drb:Iso8601DateFormatter(
+                  data(local:circulation ()/report/
+                  opt_metadata/validTime/TimePeriod/beginPosition),
+                  "yyyy-MM-dd'T'hh:mm:ss.SSSS'Z'")
+            }
+         </metadata>,
+
+         <metadata queryable="endPosition" 
+            category="product" 
+            name="Stop time" 
+            type="text/date+iso8601">
+            {
+               drb:Iso8601DateFormatter(
+                  data(local:circulation ()/report/
+                  opt_metadata/validTime/TimePeriod/endPosition),
+                  "yyyy-MM-dd'T'hh:mm:ss.SSSS'Z'")
+            }
+         </metadata>,
+
+         <metadata category="platform" name="Platform identifier" type="text/plain">
+            {data(local:circulation ()/report/opt_metadata/using/EarthObservationEquipment/platform/Platform/shortName)}
+         </metadata>,
+
+         <metadata category="platform" name="Platform number" type="text/plain">
+            {data(local:circulation ()/report/opt_metadata/using/EarthObservationEquipment/platform/Platform/serialIdentifier)}
+         </metadata>,
+
+         <metadata
+            queryable="instrumentShortName"
+            category="instrument"
+            name="Instrument Identifier"
+            type="text/plain">
+            {data(local:circulation ()/report/opt_metadata/using/EarthObservationEquipment/instrument/Instrument/shortName)}
+         </metadata>,
+
+         <metadata queryable="sensorType" 
+            category="instrument" name="Sensor type" type="text/plain">
+            {data(local:circulation ()/report/opt_metadata/using/EarthObservationEquipment/sensor/Sensor/sensorType)}
+         </metadata>,
+
+         <metadata queryable="sensorOperationalMode" 
+            category="instrument" name="Sensor mode" type="text/plain">
+            {data(local:circulation ()/report/opt_metadata/using/EarthObservationEquipment/sensor/Sensor/operationalMode)}
+         </metadata>,
+         
+         <metadata queryable="sensorResolution" 
+            category="instrument" name="Resolution" type="text/double">
+            {data(local:circulation ()/report/opt_metadata/using/EarthObservationEquipment/sensor/Sensor/resolution)}
+         </metadata>,
+
+         <metadata queryable="orbitNumber" 
+            category="platform" name="Orbit number" type="text/integer">
+            {data(local:circulation ()/report/opt_metadata/using/EarthObservationEquipment/acquisitionParameters/Acquisition/orbitNumber)}
+         </metadata>,
+         
+         <metadata queryable="orbitDirection" 
+            category="platform" name="Orbit direction" type="text/plain">
+            {data(local:circulation ()/report/opt_metadata/using/EarthObservationEquipment/acquisitionParameters/Acquisition/orbitDirection)}
+         </metadata>,
+
+         <metadata queryable="illuminationAzimuthAngle" 
+            category="platform" name="Sun azimuth" type="text/double">
+            {data(local:circulation ()/report/opt_metadata/using/EarthObservationEquipment/acquisitionParameters/Acquisition/illuminationAzimuthAngle)}
+         </metadata>,
+
+         <metadata queryable="illuminationElevationAngle" 
+            category="platform" name="Sun elevation" type="text/double">
+            {data(local:circulation ()/report/opt_metadata/using/EarthObservationEquipment/acquisitionParameters/Acquisition/illuminationElevationAngle)}
+         </metadata>,
+
+         <metadata queryable="cloudCoverPercentage" 
+             category="product" name="Cloud cover percentage" type="text/double">
+            {data(local:circulation ()/report/opt_metadata/resultOf/EarthObservationResult/cloudCoverPercentage)}
+         </metadata>,
+
+         <metadata queryable="snowCoverPercentage"
+            category="product" name="Snow cover percentage" type="text/double">
+            {data(local:circulation ()/report/opt_metadata/resultOf/EarthObservationResult/snowCoverPercentage)}
+         </metadata>
+         
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+
+   <rdf:Description rdf:about="&gpp;circulationReportFootprintMetadataExtractor">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         declare function local:circulation ()
+         {
+            let $report := *[matches(name(),"GSC.CR.*\.(?i)xml")]
+            return
+            if (fn:empty($report))
+            then
+               fn:error ("No circulation report found.")
+            else
+               if (count ($report)=1)
+               then
+                  $report
+               else
+                  $report[1]
+         };
+      
+         declare function local:trim ($arg as xs:string) as xs:string
+         {
+            replace(replace(replace($arg,'\s+$',''),'^\s+',''), '\s+', ' ')
+         };
+         
+         declare function local:makeCouples ($tcoord as xs:string*) as xs:string*
+         {
+            let $count := fn:count($tcoord)
+            let $cpl := concat($tcoord[$count], ',', $tcoord[$count - 1])
+            let $next := for $coord at $index in $tcoord where $index < ($count - 1) return $coord
+            return
+              if (fn:empty($next))
+              then
+                 $cpl
+              else
+                 ($cpl, local:makeCouples($next))
+         };
+         
+         declare function local:formatCoordinates ($coords as xs:string?) as xs:string
+         {
+            if (empty($coords))
+            then
+               fn:error ("Footprint coordinates not found.")
+            else
+               let $tcoords := fn:tokenize (local:trim($coords), " ")
+               let $reverted := local:makeCouples ($tcoords)
+               return
+                  fn:string-join ($reverted, " ")
+         };
+         <metadata 
+            queryable="GMLfootprint"
+            category="product" 
+            name="Footprint" 
+            type="application/gml+xml">
+            <gml:Polygon xmlns:gml="http://www.opengis.net/gml"
+               srsName="{data(local:circulation ()/report/opt_metadata/target/Footprint/multiExtentOf/MultiSurface/@srsName)}">
+               <gml:outerBoundaryIs>
+                  <gml:LinearRing>
+                     <gml:coordinates>
+                        {
+                           local:formatCoordinates(
+                              data(
+                                    local:circulation ()/
+                                    report/opt_metadata/target/Footprint/
+                                    multiExtentOf/MultiSurface/surfaceMembers/
+                                    Polygon/exterior/LinearRing/posList))
+                        }
+                     </gml:coordinates>
+                  </gml:LinearRing>
+               </gml:outerBoundaryIs>
+            </gml:Polygon>
+         </metadata>,
+         <metadata 
+            queryable="footprint"
+            category="product" 
+            name="JTS footprint" 
+            type="application/jts">
+            {
+               concat ("POLYGON ((",
+                  fn:replace ( 
+                  fn:replace (
+                  fn:replace (
+                     local:formatCoordinates(data(
+                        local:circulation ()/
+                        report/opt_metadata/target/Footprint/
+                        multiExtentOf/MultiSurface/surfaceMembers/
+                        Polygon/exterior/LinearRing/posList)), 
+                     " +", "@"), "@*,@*", " "), "@", ","), "))")
+                (: switch " " with "," :)
+             }
+         </metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+   
+   <rdf:Description rdf:about="&gpp;tarMetadataExtractor">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         <metadata queryable="size" 
+            category="summary" name="Size" type="text/plain">
+         {
+            let $size := @size
+            return
+               if ($size < 1024)
+               then 
+                  concat ($size, " bytes")
+               else
+                  if (($size div 1024) < 1024)
+                  then
+                     concat (($size div 1024), " KB")
+                  else
+                     if (($size div (1024*1024)) < 1024)
+                        then concat (($size div (1024*1024)), " MB")
+                     else
+                        if (($size div (1024*1024*1024)) < 1024)
+                        then
+                           concat (($size div (1024*1024*1024)), " GB")
+                        else 
+                           concat (($size div (1024*1024*1024*1024)), " TB")
+         }
+         </metadata>       
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+   
+   <rdf:Description rdf:about="&gpp;dirMetadataExtractor">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+        
+        declare function local:computeSizes ($path, $base as item()*) as item()*
+        {
+           for $child in $path/*
+           return
+              if ($child/@directory)
+              then
+                 local:computeSizes ($child, base)
+              else
+                  data($child/@size), $base
+        };
+        
+         <metadata queryable="size" 
+            category="summary" name="Size" type="text/plain">
+         {
+            let $size := fn:sum(local:computeSizes(., ()))
+            return
+               if ($size < 1024)
+               then 
+                  concat ($size, " bytes")
+               else
+                  if (($size div 1024) < 1024)
+                  then
+                     concat (($size div 1024), " KB")
+                  else
+                     if (($size div (1024*1024)) < 1024)
+                        then concat (($size div (1024*1024)), " MB")
+                     else
+                        if (($size div (1024*1024*1024)) < 1024)
+                        then
+                           concat (($size div (1024*1024*1024)), " GB")
+                        else 
+                           concat (($size div (1024*1024*1024*1024)), " TB")
+         }
+         </metadata>       
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+   
+   <rdf:Description rdf:about="&gpp;irsMetadataExtractor">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         <metadata queryable="platformName" 
+            category="summary" 
+            name="Satellite name" type="text/plain">
+            IRS-P6
+         </metadata>,
+         
+         <metadata 
+            category="platform" 
+            name="Satellite full name" 
+            type="text/plain">
+            Indian Remote Sensing Satellite - ResourceSat 1
+         </metadata>,
+         
+         <metadata 
+            queryable="platformIdentifier" 
+            category="platform"
+            name="NSSDC identifier"
+            type="text/plain">
+            2003-046A
+         </metadata>,
+
+         <metadata category="platform" name="Operator" type="text/plain">
+            Indian Space Research Organisation
+         </metadata>,
+
+         <metadata category="platform" name="Mission type" type="text/plain">
+            Earth observation
+         </metadata>,
+
+         <metadata category="platform" name="Carrier rocket" type="text/plain">
+            PSLV
+         </metadata>,
+
+         <metadata category="platform" name="Launch date" type="text/plain">
+            {xs:dateTime("2003-10-17T00:00:00.000")}
+         </metadata>
+         
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+   
+   <rdf:Description rdf:about="&gpp;spotMetadataExtractor">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         <metadata queryable="platformName" 
+            category="summary" 
+            name="Satellite name" type="text/plain">
+            SPOT-5
+         </metadata>,
+         
+         <metadata 
+            category="platform" 
+            name="Satellite full name" 
+            type="text/plain">
+            Satellite Pour Observation de la Terre
+         </metadata>,
+         
+         <metadata 
+            queryable="platformIdentifier" 
+            category="platform"
+            name="NSSDC identifier"
+            type="text/plain">
+            2002-021A
+         </metadata>,
+
+         <metadata category="platform" name="Operator" type="text/plain">
+            Astrium
+         </metadata>,
+
+         <metadata category="platform" name="Mission type" type="text/plain">
+            Earth observation
+         </metadata>,
+
+         <metadata category="platform" name="Carrier rocket" type="text/plain">
+            Ariane 42P
+         </metadata>,
+
+         <metadata category="platform" name="Launch date" type="text/plain">
+            {xs:dateTime("2002-05-04T00:00:00.000")}
+         </metadata>
+         
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+   
+</rdf:RDF>

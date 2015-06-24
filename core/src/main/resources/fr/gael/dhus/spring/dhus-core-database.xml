@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+	   http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd">
+
+	<context:component-scan base-package="fr.gael.dhus.database" />
+
+   <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource">
+        <property name="driverClassName" value="org.hsqldb.jdbcDriver" />
+        <property name="url" value="jdbc:hsqldb:file:#{ configurationLoader.getDatabasePath () };crypt_key=9873693c966fc99ec517e03fb27d7395;crypt_type=AES;shutdown=true;#{ configurationLoader.getDatabaseSettings () }" />
+        <property name="username" value="sa" />
+        <property name="password" value="" />
+        <!-- 
+        <property name="initialSize" value="5" />
+        <property name="maxTotal" value="10" />
+        <property name="poolPreparedStatements" value="true" />
+        <property name="maxOpenPreparedStatements" value="10" />
+        -->
+        <!--
+        <property name="defaultTransactionIsolation" value="1" />
+        From javadoc:
+    public static final int TRANSACTION_NONE  0
+    public static final int TRANSACTION_READ_COMMITTED    2
+    public static final int TRANSACTION_READ_UNCOMMITTED  1
+    public static final int TRANSACTION_REPEATABLE_READ   4
+    public static final int TRANSACTION_SERIALIZABLE   8
+         -->
+    </bean>
+
+	<bean id="liquibase" class="liquibase.integration.spring.SpringLiquibase">
+		<property name="dataSource" ref="dataSource" />
+		<property name="changeLog"
+			value="classpath:liquibase/changelog-master.xml" />
+	</bean>
+   
+	<bean id="sessionFactory" depends-on="liquibase"
+		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="packagesToScan">
+			<list>
+				<value>fr.gael.dhus.database.object</value>
+			</list>
+		</property>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.HSQLDialect</prop>
+				<prop key="hibernate.hbm2ddl.auto">validate</prop>
+				<prop key="hibernate.show_sql">false</prop>
+				<prop key="hibernate.format_sql">true</prop>
+				<prop key="hibernate.query.substitutions">true 1, false 0, yes 'Y', no 'N'</prop>
+				<prop key="javax.persistence.validation.mode">none</prop>
+			</props>
+		</property>
+		<property name="eventListeners">
+			<map>
+				<entry key="save" value-ref="saveEventListener" />
+				<entry key="flush-entity" value-ref="flushEntityEventListener" />
+				<entry key="post-load" value-ref="postLoadEventListener" />
+			</map>
+		</property>
+	</bean>
+
+	<!-- Listeners -->
+	<bean id="saveEventListener" parent="callbackHandlerEventListener"
+		class="org.hibernate.ejb.event.EJB3SaveEventListener" />
+	<bean id="flushEntityEventListener" parent="callbackHandlerEventListener"
+		class="org.hibernate.ejb.event.EJB3FlushEntityEventListener" />
+	<bean id="postLoadEventListener" parent="callbackHandlerEventListener"
+		class="org.hibernate.ejb.event.EJB3PostLoadEventListener" />		
+	<bean id="entityCallbackHandler" class="org.hibernate.ejb.event.EntityCallbackHandler" />
+	<bean id="callbackHandlerEventListener" abstract="true"
+		class="org.hibernate.ejb.event.CallbackHandlerConsumer">
+		<property name="callbackHandler" ref="entityCallbackHandler" />
+	</bean>
+</beans>

@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	version="1.0" elementFormDefault="qualified" xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+	jxb:version="2.1" xmlns:inheritance="http://jaxb2-commons.dev.java.net/basic/inheritance"
+	xmlns:annox="http://annox.dev.java.net" jxb:extensionBindingPrefixes="inheritance annox"
+	xmlns:dhusProduct="fr.gael.dhus.database.object.config.product"
+	targetNamespace="fr.gael.dhus.database.object.config.product">
+
+	<xs:annotation>
+		<xs:appinfo>
+			<jxb:schemaBindings>
+				<jxb:package name="fr.gael.dhus.database.object.config.product" />
+			</jxb:schemaBindings>
+		</xs:appinfo>
+	</xs:annotation>
+
+	<xs:complexType name="productConfiguration">
+		<xs:annotation>
+			<xs:appinfo>
+				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
+				</inheritance:extends>
+				<annox:annotate>@javax.persistence.Embeddable</annox:annotate>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:all>
+			<xs:element minOccurs="0" name="download"
+				type="dhusProduct:downloadConfiguration">
+				<xs:annotation>
+					<xs:appinfo>
+						<jxb:property name="downloadConfiguration" />
+						<annox:annotate target="field">@javax.persistence.Embedded
+						</annox:annotate>
+					</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="quicklook"
+				type="dhusProduct:quicklookConfiguration">
+				<xs:annotation>
+					<xs:appinfo>
+						<jxb:property name="quicklookConfiguration" />
+						<annox:annotate target="field">@javax.persistence.Embedded
+						</annox:annotate>
+					</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="thumbnail"
+				type="dhusProduct:thumbnailConfiguration">
+				<xs:annotation>
+					<xs:appinfo>
+						<jxb:property name="thumbnailConfiguration" />
+						<annox:annotate target="field">@javax.persistence.Embedded
+						</annox:annotate>
+					</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
+		</xs:all>
+		<xs:attribute name="publicData" type="xs:boolean">
+			<xs:annotation>
+				<xs:appinfo>
+					<annox:annotate target="field">@javax.persistence.Transient
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+
+	<xs:complexType name="downloadConfiguration">
+		<xs:annotation>
+			<xs:appinfo>
+				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
+				</inheritance:extends>
+				<annox:annotate>@javax.persistence.Embeddable</annox:annotate>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:all />
+		<xs:attribute name="compressionLevel" type="xs:int">
+			<xs:annotation>
+				<xs:appinfo>
+					<annox:annotate target="field">@javax.persistence.Column(name="DOWNLOAD_COMPRESSIONLEVEL",
+						nullable=false)
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="checksumAlgorithms" type="xs:string">
+			<xs:annotation>
+				<xs:appinfo>
+					<annox:annotate target="field">@javax.persistence.Column(name="DOWNLOAD_CHECKSUMSALGORITHMS",
+						nullable=false)
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+
+	<xs:complexType name="quicklookConfiguration">
+		<xs:annotation>
+			<xs:appinfo>
+				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
+				</inheritance:extends>
+				<annox:annotate>@javax.persistence.Embeddable</annox:annotate>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:all />
+		<xs:attribute name="cutting" type="xs:boolean">
+			<xs:annotation>
+				<xs:appinfo>
+					<annox:annotate target="field">@javax.persistence.Column(name="QUICKLOOK_CUTTING",
+						columnDefinition = "BOOLEAN", nullable=false)
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="height" type="xs:int">
+			<xs:annotation>
+				<xs:appinfo>
+					<annox:annotate target="field">@javax.persistence.Column(name="QUICKLOOK_HEIGHT",
+						nullable=false)
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="width" type="xs:int">
+			<xs:annotation>
+				<xs:appinfo>
+					<annox:annotate target="field">@javax.persistence.Column(name="QUICKLOOK_WIDTH",
+						nullable=false)
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+
+	<xs:complexType name="thumbnailConfiguration">
+		<xs:annotation>
+			<xs:appinfo>
+				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
+				</inheritance:extends>
+				<annox:annotate>@javax.persistence.Embeddable</annox:annotate>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:all />
+		<xs:attribute name="cutting" type="xs:boolean">
+			<xs:annotation>
+				<xs:appinfo>
+					<annox:annotate target="field">@javax.persistence.Column(name="THUMBNAIL_CUTTING",
+						columnDefinition = "BOOLEAN", nullable=false)
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="height" type="xs:int">
+			<xs:annotation>
+				<xs:appinfo>
+					<annox:annotate target="field">@javax.persistence.Column(name="THUMBNAIL_HEIGHT",
+						nullable=false)
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="width" type="xs:int">
+			<xs:annotation>
+				<xs:appinfo>
+					<annox:annotate target="field">@javax.persistence.Column(name="THUMBNAIL_WIDTH",
+						nullable=false)
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+
+</xs:schema>

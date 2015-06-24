@@ -1,0 +1,549 @@
+<?xml version="1.0"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE rdf:RDF [
+  <!ENTITY rdf  "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#">
+  <!ENTITY owl  "http://www.w3.org/2002/07/owl#">
+  <!ENTITY s2   "http://www.esa.int/s2#">
+  <!ENTITY drb  "http://www.gael.fr/drb#">
+  <!ENTITY dhus "http://www.gael.fr/dhus#">
+  <!ENTITY img  "http://www.gael.fr/drb/image#">
+]>
+
+<rdf:RDF xmlns:owl ="&owl;"
+         xmlns:rdf ="&rdf;"
+         xmlns:rdfs="&rdfs;"
+         xmlns:s2  ="&s2;"
+         xmlns:drb ="&drb;"
+         xmlns:img ="&img;"
+         xmlns:dhus="&dhus;"
+         xml:base  ="&s2;">
+
+   <owl:Ontology rdf:about="&s2;"/>
+
+   <!-- ***********************************************************************
+   ****************************************************************************
+   *                                                                          *
+   *                                                                          *
+   *                           METADATA EXTRACTION                            *
+   *                                                                          *
+   *                                                                          *
+   ****************************************************************************
+   ************************************************************************ -->
+   <rdf:Description rdf:about="&s2;pdi">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         <metadata
+            queryable="platformName"
+            category="platform" name="Satellite name" type="text/plain">
+            Sentinel-2
+         </metadata>,
+
+         <metadata category="platform" name="Satellite number" type="text/plain">
+            123456
+         </metadata>,
+
+         <metadata queryable="platformIdentifier" 
+            category="platform"
+            name="NSSDC identifier"
+            type="text/plain">
+            123456
+         </metadata>,
+
+         <metadata category="platform" name="Operator" type="text/plain">
+            European Space Agency
+         </metadata>,
+
+         <metadata category="platform" name="Mission type" type="text/plain">
+            Earth observation
+         </metadata>,
+
+         <metadata category="platform" name="Carrier rocket" type="text/plain">
+            Soyuz
+         </metadata>,
+
+         <metadata category="platform" name="Launch date" type="text/plain">
+            April 3rd, 2014
+         </metadata>,
+
+		 <metadata category="platform" name="Satellite description" type="text/html">
+		 	&lt;a target=&quot;_blank&quot; href=&quot;https://sentinel.esa.int/web/sentinel/missions/sentinel-1&quot;&gt;https://sentinel.esa.int/web/sentinel/missions/sentinel-1&lt;/a&gt;
+         </metadata>,
+         <metadata queryable="instrumentName"
+            category="instrument" 
+            name="Instrument name" 
+            type="text/plain">
+            Synthetic Aperture Radar (C-band)
+         </metadata>,
+
+         <metadata queryable="instrumentShortName"
+            category="instrument" 
+            name="Instrument abbreviation" 
+            type="text/plain">
+            SAR-C SAR
+         </metadata>,
+         
+         <metadata
+            category="summary" 
+            name="Instrument" 
+            type="text/plain">
+            SAR-C
+         </metadata>,
+
+		 <metadata category="instrument" name="Instrument description" type="text/html">
+		 	&lt;a target=&quot;_blank&quot; href=&quot;https://sentinel.esa.int/web/sentinel/missions/sentinel-1&quot;&gt;https://sentinel.esa.int/web/sentinel/missions/sentinel-1&lt;/a&gt;
+         </metadata>,
+         
+         <metadata category="" name="Instrument description text" type="text/plain">
+            The SAR Antenna Subsystem (SAS) is developed and build by Astrium
+            GmbH. It is a large foldable planar phased array antenna, which is
+            formed by a centre panel and two antenna side wings. In deployed
+            configuration the antenna has an overall aperture of 12.3 x 0.84 m.
+            The antenna provides a fast electronic scanning capability in
+            azimuth and elevation and is based on low loss and highly stable
+            waveguide radiators build in carbon fibre technology, which are
+            already successfully used by the TerraSAR-X radar imaging mission.
+            The SAR Electronic Subsystem (SES) is developed and build by
+            Astrium Ltd. It provides all radar control, IF/ RF signal
+            generation and receive data handling functions for the SAR
+            Instrument. The fully redundant SES is based on a channelised
+            architecture with one transmit and two receive chains, providing a
+            modular approach to the generation and reception of wide-band
+            signals and the handling of multi-polarisation modes. One key
+            feature is the implementation of the Flexible Dynamic Block
+            Adaptive Quantisation (FD-BAQ) data compression concept, which
+            allows an efficient use of on-board storage resources and minimises
+            downlink times.
+         </metadata>,
+         
+         <!-- name too long: removed category to not stitch the view window -->
+         <metadata queryable="filename"
+            category=""  
+            name="Filename" 
+            type="text/plain">
+               S2A_OPER_MSI_L1A_GR_MPS__20140926T120000_S20130707T171927_D02_N01.01
+         </metadata>,
+         
+         <metadata queryable="resolutionDetail"
+            category="product" 
+            name="Resolution" 
+            type="text/plain">
+            Full
+         </metadata>,
+         
+          <metadata queryable="format"
+            category="product" 
+            name="Format" 
+            type="text/plain">
+            tar
+         </metadata>,
+         
+         
+         <metadata queryable="missionDataTakeId"
+            category="product" 
+            name="Mission datatake id" 
+            type="text/integer">
+               123456
+         </metadata>,
+         
+         <metadata queryable="sliceNumber"
+            category="product" 
+            name="Slice number" 
+            type="text/integer">
+               123456
+         </metadata>,
+         
+         <metadata queryable="productClass"
+            category="product" 
+            name="Product class" 
+            type="text/plain">
+               123456
+         </metadata>,
+         
+         <metadata
+            category="product" 
+            name="Product class description" 
+            type="text/plain">
+               123456
+         </metadata>,
+         
+         <metadata
+            category="product" 
+            name="Product composition" 
+            type="text/plain">
+               123456
+         </metadata>,
+         
+         <metadata queryable="beginPosition" 
+            category="product" 
+            name="Sensing start" 
+            type="text/date+iso8601">
+            2002-02-02T00:00:00.123456
+            
+         </metadata>,
+
+         <metadata queryable="endPosition" 
+            category="product" 
+            name="Sensing stop" 
+            type="text/date+iso8601">
+            2002-02-02T00:05:00.123456
+         </metadata>,
+
+         <metadata queryable="orbitNumber" 
+            category="product"
+            name="Orbit number (start)"
+            type="text/integer">
+            123456
+         </metadata>,
+         
+         <metadata queryable="lastOrbitNumber"
+            category="product" 
+            name="Orbit number (stop)" 
+            type="text/integer">
+            123456
+         </metadata>,
+
+         <metadata queryable="relativeOrbitNumber" 
+            category="product"
+            name="Relative orbit (start)"
+            type="text/integer">
+            123456
+         </metadata>,
+         
+         <metadata queryable="lastRelativeOrbitNumber" 
+            category="product"
+            name="Relative orbit (stop)"
+            type="text/integer">
+            123456
+         </metadata>,
+
+         <metadata category="product" name="Start relative orbit number" type="text/plain">
+            123456
+         </metadata>,
+
+         <metadata category="product" name="Stop relative orbit number" type="text/plain">
+            123456
+         </metadata>,
+         
+         <metadata category="product" name="Cycle number" type="text/plain">
+            123456
+         </metadata>,
+
+         <metadata category="product" name="Phase identifier" type="text/plain">
+            123456
+         </metadata>,
+         
+         <metadata
+            queryable="polarisationMode"
+            category="product" 
+            name="Polarisation" 
+            type="text/plain">
+            123456
+         </metadata>,
+         
+         <metadata
+            queryable="acquisitionType"
+            category="product" 
+            name="Acquisition Type" 
+            type="text/plain">NOMINAL</metadata>,
+            
+          <metadata
+            queryable="status"
+            category="product" 
+            name="Status" 
+            type="text/plain">ARCHIVED</metadata>,
+         
+         <metadata category="summary" name="Satellite" type="text/plain">Sentinel-2</metadata>,
+         <metadata queryable="size" 
+            category="summary" name="Size" type="text/plain">
+         123456 GB
+         </metadata>,
+         <metadata category="summary" 
+            name="Date" 
+            type="text/date+iso8601">
+            2002-02-02T00:05:00.123456
+         </metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+
+   <rdf:Description rdf:about="&s2;manifestFootPrintProduct">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         declare function local:trim ($arg as xs:string) as xs:string
+         {
+            replace(replace(replace($arg,'\s+$',''),'^\s+',''), '\s+', ' ')
+         };
+         declare function local:revert ($coords as xs:string) as xs:string
+         {
+            let $tcoords := fn:tokenize ($coords, ",")
+            return
+               concat ($tcoords[2], ",", $tcoords[1])
+         };
+         
+         declare function local:formatCoordinates ($coords as xs:string, 
+            $revert_flag as xs:boolean) as xs:string
+         {
+            let $tcoords := fn:tokenize (local:trim($coords), " ")
+            let $reverted := 
+               (
+                  for $c in $tcoords
+                  return
+                     if ($revert_flag) then local:revert ($c)
+                     else $c
+                  ,
+                  if ($revert_flag) then local:revert ($tcoords[1])
+                  else $tcoords[1]
+               )
+            return
+               fn:string-join ($reverted, " ")
+         };
+         
+         declare function local:checkSrsName ($srs as xs:string) as xs:string
+         {
+            fn:replace($srs, "(?i)([a-z]*:)/*(.*)", "$1//$2")
+         };
+
+         declare function local:points() as xs:string
+         {
+            data(manifest.safe/XFDU/metadataSection/
+                 metadataObject[fn:matches(@ID,".+FrameSet")]/
+                 metadataWrap/xmlData/frameSet/frame[1]/
+                 footPrint/coordinates)
+         };
+         
+         declare function local:srsName() as xs:string
+         {
+            data(manifest.safe/XFDU/metadataSection/
+                 metadataObject[fn:matches(@ID,".+FrameSet")]/
+                 metadataWrap/xmlData/frameSet/frame[1]/footPrint/@srsName)
+         };
+         
+         let $points_count:=fn:count(fn:tokenize(local:trim(local:points())," "))
+         return
+         if ($points_count<4)
+         then
+            trace ((), 
+               concat ("XQUERY WARN: Not enough coordinates in footprint (", $points_count, ")"))
+         else
+         (
+            <metadata 
+               queryable="GMLfootprint"
+               category="product" 
+               name="Footprint" 
+               type="application/gml+xml">
+            <gml:Polygon srsName="{local:checkSrsName(local:srsName())}"
+                 
+               xmlns:gml="http://www.opengis.net/gml">
+                  <gml:outerBoundaryIs>
+                     <gml:LinearRing>
+                        <gml:coordinates>
+                        {
+                           local:formatCoordinates(local:points(), fn:false())
+                        }
+                        </gml:coordinates>
+                     </gml:LinearRing>
+                  </gml:outerBoundaryIs>
+               </gml:Polygon>
+            </metadata>,
+            <metadata 
+               queryable="footprint"
+               category="product" 
+               name="JTS footprint" 
+               type="application/jts">
+               {
+               concat ("POLYGON ((",
+                  fn:replace ( 
+                  fn:replace (
+                  fn:replace (
+                     local:formatCoordinates(local:points(), fn:true()), 
+                        " +", "@"), "@*,@*", " "), "@", ","), "))")
+                   (: switch " " with "," :)
+                }
+            </metadata>
+         )
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+
+
+   <rdf:Description rdf:about="&s2;level0product">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+      
+         <metadata category="product" name="Product level" type="text/plain">L0</metadata>,
+         
+         <metadata
+            queryable="sensorOperationalMode"
+            category="instrument" name="Instrument mode" type="text/plain">
+            123456
+         </metadata>,
+         
+         <metadata category="summary" name="Mode" type="text/plain">
+            123456
+         </metadata>,
+         
+         <metadata queryable="orbitDirection"
+            category="product" 
+            name="Pass direction" 
+            type="text/plain">
+            123456
+         </metadata>,
+         
+         <metadata
+            category="product" 
+            name="Echo Compression Type" 
+            type="text/plain">
+            123456
+         </metadata>,
+         
+         <metadata
+            category="product" 
+            name="Noise Compression Type" 
+            type="text/plain">
+            123456
+         </metadata>,
+         
+         <metadata
+            category="product" 
+            name="Circulation flag" 
+            type="text/plain">
+            123456
+         </metadata>,
+         
+         <metadata
+            queryable="productConsolidation"
+            category="product" 
+            name="Product consolidation" 
+            type="text/plain">
+            123456
+         </metadata>,
+
+         <metadata
+            category="product" 
+            name="Cal Compression Type" 
+            type="text/plain">
+            123456
+         </metadata>,
+         
+         <metadata
+            category="product" 
+            name="Byte Order" 
+            type="text/plain">
+            123456
+         </metadata>
+         
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+   
+   <rdf:Description rdf:about="&s2;level1product">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         <metadata category="product" name="Product level" type="text/plain">L1</metadata>,
+         
+         <metadata
+            queryable="sensorOperationalMode"
+            category="instrument" name="Instrument mode" type="text/plain">
+            123456
+         </metadata>,
+         
+         <metadata category="summary" name="Mode" type="text/plain">
+            123456
+         </metadata>,
+         
+         <metadata  queryable="swathIdentifier" 
+            category="instrument" name="Instrument swath" type="text/plain">
+            123456
+         </metadata>,
+         
+         <metadata queryable="orbitDirection"
+            category="product" 
+            name="Pass direction"
+            type="text/plain">
+           123456
+         </metadata>,
+         
+         <metadata queryable="productType"
+            category="product" name="Product type" type="text/plain">
+            123456
+         </metadata>,
+         
+          <metadata
+            category="product" 
+            name="Timeliness Category" 
+            type="text/plain">
+            123456
+         </metadata>
+         
+         
+         
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+   
+   <rdf:Description rdf:about="&s2;level2product">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         <metadata category="product" name="Product level" type="text/plain">L2</metadata>
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+
+
+
+
+   <rdf:Description rdf:about="&s2;pdi">
+      <rdfs:subClassOf rdf:resource="&s2;manifestFootPrintProduct"/>
+      <dhus:identifier rdf:parseType="Literal">
+      <![CDATA[
+         fn:tokenize(name (.), '\.')[1]
+      ]]>
+      </dhus:identifier>
+      
+      <img:descriptor rdf:parseType="Literal" xmlns:img="&img;">
+         <img:collection xmlns:img="&img;">
+            <img:raster name="preview">
+               <img:source>preview/quick-look.png</img:source>
+            </img:raster>
+            
+         </img:collection>
+      </img:descriptor>
+
+      <img:rendering rdf:parseType="Literal" xmlns:img="&img;">
+         <img:operator name="pass-flip">
+            <img:script language="beanshell" version="1.0">
+               ParameterBlock transpose_pb = new ParameterBlock();
+               transpose_pb.addSource(source);
+               
+               if (fr.gael.drb.cortex.topic.sentinel1.Sentinel1Utils.isAscending (source))
+                  transpose_pb.add(javax.media.jai.operator.TransposeDescriptor.FLIP_VERTICAL);
+               else
+                  transpose_pb.add(javax.media.jai.operator.TransposeDescriptor.FLIP_HORIZONTAL);
+                  
+               return JAI.create("transpose",transpose_pb);
+            </img:script>
+         </img:operator>
+      </img:rendering>
+      
+   </rdf:Description>
+
+</rdf:RDF>

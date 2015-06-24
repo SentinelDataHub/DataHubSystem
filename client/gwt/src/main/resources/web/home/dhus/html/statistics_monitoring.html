@@ -1,0 +1,116 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<style>	
+		#statisticsMonitoring_div
+		{
+			display: none;
+			height: 100%;
+		}			
+		
+		.statisticsMonitoring_bloc
+		{
+			width: 948px;
+			border: solid 1px #aaa;
+			background: #DEDEDE;
+			padding: 5px;
+			margin-bottom: 10px;
+		}		
+		
+		.statisticsMonitoring_lastbloc
+		{
+			width: 948px;
+			border: solid 1px #aaa;
+			background: #DEDEDE;
+			padding: 5px;
+		}
+		
+		.statisticsMonitoring_label
+		{
+			width: 125px;
+			display: inline-block;
+		}
+		
+		.statisticsMonitoring_label2
+		{
+			width: 150px;
+			display: inline-block;
+		}
+		
+		.statisticsMonitoring_ok
+		{
+			display: inline-block;
+			color: green;
+			font-weight: bold;
+		}
+		
+		.statisticsMonitoring_date
+		{
+			display: inline-block;
+		}
+				
+		.statisticsMonitoring_title
+		{
+			font-weight: bold;
+			font-size: 13px;
+			margin-bottom: 5px;	
+		}
+	</style>
+	<script>	
+		function showStatisticsMonitoring()
+		{
+			document.getElementById("statisticsMonitoring_div").style.display = "block";		
+		}
+	</script>
+</head>
+<body>      
+	<div id="statisticsMonitoring_div"> 
+		<div class="statisticsMonitoring_bloc">
+			<div class="statisticsMonitoring_title">Server</div>
+			<div class="statisticsMonitoring_label">Database :</div><div class="statisticsMonitoring_ok">Running</div><br>
+			<div class="statisticsMonitoring_label">Security :</div><div class="statisticsMonitoring_ok">Running</div><br>
+			<div class="statisticsMonitoring_label">Search engine :</div><div class="statisticsMonitoring_ok">Running</div><br>
+			<div class="statisticsMonitoring_label">Server :</div><div class="statisticsMonitoring_ok">Running</div><br>
+		</div>
+		<div class="statisticsMonitoring_bloc">
+			<div class="statisticsMonitoring_title">Services</div>
+			<div class="statisticsMonitoring_label">Metalink service :</div><div class="statisticsMonitoring_ok">Running</div><br>
+			<div class="statisticsMonitoring_label">Odata service :</div><div class="statisticsMonitoring_ok">Running</div><br>
+			<div class="statisticsMonitoring_label">Registration service :</div><div class="statisticsMonitoring_ok">Running</div><br>
+			<div class="statisticsMonitoring_label">Suggester service :</div><div class="statisticsMonitoring_ok">Running</div><br>
+			<div class="statisticsMonitoring_label">Upload service :</div><div class="statisticsMonitoring_ok">Running</div><br>
+		</div>
+		<div class="statisticsMonitoring_lastbloc">
+			<div class="statisticsMonitoring_title">Next executions of</div>
+			<div class="statisticsMonitoring_label2">Archive synchronization :</div><div class="statisticsMonitoring_date" id="statisticsMonitoring_archiveSynchronization">unknown</div><br>			
+			<div class="statisticsMonitoring_label2">Database cleanup :</div><div class="statisticsMonitoring_date" id="statisticsMonitoring_dbCleanup">unknown</div><br>
+			<div class="statisticsMonitoring_label2">Database dump :</div><div class="statisticsMonitoring_date" id="statisticsMonitoring_dbDump">unknown</div><br>
+			<div class="statisticsMonitoring_label2">Database dump cleanup :</div><div class="statisticsMonitoring_date" id="statisticsMonitoring_dbDumpCleanup">unknown</div><br>
+			<div class="statisticsMonitoring_label2">Emailing logs :</div><div class="statisticsMonitoring_date" id="statisticsMonitoring_emailingLogs">unknown</div><br>
+			<div class="statisticsMonitoring_label2">Eviction :</div><div class="statisticsMonitoring_date" id="statisticsMonitoring_evictionSchedule">unknown</div><br>
+			<div class="statisticsMonitoring_label2">Users saved searches :</div><div class="statisticsMonitoring_date" id="statisticsMonitoring_usersSavedSearches">unknown</div><br>
+			<div class="statisticsMonitoring_label2">Users file scanners :</div><div class="statisticsMonitoring_date" id="statisticsMonitoring_usersFileScanners">unknown</div><br>
+			<div class="statisticsMonitoring_label2">System check :</div><div class="statisticsMonitoring_date" id="statisticsMonitoring_systemCheck">unknown</div><br>
+		</div>
+	</div>
+</body>
+</html>

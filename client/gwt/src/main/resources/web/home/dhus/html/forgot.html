@@ -1,0 +1,178 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<style>		
+		#forgot_div
+		{
+			display: none;
+		}
+		
+		#forgot_panel
+		{
+			text-align: left;
+			width: 590px;
+		}
+		
+		.forgot_line
+		{
+		}
+		
+		.forgot_label
+		{
+			width: 80px;
+			display:inline-block;
+		}	
+		
+		.forgot_field
+		{
+			width: 200px;
+			font-size: 12px;
+			vertical-align: middle;
+			font-family: "Trebuchet MS", Helvetica, sans-serif;	
+			margin-bottom: 3px;
+			margin-right: 5px;
+			height: 16px;
+		}
+		
+		#forgot_space
+		{
+			height: 15px;
+		}
+		
+		#forgot_button_div
+		{
+			text-align: center;
+		}
+		
+		#forgot_button
+		{	
+			font-size: 12px;
+			text-align: center;
+			width: 70px;
+		}
+	</style>
+	<script>	
+		var forgot_mailConfirmFocused = false;	
+		var forgot_mailCheck = new RegExp("^[a-z0-9!#$%\x26'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%\x26'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$");
+				
+		function activateForgotButton()
+		{		
+			var userValue = document.getElementById('forgot_username').value;
+			var mail = document.getElementById('forgot_mail').value;
+			var mailConfirm = document.getElementById('forgot_mail_confirm').value;
+						
+			if (userValue == null || userValue == "" ||
+				mail == null || mail == "" || mail != mailConfirm || !forgot_mailCheck.test(mail))
+			{		
+				document.getElementById('forgot_button').className = "button_disabled";
+			}
+			else
+			{
+				document.getElementById('forgot_button').className = "button_black";
+			}
+		}
+	
+		function validateForgotUsername()
+		{
+			var username = document.getElementById('forgot_username').value;
+			if (username ==null || username=="")
+			{
+			  document.getElementById('forgot_username').setCustomValidity('Username field must be filled')	
+			}
+			else
+			{
+			  document.getElementById('forgot_username').setCustomValidity('')
+			}			  
+			activateForgotButton();
+		}
+		
+		function validateForgotMail()
+		{
+			var mail = document.getElementById('forgot_mail').value;
+			var confirm = document.getElementById('forgot_mail_confirm').value;
+			
+			if (!forgot_mailConfirmFocused)
+			{			
+				if (mail == null || mail == "" || !forgot_mailCheck.test(mail))
+				{
+				  document.getElementById('forgot_mail').setCustomValidity('E-mail fields must be filled and equals');			  
+				}
+				else
+				{
+				  document.getElementById('forgot_mail').setCustomValidity('');
+				}	
+			}
+			else
+			{
+				if (mail == null || mail == "" || !forgot_mailCheck.test(mail) || confirm != mail)
+				{
+				  document.getElementById('forgot_mail').setCustomValidity('E-mail fields must be filled and equals');
+				  document.getElementById('forgot_mail_confirm').setCustomValidity('E-mail fields must be filled and equals');			  
+				}
+				else
+				{
+				  document.getElementById('forgot_mail').setCustomValidity('');
+				  document.getElementById('forgot_mail_confirm').setCustomValidity('');
+				}	
+			}					 
+			activateForgotButton();
+		}
+		
+		function validateForgotMailConfirm()
+		{
+			forgot_mailConfirmFocused = true;
+			validateForgotMail();
+		}
+		
+		function showForgot()
+		{
+			document.getElementById("forgot_div").style.display = "block";
+			document.getElementById("block_title").innerHTML = "<b>F</b>orgot <b>P</b>assword";
+		}
+	</script>
+</head>
+<body>
+	<div id="forgot_div">
+	Please fill this form to receive a link that will allow you to set a new password.<br /><br />
+	
+	<center>
+	<div id="forgot_panel">
+		<div class="forgot_line">
+			<div class="forgot_label">Username *</div>
+			<input type="text" name="forgot_username" id="forgot_username" class="forgot_field"
+				onkeyup="validateForgotUsername()"/>
+		</div>	
+		<div class="forgot_line">
+			<div class="forgot_label">E-mail *</div>
+			<input type="text" name="forgot_mail" id="forgot_mail" class="forgot_field" 
+				onkeyup="validateForgotMail()"/>
+			<div class="forgot_label">Confirm it *</div>
+			<input type="text" name="forgot_mail_confirm" id="forgot_mail_confirm" 
+				onkeyup="validateForgotMailConfirm()" class="forgot_field" />
+		</div>	
+		<div id="forgot_space"></div>	
+		<div id="forgot_button_div"><div class="button_disabled" id="forgot_button">Send</div></div>
+	</div>
+	</center>
+	</div>
+</body>
+</html>

@@ -1,0 +1,545 @@
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+	<style>	
+		#searchView_div
+		{	
+			display: none;
+			width: 100%;
+		}		
+		
+		#searchView_table
+		{
+			display: table;
+			width: 100%;
+			margin-top: 5px;
+		}
+				
+		#searchView_left
+		{
+			display: table-cell;
+ 			padding-right: 5px;
+ 			vertical-align: top;
+ 			padding-top: 2px;
+		}	
+
+		#searchView_DownloadButton
+		{	
+			font-size: 12px;
+			text-align: center;
+			width: 80px;
+		}
+
+		#searchView_infoDiv
+		{
+			display: table-cell;
+ 			width: 400px;
+		}
+				
+		.searchView_info
+		{
+ 			height: 300px;
+		}	
+				
+		.searchView_infoFull
+		{
+ 			height: 505px;
+		}	
+				
+		#searchView_infoTabs 
+		{
+			margin:0px; padding:0px;
+			padding-bottom: 1px;
+			border-bottom:1px solid #464c54; 
+		}
+		
+		#searchView_infoTabs div
+		{
+			list-style:none;
+			display:inline;
+			margin-right: 5px;
+			padding:2px 5px 4px 5px;
+			border-top:1px solid #2f343a; 
+			border-left:1px solid #2f343a; 
+			border-right:1px solid #2f343a; 
+			font-size:16px;
+			font-family:"Yanone Kaffeesatz";
+			letter-spacing: 1px;	
+			background-color:#205887;
+			color:#ffffff;
+		}
+		
+		#searchView_infoTabs div:hover 
+		{
+			cursor: pointer;
+			color: #FF790B;
+			background-color:#205887;
+			border-top:1px solid #2f343a; 
+			border-left:1px solid #2f343a; 
+			border-right:1px solid #2f343a; 
+		}
+		
+		#searchView_infoTabs div.active 
+		{
+			background-color:#E6E6E6;
+			color:#FF790B;
+			border-top:1px solid #464c54; 
+			border-left:1px solid #464c54; 
+			border-right:1px solid #464c54; 
+		}
+		
+		.searchView_infoContent 
+		{
+			background-color:#E6E6E6;
+			padding:10px;
+			border-bottom:1px solid #464c54; 	
+			border-left:1px solid #464c54; 	
+			border-right:1px solid #464c54;
+			z-index: 1000;
+			position: relative;
+			height: 302px;
+		}
+
+		.searchView_infoContentFull
+		{
+			background-color:#E6E6E6;
+			padding:10px;
+			border-bottom:1px solid #464c54; 	
+			border-left:1px solid #464c54; 	
+			border-right:1px solid #464c54;
+			z-index: 1000;
+			position: relative;
+			height: 507px;
+		}
+		
+		.searchView_infoContentData
+		{
+			height: 100%;
+			overflow: auto;
+			text-align: justify;
+		}
+		
+		.searchView_infoContentData a
+		{
+			color: #205887;
+			text-decoration: none;	
+			cursor: pointer;
+		}
+		.searchView_infoContentData a:hover
+		{
+			color: #FF790B;
+			text-decoration: none;	
+		}
+		
+		.searchView_infoContentData b
+		{
+			color: #205887;
+		}
+		
+		.searchView_quicklookDiv
+		{
+			text-align: center;
+		}
+		
+		.searchView_quicklook
+		{
+			max-width: 376px;
+			max-height: 300px;
+ 			border: solid 1px #BBBBBB;
+		}
+		
+		.searchView_quicklookFull
+		{
+			max-width: 376px;
+			max-height: 505px;
+ 			border: solid 1px #BBBBBB;
+		}
+		
+		#searchView_world
+		{		
+ 			padding-top: 5px;
+ 			width: 400px;
+			height: 200px;
+		}
+		
+		#searchView_worldMap
+		{
+			width: 398px;
+			height: 198px;
+ 			border: solid 1px #BBBBBB;
+		}
+		
+		#searchView_drbTree
+		{	
+			display: table-cell;
+			width: 576px;
+			max-width: 576px;
+			height: 549px;	
+ 			vertical-align: top;
+		}
+
+		.searchView_drbTreeNode
+		{
+			width: 21px;
+			display:inline-block;
+			cursor: pointer;
+		}
+
+		.searchView_drbTreeLeaf
+		{
+			width: 21px;
+			display:inline-block;
+		}
+		
+		.searchView_drbTreeNodeImg
+		{
+			vertical-align: middle;
+		}
+		
+		.searchView_drbTreeAttribute
+		{
+			display:inline-block;
+			font-size: 10px;
+			width: 537px;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			vertical-align: middle;
+		}
+		
+		.searchView_drbTreeRow
+		{
+			display:inline-block;
+			width: 537px;
+		}
+		
+		.searchView_drbTreeNodeName
+		{
+			display:inline-block;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			vertical-align: middle;
+			padding-right: 5px;
+		}
+		
+		.searchView_drbTreeNodeValue
+		{
+			display:inline-block;
+			width: 283px;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			vertical-align: middle;
+		}
+
+		.searchView_download
+		{
+			font-weight: bold;
+			color: #205887;
+			text-decoration: none;	
+			cursor: pointer;
+		}
+	
+		.searchView_download:hover
+		{
+			color: #FF790B;
+			text-decoration: none;	
+		}	
+	
+		#searchView_div tbody tr.even:hover, #example tbody tr.even td.highlighted {
+			cursor: default;
+		}
+
+		#searchView_div tbody tr.odd:hover, #example tbody tr.odd td.highlighted {
+			cursor: default;
+		}
+	</style>
+	<script>
+		var searchViewApiKey = "Aj33PP3yOf0ysw8LJx2RnGfMVRVpHkr2kANuiPWQhhgLCxI1qlSm6kUAJ6U822x-";
+		var searchViewMap;
+		var searchViewVectorLayer;
+		var noMap = false;
+		var viewDrbTreeFunction;
+		var viewDrbTreeTable;
+		
+		function init(){      
+        	var lineSymbolizer = new OpenLayers.Symbolizer.Line({
+        		strokeColor: "#ccccff",
+        		strokeOpacity: 0.75,
+        		strokeWidth: 1,
+        		strokeLinecap: "square",
+        		strokeDashstyle: "dash"
+        	});
+        	
+        	var labelSymbolizer = new OpenLayers.Symbolizer.Text({
+        		fontColor: "#ccccff",
+        		fontSize: "11px",
+        		fontWeight: "bold",
+        		opacity: 0.75
+        	});
+              
+        	var graticule = new OpenLayers.Control.Graticule({
+        			targetSize: 250,
+        			labelled: true,
+        			displayInLayerSwitcher : true,
+					lineSymbolizer : lineSymbolizer,
+					labelSymbolizer : labelSymbolizer
+                });
+        
+        	var mapOptions = {
+	            controls: [
+	            	new OpenLayers.Control.Navigation(),
+	            	new OpenLayers.Control.ArgParser(),
+	            	new OpenLayers.Control.ScaleLine(),
+	            	graticule], 
+	            numZoomLevels: 16
+	        };
+        
+            searchViewMap = new OpenLayers.Map('searchView_worldMap', mapOptions);
+
+            var hybrid = new OpenLayers.Layer.Bing({
+                name: "Hybrid",
+                key: searchViewApiKey,
+                type: "AerialWithLabels"
+            });
+            
+            searchViewVectorLayer = new OpenLayers.Layer.Vector("Vector Layer");
+            searchViewVectorLayer.displayInLayerSwitcher = false;
+            
+            searchViewMap.addLayers([hybrid, searchViewVectorLayer]);
+                        
+            searchViewMap.setCenter(
+               new OpenLayers.LonLat(2.21, 48.51).
+                  transform(new OpenLayers.Projection("EPSG:4326"),
+               searchViewMap.getProjection()),2);            
+        }
+		
+		function addInformationTab(name, data, active)
+		{
+			var id = name
+			var content = document.createElement("div");
+			content.className = "searchView_infoContent"+(noMap?"Full":"");
+			content.id = "searchView_infoContent"+id;
+			content.style = "display: none";
+			var innerContent = document.createElement("div");
+			innerContent.className = "searchView_infoContentData";
+			innerContent.innerHTML = data;
+			content.appendChild(innerContent);			
+			document.getElementById("searchView_infoDiv").appendChild(content);
+			
+			var menuItem = document.createElement("div");
+			menuItem.id = "searchView_infoTab"+id;
+			menuItem.className = "searchView_infoTab "+(active ? "active":"");
+			menuItem.textContent = name;
+			menuItem.onclick = function()
+			{
+				if (menuItem.className !== "searchView_infoTab active")
+				{
+					$(".active").removeClass("active");
+					document.getElementById("searchView_infoTab"+id).className = "searchView_infoTab active";
+					$(".searchView_infoContent").slideUp();	
+					$(".searchView_infoContentFull").slideUp();	
+					$("#searchView_infoContent"+id).slideDown();
+				}
+			}
+			document.getElementById("searchView_infoTabs").appendChild(menuItem);
+			if (active)
+			{
+				$("#searchView_infoContent"+id).slideDown();	
+			}
+			else
+			{				
+				$("#searchView_infoContent"+id).slideUp();	
+			}
+		}
+
+		function hideSearchViewFootprint()
+		{
+			document.getElementById("searchView_world").style.display = "none";
+			document.getElementById("searchView_infoDiv").className = "searchView_infoFull";			
+			noMap = true;
+		}
+		
+		function setSearchViewFootprint(features)
+		{
+			noMap = false;
+			searchViewVectorLayer.destroyFeatures();
+    		src = searchViewMap.getProjection();
+    		dst = new OpenLayers.Projection("EPSG:4326");
+			var v = new OpenLayers.Feature.Vector(features.geometry);
+			v.geometry.transform(dst, src);
+			searchViewVectorLayer.addFeatures([v]);
+            searchViewMap.zoomToExtent (v.geometry.bounds);
+			document.getElementById("searchView_world").style.display = "block";
+			document.getElementById("searchView_infoDiv").className = "searchView_info";
+		}
+		
+		function resetSearchView(title)
+		{
+			document.getElementById("block_title").innerHTML = "<b>"+title.substring(0,1)+"</b>"+title.substring(1);
+			document.getElementById("searchView_infoDiv").innerHTML = "";
+			var content = document.createElement("div");
+			content.id = "searchView_infoTabs";
+			document.getElementById("searchView_infoDiv").appendChild(content);
+		}
+		
+		function showSearchView(getDrbTreeFunction, viewDrbTreeFunc)
+		{
+			document.getElementById("searchView_div").style.display = "block";
+			viewDrbTreeFunction = viewDrbTreeFunc;
+			init();
+		    
+		   viewDrbTreeTable = initDrbTable("searchView_drbTree", getDrbTreeFunction, [{ "sTitle": "",
+				  "mRender": function ( data, type, full ) {
+				  		if (data.isAttribute)
+				  		{
+				  			return "<div class='searchView_drbTreeAttribute' title='"+data.value+"'><div style='display:inline-block; width:calc("+data.deep+"*10px)'/><div class='searchView_drbTreeNode' />"+data.value+"</div>";
+				  		}
+				  		else if (data.hasChildren)
+				  		{
+							return "<div class='searchView_drbTreeRow'><div style='display:inline-block; width:calc("+data.deep+"*10px)'/><div class='searchView_drbTreeNode' onclick='viewDrbTreeFunction(event, \""+data.path+"\", "+data.isLoadMoreNode+")'><img class='searchView_drbTreeNodeImg' src='home/dhus/images/Folder"+(data.open?"Open":"Close")+".png' "+(data.open?"onmouseout='this.src=\"home/dhus/images/FolderOpen.png\"' onmouseover='this.src=\"home/dhus/images/FolderClose.png\"'":"onmouseout='this.src=\"home/dhus/images/FolderClose.png\"' onmouseover='this.src=\"home/dhus/images/FolderOpen.png\"'")+"/></div><div class='searchView_drbTreeNodeName' style='width: calc(249px - 21px - ("+data.deep+"*10px))' title='"+data.name+"'>"+data.name+"</div><div class='searchView_drbTreeNodeValue' title='"+data.value+"'>"+data.value+"</div></div>";
+						}
+						else
+						{
+							return "<div class='searchView_drbTreeRow'><div style='display:inline-block; width:calc("+data.deep+"*10px)'/><div class='searchView_drbTreeLeaf'><img class='searchView_drbTreeNodeImg' src='home/dhus/images/Leaf_file.png'/></div><div class='searchView_drbTreeNodeName' style='width: calc(249px - 21px - ("+data.deep+"*10px))' title='"+data.name+"'>"+data.name+"</div><div class='searchView_drbTreeNodeValue' title='"+data.value+"'>"+data.value+"</div></div>";
+						}
+					}}], "<col/>", '<"H"ir>t<"F">',
+				{ "sEmptyTable": " ",
+				  "sLengthMenu": "Page size: _MENU_",
+				  "sInfo": "<div id='searchView_download'>Explore the product</div>",
+				  "sInfoEmpty": "<div id='searchView_download'>Explore the product</div>",
+				  "oPaginate": {
+				        "sFirst": "<<",
+				        "sPrevious": "<",
+				        "sNext": ">",
+				        "sLast": ">>"
+				      }
+				  }, 553, []);
+
+				$('#searchView_drbTree .dataTables_scrollBody').css('overflow-y', 'scroll');
+			}		
+		
+		function setSearchViewQuicklook(url)
+		{
+			var id = "Quicklook";
+			addInformationTab("Quicklook");
+			var link = document.createElement("a");
+			link.href = url;
+			link.target = "_blank";				
+			var img = document.createElement("img");
+			img.src = url;	
+			img.className = "searchView_quicklook"+(noMap ? "Full" : "");		
+			link.appendChild(img);
+			var content = document.createElement("div");
+			content.className = "searchView_quicklookDiv";
+			content.appendChild(link);
+			document.getElementById("searchView_infoContent"+id).innerHTML = "";
+			document.getElementById("searchView_infoContent"+id).appendChild(content);			
+		}
+		
+		function refreshViewDrbTree()
+		{
+			viewDrbTreeTable.fnDraw(false);
+		}
+		
+		function initDrbTable(tableId, requestDataFunction, aoColumns, columns, sDom, oLanguage, parentHeight, pageLengths, onClickFunction) {
+			$("#"+tableId).html(
+				'<table cellpadding="0" cellspacing="0" border="0" class="display" id="'+
+					tableId+'Display">'+columns+'</table>');
+				
+			var oTable = $("#"+tableId+"Display").dataTable({
+				"aoColumns": aoColumns,
+				"bJQueryUI": true,
+				"sDom" : sDom,
+				"sPaginationType": "full_numbers",	
+				"bSort" : false,
+				"bDeferRender": true,
+				"bServerSide" : true,
+				"sAjaxSource" : "",
+				"fnServerData": requestDataFunction,
+				"oLanguage": oLanguage,
+				"iDisplayLength": pageLengths[0],
+				"aLengthMenu": pageLengths,
+				"sScrollY": "0px",
+				    "fnDrawCallback": function() {
+				        var $dataTable = $("#"+tableId+"Display").dataTable();
+				        $dataTable.fnAdjustColumnSizing(false);
+
+				        if (typeof(TableTools) != "undefined") {
+				            var tableTools = TableTools.fnGetInstance(table);
+				            if (tableTools != null)
+				            {
+				            	if (tableTools.fnResizeRequired()) 
+				            	{
+				                	tableTools.fnResizeButtons();
+				                }
+				            }
+				        }
+
+				        var $dataTableWrapper = $("#"+tableId+"Display").closest(".dataTables_wrapper");
+
+				        var toolbarHeights = 0;
+				        $dataTableWrapper.find(".fg-toolbar").each(function(i, obj) {
+				            toolbarHeights = toolbarHeights + $(obj).height();
+				        });
+						
+						var scrollHeadHeight = $dataTableWrapper.find(".dataTables_scrollHead").height();
+				        var height = parentHeight - toolbarHeights - scrollHeadHeight;
+				        $dataTableWrapper.find(".dataTables_scrollBody").height(height - 24);
+				        
+				        $dataTable._fnScrollDraw();
+				    }
+				});
+				if (onClickFunction !== undefined)
+				{				
+					jQuery("#"+tableId+"Display").on('click','tr', function() {
+						if ( $(this).hasClass('row_selected') ) {
+				            $(this).removeClass('row_selected');
+      						onClickFunction(oTable.fnGetData( this ));
+				        }
+				        else {
+				            $(this).addClass('row_selected');
+      						onClickFunction(oTable.fnGetData( this ));
+				        }      					
+					});
+				}
+				return oTable;
+		}
+	</script>
+</head>
+<body>
+	<div id="searchView_div">
+		<div id="searchView_table">
+			<div id="searchView_left">
+				<div id="searchView_infoDiv" class="searchView_info">
+					<div id="searchView_infoTabs"/>
+				</div>
+				<div id="searchView_world"><div id="searchView_worldMap"/></div>
+			</div>
+			<div>				
+					<div id="searchView_drbTree" rowspan="3"></div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
