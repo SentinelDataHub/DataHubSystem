@@ -214,4 +214,9 @@ public class StatisticsService extends WebService
    {      
       return actionRecordReaderDao.getDownloadsSizePerDomain (start, end, perHour);
    }
+
+   public int getTotalUploads ()
+   {
+      return actionRecordReaderDao.getTotalUploads();
+   }
 }

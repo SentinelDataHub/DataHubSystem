@@ -22,6 +22,8 @@ package fr.gael.dhus.gwt.client.page.statistics;
 import java.util.Arrays;
 
 import com.google.gwt.core.client.JavaScriptObject;
+import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.ui.RootPanel;
 
 import fr.gael.dhus.gwt.client.page.AbstractPage;
 import fr.gael.dhus.gwt.services.StatisticsServiceAsync;
@@ -30,7 +32,9 @@ import fr.gael.dhus.gwt.share.RoleData;
 public class StatisticsUploads extends AbstractPage
 {  
    private static StatisticsServiceAsync statisticsService = StatisticsServiceAsync.Util.getInstance ();
-   
+
+   private static RootPanel totalUploads;
+
    public StatisticsUploads()
    {
       // name is automatically prefixed in JS by "statistics_"
@@ -73,11 +77,27 @@ public class StatisticsUploads extends AbstractPage
 
    private static void refresh()
    {
+      totalUploads.getElement ().setInnerText ("unknown");
+
+      statisticsService.getTotalUploads (new AsyncCallback<Integer>()
+      {
+         @Override
+         public void onSuccess (Integer result)
+         {
+            totalUploads.getElement ().setInnerText (""+result);
+         }
+
+         @Override
+         public void onFailure (Throwable caught)
+         {
+         }
+      });
    }
    
    private static void init()
    {
       showStatisticsUploads();
+      totalUploads = RootPanel.get ("statisticsUploads_totalUploads");
       
       refresh();      
    }

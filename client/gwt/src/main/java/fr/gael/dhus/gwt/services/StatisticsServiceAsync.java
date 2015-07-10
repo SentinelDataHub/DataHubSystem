@@ -59,7 +59,9 @@ public interface StatisticsServiceAsync
    public void getDownloadsPerUser(Date start, Date end, List<String> users, boolean perHour, AsyncCallback<String[][]> callback);
    public void getDownloadsPerDomain(Date start, Date end, boolean perHour, AsyncCallback<String[][]> callback);
    public void getDownloadsPerUsage(Date start, Date end, boolean perHour, AsyncCallback<String[][]> callback);
-   
+
+   public void getTotalUploads (AsyncCallback<Integer> callback);
+
    /**
     * Utility class to get the RPC Async interface from client-side code
     */

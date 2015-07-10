@@ -88,14 +88,19 @@
 			var dataSet = [["2012-10-02", 400], ["2012-10-09", 50], ["2012-10-12", 850]];
 			doPie("statisticsUploads_graph",dataSet);
 		}
+
+		function statisticsDownloads_refreshUsers()
+		{
+			statisticsDownloads_table.fnDraw(false);
+		}
 	</script>
 </head>
 <body>      
-	<div id="statisticsUploads_div"> Coming soon...
-		<!--div class="statisticsUploads_bloc">			
+	<div id="statisticsUploads_div">
+		<div class="statisticsUploads_bloc">
 			<div class="statisticsUploads_label">Total Uploads : </div><div id="statisticsUploads_totalUploads" class="statisticsUploads_inline">.</div><br>
-			<div class="statisticsUploads_label">Total Succeeded Uploads : </div><div id="statisticsUploads_totalUploads" class="statisticsUploads_inline">.</div><br>
-			<div class="statisticsUploads_label">Total Failed Uploads : </div><div id="statisticsUploads_totalUploads" class="statisticsUploads_inline">.</div><br>
+			<div class="statisticsUploads_label">Total Succeeded Uploads : </div><div id="statisticsUploads_totalSucceededUploads" class="statisticsUploads_inline">.</div><br>
+			<div class="statisticsUploads_label">Total Failed Uploads : </div><div id="statisticsUploads_totalFailedUploads" class="statisticsUploads_inline">.</div><br>
 		</div>
 		<div class="statisticsUploads_bloc">
 			<div class="statisticsUploads_graphTitleDiv">
@@ -113,7 +118,7 @@
 				<div class="statisticsUploads_graphTitle button_black" onclick="switchC()">Failed uploads / company</div>
 			</div>	
 			<div id="statisticsUploads_graph"></div>
-		</div-->
+		</div>
 	</div>
 </body>
 </html>

@@ -58,5 +58,7 @@ public interface StatisticsService extends RemoteService
    public int getTotalDownloads (); 
    public String[][] getDownloadsPerUser (Date start, Date end, List<String> users, boolean perHour);
    public String[][] getDownloadsPerDomain (Date start, Date end, boolean perHour);  
-   public String[][] getDownloadsPerUsage (Date start, Date end, boolean perHour);  
+   public String[][] getDownloadsPerUsage (Date start, Date end, boolean perHour);
+
+   public int getTotalUploads ();
 }

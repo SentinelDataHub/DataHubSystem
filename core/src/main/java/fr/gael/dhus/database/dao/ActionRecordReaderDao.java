@@ -1581,6 +1581,21 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
 
    /**
     * Retrieve the upload count.
+    *
+    * @param periodicity
+    *           A list of two Date.
+    * @return count The upload count.
+    */
+   public int getTotalUploads()
+   {
+      final String sql = "SELECT COUNT (ACTION_RECORD_UPLOADS.ID) "
+              + " FROM ACTION_RECORD_UPLOADS WHERE STATUS='SUCCEEDED'";
+
+      return getCountValue(sql);
+   }
+
+   /**
+    * Retrieve the upload count.
     * 
     * @param periodicity
     *           The periodicity (YEAR, MONTH or WEEK)
