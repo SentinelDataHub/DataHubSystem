@@ -219,4 +219,19 @@ public class StatisticsService extends WebService
    {
       return actionRecordReaderDao.getTotalUploads();
    }
+
+   public String[][] getUploadsPerUser (Date start, Date end, List<String> users, boolean perHour)
+   {
+      return actionRecordReaderDao.getUploadsPerUser(start, end, users, perHour);
+   }
+
+   public String[][] getUploadsPerUsage (Date start, Date end, boolean perHour)
+   {
+      return actionRecordReaderDao.getUploadsPerUsage(start, end, perHour);
+   }
+
+   public String[][] getUploadsPerDomain (Date start, Date end, boolean perHour)
+   {
+      return actionRecordReaderDao.getUploadsPerDomain(start, end, perHour);
+   }
 }

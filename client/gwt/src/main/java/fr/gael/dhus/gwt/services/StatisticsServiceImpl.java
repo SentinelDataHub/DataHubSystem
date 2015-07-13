@@ -333,8 +333,32 @@ public class StatisticsServiceImpl extends RemoteServiceServlet implements
    public int getTotalUploads ()
    {
       fr.gael.dhus.service.StatisticsService statisticsService = ApplicationContextProvider
+              .getBean(fr.gael.dhus.service.StatisticsService.class);
+
+      return statisticsService.getTotalUploads();
+   }
+
+   public String[][] getUploadsPerUser (Date start, Date end, List<String> users, boolean perHour)
+   {
+      fr.gael.dhus.service.StatisticsService statisticsService = ApplicationContextProvider
               .getBean (fr.gael.dhus.service.StatisticsService.class);
 
-      return statisticsService.getTotalUploads ();
+      return statisticsService.getUploadsPerUser(start, end, users, perHour);
+   }
+
+   public String[][] getUploadsPerDomain (Date start, Date end, boolean perHour)
+   {
+      fr.gael.dhus.service.StatisticsService statisticsService = ApplicationContextProvider
+              .getBean (fr.gael.dhus.service.StatisticsService.class);
+
+      return statisticsService.getUploadsPerDomain(start, end, perHour);
+   }
+
+   public String[][] getUploadsPerUsage (Date start, Date end, boolean perHour)
+   {
+      fr.gael.dhus.service.StatisticsService statisticsService = ApplicationContextProvider
+              .getBean(fr.gael.dhus.service.StatisticsService.class);
+
+      return statisticsService.getUploadsPerUsage(start, end, perHour);
    }
 }
