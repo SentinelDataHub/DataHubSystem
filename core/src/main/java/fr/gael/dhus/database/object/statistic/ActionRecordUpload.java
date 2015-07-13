@@ -19,28 +19,15 @@
  */
 package fr.gael.dhus.database.object.statistic;
 
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.persistence.CollectionTable;
 import javax.persistence.Column;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
 import javax.persistence.Table;
 
 @Entity
 @Table (name = "ACTION_RECORD_UPLOADS")
-public class ActionRecordUpload extends ActionRecord implements Serializable
+public class ActionRecordUpload extends ActionRecord
 {
    private static final long serialVersionUID = -257656398449198251L;
-
-   /**
-    * Notification (case of upload)
-    */
-   @Column (name = "NOTIFICATION", columnDefinition = "BOOLEAN", nullable = true)
-   private boolean notificationRequired;
 
    /**
     * Product identifier. This field is a simple String (and not a Product since
@@ -54,23 +41,6 @@ public class ActionRecordUpload extends ActionRecord implements Serializable
     */
    @Column (name = "PRODUCT_SIZE", nullable = true)
    private Long productSize;
-
-   /**
-    * Collection list.
-    */
-   @ElementCollection (targetClass=String.class)
-   @CollectionTable (name = "COLLECTION_ID_NAME", joinColumns = @JoinColumn (name="ACTION_RECORD_UPLOAD_ID"))
-   private Set<String> collectionNameList = new HashSet<String> ();
-
-   public boolean isNotificationRequired ()
-   {
-      return notificationRequired;
-   }
-
-   public void setNotificationRequired (boolean notification)
-   {
-      this.notificationRequired = notification;
-   }
 
    public String getProductIdentifier ()
    {
@@ -90,15 +60,5 @@ public class ActionRecordUpload extends ActionRecord implements Serializable
    public void setProductSize (Long productSize)
    {
       this.productSize = productSize;
-   }
-
-   public Set<String> getCollectionNameList ()
-   {
-      return collectionNameList;
-   }
-
-   public void setCollectionNameList (Set<String> collectionNameList)
-   {
-      this.collectionNameList = collectionNameList;
    }
 }
