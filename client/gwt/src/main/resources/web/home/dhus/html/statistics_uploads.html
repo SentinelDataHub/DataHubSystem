@@ -21,13 +21,13 @@
 <html>
 <meta charset="utf-8">
 <head>
-	<style>	
+	<style>
 		#statisticsUploads_div
 		{
 			display: none;
 			height: 100%;
-		}				
-		
+		}
+
 		.statisticsUploads_bloc
 		{
 			width: 948px;
@@ -35,85 +35,319 @@
 			background: #DEDEDE;
 			padding: 5px;
 			margin-bottom: 10px;
-		}	
-		
+		}
+
+		#statisticsUploads_graphBloc
+		{
+			height: 601px;
+		}
+
 		.statisticsUploads_label
 		{
-			width: 170px;
+			width: 110px;
 			display: inline-block;
-		}		
-		
+		}
+
 		.statisticsUploads_inline
 		{
 			display: inline-block;
-		}		
-		
+		}
+
 		.statisticsUploads_graphTitleDiv
 		{
 			width: 100%;
 			text-align: right;
 		}
-		
+
 		.statisticsUploads_graphTitle
 		{
 			width: 180px;
-			font-size: 12px;	
-			text-align: center;		
+			font-size: 12px;
+			text-align: center;
+		}
+
+		#statisticsUploads_graphOptions
+		{
+			padding-top: 3px;
+			padding-bottom: 3px;
+			text-align: center;
+			width: 100%;
+			float: left;
+		}
+
+		#statisticsUploads_emptyGraphOptions
+		{
+			padding-top: 3px;
+			padding-bottom: 3px;
+			width: 100%;
+			height: 30px;
+		}
+
+		.statisticsUploads_dateField
+		{
+			display: inline-block;
+		}
+
+		.statisticsUploads_dateFieldLabelCol3
+		{
+			display: inline-block;
+			width: 115px;
+		}
+
+		.statisticsUploads_dateFieldInput
+		{
+			display: inline-block;
+			width: 190px;
+			border:1px solid #7f9db9;
+			height: 20px;
+			margin-top: 2px;
+			font-family: "Trebuchet MS", Helvetica, sans-serif;
+			font-size: 12px;
+		}
+
+		.statisticsUploads_dateFieldToLabel
+		{
+			display: inline-block;
+			width: 15px;
+		}
+
+		.statisticsUploads_datepicker
+		{
+			background: white url(home/dhus/images/calendar.png) no-repeat right 2px center;
+			border:1px solid #7f9db9;
+			height: 20px;
+			padding-right: 20px;
+			width: 73px;
+			cursor: pointer;
+		}
+
+		#statisticsUploads_refresh
+		{
+			width: 80px;
+			font-size: 12px;
+			text-align: center;
+			margin-left: 5px;
+			margin-right: 5px;
+		}
+
+		.statisticsUploads_selected
+		{
+			cursor: pointer;
+			color: #fff;
+			background: #FF790B url('home/dhus/images/button_hover.gif') repeat-x;
+			border: solid 1px #DB7623;
+		}
+
+		.statisticsUploads_scaleButton
+		{
+			vertical-align: middle;
+			margin-top: -2px;
+			cursor: pointer;
+		}
+
+		#statisticsUploads_scaleBloc
+		{
+			display: inline-block;
+			border: solid 1px #aaa;
+			background: #CDCDCD;
+			padding: 5px;
+			margin-top: 5px;
+			text-align: left;
+			width: 340px;
+		}
+
+		.statisticsUploads_scaleOption
+		{
+			width: 49%;
+			display: inline-block;
+			cursor: pointer;
+		}
+
+		#statisticsUploads_table
+		{
+			width: 330px;
+			float: left;
+			padding-top: 5px;
+			text-align: left;
+		}
+
+		.statisticsUploads_tableCheckbox
+		{
+			vertical-align: middle;
+			margin-bottom: 1px;
+		}
+
+		#statisticsUploads_graph
+		{
+			float: right;
+		}
+
+		.statisticsUploads_deletedUser
+		{
+			color: gray;
 		}
 	</style>
-	<script>	
-		function showStatisticsUploads()
+	<script>
+		var uploadsPerUserDataset = [];
+		var uploadsPerDomainDataset = [];
+		var uploadsPerUsageDataset = [];
+		var uploadsPerProductDataset = [];
+		var statisticsUploads_table;
+		var statisticsUploads_checkedFunction;
+		var statisticsUploads_scaleChangedFunction;
+
+		function showStatisticsUploads(getUsersFunction, userCheckedFunc, scaleChangedFunc)
 		{
-			document.getElementById("statisticsUploads_div").style.display = "block";		
-			
-			// graph
-			var dataSet = [["2012-10-02", 200], ["2012-10-09", 300], ["2012-10-12", 150]];
-			doLinearGraph("statisticsUploads_graph",dataSet);
+			document.getElementById("statisticsUploads_div").style.display = "block";
+
+			statisticsUploads_checkedFunction = userCheckedFunc;
+			statisticsUploads_scaleChangedFunction = scaleChangedFunc;
+
+			var today = new Date();
+			var dd = today.getDate();
+			var mm = today.getMonth()+1; //January is 0!
+			var yyyy = today.getFullYear();
+			if(dd<10){dd='0'+dd} if(mm<10){mm='0'+mm} today = yyyy+'-'+mm+'-'+dd;
+
+			$( "#statisticsUploads_dateFieldDate" ).Zebra_DatePicker({
+				select_other_months: true,
+				direction: false,
+				show_clear_date: false,
+				onSelect: function(format, date, jsDate, element)
+				{
+					$( "#statisticsUploads_dateFieldDateEnd" ).data('Zebra_DatePicker').update({
+						direction: [date, today]
+					});
+					statisticsUploads_scaleChangedFunction();
+				},
+				onClear: function(format, date, jsDate, element)
+				{
+					$( "#statisticsUploads_dateFieldDateEnd" ).data('Zebra_DatePicker').update({
+						direction: false
+					});
+				}
+			});
+			$( "#statisticsUploads_dateFieldDateEnd" ).Zebra_DatePicker({
+				select_other_months: true,
+				direction: false,
+				show_clear_date: false,
+				onSelect: function(format, date, jsDate, element)
+				{
+					var one_day=1000*60*60*24;
+					var today = new Date();
+					var delta = Math.ceil((jsDate.getTime()-today.getTime())/(one_day));
+					$( "#statisticsUploads_dateFieldDate" ).data('Zebra_DatePicker').update({
+						direction: delta
+					});
+					statisticsUploads_scaleChangedFunction();
+				},
+				onClear: function(format, date, jsDate, element)
+				{
+					$( "#statisticsUploads_dateFieldDate" ).data('Zebra_DatePicker').update({
+						direction: false
+					});
+				}
+			});
+
+			statisticsUploads_table = initStatisticsTable("statisticsUploads_table", getUsersFunction, [
+						{ "sTitle": "", "sClass": "center",
+						"mRender": function ( data, type, full ) {
+							return "<input type='checkbox' class='statisticsUploads_tableCheckbox' "+(data.checked ? "checked" : "")+" onclick='statisticsUploads_checkedFunction(\""+data.name+"\")' />";
+						}},
+					{ "sTitle": "","mRender": function ( data, type, full ) {
+							return (data.deleted?"<i class='statisticsUploads_deletedUser'>":"")+data.name+(data.deleted?"</i>":"");
+						}}], '<col style="width: 20px"/><col/>', '<"H"ifr>t<"F"lp>',
+					{ "sEmptyTable": "No users found.",
+					  "sLengthMenu": "Page size: _MENU_",
+					  "sInfo": "Display _START_ to _END_ of _TOTAL_ users",
+					  "sInfoEmpty": "No users found",
+					  "oPaginate": {
+					        "sFirst": "<<",
+					        "sPrevious": "<",
+					        "sNext": ">",
+					        "sLast": ">>"
+					      }
+					  }, 530, [50, 100]
+					  );
 		}
-		
-		function switchA()
+
+		function statisticsUploads_refreshUsers()
 		{
-			var dataSet = [["2012-10-02", 400], ["2012-10-09", 600], ["2012-10-11", 300], ["2012-10-12", 850]];
-			doBarGraph("statisticsUploads_graph",dataSet);
+			statisticsUploads_table.fnDraw(false);
 		}
-		
-		function switchB()
+
+		function setUploadsPerUserDataset(dataSet, start, end, perHour)
 		{
-			var dataSet = [["2012-10-02", 400], ["2012-10-09", 50], ["2012-10-12", 850]];
-			doLinearGraph("statisticsUploads_graph",dataSet);
+			uploadsPerUserDataset = dataSet;
+			document.getElementById("statisticsUploads_table").style.display = "block";
+			document.getElementById("statisticsUploads_graphOptions").style.display = "block";
+			document.getElementById("statisticsUploads_emptyGraphOptions").style.display = "none";
+			doStackedBarGraph('statisticsUploads_graph',uploadsPerUserDataset.slice(0), 'Uploads', start, end, perHour, 600);
 		}
-		
-		function switchC()
+
+		function setUploadsPerDomainDataset(dataSet, start, end, perHour)
 		{
-			var dataSet = [["2012-10-02", 400], ["2012-10-09", 50], ["2012-10-12", 850]];
-			doPie("statisticsUploads_graph",dataSet);
+			uploadsPerDomainDataset = dataSet;
+			document.getElementById("statisticsUploads_table").style.display = "none";
+			document.getElementById("statisticsUploads_graphOptions").style.display = "block";
+			document.getElementById("statisticsUploads_emptyGraphOptions").style.display = "none";
+			doStackedBarGraph('statisticsUploads_graph',uploadsPerDomainDataset.slice(0), 'Uploads', start, end, perHour, 930);
+		}
+
+		function setUploadsPerUsageDataset(dataSet, start, end, perHour)
+		{
+			uploadsPerUsageDataset = dataSet;
+			document.getElementById("statisticsUploads_table").style.display = "none";
+			document.getElementById("statisticsUploads_graphOptions").style.display = "block";
+			document.getElementById("statisticsUploads_emptyGraphOptions").style.display = "none";
+			doStackedBarGraph('statisticsUploads_graph',uploadsPerUsageDataset.slice(0), 'Uploads', start, end, perHour, 930);
+		}
+
+		function setUploadsPerProductDataset(dataSet, start, end, perHour)
+		{
+			uploadsPerProductDataset = dataSet;
+			document.getElementById("statisticsUploads_table").style.display = "none";
+			document.getElementById("statisticsUploads_graphOptions").style.display = "block";
+			document.getElementById("statisticsUploads_emptyGraphOptions").style.display = "none";
+			doStackedBarGraph('statisticsUploads_graph',uploadsPerProductDataset.slice(0), 'Uploads', start, end, perHour, 930);
 		}
 	</script>
 </head>
-<body>      
-	<div id="statisticsUploads_div"> Coming soon...
-		<!--div class="statisticsUploads_bloc">			
-			<div class="statisticsUploads_label">Total Uploads : </div><div id="statisticsUploads_totalUploads" class="statisticsUploads_inline">.</div><br>
-			<div class="statisticsUploads_label">Total Succeeded Uploads : </div><div id="statisticsUploads_totalUploads" class="statisticsUploads_inline">.</div><br>
-			<div class="statisticsUploads_label">Total Failed Uploads : </div><div id="statisticsUploads_totalUploads" class="statisticsUploads_inline">.</div><br>
-		</div>
+<body>
+	<div id="statisticsUploads_div">
 		<div class="statisticsUploads_bloc">
+			<div class="statisticsUploads_label">Total Uploads : </div><div id="statisticsUploads_totalUploads" class="statisticsUploads_inline">.</div><br>
+		</div>
+		<div class="statisticsUploads_bloc" id="statisticsUploads_graphBloc">
 			<div class="statisticsUploads_graphTitleDiv">
-				<div class="statisticsUploads_graphTitle button_black" onclick="switchA()">Uploads</div>	
-				<div class="statisticsUploads_graphTitle button_black" onclick="switchA()">Uploads (volume)</div>	
-				<div class="statisticsUploads_graphTitle button_black" onclick="switchA()">Uploads / user</div>	
-				<div class="statisticsUploads_graphTitle button_black" onclick="switchA()">Uploads / company</div>	
-				<div class="statisticsUploads_graphTitle button_black" onclick="switchB()">Succeeded uploads</div>	
-				<div class="statisticsUploads_graphTitle button_black" onclick="switchB()">Succeeded uploads (volume)</div>	
-				<div class="statisticsUploads_graphTitle button_black" onclick="switchB()">Succeeded uploads / user</div>	
-				<div class="statisticsUploads_graphTitle button_black" onclick="switchB()">Succeeded uploads / company</div>	
-				<div class="statisticsUploads_graphTitle button_black" onclick="switchC()">Failed uploads</div>
-				<div class="statisticsUploads_graphTitle button_black" onclick="switchC()">Failed uploads (volume)</div>
-				<div class="statisticsUploads_graphTitle button_black" onclick="switchC()">Failed uploads / user</div>
-				<div class="statisticsUploads_graphTitle button_black" onclick="switchC()">Failed uploads / company</div>
-			</div>	
+				<div class="statisticsUploads_graphTitle button_black" id="statisticsUploads_uploadsPerUserButton">Uploads per user</div>
+				<div class="statisticsUploads_graphTitle button_black" id="statisticsUploads_uploadsPerDomainButton">Uploads per domain</div>
+				<div class="statisticsUploads_graphTitle button_black" id="statisticsUploads_uploadsPerUsageButton">Uploads per usage</div>
+				<!--div class="statisticsUploads_graphTitle button_black" id="statisticsUploads_uploadsPerProductButton">Uploads per product</div-->
+			</div>
+			<div id="statisticsUploads_graphOptions">
+				<div class="statisticsUploads_dateField" class="statisticsUploads_datepicker">
+					<input class="statisticsUploads_dateFieldInput statisticsUploads_datepicker" type="text" id="statisticsUploads_dateFieldDate">
+					<div class="statisticsUploads_dateFieldToLabel">to </div>
+					<input class="statisticsUploads_dateFieldInput statisticsUploads_datepicker" type="text" id="statisticsUploads_dateFieldDateEnd">
+					<div class="button_black" id="statisticsUploads_refresh">Refresh</div>
+				</div>
+				<div id="statisticsUploads_scaleBloc">
+					<div class="statisticsUploads_scaleOption" id="statisticsUploads_scaleDayOption">
+						<input class="statisticsUploads_scaleButton" type="radio" name="statisticsUploads_scale" id="statisticsUploads_scaleDay" value="day">&nbsp;
+						<p id="statisticsUploads_scaleDayLabel" style="display: inline-block;">Per day</p>
+					</div>
+					<div class="statisticsUploads_scaleOption" id="statisticsUploads_scaleHourOption">
+						<input class="statisticsUploads_scaleButton" type="radio" name="statisticsUploads_scale" id="statisticsUploads_scaleHour" value="hour">&nbsp;
+						<p id="statisticsUploads_scaleHourLabel" style="display: inline-block;">Per hour</p>
+					</div>
+				</div>
+			</div>
+			<div id ="statisticsUploads_emptyGraphOptions"></div>
+			<div id="statisticsUploads_table"></div>
 			<div id="statisticsUploads_graph"></div>
-		</div-->
+			<!-- div>download serie</div -->
+		</div>
 	</div>
 </body>
 </html>

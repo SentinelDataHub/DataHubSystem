@@ -255,7 +255,7 @@ public class StatisticsServiceImpl extends RemoteServiceServlet implements
       fr.gael.dhus.service.StatisticsService statisticsService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.StatisticsService.class);
 
-      return statisticsService.getUsersPerUsage ();      
+      return statisticsService.getUsersPerUsage ();
    }
    
    public String[][] getUsersPerDomain()
@@ -263,7 +263,7 @@ public class StatisticsServiceImpl extends RemoteServiceServlet implements
       fr.gael.dhus.service.StatisticsService statisticsService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.StatisticsService.class);
 
-      return statisticsService.getUsersPerDomain ();      
+      return statisticsService.getUsersPerDomain ();
    }
 
    public int getTotalSearches ()
@@ -328,5 +328,37 @@ public class StatisticsServiceImpl extends RemoteServiceServlet implements
             .getBean (fr.gael.dhus.service.StatisticsService.class);      
       
       return statisticsService.getDownloadsPerUsage (start, end, perHour);
+   }
+
+   public int getTotalUploads ()
+   {
+      fr.gael.dhus.service.StatisticsService statisticsService = ApplicationContextProvider
+              .getBean(fr.gael.dhus.service.StatisticsService.class);
+
+      return statisticsService.getTotalUploads();
+   }
+
+   public String[][] getUploadsPerUser (Date start, Date end, List<String> users, boolean perHour)
+   {
+      fr.gael.dhus.service.StatisticsService statisticsService = ApplicationContextProvider
+              .getBean (fr.gael.dhus.service.StatisticsService.class);
+
+      return statisticsService.getUploadsPerUser(start, end, users, perHour);
+   }
+
+   public String[][] getUploadsPerDomain (Date start, Date end, boolean perHour)
+   {
+      fr.gael.dhus.service.StatisticsService statisticsService = ApplicationContextProvider
+              .getBean (fr.gael.dhus.service.StatisticsService.class);
+
+      return statisticsService.getUploadsPerDomain(start, end, perHour);
+   }
+
+   public String[][] getUploadsPerUsage (Date start, Date end, boolean perHour)
+   {
+      fr.gael.dhus.service.StatisticsService statisticsService = ApplicationContextProvider
+              .getBean(fr.gael.dhus.service.StatisticsService.class);
+
+      return statisticsService.getUploadsPerUsage(start, end, perHour);
    }
 }

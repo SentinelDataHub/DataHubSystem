@@ -384,18 +384,17 @@ public class DefaultDataStore implements DataStore
                   "Unable to remove product after processing failure", e);
             }
             actionRecordWritterDao.uploadFailed (
-               this.product.getPath ().toString (), this.owner.getUsername ());
-            actionRecordWritterDao.uploadEnd (this.product.getPath (), 
-               this.owner.getUsername (), collections, false);
+                    this.product.getPath().toString(), this.owner.getUsername() );
+
+            //actionRecordWritterDao.uploadEnd (this.product.getUuid(), this.product.getSize(), this.owner);
             return;
          }
 
          logger.info ("Ingestion processing complete for product " +
             product.getPath ().toExternalForm () + " in " +
             (processing_end - processing_start) + "ms.");
-         
-         actionRecordWritterDao.uploadEnd (this.product.getPath (), 
-            this.owner.getUsername (), collections, true);
+
+         actionRecordWritterDao.uploadEnd (this.product.getUuid(), this.product.getSize(), this.owner );
 
          fireEndIngestionEvent (new ProcessingEvent (product));
       }

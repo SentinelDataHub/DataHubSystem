@@ -1581,6 +1581,21 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
 
    /**
     * Retrieve the upload count.
+    *
+    * @param periodicity
+    *           A list of two Date.
+    * @return count The upload count.
+    */
+   public int getTotalUploads()
+   {
+      final String sql = "SELECT COUNT (ACTION_RECORD_UPLOADS.ID) "
+              + " FROM ACTION_RECORD_UPLOADS WHERE STATUS='SUCCEEDED'";
+
+      return getCountValue(sql);
+   }
+
+   /**
+    * Retrieve the upload count.
     * 
     * @param periodicity
     *           The periodicity (YEAR, MONTH or WEEK)
@@ -1619,7 +1634,89 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
 
    /**
     * Retrieve the upload count grouped by user.
-    * 
+    *
+    * @param periodicity
+    *           A list of two Date.
+    * @return map A hashmap containing the user name as key and the upload
+    *         count as value.
+    */
+   public String[][] getUploadsPerUser(
+           Date start, Date end, List<String> requestedUsers, boolean perHour)
+   {
+      String usersStr = "(null)";
+      String legend = "Total";
+      if (requestedUsers != null && !requestedUsers.isEmpty ())
+      {
+         legend = "Others";
+         usersStr = "(";
+         for (String user : requestedUsers)
+         {
+            usersStr += "'"+user+"',";
+         }
+         usersStr = usersStr.substring (0,usersStr.length ()-1);
+         usersStr += ")";
+      }
+      String userId = "(case when USERS.LOGIN in "+usersStr+" then USERS.LOGIN else '"+legend+"' end)";
+      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_UPLOADS.CREATED),'-',RIGHT('00'+MONTH(ACTION_RECORD_UPLOADS.CREATED),2),'-',RIGHT('00'+DAY(ACTION_RECORD_UPLOADS.CREATED),2)"
+              + (perHour ? ",'T',RIGHT('00'+HOUR(ACTION_RECORD_UPLOADS.CREATED),2),':00:00'":"")+")";
+
+      final String sql = "SELECT "+dateSQL+" as date,"
+              + " "+userId+" as userId, "
+              + " COUNT(ACTION_RECORD_UPLOADS.ID) FROM USERS "
+              + " INNER JOIN ACTION_RECORD_UPLOADS "
+              + " ON USERS.ID = ACTION_RECORD_UPLOADS.USERS_ID "
+              + " WHERE ACTION_RECORD_UPLOADS.CREATED BETWEEN ? AND ? "
+              + "    AND STATUS='SUCCEEDED'"
+              + " GROUP BY date, userId ORDER BY date, userId";
+
+      List<Object[]> value = getReturnValue(sql, start, end);
+      List<String> foundUsers = new ArrayList<String>();
+      List<HashMap<Integer, String>> dates = new ArrayList<HashMap<Integer, String>>();
+      foundUsers.add ("date");
+      String previousDate = "";
+      HashMap<Integer, String> counts = null;
+      for (Object[] line : value)
+      {
+         if (!foundUsers.contains (line[1]))
+         {
+            foundUsers.add ((String) line[1]);
+         }
+         int id = foundUsers.indexOf (line[1]);
+         String date = line[0].toString();
+         if (!previousDate.equals(date))
+         {
+            if (counts != null)
+            {
+               dates.add(counts);
+            }
+            counts = new HashMap<Integer, String> ();
+            counts.put (0, date);
+            previousDate = date;
+         }
+         counts.put (id,line[2].toString ());
+      }
+      if (counts != null)
+      {
+         dates.add(counts);
+      }
+      String[][] res = new String[dates.size ()+1][foundUsers.size ()];
+      res[0] = foundUsers.toArray (new String[foundUsers.size()]);
+      int i = 1;
+      for (HashMap<Integer, String> list : dates)
+      {
+         res[i] = new String[foundUsers.size()];
+         for (int j = 0; j < foundUsers.size(); j++)
+         {
+            res[i][j] = list.containsKey (j) ? list.get(j) : "0";
+         }
+         i++;
+      }
+      return res;
+   }
+
+   /**
+    * Retrieve the upload count grouped by user.
+    *
     * @param periodicity
     *           A list of two Date.
     * @param status
@@ -1646,6 +1743,68 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
          map.put((String) (line[0]), (BigInteger) (line[1]));
       }
       return map;
+   }
+
+   /**
+    * Retrieve the upload count grouped by usage.
+    */
+   public String[][] getUploadsPerUsage(Date start, Date end, boolean perHour)
+   {
+      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_UPLOADS.CREATED),'-',RIGHT('00'+MONTH(ACTION_RECORD_UPLOADS.CREATED),2),'-',RIGHT('00'+DAY(ACTION_RECORD_UPLOADS.CREATED),2)"
+              + (perHour ? ",'T',RIGHT('00'+HOUR(ACTION_RECORD_UPLOADS.CREATED),2),':00:00'":"")+")";
+
+      final String sql = "SELECT "+dateSQL+" as date, USERS.usage as usage, "
+              + " COUNT(ACTION_RECORD_UPLOADS.ID) FROM USERS "
+              + " INNER JOIN ACTION_RECORD_UPLOADS "
+              + " ON USERS.ID = ACTION_RECORD_UPLOADS.USERS_ID "
+              + " WHERE ACTION_RECORD_UPLOADS.CREATED BETWEEN ? AND ? "
+              + "    AND STATUS='SUCCEEDED'"
+              + " GROUP BY date, usage ORDER BY date, usage";
+
+      List<Object[]> value = getReturnValue(sql, start, end);
+      List<String> usages = new ArrayList<String>();
+      List<HashMap<Integer, String>> dates = new ArrayList<HashMap<Integer, String>>();
+      usages.add ("date");
+      String previousDate = "";
+      HashMap<Integer, String> counts = null;
+      for (Object[] line : value)
+      {
+         String usage = (String) line[1];
+         if (!usages.contains (usage))
+         {
+            usages.add (usage);
+         }
+         int id = usages.indexOf (usage);
+         String date = (String) line[0];
+         if (!previousDate.equals(date))
+         {
+            if (counts != null)
+            {
+               dates.add(counts);
+            }
+            counts = new HashMap<Integer, String> ();
+            counts.put (0, date);
+            previousDate = date;
+         }
+         counts.put (id,line[2].toString ());
+      }
+      if (counts != null)
+      {
+         dates.add(counts);
+      }
+      String[][] res = new String[dates.size ()+1][usages.size ()];
+      res[0] = usages.toArray (new String[usages.size()]);
+      int i = 1;
+      for (HashMap<Integer, String> list : dates)
+      {
+         res[i] = new String[usages.size()];
+         for (int j = 0; j < usages.size(); j++)
+         {
+            res[i][j] = list.containsKey (j) ? list.get(j) : "0";
+         }
+         i++;
+      }
+      return res;
    }
 
    /*
@@ -1699,6 +1858,68 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
          map.put((String) (line[0]), (BigInteger) (line[1]));
       }
       return map;
+   }
+
+   /**
+    * Retrieve the upload count grouped by domain.
+    */
+   public String[][] getUploadsPerDomain(Date start, Date end, boolean perHour)
+   {
+      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_UPLOADS.CREATED),'-',RIGHT('00'+MONTH(ACTION_RECORD_UPLOADS.CREATED),2),'-',RIGHT('00'+DAY(ACTION_RECORD_UPLOADS.CREATED),2)"
+              + (perHour ? ",'T',RIGHT('00'+HOUR(ACTION_RECORD_UPLOADS.CREATED),2),':00:00'":"")+")";
+
+      final String sql = "SELECT "+dateSQL+" as date, USERS.domain as domain, "
+              + " COUNT(ACTION_RECORD_UPLOADS.ID) FROM USERS "
+              + " INNER JOIN ACTION_RECORD_UPLOADS "
+              + " ON USERS.ID = ACTION_RECORD_UPLOADS.USERS_ID "
+              + " WHERE ACTION_RECORD_UPLOADS.CREATED BETWEEN ? AND ? "
+              + "    AND STATUS='SUCCEEDED'"
+              + " GROUP BY date, domain ORDER BY date, domain";
+
+      List<Object[]> value = getReturnValue(sql, start, end);
+      List<String> domains = new ArrayList<String>();
+      List<HashMap<Integer, String>> dates = new ArrayList<HashMap<Integer, String>>();
+      domains.add ("date");
+      String previousDate = "";
+      HashMap<Integer, String> counts = null;
+      for (Object[] line : value)
+      {
+         String domain = (String) line[1];
+         if (!domains.contains (domain))
+         {
+            domains.add (domain);
+         }
+         int id = domains.indexOf (domain);
+         String date = (String) line[0];
+         if (!previousDate.equals(date))
+         {
+            if (counts != null)
+            {
+               dates.add(counts);
+            }
+            counts = new HashMap<Integer, String> ();
+            counts.put (0, date);
+            previousDate = date;
+         }
+         counts.put (id,line[2].toString ());
+      }
+      if (counts != null)
+      {
+         dates.add(counts);
+      }
+      String[][] res = new String[dates.size ()+1][domains.size ()];
+      res[0] = domains.toArray (new String[domains.size()]);
+      int i = 1;
+      for (HashMap<Integer, String> list : dates)
+      {
+         res[i] = new String[domains.size()];
+         for (int j = 0; j < domains.size(); j++)
+         {
+            res[i][j] = list.containsKey (j) ? list.get(j) : "0";
+         }
+         i++;
+      }
+      return res;
    }
 
    /**

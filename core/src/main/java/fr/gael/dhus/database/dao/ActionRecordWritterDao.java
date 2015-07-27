@@ -37,6 +37,7 @@ import fr.gael.dhus.database.object.Collection;
 import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.database.object.statistic.ActionRecord;
 import fr.gael.dhus.database.object.statistic.ActionRecordDownload;
+import fr.gael.dhus.database.object.statistic.ActionRecordUpload;
 import fr.gael.dhus.database.object.statistic.ActionRecordLogon;
 import fr.gael.dhus.database.object.statistic.ActionRecordSearch;
 
@@ -273,11 +274,21 @@ public class ActionRecordWritterDao extends HibernateDao<ActionRecord, Long>
       }  
    }
 
-
-   private void _uploadEnd (URL path, final String owner,
-      final List<Collection> collections, boolean result)
+   private void _uploadEnd (String identifier, long size, User user)
    {
-//      // Create a record into ActionRecordUpload 
+      ActionRecordUpload acUpload = new ActionRecordUpload ();
+      acUpload.setName ("UPLOAD");
+      acUpload.setStatus(ActionRecord.STATUS_SUCCEEDED);
+      acUpload.setUser (user);
+      acUpload.setProductIdentifier(identifier);
+      acUpload.setProductSize(size);
+      create (acUpload);
+   }
+
+//   private void _uploadEnd (URL path, final String owner,
+//      final List<Collection> collections, boolean result)
+//   {
+//      // Create a record into ActionRecordUpload
 //      ActionRecordUpload acUpload = new ActionRecordUpload ();
 //      acUpload.setName ("UPLOAD");
 //      acUpload.setUsername (owner);
@@ -294,31 +305,31 @@ public class ActionRecordWritterDao extends HibernateDao<ActionRecord, Long>
 //         }
 //         else
 //         {
-//            acUpload.setProductIdentifier(path.getFile ());  
+//            acUpload.setProductIdentifier(path.getFile ());
 //         }
 //      }
 //      else
 //      {
 //         acUpload.setStatus(ActionRecord.STATUS_FAILED);
 //      }
-//      
+//
 //      // create zero, one or more records in ActionRecordCollection
 //      if (collections.size() > 0)
 //      {
 //    	  Set<String> set = new HashSet<String> ();
-//    	  
+//
 //    	  for (int i = 0; i < collections.size(); i++)
 //    	  {
-//    		  set.add(collections.get(i).getName());    		  
+//    		  set.add(collections.get(i).getName());
 //    	  }
 //    	  acUpload.setCollectionNameList(set);
 //      }
-//      
+//
 //      create (acUpload);
-   }
-   
-   public void uploadEnd (final URL path, final String owner,
-      final List<Collection> collections, final boolean result)
+//   }
+
+   public void uploadEnd (final String identifier, final long size,
+                          final User user)
    {
       try
       {
@@ -327,14 +338,19 @@ public class ActionRecordWritterDao extends HibernateDao<ActionRecord, Long>
             @Override
             public void run ()
             {
-               _uploadEnd (path, owner, collections, result);
+               _uploadEnd(identifier, size, user);
             }
          });
       }
       catch (Exception e)
       {
          logger.error ("Cannot record new logs.", e);
-      }  
+      }
+   }
+
+   public void uploadEnd (final URL path, final String owner,
+                          final List<Collection> collections, final boolean result)
+   {
    }
 
 
