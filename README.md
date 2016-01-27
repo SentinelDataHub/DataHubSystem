@@ -1,16 +1,40 @@
-# DataHubSystem
+# Architect theme
 
-The Data Hub is a Java web based system designed to manage the on-line dissemination of Earth Observation Satellites data. 
-***
- 
-Data Hub System V 0.4.3.5-2 published here is developed by a Serco (http://serco.com/) and Gael Systems (http://www.gael.fr/) consortium under a contract with the European Space Agency (http://www.esa.int) in the frame of the Copernicus Programme. The SW code is made available according to the GNU Affero General Public License.
-***
+This is a [Jekyll][1] theme that is an adaptation of [@jasonlong][2]'s [Architect theme][4] on [GitHub Pages][3].
 
-This Data Hub System version supports the dissemination of the Sentinel-1 Mission products. Detailed information on Sentinel-1 products and Data Access mechanisms is available at https://sentinel.esa.int/. Sentinel-1 products can be freely downloaded at https://scihub.esa.int/.
-***
+This is the raw HTML and styles that are used for the *Architect* theme on [GitHub Pages](http://pages.github.com/).
 
-At the time of publishing, this version of the software is the one which is in operations for the dissemination of Sentinel-1A data at  https://scihub.esa.int/ . 
-***
- 
-Any interested users can download/build the code, although users must be informed that no specific SW maintenance is ensured for this public distribution. However in the future, updated DHuS system releases will be published including new functions and issues corrected and support for the future Sentinel products when qualified.
-Please see our wiki on the right panel!
+![](http://cl.ly/image/1x0Q3213330G/content)
+
+# How to use it?
+
+Install Jekyll in your system
+
+```
+$ gem install jekyll # use sudo if your system requires it
+```
+
+Download the theme @ http://github.com/pietromenna/jekyll-architect-theme/archive/master.zip
+
+Unzip it and use it as a regular jekyll folder.
+
+```
+$ unzip master.zip
+```
+
+Use it!
+
+```
+$ jekyll serve
+```
+
+For more details read about [Jekyll][1] on its web page.
+
+# License
+
+This work is licensed under a [Creative Commons Attribution 4.0 International](http://creativecommons.org/licenses/by/4.0/).
+
+[1]: http://jekyllrb.com
+[2]: https://github.com/jasonlong
+[3]: http://pages.github.com/
+[4]: http://github.com/jasonlong/architect-theme
