@@ -1,0 +1,50 @@
+---
+layout: post
+title:  "Installation Requirements"
+date:   2014-04-06 15:40:56
+categories: page
+---
+
+
+# 2	INSTALLATION REQUIREMENTS    #
+DHuS is a web application, running in a Java Virtual Machine and using its own virtualized environment. All the DHuS middleware components, such as databases, tomcat and its web services are running inside the JVM container. 
+To allow integration into a hosting environment, the application needs to be installed and configured having well in mind what are the external interfaces to be used. The application needs to manage 2 flows:   
+
+- 	the incoming flow is guaranteed by the ingestion process, which can use several different methods, but most of them require that products are dropped into a dedicated folder, where DHuS can pick them up and publish them.     
+
+
+- the outgoing flow is how external users can search and download published data, this can happen using http (Tomcat) and, in particular cases, also ftp (service started by DHuS) on some dedicated service ports.    
+
+The filesystems used by the application, can be two or more; one filesystem is necessary for storing the DB necessary where the products are indexed, along with the logs and application binaries. This filesystem needs to reside on the local disks. In addition, one or more filesystems are used for archiving the products.    
+It is recommended to name the first filesystem `/data/` and to use only one filesystem for the product archiving and to name it `/data-archive/`.    
+Given the volume of normal Sentinel-1 production, it is also recommended to use an external disk for mounting the /data-archive/ filesystem, in order to cope with size of several TB of products.    
+Inside the /data/ directory, all DHuS releases will be installed with the path `/data/dhus-<releasenumber>/`.       Moreover, once the application is installed, a symbolic link is created to the latest release. In this document we will assume that the link is called `/data/dhus-datahub`    and it’s pointing to `/data/dhus-<lastrelease>`.
+
+## 2.1	Hardware requirements ##
+DHuS software is fully written in java and can be considered portable to any hardware platforms supported by JRE (Java Runtime Environment). Nevertheless, the server has been particularly tested on the following systems:
+![](https://raw.githubusercontent.com/wiki/calogera/DataHubSystem/imagessum/table%201.jpg) 
+Table 1 Tested configurations   
+At the client side, to connect the DHuS system user interface, following browser were successfully validated:
+1.	Windows Internet Explorer 9
+2.	Google Chrome V 26.0.1410.64 m
+3.	Mozilla Firefox V 20.0.1
+4.	Android Opera Mobile V 12.10.ADR-1301080958 (device Galaxy Tab GT-P1000)
+## 2.2	Network requirements ##
+DHuS GUI is based on an HTTP interface. By default the interface is reachable on 80 or 443 port (respectively HTTP and HTTPS protocols) that must be opened for input requests. If an alternate configuration is set, the firewall must be configured accordingly.
+Mailing service also require the firewall being authorized to let DHuS hardware accessing external SMTP server.
+Following table describes the minimal firewall configuration: 
+
+![](https://raw.githubusercontent.com/wiki/calogera/DataHubSystem/imagessum/table%202.jpg)      
+Table 2 Network ports configuration      
+
+This document describes Installation procedure of DHuS using a non-privileged user; application installed in this way cannot start services listening on ports numbers smaller than 1024. For that reason services are started, by DHuS application, on ports 8081 and 2121. 
+## 2.3	Software requirements ##
+- Java
+To be executed, DHuS server requires Java Runtine Environment version 1.6+ being installed on the system.
+- Mailing service
+An SMTP mail server should be online available to the DHuS System. 
+- Apache version 
+`httpd –v`   
+Version to be used: Apache version 2.2.15 with `mod_proxy` and `mod_ssl`.
+
+

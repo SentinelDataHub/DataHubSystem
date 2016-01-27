@@ -1,0 +1,116 @@
+
+
+---
+layout: post
+title:  "Installation Manaual second part"
+date:   2014-02-03 15:40:56
+categories: page
+---
+3.4.3
+
+**In Appendix A** we report an example of a sever.xml file
+####log4j2.xml    
+The log4j2.xml contains the log settings. It is possible to raise or lower the log lever as needed.     
+The file `“/data/dhus-datahub/etc/log4j2.xml”` needs to be adapted with the locations of log files, the RollingFile setting needs to be adapted using the proper file path and naming convention:    
+   `<RollingFile name="RollingFile" fileName="/data/dhus-<version>/logs/datahub.log"`   
+            `filePattern="/data/dhus-<version>/logs/datahub-%d{yyyy-MM-dd}.log.1">`   
+**In Appendix A** we report an example of a `log4j2.xml` file
+
+###3.5 Start DHuS  
+Once configured DHuS files as shown in section 3.4, execute as dhus user the following command in the folder where the DHuS is installed:  
+
+`nohup /bin/bash start.sh &> [installation-dir]/logs.txt &`   
+###3.6	Stop DHuS
+To stop DHuS execute as dhus user the following command in the folder where the DHuS is installed:   
+`/bin/bash stop.sh`      
+####3.7	AJS GUI management 
+DHuS is currently equipped with two graphical user interfaces: GWT GUI and AJS GUI. This section deals with the configurability of the AJS GUI which allows a wide set of configuration actions which do not need a restart of DHuS to be applied.
+Due to the growth of the different centres and related installations, a new configuration management module has been added into the AJS web app. It allows configuring various aspects of the GUI; mainly it is related to style, texts and layout:
+
+1.	Title (shown in the header bar) 
+2.	Sections visibility (Cart, Profile, Sign In) 
+3.	URL and texts of the link logos (shown in the header panel) 
+4.	Version text (shown in the info panel) 
+5.	Data Hub Logo (shown in the info panel) 
+6.	Mission Tag (shown in the Product List panel) 
+7.	Mission footprint style and color (shown in the Map panel) 
+8.	Advanced Search Mission specific fields (shown in Advanced Search Panel) 
+9.	Map Layer (shown in the Map View)
+
+Please note that all the settings are included in the client side (2 text files), thus it is possible to change a parameter without restart the DHuS but just doing a refresh via browser.      
+How to change a parameter?    
+The files in charge of the GUI configuration management are located in: 
+- `var/tomcat/webapps/new/config`    
+They are:    
+- appconfig.json (includes 1,2,3,4,5)   
+- styles.json (includes 6,7)    
+*Advanced Search Configuration*   
+A special attention goes to the configuration of the advanced search mission specific fields.      
+The configuration file appconfig.json has been updated in order to manage mission specific filters.    
+
+A "missions" section has been added, containing an array with the following structure:    
+"name": <label show for filter>, "indexname": 
+<solr_metadata_index_name_identifying_filter>, "indexvalue":<solr_metadata_index_value_identifying_filter>, "filters":[filter_array] 
+
+where [filter_array] is an array of mission-specific filters with the following structure: 
+
+"indexname": <solr_metadata_index_name_identifying_filter> 
+"indexlabel": <label show for filter> 
+"regex": <regex_to_be_used_to_validate_the_filter_value_if_needed> 
+[OPTIONAL] "indexvalues": <list_of_all_the_accepted_values> (if present it appears a combobox containing the list of all specified values, otherwise nothing appears. present 
+
+
+Here below an example of filters configuration specific for S1 and S2 missions. 
+In this way, no code change is needed to add a specific filter, when requested.    
+…     
+…      
+
+"missions": [
+        {
+            "name": "Mission: Sentinel-1",
+            "indexname": "platformname",
+            "indexvalue": "Sentinel-1",            
+            "filters": [
+                {
+                    "indexname": "producttype",
+                    "indexlabel": "Product Type (SLC,GRD,OCN)",
+                    "indexvalues": "SLC|GRD|OCN",
+                    "regex": ".*"
+
+                },
+                {
+                    "indexname": "polarisationmode",
+                    "indexlabel": "Polarisation (e.g.HH,VV,HV,VH,...)",
+		    	"indexvalues": "HH|VV|HV|VH|HH+HV|VV+VH",
+                    "regex": ".*"
+
+                },
+                {
+                    "indexname": "sensoroperationalmode",
+                    "indexlabel": "Sensor Mode (SM,IW,EW,WV)",
+                    "indexvalues": "SM|IW|EW|WV",
+                    "regex": ".*"
+
+                },
+                {
+                    "indexname": "relativeorbitnumber",
+                    "indexlabel": "Relative Orbit Number (from 1 to 175)",
+		    "regex": "[1-9]|[1-9][0-9]|[1-9][0-7][0-5]"
+		}
+            ]
+        },
+        {
+            "name": "Mission: Sentinel-2",
+            "indexname": "platformname",
+            "indexvalue": "Sentinel-2",
+            "filters": [
+                {
+                    "indexname": "cloudcoverpercentage",
+                    "indexlabel": "Cloud Cover % (e.g.[0 TO 9.4])"
+                }
+		]
+        }
+    ]
+Once you have changed a value in the file, you only need to refresh your browser to see the change immediately applied.**No need to restart the DHuS**.       
+
+
