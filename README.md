@@ -6,7 +6,7 @@ This is the raw HTML and styles that are used for the *Architect* theme on [GitH
 
 ![](http://cl.ly/image/1x0Q3213330G/content)
 
-# How to use it?
+# How to use it
 
 Install Jekyll in your system
 
