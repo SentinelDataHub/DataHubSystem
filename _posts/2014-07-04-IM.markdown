@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Installation Manual"
-date:   2014-04-04 15:40:56
+date:   2014-07-04 15:40:56
 categories: page
 ---
 
