@@ -26,7 +26,7 @@ The major functionalities of the Data Hub Software are schematically represented
 
 Figure 1 Data Hub Software functions 
 <hr></hr>
-![](http://raw.githubusercontent.com/calogera/DatahubSystem/gh-pages/images/indexing.pngg)  **Product Indexing**     
+![](http://raw.githubusercontent.com/calogera/DatahubSystem/gh-pages/images/indexing.png)  **Product Indexing**     
 The indexing module allows to reference products within the local archive, in addition the indexing service can reference products hosted in other DHuS instances.
 The indexing is based on the creation of configurable metadata. The following set is considered mandatory when applicable for a product type:
 o	Content Date (e.g. sensing start, stop or data validity date)
