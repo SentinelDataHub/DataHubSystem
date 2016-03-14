@@ -15,7 +15,7 @@ The application needs to manage two flows:
 <li>**the outgoing flow** (how external users can search and download published data): this can happen using http (Tomcat) and, in particular cases, also ftp (service started by DHuS) on some dedicated service ports. 
 
 </ul>   
-![](http://127.0.0.1:4000/DataHubSystem/images/figure-2.png)   
+![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/figure-2.png)   
 Fig. 2   Principal DHuS Software Functionality  
  
 The filesystems used by the application, can be two or more; 
@@ -173,7 +173,7 @@ Once executed, the system setting configuration file can be accessed and updated
 </ol>
 Note that the incoming and the Local archive shall be two different folders (e.g. one cannot contain the other and vice versa) not necessarily under the DHuS installation folder. Moreover they shall be located in a partition of the machine where there is a certain amount of space (more details would be specified in Table 1), especially for the incoming folder (the data managed by DHuS will be located here). The graph in Figure 3 depicts the purpose of the directories in the DHuS archive. 
 
-![](http://127.0.0.1:4000/DataHubSystem/images/figure3.png)    
+![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/figure3.png)    
 
 Fig. 3 DHuS directories objectives
 
