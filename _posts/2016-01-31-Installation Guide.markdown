@@ -354,7 +354,7 @@ Here below an example of filters configuration specific for S1 and S2 missions.
 
 
 
- `
+`
  
 "missions":
     
@@ -479,9 +479,6 @@ iso_country_name: synonym1, synonym2
 </table>
 
 Table 3: Configuration file changes from 0.4.3-1 to 0.9.0-2 version       
-
-
-
 <hr> </hr> 
 **DHuS version updating manual**
 
@@ -491,8 +488,8 @@ Many aspects of DHuS first installation dont need to be repeated when upgradin
 `mkdir dhus-<new_version>`    
 (Its not necessary to touch the already present archive, the database is copied and then migrated at first start, so links to products remain intact and continue to point to the same archive)    
 2. Create the new layout:     
-`mkdir p dhus-<new_version>/logs`          
-`mkdir p dhus-<new_version>/var`    
+`mkdir -p dhus-<new_version>/logs`          
+`mkdir -p dhus-<new_version>/var`    
 3. Change the execution permissions
 `chmod +x dhus-XX.XX.XX.shar`    
 4. Launch
@@ -505,12 +502,12 @@ rename .sh .sh.orig *.sh
 7. check that all the .xml and .sh files are correctly renamed respectively as .xml.orig and .sh.orig         
 8. Copy all the .sh and all the .xml files, and synonyms.txt files from the folder of the previous version (please note that synonyms.txt is not present in versions older than the version 0.4.4):    
   
-`cp r dhus-old_version/*.sh dhus-new_version`           
-`cp r dhus-<old_version>/etc/*.xml dhus-<new_version>/etc`               
-`cp r dhus-<old_version>/etc/synonyms.txt dhus-<new_version>/etc`                         
+`cp -r dhus-old_version/*.sh dhus-new_version`           
+`cp -r dhus-<old_version>/etc/*.xml dhus-<new_version>/etc`               
+`cp -r dhus-<old_version>/etc/synonyms.txt dhus-<new_version>/etc`                         
 9. Change the configuration files depending on the <old-version> number (see Table 3 for details on configuration files changes). Example of the updating configuration procedure from 0.4.3-1 to 0.9.0-2 version is provided below.                          
 10. Check if an older DHuS version is running   
-`ps edf | grep java`          
+`ps -edf | grep java`          
 if in the list of active PID, one of them is reporting the text of the start.sh file and it is running under dhus user permission, it means that the older version of DHuS is running.                    
 11. If an older version of DHuS is running, stop it            
 `dhus-<old_version>/stop.sh`             
