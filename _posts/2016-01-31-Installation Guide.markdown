@@ -546,9 +546,9 @@ Dhus.xml configuration
 
 <table border="2">
     <tr>
-       <td>Original line </td>
-       <td>Changed line</td>
-       <td>Comments</td>
+       <td>ORIGINAL LINE </td>
+       <td>CHANGED LINE</td>
+       <td>COMMENTS</td>
    </tr>
    <tr>
 <td>`server protocol="http" host="localhost" port="8080"`</td>
