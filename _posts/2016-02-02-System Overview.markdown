@@ -24,7 +24,7 @@ The major functionalities of the Data Hub Software are schematically represented
 
 ![](http://raw.githubusercontent.com/calogera/DatahubSystem/gh-pages/images/figure1.png)
 
-Figure 1 Data Hub Software functions 
+*Data Hub Software functions* 
 <hr></hr>
 ![](http://raw.githubusercontent.com/calogera/DatahubSystem/gh-pages/images/indexing.png)  **Product Indexing**     
 The indexing module allows to reference products within the local archive, in addition the indexing service can reference products hosted in other DHuS instances.
@@ -48,7 +48,8 @@ Except for exceptional cases, the centre configuration modification shall not le
 The product harvester is the service responsible for the ingestion of external products into the local archive. The ingestion service defines an interface to allow definition of  location, product type and characteristics for ingestion into the local archive. Whenever new products are ingested, the ingestion process registers an event with the dispatcher service, to inform it about the availability of the newly ingested products and to allow the propagation of metadata to other potentially interested centres. An integrity measure is calculated on product ingestion that may be checked later on to ensure the product integrity.
 <hr> </hr>
 ![](http://raw.githubusercontent.com/calogera/DatahubSystem/gh-pages/images/user-interface.png)**User Interface**     
-This module is in charge of providing the user with an interface for the discovery, visualization and downloading of products. It consists of two interfaces: a Graphical User Interface (modern and easy-to-use web application) and an Application Programming Interface (useful and mainly used for batch scripting, machine to machine scripts).    
+This module is in charge of providing the user with an interface for the discovery, visualization and downloading of products. It consists of two interfaces: a Graphical User Interface (modern and easy-to-use web application) and an Application Programming Interface (useful and mainly used for batch scripting, machine to machine scripts).  
+<hr> </hr>
 ![](http://raw.githubusercontent.com/calogera/DatahubSystem/gh-pages/images/user-management.png)**User management**          
 This module is in charge of managing the user accounts for access to the DHuS. It allows the definition of roles and permissions of the users. Permissions are usually defined in terms of macro functions e.g. the ability to upload data, download data, view statistics, perform administration etc. This module is used to apply the user shared quota allocation schemes for restricting the download bandwidth.
 This user account management service is configurable per DHuS instance to allow for self-registration at a hub or for operator driven registration. Each instance can be configured differently for usage by a known community. 
