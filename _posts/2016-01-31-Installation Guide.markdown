@@ -167,9 +167,9 @@ To install the service:
 (the package will autoinstall).        
 Once executed, the system setting configuration file can be accessed and updated.           
 6. Once the autoinstall procedure is complete, create the following directories for the local archive, the incoming products, the database etc..:      
-`Local archive ->[install-dir]/data-local`            
-`Var ->[install-dir]/var/`             
-`Incoming ->[free_dir]/incoming`           
+`Local archive /[install-dir]/data-local`            
+`Var /[install-dir]/var/`             
+`Incoming /[free_dir]/incoming`           
 </ol>
 Note that the incoming and the Local archive shall be two different folders (e.g. one cannot contain the other and vice versa) not necessarily under the DHuS installation folder. Moreover they shall be located in a partition of the machine where there is a certain amount of space (more details would be specified in Table 1), especially for the incoming folder (the data managed by DHuS will be located here). The graph in Figure 3 depicts the purpose of the directories in the DHuS archive. 
 
@@ -250,8 +250,8 @@ The dhus.xml contents are organized in 7 groups and provides all comments needed
 
 <table border="2">
     <tr>
-       <th>Groups </th>
-       <th>Description</th>
+       <th>*Groups* </th>
+       <th>*Description*</th>
    </tr>
    <tr>
 
