@@ -7,7 +7,7 @@ categories: page
 
 **Login**    
 
-Once the installation package (see Installation Guide section) has been successfully installed, the DHuS server can be accessed online (https://dhus.xxx.zz) or on local URL (https://localhost/).
+Once the installation package (see [Installation Guide section](http://calogera.github.io/DataHubSystem/page/2016/01/31/Installation-Guide.html)) has been successfully installed, the DHuS server can be accessed online (https://dhus.xxx.zz) or on local URL (https://localhost/).
     
 To access the administrator panels, it is first necessary to login as root,using the default settings. The button is displayed in the upper right side of the DHuS Home page.
 
