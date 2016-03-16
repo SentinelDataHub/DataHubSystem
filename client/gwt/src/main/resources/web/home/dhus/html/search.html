@@ -30,7 +30,7 @@
 	#map
 	{
 		width: 90%;
-		height: 350px;
+		height: 512px;
 		border: solid 1px #BBBBBB;
 	}
 	
@@ -317,7 +317,14 @@
 					lineSymbolizer : lineSymbolizer,
 					labelSymbolizer : labelSymbolizer
                 });
-        
+
+        	var bounds = new OpenLayers.Bounds
+        	(
+        	    -360,-90,360,90
+        	);
+
+
+			bounds = bounds.transform(new OpenLayers.Projection("EPSG:4326"),new OpenLayers.Projection("EPSG:3857"));
         	var mapOptions = {
 	            controls: [new OpenLayers.Control.LayerSwitcher(), 
 	            	new OpenLayers.Control.Navigation(),
@@ -325,8 +332,11 @@
 	            	new OpenLayers.Control.PanZoom(),
 	            	new OpenLayers.Control.ScaleLine(),
 	            	graticule], 
-	            numZoomLevels: 16
+	                restrictedExtent: bounds,
+					projection: "EPSG:4326",
+					displayProjection: "EPSG:4326"
 	        };
+
         
             map = new OpenLayers.Map('map', mapOptions);
 
@@ -376,10 +386,8 @@
             allFootprintLayer.displayInLayerSwitcher = true;
 
             map.addLayers([hybrid, road, aerial, vectorLayer, footprintLayer, allFootprintLayer ]);
-                        
             map.setCenter(new OpenLayers.LonLat(2.21, 48.51).transform(new OpenLayers.Projection("EPSG:4326"),map.getProjection()),2);
-            
-            
+                        
             drawFeature = new OpenLayers.Control.DrawFeature(vectorLayer,
             	OpenLayers.Handler.RegularPolygon, {
                             handlerOptions: {
@@ -405,52 +413,183 @@
                             		currentPolygon = (new XMLSerializer()).serializeToString(poly);
                             		
                             		console.log (currentPolygon);
-                            		
-									if (feature.geometry.getBounds().getWidth() > 180)
-									{
-										var top = feature.geometry.getBounds().top;
-										var bottom = feature.geometry.getBounds().bottom;
-										var left = feature.geometry.getBounds().left;
-										var right = feature.geometry.getBounds().right;
-										currentPolygonSearchString = "( ";
-										var start = left;
-										while ((start+179) < feature.geometry.getBounds().right)
-                            			{
-											var polygon = new OpenLayers.Geometry.Polygon(
-												new OpenLayers.Geometry.LinearRing(
-													[new OpenLayers.Geometry.Point(start, bottom),
-													 new OpenLayers.Geometry.Point(start+179, bottom),
-													 new OpenLayers.Geometry.Point(start+179, top),
-													 new OpenLayers.Geometry.Point(start, top)
-												]));
-                            				start += 179;
-                            				currentPolygonSearchString += 'footprint:"Intersects('+polygon.toString()+')" OR ';
-                            			}
-										var polygon = new OpenLayers.Geometry.Polygon(
-												new OpenLayers.Geometry.LinearRing(
-													[new OpenLayers.Geometry.Point(start, bottom),
-													 new OpenLayers.Geometry.Point(right, bottom),
-													 new OpenLayers.Geometry.Point(right, top),
-													 new OpenLayers.Geometry.Point(start, top)
-												]));
+
+                					var top = feature.geometry.getBounds().top;
+                					var bottom = feature.geometry.getBounds().bottom;
+                					var left = feature.geometry.getBounds().left;
+                					var right = feature.geometry.getBounds().right;
+                					var leftWasNeg = false;
+                					var rightWasPos = false;
+                					                					
+                					if (left < -180 & right > 180)
+               						{
+                    					currentPolygonSearchString = "( ";
+    									var polygon = new OpenLayers.Geometry.Polygon(
+    											new OpenLayers.Geometry.LinearRing(
+    												[new OpenLayers.Geometry.Point(-180, bottom),
+    												 new OpenLayers.Geometry.Point(0, bottom),
+    												 new OpenLayers.Geometry.Point(0, top),
+    												 new OpenLayers.Geometry.Point(-180, top)
+    											]));
+                            			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" OR ';
+    									var polygon = new OpenLayers.Geometry.Polygon(
+    											new OpenLayers.Geometry.LinearRing(
+    												[new OpenLayers.Geometry.Point(0, bottom),
+    												 new OpenLayers.Geometry.Point(180, bottom),
+    												 new OpenLayers.Geometry.Point(180, top),
+    												 new OpenLayers.Geometry.Point(0, top)
+    											]));
                             			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" )';
-									}  
-                            		else
-                            		{
-                            			var top = feature.geometry.getBounds().top;
-										var bottom = feature.geometry.getBounds().bottom;
-										var left = feature.geometry.getBounds().left;
-										var right = feature.geometry.getBounds().right;
-										currentPolygonSearchString = "( ";
-										var polygon = new OpenLayers.Geometry.Polygon(
-												new OpenLayers.Geometry.LinearRing(
-													[new OpenLayers.Geometry.Point(left, bottom),
-													 new OpenLayers.Geometry.Point(right, bottom),
-													 new OpenLayers.Geometry.Point(right, top),
-													 new OpenLayers.Geometry.Point(left, top)
-												]));
-                            			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" )';
-                            		}                          		                            		
+               						}
+                					else 
+                					{
+	                					while (left < -180)
+	               						{
+	                						leftWasNeg = true;
+	               							left += 360;
+	               						}
+	                					
+	                					while (right > 180)
+	               						{
+	                						rightWasPos = true;
+	               							right -= 360;
+	               						}
+	                					
+	                					if ( right > left )         
+	                					{
+	                						if (right - left > 180)
+	                						{
+	                        					currentPolygonSearchString = "( ";
+	        									var polygon = new OpenLayers.Geometry.Polygon(
+	        											new OpenLayers.Geometry.LinearRing(
+	        												[new OpenLayers.Geometry.Point(left, bottom),
+	        												 new OpenLayers.Geometry.Point(0, bottom),
+	        												 new OpenLayers.Geometry.Point(0, top),
+	        												 new OpenLayers.Geometry.Point(left, top)
+	        											]));
+	                                			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" OR ';
+	        									var polygon = new OpenLayers.Geometry.Polygon(
+	        											new OpenLayers.Geometry.LinearRing(
+	        												[new OpenLayers.Geometry.Point(0, bottom),
+	        												 new OpenLayers.Geometry.Point(right, bottom),
+	        												 new OpenLayers.Geometry.Point(right, top),
+	        												 new OpenLayers.Geometry.Point(0, top)
+	        											]));
+	                                			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" )';
+	                						}
+	                						else if (leftWasNeg || rightWasPos)
+                							{
+	                        					currentPolygonSearchString = "( ";
+	        									var polygon = new OpenLayers.Geometry.Polygon(
+	        											new OpenLayers.Geometry.LinearRing(
+	        												[new OpenLayers.Geometry.Point(-180, bottom),
+	        												 new OpenLayers.Geometry.Point(0, bottom),
+	        												 new OpenLayers.Geometry.Point(0, top),
+	        												 new OpenLayers.Geometry.Point(-180, top)
+	        											]));
+	                                			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" OR ';
+	        									var polygon = new OpenLayers.Geometry.Polygon(
+	        											new OpenLayers.Geometry.LinearRing(
+	        												[new OpenLayers.Geometry.Point(0, bottom),
+	        												 new OpenLayers.Geometry.Point(180, bottom),
+	        												 new OpenLayers.Geometry.Point(180, top),
+	        												 new OpenLayers.Geometry.Point(0, top)
+	        											]));
+	                                			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" )';
+                							}
+	                						else
+	               							{
+	                        					currentPolygonSearchString = "( ";
+	        									var polygon = new OpenLayers.Geometry.Polygon(
+	        											new OpenLayers.Geometry.LinearRing(
+	        												[new OpenLayers.Geometry.Point(left, bottom),
+	        												 new OpenLayers.Geometry.Point(right, bottom),
+	        												 new OpenLayers.Geometry.Point(right, top),
+	        												 new OpenLayers.Geometry.Point(left, top)
+	        											]));
+	                                			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" )';
+	               							}
+	                					}
+	                					else       
+	                					{
+	                						if (left < 0)
+	               							{
+	                        					currentPolygonSearchString = "( ";
+	        									var polygon = new OpenLayers.Geometry.Polygon(
+	        											new OpenLayers.Geometry.LinearRing(
+	        												[new OpenLayers.Geometry.Point(left, bottom),
+	        												 new OpenLayers.Geometry.Point(0, bottom),
+	        												 new OpenLayers.Geometry.Point(0, top),
+	        												 new OpenLayers.Geometry.Point(left, top)
+	        											]));
+	                                			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" OR ';
+	        									var polygon = new OpenLayers.Geometry.Polygon(
+	        											new OpenLayers.Geometry.LinearRing(
+	        												[new OpenLayers.Geometry.Point(0, bottom),
+	        												 new OpenLayers.Geometry.Point(180, bottom),
+	        												 new OpenLayers.Geometry.Point(180, top),
+	        												 new OpenLayers.Geometry.Point(0, top)
+	        											]));
+	                                			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" OR ';
+	        									var polygon = new OpenLayers.Geometry.Polygon(
+	        											new OpenLayers.Geometry.LinearRing(
+	        												[new OpenLayers.Geometry.Point(-180, bottom),
+	        												 new OpenLayers.Geometry.Point(right, bottom),
+	        												 new OpenLayers.Geometry.Point(right, top),
+	        												 new OpenLayers.Geometry.Point(-180, top)
+	        											]));
+	                                			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" )';
+	               							}
+	                						else if (right > 0)
+	               							{
+	                        					currentPolygonSearchString = "( ";
+	        									var polygon = new OpenLayers.Geometry.Polygon(
+	        											new OpenLayers.Geometry.LinearRing(
+	        												[new OpenLayers.Geometry.Point(left, bottom),
+	        												 new OpenLayers.Geometry.Point(180, bottom),
+	        												 new OpenLayers.Geometry.Point(180, top),
+	        												 new OpenLayers.Geometry.Point(left, top)
+	        											]));
+	                                			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" OR ';
+	        									var polygon = new OpenLayers.Geometry.Polygon(
+	        											new OpenLayers.Geometry.LinearRing(
+	        												[new OpenLayers.Geometry.Point(-180, bottom),
+	        												 new OpenLayers.Geometry.Point(0, bottom),
+	        												 new OpenLayers.Geometry.Point(0, top),
+	        												 new OpenLayers.Geometry.Point(-180, top)
+	        											]));
+	                                			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" OR ';
+	        									var polygon = new OpenLayers.Geometry.Polygon(
+	        											new OpenLayers.Geometry.LinearRing(
+	        												[new OpenLayers.Geometry.Point(0, bottom),
+	        												 new OpenLayers.Geometry.Point(right, bottom),
+	        												 new OpenLayers.Geometry.Point(right, top),
+	        												 new OpenLayers.Geometry.Point(0, top)
+	        											]));
+	                                			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" )';
+	               							}
+	                						else
+	                						{
+	                        					currentPolygonSearchString = "( ";
+	        									var polygon = new OpenLayers.Geometry.Polygon(
+	        											new OpenLayers.Geometry.LinearRing(
+	        												[new OpenLayers.Geometry.Point(left, bottom),
+	        												 new OpenLayers.Geometry.Point(180, bottom),
+	        												 new OpenLayers.Geometry.Point(180, top),
+	        												 new OpenLayers.Geometry.Point(left, top)
+	        											]));
+	                                			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" OR ';
+	        									var polygon = new OpenLayers.Geometry.Polygon(
+	        											new OpenLayers.Geometry.LinearRing(
+	        												[new OpenLayers.Geometry.Point(-180, bottom),
+	        												 new OpenLayers.Geometry.Point(right, bottom),
+	        												 new OpenLayers.Geometry.Point(right, top),
+	        												 new OpenLayers.Geometry.Point(-180, top)
+	        											]));
+	                                			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" )';
+	                						}
+	                					}
+                					}
                             		
                             		// To fixup solr bug : a 0.1 deg rotation is required.
                             		/*var angle = 0.1;                            		
@@ -476,75 +615,204 @@
 			vectorLayer.destroyFeatures();
 		}
 		
-		function search_setSearchedFootprint(features)
+		function search_setSearchedFootprint(feature)
 		{
 			currentPolygon = "";
 			currentPolygonSearchString = "";
 			vectorLayer.destroyFeatures();
-			if (features !== null)
+			if (feature !== null)
 			{
-				var v = new OpenLayers.Feature.Vector(features.geometry);
-				
-				var gml = new OpenLayers.Format.GML();
-            src = map.getProjection();
-            dst = new OpenLayers.Projection("EPSG:4326");
-                
-             var geomtransformed = v.geometry.transform(src, dst);
-             var poly = gml.buildGeometry.polygon.apply(gml,[geomtransformed]);
-             currentPolygon = (new XMLSerializer()).serializeToString(poly);
-				
+				var v = new OpenLayers.Feature.Vector(feature.geometry);
+
+             var geomtransformed = v.geometry;
+             
+		     var gml = new OpenLayers.Format.GML();
+	         var poly = gml.buildGeometry.polygon.apply(gml,[geomtransformed]);
+	         currentPolygon = (new XMLSerializer()).serializeToString(poly);
              console.log (currentPolygon);
-				 //currentPolygon = v.geometry.toString();   
 				
-				
-				
-				if (v.geometry.getBounds().getWidth() > 180)
+                var top = feature.geometry.getBounds().top;
+				var bottom = feature.geometry.getBounds().bottom;
+				var left = feature.geometry.getBounds().left;
+				var right = feature.geometry.getBounds().right;
+				var leftWasNeg = false;
+				var rightWasPos = false;
+				                					
+				if (left < -180 & right > 180)
 				{
-					var top = v.geometry.getBounds().top;
-					var bottom = v.geometry.getBounds().bottom;
-					var left = v.geometry.getBounds().left;
-					var right = v.geometry.getBounds().right;
-					currentPolygonSearchString = "( ";
-					var start = left;
-					while ((start+179) < v.geometry.getBounds().right)
-        			{
-						var polygon = new OpenLayers.Geometry.Polygon(
-							new OpenLayers.Geometry.LinearRing(
-								[new OpenLayers.Geometry.Point(start, bottom),
-								 new OpenLayers.Geometry.Point(start+179, bottom),
-								 new OpenLayers.Geometry.Point(start+179, top),
-								 new OpenLayers.Geometry.Point(start, top)
-							]));
-        				start += 179;
-        				currentPolygonSearchString += 'footprint:"Intersects('+polygon.toString()+')" OR ';
-        			}
-					var polygon = new OpenLayers.Geometry.Polygon(
-							new OpenLayers.Geometry.LinearRing(
-								[new OpenLayers.Geometry.Point(start, bottom),
-								 new OpenLayers.Geometry.Point(right, bottom),
-								 new OpenLayers.Geometry.Point(right, top),
-								 new OpenLayers.Geometry.Point(start, top)
-							]));
-        			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" )';
-				}  
-        		else
-        		{
-        			var top = v.geometry.getBounds().top;
-					var bottom = v.geometry.getBounds().bottom;
-					var left = v.geometry.getBounds().left;
-					var right = v.geometry.getBounds().right;
 					currentPolygonSearchString = "( ";
 					var polygon = new OpenLayers.Geometry.Polygon(
 							new OpenLayers.Geometry.LinearRing(
-								[new OpenLayers.Geometry.Point(left, bottom),
-								 new OpenLayers.Geometry.Point(right, bottom),
-								 new OpenLayers.Geometry.Point(right, top),
-								 new OpenLayers.Geometry.Point(left, top)
+								[new OpenLayers.Geometry.Point(-180, bottom),
+								 new OpenLayers.Geometry.Point(0, bottom),
+								 new OpenLayers.Geometry.Point(0, top),
+								 new OpenLayers.Geometry.Point(-180, top)
 							]));
-        			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" )';
-        		}    
-				v.geometry.transform(dst, src);
-				vectorLayer.addFeatures([v]);
+     			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" OR ';
+					var polygon = new OpenLayers.Geometry.Polygon(
+							new OpenLayers.Geometry.LinearRing(
+								[new OpenLayers.Geometry.Point(0, bottom),
+								 new OpenLayers.Geometry.Point(180, bottom),
+								 new OpenLayers.Geometry.Point(180, top),
+								 new OpenLayers.Geometry.Point(0, top)
+							]));
+     			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" )';
+				}
+				else 
+				{
+					while (left < -180)
+					{
+						leftWasNeg = true;
+						left += 360;
+					}
+					
+					while (right > 180)
+					{
+						rightWasPos = true;
+						right -= 360;
+					}
+					
+					if ( right > left )         
+					{
+						if (right - left > 180)
+						{
+     					currentPolygonSearchString = "( ";
+							var polygon = new OpenLayers.Geometry.Polygon(
+									new OpenLayers.Geometry.LinearRing(
+										[new OpenLayers.Geometry.Point(left, bottom),
+										 new OpenLayers.Geometry.Point(0, bottom),
+										 new OpenLayers.Geometry.Point(0, top),
+										 new OpenLayers.Geometry.Point(left, top)
+									]));
+             			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" OR ';
+							var polygon = new OpenLayers.Geometry.Polygon(
+									new OpenLayers.Geometry.LinearRing(
+										[new OpenLayers.Geometry.Point(0, bottom),
+										 new OpenLayers.Geometry.Point(right, bottom),
+										 new OpenLayers.Geometry.Point(right, top),
+										 new OpenLayers.Geometry.Point(0, top)
+									]));
+             			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" )';
+						}
+						else if (leftWasNeg || rightWasPos)
+						{
+     					currentPolygonSearchString = "( ";
+							var polygon = new OpenLayers.Geometry.Polygon(
+									new OpenLayers.Geometry.LinearRing(
+										[new OpenLayers.Geometry.Point(-180, bottom),
+										 new OpenLayers.Geometry.Point(0, bottom),
+										 new OpenLayers.Geometry.Point(0, top),
+										 new OpenLayers.Geometry.Point(-180, top)
+									]));
+             			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" OR ';
+							var polygon = new OpenLayers.Geometry.Polygon(
+									new OpenLayers.Geometry.LinearRing(
+										[new OpenLayers.Geometry.Point(0, bottom),
+										 new OpenLayers.Geometry.Point(180, bottom),
+										 new OpenLayers.Geometry.Point(180, top),
+										 new OpenLayers.Geometry.Point(0, top)
+									]));
+             			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" )';
+						}
+						else
+						{
+     					currentPolygonSearchString = "( ";
+							var polygon = new OpenLayers.Geometry.Polygon(
+									new OpenLayers.Geometry.LinearRing(
+										[new OpenLayers.Geometry.Point(left, bottom),
+										 new OpenLayers.Geometry.Point(right, bottom),
+										 new OpenLayers.Geometry.Point(right, top),
+										 new OpenLayers.Geometry.Point(left, top)
+									]));
+             			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" )';
+						}
+					}
+					else       
+					{
+						if (left < 0)
+						{
+     					currentPolygonSearchString = "( ";
+							var polygon = new OpenLayers.Geometry.Polygon(
+									new OpenLayers.Geometry.LinearRing(
+										[new OpenLayers.Geometry.Point(left, bottom),
+										 new OpenLayers.Geometry.Point(0, bottom),
+										 new OpenLayers.Geometry.Point(0, top),
+										 new OpenLayers.Geometry.Point(left, top)
+									]));
+             			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" OR ';
+							var polygon = new OpenLayers.Geometry.Polygon(
+									new OpenLayers.Geometry.LinearRing(
+										[new OpenLayers.Geometry.Point(0, bottom),
+										 new OpenLayers.Geometry.Point(180, bottom),
+										 new OpenLayers.Geometry.Point(180, top),
+										 new OpenLayers.Geometry.Point(0, top)
+									]));
+             			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" OR ';
+							var polygon = new OpenLayers.Geometry.Polygon(
+									new OpenLayers.Geometry.LinearRing(
+										[new OpenLayers.Geometry.Point(-180, bottom),
+										 new OpenLayers.Geometry.Point(right, bottom),
+										 new OpenLayers.Geometry.Point(right, top),
+										 new OpenLayers.Geometry.Point(-180, top)
+									]));
+             			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" )';
+						}
+						else if (right > 0)
+						{
+     					currentPolygonSearchString = "( ";
+							var polygon = new OpenLayers.Geometry.Polygon(
+									new OpenLayers.Geometry.LinearRing(
+										[new OpenLayers.Geometry.Point(left, bottom),
+										 new OpenLayers.Geometry.Point(180, bottom),
+										 new OpenLayers.Geometry.Point(180, top),
+										 new OpenLayers.Geometry.Point(left, top)
+									]));
+             			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" OR ';
+							var polygon = new OpenLayers.Geometry.Polygon(
+									new OpenLayers.Geometry.LinearRing(
+										[new OpenLayers.Geometry.Point(-180, bottom),
+										 new OpenLayers.Geometry.Point(0, bottom),
+										 new OpenLayers.Geometry.Point(0, top),
+										 new OpenLayers.Geometry.Point(-180, top)
+									]));
+             			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" OR ';
+							var polygon = new OpenLayers.Geometry.Polygon(
+									new OpenLayers.Geometry.LinearRing(
+										[new OpenLayers.Geometry.Point(0, bottom),
+										 new OpenLayers.Geometry.Point(right, bottom),
+										 new OpenLayers.Geometry.Point(right, top),
+										 new OpenLayers.Geometry.Point(0, top)
+									]));
+             			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" )';
+						}
+						else
+						{
+     					currentPolygonSearchString = "( ";
+							var polygon = new OpenLayers.Geometry.Polygon(
+									new OpenLayers.Geometry.LinearRing(
+										[new OpenLayers.Geometry.Point(left, bottom),
+										 new OpenLayers.Geometry.Point(180, bottom),
+										 new OpenLayers.Geometry.Point(180, top),
+										 new OpenLayers.Geometry.Point(left, top)
+									]));
+             			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" OR ';
+							var polygon = new OpenLayers.Geometry.Polygon(
+									new OpenLayers.Geometry.LinearRing(
+										[new OpenLayers.Geometry.Point(-180, bottom),
+										 new OpenLayers.Geometry.Point(right, bottom),
+										 new OpenLayers.Geometry.Point(right, top),
+										 new OpenLayers.Geometry.Point(-180, top)
+									]));
+             			currentPolygonSearchString += 'footprint:\"Intersects('+polygon.toString()+')" )';
+						}
+					}
+				}
+				
+	    		src = map.getProjection();
+	    		dst = new OpenLayers.Projection("EPSG:4326");
+	    		v = new OpenLayers.Feature.Vector(feature.geometry);	    		
+	    		v.geometry.transform(dst, src);
+	    		vectorLayer.addFeatures([v]);
 			}
 		}
 		
@@ -660,11 +928,17 @@
 		
 		function addFeatureToAllFootprintLayer(features)
 		{
+			addFeatureToLayer (features.geometry, allFootprintLayer);
+		}
+		
+		function addFeatureToLayer(geometry, layer)
+		{
     		src = map.getProjection();
     		dst = new OpenLayers.Projection("EPSG:4326");
-			var v = new OpenLayers.Feature.Vector(features.geometry);
-			v.geometry.transform(dst, src);
-			allFootprintLayer.addFeatures([v]);
+    		var v = new OpenLayers.Feature.Vector(geometry);
+    		
+    		v.geometry.transform(dst, src);
+			layer.addFeatures([v]);
 		}
 		
 		function searchTableDefined()
@@ -749,21 +1023,23 @@
    				on('mouseover', 'tr', function() {
    					if (oTable.fnGetData( this ) !== null)
    					{
-					var data = oTable.fnGetData( this )[1].footprint; 
-					var points = [];
-					for (var i=0;i<data.length/2;i++)
-					{ 		
-						points[i] = new OpenLayers.Geometry.Point(data[i*2], data[i*2+1]);
-					}
-					var ring = new OpenLayers.Geometry.LinearRing(points);
-					var polygon = new OpenLayers.Geometry.Polygon([ring]);
-
-			    		src = map.getProjection();
-			    		dst = new OpenLayers.Projection("EPSG:4326");
-					var v = new OpenLayers.Feature.Vector(polygon);
-					v.geometry.transform(dst, src);
-					footprintLayer.addFeatures([v]);
-    					}
+						var data_1 = oTable.fnGetData( this )[1].footprint;						
+						var polygons = [];						
+						for (var j=0; j<data_1.length;j++)
+						{
+							var data = data_1[j];
+							var points = [];
+							for (var i=0;i<data.length/2;i++)
+							{ 		
+								points[i] = new OpenLayers.Geometry.Point(data[i*2], data[i*2+1]);
+							}
+							var ring = new OpenLayers.Geometry.LinearRing(points);
+							var polygon = new OpenLayers.Geometry.Polygon([ring]);
+							polygons[j] = polygon;
+						}
+	   					var multiPoly = new OpenLayers.Geometry.MultiPolygon(polygons);
+						addFeatureToLayer (multiPoly, footprintLayer);
+   					}
 				 }).
   				on('mouseout', 'tr', function() { 
   					footprintLayer.destroyFeatures();

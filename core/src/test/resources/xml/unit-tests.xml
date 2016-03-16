@@ -32,6 +32,7 @@
             <class name="fr.gael.dhus.datastore.HierarchicalDirectoryBuilderTest" />
             <class name="fr.gael.dhus.datastore.scanner.ScannerFactoryTest" />
             <class name="fr.gael.dhus.datastore.scanner.AbstractScannerTest"/>
+            <class name="fr.gael.dhus.datastore.processing.fair.FairQueueTest" />
         </classes>
     </test>
 
@@ -39,6 +40,24 @@
       <classes>
           <!-- to much tests (+1000) -->
          <!--<class name="fr.gael.dhus.PerformanceTest" />-->
+      </classes>
+   </test>
+
+   <test name="synchronizer" preserve-order="true">
+      <classes>
+         <class name="fr.gael.dhus.sync.ExecutorTest" />
+      </classes>
+   </test>
+
+   <test name="interupthttp" preserve-order="true">
+      <classes>
+         <class name="fr.gael.dhus.util.http.TestInterruptibleHttpClient" />
+      </classes>
+   </test>
+
+   <test name="test-utils">
+      <classes>
+         <class name="fr.gael.dhus.util.BlockingObjectTest" />
       </classes>
    </test>
 </suite>

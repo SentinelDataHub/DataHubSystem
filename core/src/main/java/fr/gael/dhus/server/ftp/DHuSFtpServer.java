@@ -21,6 +21,7 @@ package fr.gael.dhus.server.ftp;
 
 import java.io.File;
 
+import org.apache.ftpserver.DataConnectionConfigurationFactory;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.ftplet.FtpException;
@@ -43,7 +44,7 @@ public class DHuSFtpServer
    @Autowired
    private DHuSVFSService vfsService;
    
-   private final String FTPSERVER_ROOT = "etc";
+   private final String ftpserverRoot = "etc";
    
    /**
     * @param args
@@ -56,19 +57,20 @@ public class DHuSFtpServer
                   "classpath:fr/gael/dhus/spring/dhus-core-context.xml");
             context.registerShutdownHook ();
             
-      DHuSVFSService vfsService = (DHuSVFSService)context.getBean("ftpVfsService");
+      DHuSVFSService vfsService = (DHuSVFSService)context.getBean(
+            "ftpVfsService");
       
       DHuSFtpServer ftp = new DHuSFtpServer();
       ftp.vfsService = vfsService;
       
-      FtpServer server = ftp.createFtpServer(2121, false);
+      FtpServer server = ftp.createFtpServer(2121, "30200-30220", false);
       
       server.start();
       context.close();
    }
    
    
-   public FtpServer createFtpServer(int port, boolean ftps)
+   public FtpServer createFtpServer(int port, String passivePort ,boolean ftps)
    {
       final ListenerFactory listenerFactory = new ListenerFactory();
       listenerFactory.setPort(port);
@@ -77,18 +79,32 @@ public class DHuSFtpServer
          // SSL config
          final SslConfigurationFactory sslConfigurationFactory = 
                new SslConfigurationFactory();
-         // Create store: keytool -genkey -alias ftptest -keyalg RSA -keystore ftpserver.jks -keysize 4096
-         sslConfigurationFactory.setKeystoreFile(new File(FTPSERVER_ROOT, "ftpserver.jks"));
+         // Create store: keytool -genkey -alias ftptest -keyalg RSA -keystore
+         // ftpserver.jks -keysize 4096
+         sslConfigurationFactory.setKeystoreFile(new File(ftpserverRoot,
+               "ftpserver.jks"));
          sslConfigurationFactory.setKeystorePassword("supermdp");
-         listenerFactory.setSslConfiguration(sslConfigurationFactory.createSslConfiguration());
+         listenerFactory.setSslConfiguration(
+               sslConfigurationFactory.createSslConfiguration());
          listenerFactory.setImplicitSsl(false);
       }
+
+      // Data Connection
+      DataConnectionConfigurationFactory dataConnection;
+      dataConnection = new DataConnectionConfigurationFactory ();
+      dataConnection.setPassivePorts (passivePort);
+      listenerFactory.setDataConnectionConfiguration (
+            dataConnection.createDataConnectionConfiguration ());
+
       // Listener
       final FtpServerFactory ftpServerFactory = new FtpServerFactory();
       ftpServerFactory.addListener("default", listenerFactory.createListener());
       // Authentication
-      ftpServerFactory.setUserManager(new DHuSFtpUserManager(vfsService.getUserDao()));
-      ftpServerFactory.setFileSystem(new DHuSFtpFileSystemFactory (vfsService));
+      ftpServerFactory.setUserManager(
+            new DHuSFtpUserManager(vfsService.getUserDao()));
+      // File System
+      ftpServerFactory.setFileSystem(
+            new DHuSFtpFileSystemFactory (vfsService));
       return ftpServerFactory.createServer();
    }
 

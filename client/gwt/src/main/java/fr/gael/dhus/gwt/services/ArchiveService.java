@@ -21,9 +21,10 @@ package fr.gael.dhus.gwt.services;
 
 import com.google.gwt.user.client.rpc.RemoteService;
 
+import fr.gael.dhus.gwt.share.exceptions.AccessDeniedException;
 import fr.gael.dhus.gwt.share.exceptions.ArchiveServiceException;
 
 public interface ArchiveService extends RemoteService
 {
-   public int synchronizeLocalArchive () throws ArchiveServiceException;
+   public int synchronizeLocalArchive () throws ArchiveServiceException, AccessDeniedException;
 }

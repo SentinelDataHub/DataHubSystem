@@ -19,31 +19,28 @@
  */
 package fr.gael.dhus.search.geocoder.impl;
 
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.StringTokenizer;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 import com.vividsolutions.jts.io.WKTWriter;
 import com.vividsolutions.jts.simplify.TopologyPreservingSimplifier;
-
+import fr.gael.dhus.database.object.config.search.GeocoderConfiguration;
 import fr.gael.dhus.database.object.config.search.NominatimConfiguration;
-import fr.gael.dhus.search.geocoder.AbstractGeocoder;
-import fr.gael.dhus.spring.context.ApplicationContextProvider;
-import fr.gael.dhus.system.config.ConfigurationManager;
+import fr.gael.dhus.search.geocoder.Geocoder;
 import fr.gael.drb.DrbAttribute;
 import fr.gael.drb.DrbNode;
 import fr.gael.drb.DrbSequence;
 import fr.gael.drb.impl.xml.XmlDocument;
 import fr.gael.drb.query.Query;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.StringTokenizer;
 
 /**
  * A Geocoder implementation based on Nominatim Web Service, a service
@@ -60,18 +57,12 @@ import fr.gael.drb.query.Query;
  * the place's boundaries.
  * </p>
  */
-public class NominatimGeocoder extends AbstractGeocoder
+public class NominatimGeocoder implements Geocoder
 {
    /**
     * A logger for this class.
     */
    private static Log logger = LogFactory.getLog(NominatimGeocoder.class);
-   
-
-   /**
-    * URL string of the Nominatim Web Service.
-    */
-   private String NOMINATIM_URL="http://nominatim.openstreetmap.org";
 
    /**
     * Arbitrarily small degree
@@ -80,6 +71,11 @@ public class NominatimGeocoder extends AbstractGeocoder
     * coordinates have to be arbitrarily shifted
     */
    private static final double EPSILON_DEG = 0.0001;
+
+   /**
+    * URL string of the Nominatim Web Service.
+    */
+   private String nominatimUrl = "http://nominatim.openstreetmap.org";
 
    /**
     * System property toggling bounding box mode (rectangle) or full
@@ -95,30 +91,23 @@ public class NominatimGeocoder extends AbstractGeocoder
 
    /**
     * Default constructor.
+    * @param conf configuration for geocoders, may be null.
     */
-   public NominatimGeocoder()
+   public NominatimGeocoder(GeocoderConfiguration conf)
    {
-      ConfigurationManager configurationManager = null;
-      try
+      if (conf == null)
       {
-         configurationManager = ApplicationContextProvider.getBean (
-            ConfigurationManager.class);
-      }
-      catch (Exception e)
-      {
-         logger.error ("Context not present: using default values");
+         logger.warn("Context not present: using default values");
          return;
       }
-      NominatimConfiguration nominatim = 
-         configurationManager.getNominatimConfiguration ();
-      
-      init (configurationManager.getGeocoderConfiguration ().getUrl (), 
-         nominatim.getMaxPointNumber (),
-         nominatim.isBoundingBox ());
-   } // End NominatimGeocoder()
-   
+
+      NominatimConfiguration n_conf = conf.getNominatimConfiguration();
+
+      init(conf.getUrl(), n_conf.getMaxPointNumber(), n_conf.isBoundingBox());
+   }
+
    /**
-    * Outside any context, build nominatim with user defined settings. 
+    * Outside any context, build nominatim with user defined settings.
     * @param nomi_url
     * @param max_point_number
     * @param bounding_box_flag
@@ -128,7 +117,7 @@ public class NominatimGeocoder extends AbstractGeocoder
    {
       init (nomi_url, max_point_number, bounding_box_flag);
    }
-   
+
    /**
     * Initialize nominatim settings without configuration manager
     * @param nomi_url
@@ -138,8 +127,8 @@ public class NominatimGeocoder extends AbstractGeocoder
    private void init (String nomi_url, Integer max_point_number,
       Boolean bounding_box_flag)
    {
-      if ((nomi_url!=null) && !nomi_url.trim ().isEmpty ()) 
-         NOMINATIM_URL = nomi_url.trim ();
+      if ((nomi_url!=null) && !nomi_url.trim ().isEmpty ())
+         nominatimUrl = nomi_url.trim ();
 
       if (bounding_box_flag != null)
          boundingBoxFlag = bounding_box_flag;
@@ -160,7 +149,7 @@ public class NominatimGeocoder extends AbstractGeocoder
     * strictly lower that 18 and with a "geotext" not starting by "POINT"
     * will be considered. This avoids locations limited to a point or most
     * of points of low interest e.g. ENVISAT scale model at ESTEC.
-    * 
+    *
     * @see <a href=
     *  "http://wiki.openstreetmap.org/wiki/Nominatim/Development_overview"
     *  >Nominatim - Development_overview</a> for more information about
@@ -173,7 +162,7 @@ public class NominatimGeocoder extends AbstractGeocoder
       URL nominatim_search_url;
       try
       {
-         nominatim_search_url = new URL(NOMINATIM_URL +
+         nominatim_search_url = new URL(nominatimUrl +
             "/search?format=xml&polygon_text=1&q=" + address);
       }
       catch (MalformedURLException exception)
@@ -185,16 +174,11 @@ public class NominatimGeocoder extends AbstractGeocoder
       // Get stream result from Nominatim service
       XmlDocument searchresults_document = null;
 
-      try
+      // Open URL stream
+      try (InputStream input_stream = nominatim_search_url.openStream())
       {
-         // Open URL stream
-         InputStream input_stream = nominatim_search_url.openStream();
-         
          // Parse result string as an XML document
          searchresults_document = new XmlDocument(input_stream);
-
-         // Close URL stream
-         input_stream.close();
       }
       catch (Exception exception)
       {
@@ -203,25 +187,35 @@ public class NominatimGeocoder extends AbstractGeocoder
          return null;
       }
 
-      // Return immediately if the response is null or empty
-      if ((searchresults_document == null) ||
-          (searchresults_document.getChildrenCount() <= 0))
+      return computeWKT (searchresults_document);
+
+   } // End getBoundariesWKT(String)
+
+   /**
+    * Compute WKT format string from Nominatim XML place list.
+    * If boundingBoxFlag property is set to true, the bounding box of the area 
+    * will be retained for the WKT area otherwise the exact footprint is kept.
+    * @See {@link #getBoundariesWKT(String)} 
+    */
+   String computeWKT (XmlDocument document)
+   {
+      if ((document == null) ||
+            (document.getChildrenCount() <= 0))
       {
-         logger.warn("Null or empty response from Nominatim service: " +
-               nominatim_search_url);
+         logger.warn("Null or empty document");
          return null;
       }
 
       // Query places from result document
       DrbSequence places_sequence =
             new Query("(*/place[xs:int(@place_rank) < 20]" +
-               "[@geotext]" +
-               "[fn:not(fn:matches(@geotext, 'POINT.*'))])[1]").evaluate(
-               searchresults_document);
+                  "[@geotext]" +
+                  "[fn:not(fn:matches(@geotext, 'POINT.*'))])[1]").evaluate(
+                  document);
 
       // Return immediately if no place has been found
       if ((places_sequence == null) ||
-          (places_sequence.getLength() <= 0))
+            (places_sequence.getLength() <= 0))
       {
          return null;
       }
@@ -240,9 +234,8 @@ public class NominatimGeocoder extends AbstractGeocoder
          if (boundingbox_value == null)
          {
             logger.warn("Returned place \"" +
-               place_node.getAttribute("display_name") + "\" has no \"" +
-                  "boundingbox\" attribute - from Nominatim service: " +
-               nominatim_search_url);
+                  place_node.getAttribute("display_name") + "\" has no \"" +
+                  "boundingbox\" attribute");
             return null;
          }
 
@@ -261,8 +254,7 @@ public class NominatimGeocoder extends AbstractGeocoder
          }
          catch (Exception exception)
          {
-            logger.warn("Error while parsing bouding box resulting from " +
-               "URL \"" + nominatim_search_url + "\"");
+            logger.warn("Error while parsing bouding box");
             return null;
          }
 
@@ -275,7 +267,8 @@ public class NominatimGeocoder extends AbstractGeocoder
          return "POLYGON ((" + min_lon + " " + max_lat + ", " + max_lon + " "
                + (max_lat + EPSILON_DEG) + ", " + (max_lon + EPSILON_DEG) + " "
                + min_lat + ", " + (min_lon - EPSILON_DEG) + " "
-               + (min_lat - EPSILON_DEG) + ", " + min_lon + " " + max_lat + "))";
+               + (min_lat - EPSILON_DEG) + ", " + min_lon + " " + max_lat
+               + "))";
       }
       // Case of full polygon boundaries request
       else
@@ -288,9 +281,8 @@ public class NominatimGeocoder extends AbstractGeocoder
          if (geotext_attribute == null)
          {
             logger.warn("Returned place \"" +
-               place_node.getAttribute("display_name") + "\" has no \"" +
-                  "geotext\" attribute - from Nominatim service: " +
-               nominatim_search_url);
+                  place_node.getAttribute("display_name") + "\" has no \"" +
+                  "geotext\" attribute");
             return null;
          }
 
@@ -299,7 +291,7 @@ public class NominatimGeocoder extends AbstractGeocoder
 
          if (logger.isDebugEnabled())
          {
-            logger.debug("Retrieved \"" + address + "\" footprint:" + geotext);
+            logger.debug("Retrieved footprint:" + geotext);
          }
 
          // Return simplified WKT if not null
@@ -324,24 +316,22 @@ public class NominatimGeocoder extends AbstractGeocoder
          // Return null if no entry was found and log as necessary
          if (logger.isDebugEnabled())
          {
-            logger.warn("No boundaries found from " + "Nomninatim service: "
-                  + nominatim_search_url);
+            logger.warn("No boundaries found");
          }
 
          return null;
       }
-
-   } // End getBoundariesWKT(String)
+   } /* computeWKT */
    
    public void setUrl (String url)
    {
-      this.NOMINATIM_URL = url;
+      this.nominatimUrl = url;
    }
 
    /**
     * Returns a simplified version of the input geometry with a number of
     * points reduced to a maximum provided in parameter.
-    * 
+    *
     * The simplification algorithm can be outlined as follow:
     * <ul>
     * <li>returns null if the input geometry is null;</li>
@@ -364,8 +354,8 @@ public class NominatimGeocoder extends AbstractGeocoder
 
       int current_point_number = -1;
       int previous_point_number = -2;
-      while ((current_point_number !=
-            previous_point_number) &&(geometry.getNumPoints() > max_output_points))
+      while ((current_point_number != previous_point_number)
+            && (geometry.getNumPoints() > max_output_points))
       {
          previous_point_number = current_point_number;
          current_point_number = geometry.getNumPoints();
@@ -373,7 +363,7 @@ public class NominatimGeocoder extends AbstractGeocoder
                cluster_factor);
          cluster_factor += 0.05;
       }
-      
+
       return geometry;
    }
 
@@ -470,7 +460,7 @@ public class NominatimGeocoder extends AbstractGeocoder
          {
             Geometry current_geometry = geometry.getGeometryN(igeom);
             Point current_centroid = current_geometry.getCentroid();
-            
+
             if ((current_geometry == null) ||
                 (current_centroid == null))
             {
@@ -479,7 +469,7 @@ public class NominatimGeocoder extends AbstractGeocoder
             }
 
             ArrayList<Geometry> current_cluster = new ArrayList<Geometry>();
-            
+
             current_cluster.add(current_geometry);
 
             for (int jgeom=igeom+1; jgeom<number_geometries; jgeom++)
@@ -511,7 +501,7 @@ public class NominatimGeocoder extends AbstractGeocoder
                geometry.getFactory().createGeometryCollection(
                   current_cluster.toArray(current_cluster_array));
          }
-         
+
          clustered_geometries[number_geometries-1] =
             geometry.getGeometryN(number_geometries-1);
 

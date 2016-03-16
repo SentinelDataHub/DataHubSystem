@@ -68,7 +68,8 @@ public class NetworkUsage
     * True if the transfer denoted by this class is a download (from server
     * to client). False otherwise.
     */
-   @Column (name = "IS_DOWNLOAD", nullable = false, columnDefinition = "BOOLEAN")
+   @Column (name = "IS_DOWNLOAD", nullable = false,
+            columnDefinition = "BOOLEAN")
    private boolean isDownload;
 
    /**
@@ -138,11 +139,11 @@ public class NetworkUsage
    }
 
    /**
-    * @param isDownload the isDownload to set
+    * @param is_download the isDownload to set
     */
-   public void setIsDownload (Boolean isDownload)
+   public void setIsDownload (Boolean is_download)
    {
-      this.isDownload = isDownload;
+      this.isDownload = is_download;
    }
 
    /**

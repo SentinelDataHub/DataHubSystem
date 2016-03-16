@@ -25,17 +25,18 @@ import com.google.gwt.user.client.rpc.RemoteService;
 
 import fr.gael.dhus.gwt.share.EvictionStrategyData;
 import fr.gael.dhus.gwt.share.ProductData;
+import fr.gael.dhus.gwt.share.exceptions.AccessDeniedException;
 import fr.gael.dhus.gwt.share.exceptions.EvictionServiceException;
 
 public interface EvictionService extends RemoteService
 {
-   public int getKeepPeriod() throws EvictionServiceException;
-   public int getMaxDiskUsage() throws EvictionServiceException;
-   public String getStrategy() throws EvictionServiceException;
-   public void save(String strategyId, int keepPeriod, int maxDiskUsage) throws EvictionServiceException;
+   public int getKeepPeriod() throws EvictionServiceException, AccessDeniedException;
+   public int getMaxDiskUsage() throws EvictionServiceException, AccessDeniedException;
+   public String getStrategy() throws EvictionServiceException, AccessDeniedException;
+   public void save(String strategyId, int keepPeriod, int maxDiskUsage) throws EvictionServiceException, AccessDeniedException;
   
-   public List<ProductData> getEvictableProducts() throws EvictionServiceException;
+   public List<ProductData> getEvictableProducts() throws EvictionServiceException, AccessDeniedException;
    
-   public List<EvictionStrategyData> getAllStrategies() throws EvictionServiceException;
-   public void doEvict() throws EvictionServiceException;
+   public List<EvictionStrategyData> getAllStrategies();
+   public void doEvict() throws EvictionServiceException, AccessDeniedException;
 }

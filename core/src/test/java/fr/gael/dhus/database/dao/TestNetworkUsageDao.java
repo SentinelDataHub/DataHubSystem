@@ -1,17 +1,14 @@
 package fr.gael.dhus.database.dao;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import fr.gael.dhus.database.dao.interfaces.HibernateDao;
@@ -38,7 +35,15 @@ public class TestNetworkUsageDao extends
    @Autowired
    private UserDao udao;
 
-   private final Long period = new Date ().getTime ();
+   private Date period;
+
+   @BeforeClass
+   public void setUp ()
+   {
+      Calendar calendar = Calendar.getInstance ();
+      calendar.set (2014, 01, 01);
+      this.period = calendar.getTime ();
+   }
 
    @Override
    protected HibernateDao<NetworkUsage, Long> getHibernateDao ()
@@ -66,9 +71,10 @@ public class TestNetworkUsageDao extends
       nu.setUser (user);
 
       nu = dao.create (nu);
-      assertNotNull (nu);
-      assertEquals (nu.getSize ().intValue (), 42);
-      assertEquals (nu.getUser (), user);
+      Assert.assertNotNull (nu);
+      Assert.assertNotNull (nu.getId ());
+      Assert.assertEquals (nu.getSize ().intValue (), 42);
+      Assert.assertEquals (nu.getUser (), user);
    }
 
    @Override
@@ -77,9 +83,9 @@ public class TestNetworkUsageDao extends
       User u = new User ();
       u.setId (2L);
       NetworkUsage nu = dao.read (0L);
-      assertNotNull (nu);
-      assertEquals (nu.getSize ().intValue (), 2);
-      assertEquals (nu.getUser ().getUsername (), "toto");
+      Assert.assertNotNull (nu);
+      Assert.assertEquals (nu.getSize ().intValue (), 2);
+      Assert.assertEquals (nu.getUser ().getUsername (), "toto");
    }
 
    @Override
@@ -89,13 +95,13 @@ public class TestNetworkUsageDao extends
       NetworkUsage nu = dao.read (id);
       boolean bool = true;
 
-      assertNotNull (nu);
-      assertNotEquals (nu.getIsDownload (), bool);
+      Assert.assertNotNull (nu);
+      Assert.assertNotEquals (nu.getIsDownload (), bool);
       nu.setIsDownload (bool);
       dao.update (nu);
 
       nu = dao.read (id);
-      assertTrue (nu.getIsDownload ());
+      Assert.assertTrue (nu.getIsDownload ());
    }
 
    @Override
@@ -103,9 +109,9 @@ public class TestNetworkUsageDao extends
    {
       long id = 5;
       dao.delete (dao.read (id));
-      assertEquals (dao.count (), (howMany () - 1));
-      assertNull (dao.read (id));
-      assertNotNull (udao.read (3L));
+      Assert.assertEquals (dao.count (), (howMany () - 1));
+      Assert.assertNull (dao.read (id));
+      Assert.assertNotNull (udao.read (3L));
    }
 
    @Override
@@ -113,7 +119,7 @@ public class TestNetworkUsageDao extends
    {
       String hql = "WHERE isDownload IS FALSE";
       Iterator<NetworkUsage> it = dao.scroll (hql, -1, -1).iterator ();
-      assertTrue (CheckIterator.checkElementNumber (it, 3));
+      Assert.assertTrue (CheckIterator.checkElementNumber (it, 3));
    }
 
    @Override
@@ -121,26 +127,26 @@ public class TestNetworkUsageDao extends
    {
       String hql = "FROM NetworkUsage WHERE isDownload = TRUE ORDER BY id DESC";
       NetworkUsage nu = dao.first (hql);
-      assertNotNull (nu);
-      assertEquals (nu.getId ().intValue (), 7);
+      Assert.assertNotNull (nu);
+      Assert.assertEquals (nu.getId ().intValue (), 7);
    }
 
    @Test
    public void testGetDownloadedCountPerUser ()
    {
-      User u = udao.getByName ("koko");
+      User u = udao.getByName ("babar");
 
-      int n = dao.getDownlaodedCountPerUser (u, period);
-      assertEquals (n, 1);
+      int n = dao.countDownloadByUserSince (u, period);
+      Assert.assertEquals (n, 2);
    }
 
    @Test
    public void testGetDownloadSizePerUser ()
    {
-      User u = udao.getByName ("koko");
+      User u = udao.getByName ("babar");
 
-      long expected = 16;
-      long size = dao.getDownlaodedSizePerUser (u, period);
-      assertEquals (size, expected);
+      long expected = 68;
+      long size = dao.getDownloadedSizeByUserSince (u, period);
+      Assert.assertEquals (size, expected);
    }
 }

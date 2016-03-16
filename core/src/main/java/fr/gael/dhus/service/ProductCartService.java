@@ -23,9 +23,12 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
+import fr.gael.dhus.util.BlockingObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import fr.gael.dhus.database.dao.ProductCartDao;
 import fr.gael.dhus.database.dao.ProductDao;
@@ -51,54 +54,108 @@ public class ProductCartService extends WebService
    
    @Autowired
    private ProductDao productDao;
-
+   
+   /**
+    * Creates a new cart for the passed user. If the user has already a cart,
+    * this cart will be returned. To force reset of cart use {@link ProductCartService#deleteCartOfUser(Long)}.
+    * @param u_id the user to create a new cart.
+    * @return the created cart.
+    * @throws UserNotExistingException when passed user is unknown.
+    */
    @PreAuthorize ("hasRole('ROLE_DOWNLOAD')")
-   public ProductCart getCartOfUser(Long uId) throws UserNotExistingException
+   @Transactional (readOnly=false, propagation=Propagation.REQUIRED)
+   public ProductCart createCartOfUser (Long u_id)
    {
-      User user = userDao.read (uId);
-      if (user == null)
-      {
-         throw new UserNotExistingException();
-      }
-      ProductCart cart = productCartDao.getCartOfUser(user);
+      ProductCart cart = getCartOfUser(u_id);
       if (cart == null)
-      {   
+      {
+         User user = getUser (u_id);
          cart = new ProductCart();
          cart.setUser (user);
-         productCartDao.create (cart);
       }
-      return cart;
+      return productCartDao.create (cart);
    }
    
+   /**
+    * Removes a cart attached to a user.
+    * @param u_id the user to remove the cart.
+    * @throws UserNotExistingException when passed user is unknown.
+    */
    @PreAuthorize ("hasRole('ROLE_DOWNLOAD')")
-   public void addProductToCart(Long uId, Long pId) throws UserNotExistingException,
-      ProductNotExistingException
+   @Transactional (readOnly=false, propagation=Propagation.REQUIRED)
+   public void deleteCartOfUser (Long u_id)
    {
-      Product product = productDao.read (pId);
+      ProductCart cart = getCartOfUser(u_id);
+      if (cart!=null) productCartDao.delete(cart);
+   }
+
+   /**
+    * Get the cart of the related user. If the user has no cart configured, null
+    * is returned.
+    * @param u_id the related user to retrieve the cart.
+    * @return the cart
+    * @throws UserNotExistingException when passed user is unknown.
+    */
+   @PreAuthorize ("hasRole('ROLE_DOWNLOAD')")
+   @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
+   public ProductCart getCartOfUser(Long u_id) throws UserNotExistingException
+   {
+      User user = getUser (u_id);
+      return productCartDao.getCartOfUser(user);
+   }
+   
+   /**
+    * Add a product into a user's cart. Is user has no cart, it will be created.
+    * @param u_id id of the expected user
+    * @param p_id id of the product to add.
+    * @throws UserNotExistingException when passed user is unknown.
+    * @throws ProductNotExistingException when the passed to add does not exists.
+    */
+   @PreAuthorize ("hasRole('ROLE_DOWNLOAD')")
+   @Transactional (propagation=Propagation.REQUIRED)
+   public void addProductToCart(Long u_id, Long p_id)
+      throws UserNotExistingException, ProductNotExistingException
+   {
+      Product product = productDao.read (p_id);
       if (product == null)
       {
          throw new ProductNotExistingException();
       }
-      ProductCart cart = getCartOfUser (uId);
-      if (cart.getProducts () == null)
+
+      String key = "{" + u_id.toString () + "-" + p_id.toString () + "}";
+      synchronized (BlockingObject.getBlockingObject (key))
       {
-         cart.setProducts (new HashSet<Product> ());
+         ProductCart cart = getCartOfUser (u_id);
+         if (cart == null) cart = createCartOfUser (u_id);
+         if (cart.getProducts () == null)
+         {
+            cart.setProducts (new HashSet<Product> ());
+         }
+         cart.getProducts ().add (product);
+         productCartDao.update (cart);
       }
-      cart.getProducts ().add (product);
-      productCartDao.update (cart);
    }
    
+   /**
+    * remove the specified product from cart.
+    * @param u_id user to remove the product.
+    * @param p_id product to be removed.
+    * @throws UserNotExistingException when passed user is unknown.
+    * @throws ProductNotExistingException when the passed product to add does not exists.
+    */
    @PreAuthorize ("hasRole('ROLE_DOWNLOAD')")
-   public void removeProductFromCart(Long uId, Long pId) throws UserNotExistingException,
+   @Transactional (propagation=Propagation.REQUIRED)
+   public void removeProductFromCart(Long u_id, Long p_id) throws
+         UserNotExistingException,
       ProductNotExistingException
    {
-      Product product = productDao.read (pId);
+      Product product = productDao.read (p_id);
       if (product == null)
       {
          throw new ProductNotExistingException();
       }
-      ProductCart cart = getCartOfUser (uId);
-      if (cart.getProducts () == null)
+      ProductCart cart = getCartOfUser (u_id);
+      if ((cart==null) || (cart.getProducts ()==null))
       {
          return;
       }
@@ -113,42 +170,94 @@ public class ProductCartService extends WebService
       productCartDao.update (cart);
    }
 
+   /**
+    * Retrieve the list of product ids from the cart of the passed user.
+    * @param u_id the user to retrieve the products.
+    * @return a list of product identifiers.
+    * @throws UserNotExistingException when passed user is unknown.
+    */
    @PreAuthorize ("hasRole('ROLE_DOWNLOAD')")
-   public List<Long> getProductsIdOfCart(Long uId) throws UserNotExistingException,
-      ProductNotExistingException
+   @Transactional (propagation=Propagation.REQUIRED)
+   public List<Long> getProductsIdOfCart(Long u_id)
+      throws UserNotExistingException
    {
-      User user = userDao.read (uId);
-      if (user == null)
-      {
-         throw new UserNotExistingException();
-      }
-      return productCartDao.getProductsIdOfCart (user);
+      return productCartDao.getProductsIdOfCart (getUser (u_id));
    }
-   
+
+   /**
+    * Retrieve the product list from a product cart of a user.
+    * @param u_id the user to retrieve the products.
+    * @param skip product number to skip from the list.
+    * @param top number of product to keep.
+    * @return the list of product within the passed window.
+    * @throws UserNotExistingException when passed user is unknown.
+    */
    @PreAuthorize ("hasRole('ROLE_DOWNLOAD')")
-   public List<Product> getProductsOfCart(Long uId, int skip, int top) 
-            throws UserNotExistingException, ProductNotExistingException
+   @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
+   public List<Product> getProductsOfCart(Long u_id, int skip, int top)
+      throws UserNotExistingException
    {
-      User user = userDao.read (uId);
-      if (user == null)
-      {
-         throw new UserNotExistingException();
-      }
-      return productCartDao.scrollCartOfUser (user, skip, top);
+      return productCartDao.scrollCartOfUser (getUser (u_id), skip, top);
    }   
-      
+   
+   /**
+    * Count the number of products from a user's cart.
+    * @param u_id the user to retrieve the cart.
+    * @return the number of products in the cart.
+    * @throws UserNotExistingException when passed user is unknown.
+    */
    @PreAuthorize ("hasRole('ROLE_DOWNLOAD')")
-   public int countProductsInCart (Long uId)
+   @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
+   public int countProductsInCart (Long u_id)
+      throws UserNotExistingException
    {
-      ProductCart cart = getCartOfUser (uId);
+      ProductCart cart = getCartOfUser (u_id);
+      if (cart == null) return 0;
       return cart.getProducts () == null ? 0 : cart.getProducts ().size ();
    }
    
+   /**
+    * Reports if the passed user has product in its cart. 
+    * @param u_id the user to retrieve the cart.
+    * @return false is cart is empty, true otherwise.
+    */
    @PreAuthorize ("hasRole('ROLE_DOWNLOAD')")
-   public void clearCart (Long uId)
+   @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
+   public boolean hasProducts (Long u_id)
    {
-      ProductCart cart = getCartOfUser (uId);
-      cart.getProducts ().clear ();
-      productCartDao.update (cart);
+      return countProductsInCart (u_id) != 0 ;
+   }
+   
+   /**
+    * 
+    * @param u_id
+    * @throws UserNotExistingException when passed user is unknown.
+    */
+   @PreAuthorize ("hasRole('ROLE_DOWNLOAD')")
+   @Transactional (propagation=Propagation.REQUIRED)
+   public void clearCart (Long u_id) throws UserNotExistingException
+   {
+      ProductCart cart = getCartOfUser (u_id);
+      if ((cart!=null) && (cart.getProducts()!=null)) 
+      {
+         cart.getProducts ().clear ();
+         productCartDao.update (cart);
+      }
+   }
+
+   /**
+    * 
+    * @param u_id
+    * @return
+    * @throws UserNotExistingException
+    */
+   @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
+   private User getUser(Long u_id) throws UserNotExistingException
+   {
+      User user = userDao.read (u_id);
+      if (user == null)
+         throw new UserNotExistingException();
+      return user;
+
    }
 }

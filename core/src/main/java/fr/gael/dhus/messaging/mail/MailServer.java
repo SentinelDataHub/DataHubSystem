@@ -46,7 +46,8 @@ public class MailServer implements MailServerInterface
    @Autowired
    private ConfigurationManager cfgManager;
    
-   public void send (Email email, String to, String cc, String bcc, String subject)
+   public void send (Email email, String to, String cc, String bcc,
+         String subject)
       throws EmailException
    {
       email.setHostName (getSmtpServer ());
@@ -66,7 +67,8 @@ public class MailServer implements MailServerInterface
       {
          try 
          {
-            email.setReplyTo(ImmutableList.of(new InternetAddress(getReplyto())));
+            email.setReplyTo(ImmutableList.of(
+                  new InternetAddress(getReplyto())));
          }
          catch(AddressException e)
          {           
@@ -76,7 +78,8 @@ public class MailServer implements MailServerInterface
       }
 
       // Message configuration
-      email.setSubject ("["+cfgManager.getNameConfiguration ().getShortName () +"] " +  subject);
+      email.setSubject ("["+cfgManager.getNameConfiguration ().getShortName () +
+            "] " +  subject);
       email.addTo (to);
 
       // Add CCed
@@ -128,7 +131,8 @@ public class MailServer implements MailServerInterface
     */
    public String getSmtpServer ()
    {
-      return cfgManager.getMailConfiguration ().getServerConfiguration ().getSmtp ();
+      return cfgManager.getMailConfiguration ().getServerConfiguration ()
+            .getSmtp ();
    }
 
 
@@ -137,7 +141,8 @@ public class MailServer implements MailServerInterface
     */
    public int getPort ()
    {
-      return cfgManager.getMailConfiguration ().getServerConfiguration ().getPort ();
+      return cfgManager.getMailConfiguration ().getServerConfiguration ()
+            .getPort ();
    }
 
 
@@ -146,7 +151,8 @@ public class MailServer implements MailServerInterface
     */
    public boolean isTls ()
    {
-      return cfgManager.getMailConfiguration ().getServerConfiguration ().isTls ();
+      return cfgManager.getMailConfiguration ().getServerConfiguration ()
+            .isTls ();
    }
 
 
@@ -155,7 +161,8 @@ public class MailServer implements MailServerInterface
     */
    public String getUsername ()
    {
-      return cfgManager.getMailConfiguration ().getServerConfiguration ().getUsername ();
+      return cfgManager.getMailConfiguration ().getServerConfiguration ()
+            .getUsername ();
    }
 
 
@@ -164,7 +171,8 @@ public class MailServer implements MailServerInterface
     */
    public String getPassword ()
    {
-      return cfgManager.getMailConfiguration ().getServerConfiguration ().getPassword ();
+      return cfgManager.getMailConfiguration ().getServerConfiguration ()
+            .getPassword ();
    }
 
 
@@ -173,7 +181,8 @@ public class MailServer implements MailServerInterface
     */
    public String getReplyto ()
    {
-      return cfgManager.getMailConfiguration ().getServerConfiguration ().getReplyTo ();
+      return cfgManager.getMailConfiguration ().getServerConfiguration ()
+            .getReplyTo ();
    }
 
 
@@ -182,7 +191,8 @@ public class MailServer implements MailServerInterface
     */
    public String getFromMail ()
    {
-      return cfgManager.getMailConfiguration ().getServerConfiguration ().getMailFromConfiguration ().getAddress ();
+      return cfgManager.getMailConfiguration ().getServerConfiguration ()
+            .getMailFromConfiguration ().getAddress ();
    }
 
 
@@ -191,6 +201,7 @@ public class MailServer implements MailServerInterface
     */
    public String getFromName ()
    {
-      return cfgManager.getMailConfiguration ().getServerConfiguration ().getMailFromConfiguration ().getName ();
+      return cfgManager.getMailConfiguration ().getServerConfiguration ()
+            .getMailFromConfiguration ().getName ();
    }
 }

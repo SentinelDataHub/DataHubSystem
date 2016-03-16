@@ -1,0 +1,584 @@
+<div>
+<!-- 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+-->
+<div>
+  <style>
+      
+    #userView .panel-heading {
+      height: 30px;    
+      background-color: lightgray;    
+      line-height: 10px;
+    }
+
+    #userView .panel-default {
+      border: 1px #aaa solid;
+      width: 50%;
+    }
+
+    @media screen and (min-width: 993px) and (max-width: 1200px) { 
+        
+      #userView .panel-default {
+         width: 50%;
+      }
+    } 
+
+    @media screen and (min-width: 769px) and(max-width: 992px) { 
+      
+      #userView .panel-default {
+         width: 100%;
+      }
+    } 
+
+    @media screen and (max-width: 768px) { 
+      
+      #userView .panel-default {
+         width: 100%;
+      }
+    }
+
+    #userView   .group            { 
+      position:relative; 
+      margin-bottom:35px; 
+    }
+
+    #userView   .checkFunction  { 
+      top: -5px; 
+    }
+    #userView input               {
+      font-size:13px;
+      padding:2px;
+      display:block;
+      width:100%;
+      border:none;
+      border-bottom:1px solid #757575;
+    }
+    #userView input:focus         { outline:none; }
+
+    /* LABEL ======================================= */
+    #userView label                {
+      color:#999; 
+      font-size:13px;
+      font-weight:normal;
+      position:absolute;
+      pointer-events:none;  
+      top:10px;
+      transition:0.2s ease all; 
+      -moz-transition:0.2s ease all; 
+      -webkit-transition:0.2s ease all;
+    }
+
+    /* active state */
+    #userView input:focus ~ .lbl-field, #userView input:valid ~ .lbl-field, #userView input:invalid ~ .lbl-field  {
+      top:-15px;
+      font-size:13px;
+      color: rgb(55, 59, 80);
+    }
+
+    .username-lbl-field {
+      top:-15px !important;
+      color: rgb(55, 59, 80) !important;
+    }
+
+    #userView input:invalid ~ .invalid-field{
+        display: inline-block !important;
+    }
+
+    #userView .invalid-field {
+      display:none;
+      color: rgb(255,110,64);
+      top: 30px;
+      font-size: 9px;
+    }
+
+    #userView .select-label {
+      display:none;  
+      top: -20px;
+      color: rgb(55, 59, 80);
+      font-size: 13px;
+    }
+
+    /* BOTTOM BARS ================================= */
+    #userView .bar    { position:relative; display:block; width:100%; }
+    #userView .bar:before, .bar:after     {
+      content:'';
+      height:2px; 
+      width:0;
+      bottom:1px; 
+      position:absolute;
+      background:rgb(55, 59, 80); 
+      transition:0.2s ease all; 
+      -moz-transition:0.2s ease all; 
+      -webkit-transition:0.2s ease all;
+    }
+    #userView .bar:before {
+      left:50%;
+    }
+    #userView .bar:after {
+      right:50%; 
+    }
+
+    /* active state */
+    #userView input:focus ~ .bar:before, #userView input:focus ~ .bar:after {
+      width:50%;
+    }
+
+    /* HIGHLIGHTER ================================== */
+    #userView .highlight {
+      position:absolute;
+      height:60%; 
+      width:100px; 
+      top:25%; 
+      left:0;
+      pointer-events:none;
+      opacity:0.5;
+    }
+
+    /* active state */
+    #userView input:focus ~ .highlight {
+      -webkit-animation:inputHighlighter 0.3s ease;
+      -moz-animation:inputHighlighter 0.3s ease;
+      animation:inputHighlighter 0.3s ease;
+    }
+
+    /* Style Select Field */
+    #userView select {
+      font-family: inherit;
+      background-color: transparent;
+      width: 100%;
+      padding: 2px 0;
+      font-size: 13px;  
+      border: none;
+      border-bottom: 1px solid rgb(0,0,0);
+    }
+
+    /* Remove focus */
+    #userView select:focus {
+      outline: none;
+    }
+
+    /* Hide label */
+    #userView .user-selectfield label {display:inline;}
+    /* Use custom arrow */
+
+    #userView .user-selectfield {
+      font-family: 'Roboto','Helvetica','Arial',sans-serif;
+      position: relative;    
+    }
+
+    #userView .user-selectfield::after {  
+            position: absolute;
+            top: 0.75em;
+            right: 0.5em;
+            /* Styling the down arrow */
+            width: 0;
+            height: 0;
+            padding: 0;
+            content: '';
+            border-left: .25em solid transparent;
+            border-right: .25em solid transparent;
+            border-top: .375em solid rgba(0,0,0, 1);
+            pointer-events: none;   
+            color: black;     
+      
+    }
+
+    #userView .user-selectfield select {-webkit-appearance: none;
+                             -moz-appearance: none;}
+
+    #userView .user-selectfield select::-ms-expand {display: none;}                         
+
+    /* ANIMATIONS ================ */
+    @-webkit-keyframes inputHighlighter {
+        from { background:rgb(55, 59, 80); }
+      to    { width:0; background:transparent; }
+    }
+    @-moz-keyframes inputHighlighter {
+        from { background:rgb(55, 59, 80); }
+      to    { width:0; background:transparent; }
+    }
+    @keyframes inputHighlighter {
+        from { background:rgb(55, 59, 80); }
+      to    { width:0; background:transparent; }
+    }
+    #userView   .fab-details {
+        background-color: #373B50 !important;
+        vertical-align: middle;      
+        margin-left: 20px;
+        padding: 6px;
+        line-height: 20px;
+        font-size: 15px;
+        position: relative;        
+        display: block;
+        height: 40px;
+        width: 40px;
+        color: #fff;
+        fill: currentColor;
+        cursor: pointer;
+        text-decoration: none;            
+        border-radius: 50%;          
+        overflow: hidden;
+        transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        transition-delay: 0.2s;
+        box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+      }
+
+      @media screen and (max-width: 480px) { 
+        #userView .fab-details {
+          background-color: #373B50 !important;
+          vertical-align: middle;      
+          margin-left: 20px;
+          padding: 6px;
+          line-height: 20px;
+          font-size: 15px;
+          position: relative;        
+          display: block;
+          height: 32px !important;
+          width: 32px !important;
+          color: #fff;
+          fill: currentColor;
+          cursor: pointer;
+          text-decoration: none;            
+          border-radius: 50%;          
+          overflow: hidden;
+          transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          transition-delay: 0.2s;
+          box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+        }
+      }
+
+      #userView   .fab-reset-user {
+        
+        font-size: 26px;        
+      }
+
+      @media screen and (max-width: 480px) { 
+        #userView .fab-reset-user {
+          font-size: 22px; 
+          padding: 4px;
+        }
+      }
+
+     #userView  .fab-details.fab-right {
+        float: right;
+      }
+
+     #userView  .fab-details.fab-left {
+        float: left;
+      }
+
+      #userView .modal-dialog {         
+        width: 80%;
+        max-height: 90%;
+        margin: 0px auto;
+        position: relative;
+        margin-top: 2%;
+        margin-bottom: 2%
+        position: fixed;
+        height: 100%;
+        padding: 0;
+        background: white;
+        padding-bottom: 30px;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+       #userView .btn{
+        background: #373B50;
+        color: #FFF;
+      }  
+      
+      @media screen and (min-width: 500px) { 
+        #userView .user-details-modal-dialog {
+           width: 80% !important;  
+           max-width: 80% !important;                            
+        }
+      }
+
+      #userView .modal-header{  
+        background: #373B50;
+        color: #FFF;
+      }        
+
+      #userView .sectiontitle{
+        background-color: rgb(55, 59, 80);
+        color: #fff;
+        text-align: left;
+        padding: 10px;
+        margin-bottom: 15px;
+      }
+
+      #userView .prodlink{
+        font-size: 12px;
+        color: #fff;
+        background-color: rgb(55, 59, 80);
+      }
+
+      #userView .modal-container {
+        padding: 20px;
+      }
+      
+
+    #userView   .user-details-modal {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        overflow: hidden;
+      }
+
+    #userView   .user-details-modal-content {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+    #userView   .user-details-modal-header {
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: 0;
+        height: 40px;
+        padding: 10px;        
+        border: 0;
+        text-align: center;
+        font-size: bold;
+      }
+
+    #userView   .user-details-modal-body {
+        position: absolute;        
+        top: 51px;
+        bottom: 30px;
+        width: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;            
+      }
+
+    #userView   .user-details-modal-footer {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: #f1f3f5;
+        padding: 5px;
+        height: 50px;
+      }
+    #userView   .modal-footer .left{
+        text-align: left;      
+      }
+    #userView   .modal-footer .right{
+        text-align: right;        
+      }      
+
+      /*.right-button{
+        position: absolute;
+        top: 50%;
+        right: 10px;
+        z-index: 10;
+        margin-top: -30px;
+      }
+
+      .left-button{
+        position: absolute;
+        top: 50%;
+        left: 10px;
+        z-index: 10;
+        margin-top: -30px;
+      }*/
+
+    #userView   .user-details-modal-row {
+        margin: 0px;
+      }
+      
+          
+
+ 
+  </style>    
+
+  <div class="modal fade user-details-modal" id="userView" tabindex="-1" role="dialog" aria-labelledby="userTitle" aria-hidden="true">      
+    <div class="modal-dialog user-details-modal-dialog">
+      <div class="modal-header user-details-modal-header">User {{user.username}} Details</div>      
+      <div class="modal-body user-details-modal-body container-fluid">
+       <div class="row">
+          <div class="group col-md-6">      
+            <div ng-if="!isNew"> 
+              <input type="text" ng-model="user.username" value="user.username" ng-blur="checkUsername()" readonly="true">
+              <span class="highlight"></span>
+              <span class="bar"></span>
+              <label class="lbl-field username-lbl-field">Username</label>              
+            </div>
+            <div ng-if="isNew"> 
+              <input type="text" ng-model="user.username" value="user.username" ng-blur="checkUsername()">
+              <span class="highlight"></span>
+              <span class="bar"></span>
+              <label class="lbl-field username-lbl-field">Username</label>
+              <label class="invalid-field" id="admincheckUsername">Username empty</label>
+            </div>            
+          </div>
+       
+          <div class="group col-md-6">      
+            <input  id="adminemail" type="email" ng-model="user.email" value="user.email" ng-blur="checkEmail()">
+            <span class="highlight"></span>
+            <span class="bar"></span>
+            <label class="lbl-field">E-mail</label> 
+            <label class="invalid-field" id="admincheckEmail">E-mail not valid</label>     
+          </div>
+        </div>
+        <div class="row">
+          <div class="group col-md-6">      
+            <div > 
+              <input type="text" ng-model="user.firstname" value="user.firstname" ng-blur="checkName()">
+              <span class="highlight"></span>
+              <span class="bar"></span>
+              <label class="lbl-field">Firstname</label>
+              <label class="invalid-field" id="admincheckName">Firstname empty</label>
+            </div>
+          </div>
+        
+          <div class="group col-md-6">    
+            <div >  
+              <input type="text" ng-model="user.lastname"  value="user.lastname" ng-blur="checkLastname()">
+              <span class="highlight"></span>
+              <span class="bar"></span>
+              <label class="lbl-field">Lastname</label>
+              <label class="invalid-field" id="admincheckLastname">Lastname empty</label>
+            </div>
+          </div>
+        </div>                
+        <div class="row">
+          <div class="group col-md-6">    
+            <div class="user-selectfield">  
+              <label id="admindomainLbl" class="select-label">Select Domain</label>   
+              <select class="browser-default" ng-model="user.domain" ng-change="checkDomain()">
+                <option value="unknown" disabled selected>Select Domain</option>
+                <option value="{{domain}}" ng-repeat="domain in domains">{{domain}}</option>
+              </select>
+            </div>
+            <label class="invalid-field" id="admincheckDomain">Domain empty</label>      
+          </div>
+
+          <div class="group col-md-6">      
+            <input id="admindomainDesc" style="display:none !important" type="text" ng-model="user.subDomain" value="user.subDomain" ng-blur="checkSubDomain()">
+            <span class="highlight"></span>
+            <span class="bar"></span>
+            <label class="lbl-field" id="admindomainLabel" style="display:none">Domain</label>
+            <label class="invalid-field" id="admincheckSubDomain">Domain empty</label>
+          </div>    
+        </div>        
+        <div class="row">
+
+          <div class="group col-md-6">    
+            <div class="user-selectfield">  
+              <label id="adminusageLbl" class="select-label">Select Usage</label>   
+              <select class="browser-default" ng-model="user.usage" ng-change="checkUsage()">
+                <option value="unknown" disabled selected>Select Usage</option>
+                <option value="{{usage}}" ng-repeat="usage in usages">{{usage}}</option>
+              </select>
+            </div>
+            <label class="invalid-field" id="admincheckUsage">Usage empty</label>
+          </div>
+
+          <div class="group col-md-6">      
+            <input id="adminusageDesc" style="display:none !important" type="text" ng-model="user.subUsage" value="user.subUsage" ng-blur="checkSubUsage()">
+            <span class="highlight"></span>
+            <span class="bar"></span>
+            <label class="lbl-field" id="adminusageLabel" style="display:none">Usage</label>
+            <label class="invalid-field" id="admincheckSubUsage">Usage empty</label>
+          </div>      
+
+        </div>        
+        <div class="row">
+          <div class="group col-md-6">    
+            <div class="user-selectfield">  
+              <label id="admincountryLbl" class="select-label">Select Country</label>  
+              <select id="admincountry" class="browser-default" ng-model="user.country" ng-change="checkCountry($index)">
+                <option value="unknown" disabled selected >Select Country</option>
+                <option value="{{country.name}}" ng-repeat="country in countries">{{country.name}}</option>          
+              </select>
+            </div>
+            <label class="invalid-field" id="admincheckCountry">Country empty</label>
+          </div>
+          <div class="col-md-6">
+            <div class="col-md-1"><input type="checkbox" label="Locked" ng-model="isLocked"
+            value="isLocked" ng-click="clearReason()" ></div>
+            <div class="col-md-2">Locked</div>
+            <div class="group col-md-9">      
+              <input id="lockedReason" type="text" ng-model="user.lockedReason" value="user.lockedReason" ng-change="checkIsLocked()">
+              <span class="highlight"></span>
+              <span class="bar"></span>              
+            </div>
+          </div>      
+        </div>
+        <div class="panel panel-default">
+        <div class="panel-heading">
+          <div class="row">
+            <div class="col-md-1 col-xs-4 col-sm-4"><input type="checkbox" value="selected" ng-model="selected" ng-change="selectUnselectAll()"></div>
+            <div class="col-md-11 col-xs-8 col-sm-8">Available Functions</div>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div ng-repeat="role in availableRoles ">
+            <div class="row">
+              <div class="col-md-1 col-xs-4 col-sm-4" ><input type="checkbox" id="userRole_{{role.id}}"></div>
+              <div class="col-md-11 col-xs-8 col-sm-8">{{role.title}}</div>
+            </div>
+          </div>                    
+        </div>
+      </div>              
+      </div>
+      <div class="modal-footer user-details-modal-footer">
+        <div class="left col-md-6">
+          <div ng-show="!isNew" ng-model="prevbutton" ng-disabled="prevbutton.disabled" class="left-button fab-details fab-left" title="Previous Product" ng-click="showPrevUser()">
+            <svg viewBox="0 0 24 24" height="100%" width="100%" preserveAspectRatio="xMidYMid meet" fit="" style="pointer-events: none; display: block;">
+              <g id="arrow-back"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></g>
+            </svg>
+          </div>      
+          <div ng-show="!isNew" ng-model="nextbutton" ng-disabled="nextbutton.disabled" class="right-button fab-details fab-left" title="Next Product" ng-click="showNextUser()">
+            <svg viewBox="0 0 24 24" height="100%" width="100%" preserveAspectRatio="xMidYMid meet" fit="" style="pointer-events: none; display: block;">
+              <g id="arrow-forward"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></g>
+            </svg>
+          </div>
+          <div ng-show="isNew" class="left-button fab-details fab-left fab-reset-user" title="Reset Fields" ng-click="resetFields()"><div class="glyphicon glyphicon-erase"></div>            
+          </div>              
+        </div>
+        <div class="right col-md-6">            
+          <div class="fab-details fab-right" title="Close" ng-click="close()">
+            <svg viewBox="0 0 24 24" height="100%" width="100%" preserveAspectRatio="xMidYMid meet" fit="" style="pointer-events: none; display: block;">
+              <g id="close"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></g>
+            </svg>
+          </div>
+          <div class="fab-details fab-right" title="Save" ng-click="save()">
+            <svg viewBox="0 0 24 24" height="100%" width="100%" preserveAspectRatio="xMidYMid meet" fit="" style="pointer-events: none; display: block;">
+              <g id="save"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></g>
+            </svg>
+          </div>            
+        </div>
+      </div>
+    </div>
+  </div>  
+</div>
+</div>

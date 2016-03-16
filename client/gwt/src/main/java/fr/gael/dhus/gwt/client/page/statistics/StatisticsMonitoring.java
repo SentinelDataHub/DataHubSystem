@@ -24,12 +24,12 @@ import java.util.Date;
 
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.i18n.client.DateTimeFormat;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.RootPanel;
 
-import fr.gael.dhus.gwt.share.RoleData;
+import fr.gael.dhus.gwt.client.AccessDeniedRedirectionCallback;
 import fr.gael.dhus.gwt.client.page.AbstractPage;
 import fr.gael.dhus.gwt.services.StatisticsServiceAsync;
+import fr.gael.dhus.gwt.share.RoleData;
 
 public class StatisticsMonitoring extends AbstractPage
 {  
@@ -100,7 +100,7 @@ public class StatisticsMonitoring extends AbstractPage
       
       final DateTimeFormat sdf = DateTimeFormat.getFormat("EEEE dd MMMM yyyy - HH:mm:ss");
       
-      statisticsService.getNextScheduleCleanupDB (new AsyncCallback<Date>()
+      statisticsService.getNextScheduleCleanupDB (new AccessDeniedRedirectionCallback<Date>()
       {         
          @Override
          public void onSuccess (Date result)
@@ -109,11 +109,11 @@ public class StatisticsMonitoring extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
          }
       });
-      statisticsService.getNextScheduleCleanupDumpDB (new AsyncCallback<Date>()
+      statisticsService.getNextScheduleCleanupDumpDB (new AccessDeniedRedirectionCallback<Date>()
       {         
          @Override
          public void onSuccess (Date result)
@@ -122,11 +122,11 @@ public class StatisticsMonitoring extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
          }
       });
-      statisticsService.getNextScheduleDumpDB (new AsyncCallback<Date>()
+      statisticsService.getNextScheduleDumpDB (new AccessDeniedRedirectionCallback<Date>()
       {         
          @Override
          public void onSuccess (Date result)
@@ -135,11 +135,11 @@ public class StatisticsMonitoring extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
          }
       });
-      statisticsService.getNextScheduleFileScanner (new AsyncCallback<Date>()
+      statisticsService.getNextScheduleFileScanner (new AccessDeniedRedirectionCallback<Date>()
       {         
          @Override
          public void onSuccess (Date result)
@@ -148,11 +148,11 @@ public class StatisticsMonitoring extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
          }
       });
-      statisticsService.getNextScheduleMailLogs (new AsyncCallback<Date>()
+      statisticsService.getNextScheduleMailLogs (new AccessDeniedRedirectionCallback<Date>()
       {         
          @Override
          public void onSuccess (Date result)
@@ -161,11 +161,11 @@ public class StatisticsMonitoring extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
          }
       });
-      statisticsService.getNextScheduleSearch (new AsyncCallback<Date>()
+      statisticsService.getNextScheduleSearch (new AccessDeniedRedirectionCallback<Date>()
       {         
          @Override
          public void onSuccess (Date result)
@@ -174,11 +174,11 @@ public class StatisticsMonitoring extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
          }
       });
-      statisticsService.getNextScheduleEviction (new AsyncCallback<Date>()
+      statisticsService.getNextScheduleEviction (new AccessDeniedRedirectionCallback<Date>()
       {         
          @Override
          public void onSuccess (Date result)
@@ -187,11 +187,11 @@ public class StatisticsMonitoring extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
          }
       });
-      statisticsService.getNextScheduleArchiveSynchronization (new AsyncCallback<Date>()
+      statisticsService.getNextScheduleArchiveSynchronization (new AccessDeniedRedirectionCallback<Date>()
       {         
          @Override
          public void onSuccess (Date result)
@@ -200,11 +200,11 @@ public class StatisticsMonitoring extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
          }
       });
-      statisticsService.getNextScheduleSystemCheck (new AsyncCallback<Date>()
+      statisticsService.getNextScheduleSystemCheck (new AccessDeniedRedirectionCallback<Date>()
       {         
          @Override
          public void onSuccess (Date result)
@@ -213,7 +213,7 @@ public class StatisticsMonitoring extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
          }
       });

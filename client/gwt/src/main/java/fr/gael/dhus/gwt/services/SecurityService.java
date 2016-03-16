@@ -22,9 +22,10 @@ package fr.gael.dhus.gwt.services;
 import com.google.gwt.user.client.rpc.RemoteService;
 
 import fr.gael.dhus.gwt.share.UserData;
+import fr.gael.dhus.gwt.share.exceptions.AccessDeniedException;
 import fr.gael.dhus.gwt.share.exceptions.SecurityServiceException;
 
 public interface SecurityService extends RemoteService
 {
-   public UserData getCurrentUser () throws SecurityServiceException;
+   public UserData getCurrentUser () throws SecurityServiceException, AccessDeniedException;
 }

@@ -1,0 +1,158 @@
+<!-- <link rel="import" href="../../libs/core-collapse/core-collapse.html"> -->
+<link rel="import" href="../../libs/core-selector/core-selector.html">
+<link rel="import" href="../../libs/core-dropdown/core-dropdown.html">
+<link rel="import" href="../../libs/core-item/core-item.html">
+<link rel="import" href="../../libs/core-menu/core-menu.html">
+<link rel="import" href="../../libs/core-dropdown-menu/core-dropdown-menu.html">
+<link rel="import" href="../../libs/paper-button/paper-button.html">
+
+<polymer-element name="self-registration">
+	<template>
+		<link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">
+		<link rel="stylesheet" type="text/css" href="style.css">
+
+		<template if="{{!signup}}">
+			<div style="padding:40px">Signup disabled</div>
+		</template>
+		<template if="{{signup}}">
+			<div class="container">
+				<div class="row">
+					<div class="col-md-12">
+						<h3>{{pageTitle}}</h3>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="col-md-12">
+						<b>Please fill this form to start the registration procedure then you will receive a mail with a link to validate your mail address. </b><br/>
+	Special chars are not allowed in the unsername field, i.e.: + - & || ! ( ) { } [ ] ^ " ~ * ? : \ $ ' &lt;blank space&gt;.
+					</div>
+				</div>
+				
+
+				<div class="row">
+					<div class="col-md-6">
+						<paper-input-decorator id="firstnamedec" floatinglabel label="Firstname">
+						   <input id="firstname" is="core-input" value value/>
+						</paer-input-decorator>
+					</div>
+					<div class="col-md-6">
+						<paper-input-decorator id="lastnamedec" floatinglabel label="Lastname">
+						   <input id="lastname" is="core-input" value />
+						</paer-input-decorator>
+					</div>
+				</div>
+
+				<hr></hr>
+
+				<div class="row">
+					<div class="col-md-6">
+						<paper-input-decorator id="usernamedec" floatinglabel label="Username" >
+						   <input id="username" is="core-input" value />
+						</paer-input-decorator>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="col-md-6">
+						<paper-input-decorator id="passworddec" floatinglabel label="Password" >
+						   <input id="password" is="core-input" value type="password"/>
+						</paer-input-decorator>
+					</div>
+					<div class="col-md-6">
+						<paper-input-decorator id="passwordconfdec" floatinglabel label="Confirm Password" >
+						   <input id="confirmpassword" is="core-input" value type="password"/>
+						</paer-input-decorator>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="col-md-6">
+						<paper-input-decorator id="emaildec" floatinglabel label="E-mail" >
+						   <input id="email" is="core-input" value type="email"/>
+						</paer-input-decorator>
+					</div>
+					<div class="col-md-6">
+						<paper-input-decorator id="emailconfdec" floatinglabel label="Confirm E-mail">
+						   <input id="cofirmemail" is="core-input" value type="email"/>
+						</paer-input-decorator>
+					</div>
+				</div>
+
+				<hr></hr>
+
+				<div class="row">
+					<div class="col-md-6">
+						<paper-input-decorator id="domaindec">
+							<core-dropdown-menu label="Select Domain">
+								<core-dropdown class="dropdown" >
+									<core-menu id="domain" valueattr="value" on-core-select="{{selectDomain}}">
+										<template repeat="{{dom in domains}}">
+											<core-item value="{{dom}}">{{dom}}</core-item>
+										</template>
+									</core-menu>
+								</core-dropdown>
+							</core-dropdown-menu>
+						</paper-input-decorator>
+					</div>
+
+					<div class="col-md-6">
+						<paper-input-decorator id="subDomaindec" label="Domain" class="sub" style="display:none !important">
+						   <input id="subDomain" is="core-input" value/>
+						</paer-input-decorator>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="col-md-6">
+						<paper-input-decorator id="usagedec">
+							<core-dropdown-menu  label="Select Usage">
+								<core-dropdown class="dropdown" >
+									<core-menu id="usage" valueattr="value" on-core-select="{{selectUsage}}">
+										<template repeat="{{usg in usages}}">
+											<core-item value="{{usg}}">{{usg}}</core-item>
+										</template>
+									</core-menu>
+								</core-dropdown>
+							</core-dropdown-menu>					  
+						</paper-input-decorator>
+					</div>
+
+					<div class="col-md-6">
+						<paper-input-decorator id="subUsagedec" label="Usage" style="display:none !important" class="sub">
+						   <input id="subUsage" is="core-input" value/>
+						</paer-input-decorator>
+					</div>
+
+				</div>
+
+				<div class="row">
+					<div class="col-md-6">
+						<paper-input-decorator id="countrydec">
+							<core-dropdown-menu  label="Select Country">
+								<core-dropdown class="dropdown" >
+									<core-menu id="country" valueattr="value" on-core-select="{{selectCountry}}">
+										<template repeat="{{ctry in countries}}">
+											<core-item value="{{ctry.name}}">{{ctry.name}}</core-item>
+										</template>
+									</core-menu>
+								</core-dropdown>
+							</core-dropdown-menu>
+						</paper-input-decorator>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-12 terms">
+						By registering in this website you are deemed to have accepted the <a href="https://sentinel.esa.int/documents/247904/690755/TC_Sentinel_Data_31072014.pdf" target="_blank">T&C for Sentinel data use</a>.
+					</div>
+				</div>	
+
+
+				<div class="row" style="text-align:right">
+					<paper-button id="register" on-click="{{sendRegistration}}">REGISTER</paper-button>
+				</div>
+			</div> <!-- end container -->
+		</template>
+  	</template>
+  	<script src="script.js"></script>
+</polymer-element>

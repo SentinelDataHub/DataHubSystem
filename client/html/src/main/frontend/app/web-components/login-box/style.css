@@ -1,0 +1,51 @@
+paper-input{
+	width: 100% !important;
+}
+paper-dialog{
+	width: 30%;
+	max-width: 400px;
+}
+paper-dialog paper-button{
+	background: #373B50;
+	width: 100%;
+	color: #fff;
+	margin-top: 15px !important;
+}
+h3{
+	text-align: center;
+	margin: 0px !important;
+}
+#profilebutton{
+	background-color: #797F9E !important;
+	vertical-align: middle;
+	margin: 10px
+}
+
+#loginbutton{
+	background-color: #797F9E !important;
+	vertical-align: middle;
+	margin-top: 10px;
+	line-height: 20px;
+	font-size: 15px;
+  	margin-left: 20px;
+
+}
+
+#loginmessage,
+#wronglogin{
+	width: 100%;
+	text-align: center;
+	font-weight: bold;
+	margin: 10px 0px;
+  	color: rgb(190, 0, 0);
+}
+.register{
+background-color: rgb(173, 173, 173);
+}
+
+hr{
+	margin: 20px 25px 0px;
+  	border: 0px;
+  	border-bottom: 1px solid #ADADAD;
+}
+badge-element,badge-button{display: none}

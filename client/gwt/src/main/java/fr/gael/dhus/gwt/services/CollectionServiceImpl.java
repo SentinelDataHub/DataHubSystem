@@ -27,6 +27,7 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import fr.gael.dhus.database.object.Collection;
 import fr.gael.dhus.gwt.services.annotation.RPCService;
 import fr.gael.dhus.gwt.share.CollectionData;
+import fr.gael.dhus.gwt.share.exceptions.AccessDeniedException;
 import fr.gael.dhus.gwt.share.exceptions.CollectionServiceException;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
 
@@ -38,20 +39,23 @@ public class CollectionServiceImpl extends RemoteServiceServlet implements
 
    @Override
    public void createCollection (CollectionData collectionData)
-      throws CollectionServiceException
+      throws CollectionServiceException, AccessDeniedException
    {
-      fr.gael.dhus.service.CollectionService collectionService = ApplicationContextProvider
+      fr.gael.dhus.service.CollectionService collectionService =
+         ApplicationContextProvider
             .getBean (fr.gael.dhus.service.CollectionService.class);
 
       try
       {
          Collection parent = null;
-         if (collectionData.getParent() != null)
+         if (collectionData.getParent () != null)
          {
-            parent = collectionService.getCollection (collectionData.getParent().getId ());
+            parent =
+               collectionService.getCollection (collectionData.getParent ()
+                  .getId ());
          }
-         
-         Collection newCollection = new Collection();
+
+         Collection newCollection = new Collection ();
          newCollection.setName (collectionData.getName ());
          newCollection.setDescription (collectionData.getDescription ());
          newCollection.setParent (parent);
@@ -60,8 +64,16 @@ public class CollectionServiceImpl extends RemoteServiceServlet implements
 
          if (collectionData.getAddedIds () != null)
          {
-            collectionService.addProducts (newCollection.getId (), collectionData.getAddedIds ().toArray (new Long[collectionData.getAddedIds ().size ()]));
+            collectionService.addProducts (
+               newCollection.getId (),
+               collectionData.getAddedIds ().toArray (
+                  new Long[collectionData.getAddedIds ().size ()]));
          }
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -72,9 +84,10 @@ public class CollectionServiceImpl extends RemoteServiceServlet implements
 
    @Override
    public void updateCollection (CollectionData collectionData)
-      throws CollectionServiceException
+      throws CollectionServiceException, AccessDeniedException
    {
-      fr.gael.dhus.service.CollectionService collectionService = ApplicationContextProvider
+      fr.gael.dhus.service.CollectionService collectionService =
+         ApplicationContextProvider
             .getBean (fr.gael.dhus.service.CollectionService.class);
       try
       {
@@ -85,14 +98,27 @@ public class CollectionServiceImpl extends RemoteServiceServlet implements
 
          collectionService.updateCollection (collection);
 
-         if (collectionData.getAddedIds () != null)
+         if (collectionData.getAddedIds () != null &&
+            !collectionData.getAddedIds ().isEmpty ())
          {
-            collectionService.addProducts (collectionData.getId (), collectionData.getAddedIds ().toArray (new Long[collectionData.getAddedIds ().size ()]));
+            collectionService.addProducts (
+               collectionData.getId (),
+               collectionData.getAddedIds ().toArray (
+                  new Long[collectionData.getAddedIds ().size ()]));
          }
-         if (collectionData.getRemovedIds () != null)
+         if (collectionData.getRemovedIds () != null &&
+            !collectionData.getRemovedIds ().isEmpty ())
          {
-            collectionService.removeProducts (collectionData.getId (), collectionData.getRemovedIds ().toArray (new Long[collectionData.getRemovedIds ().size ()]));
+            collectionService.removeProducts (
+               collectionData.getId (),
+               collectionData.getRemovedIds ().toArray (
+                  new Long[collectionData.getRemovedIds ().size ()]));
          }
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -102,14 +128,20 @@ public class CollectionServiceImpl extends RemoteServiceServlet implements
    }
 
    @Override
-   public void deleteCollection (Long id) throws CollectionServiceException
+   public void deleteCollection (Long id) throws CollectionServiceException, AccessDeniedException
    {
-      fr.gael.dhus.service.CollectionService collectionService = ApplicationContextProvider
+      fr.gael.dhus.service.CollectionService collectionService =
+         ApplicationContextProvider
             .getBean (fr.gael.dhus.service.CollectionService.class);
 
       try
       {
          collectionService.deleteCollection (id);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -119,9 +151,10 @@ public class CollectionServiceImpl extends RemoteServiceServlet implements
    }
 
    public List<CollectionData> getSubCollections (CollectionData parent)
-      throws CollectionServiceException
+      throws CollectionServiceException, AccessDeniedException
    {
-      fr.gael.dhus.service.CollectionService collectionService = ApplicationContextProvider
+      fr.gael.dhus.service.CollectionService collectionService =
+         ApplicationContextProvider
             .getBean (fr.gael.dhus.service.CollectionService.class);
 
       try
@@ -134,14 +167,20 @@ public class CollectionServiceImpl extends RemoteServiceServlet implements
          if (collections == null) return children;
          for (Collection col : collections)
          {
-            boolean hasChildren = collectionService.hasChildren (col.getId ());   
-            CollectionData collection = new CollectionData (col.getId (), col.getName (), col
-               .getDescription (), parent, hasChildren);
-            collection.setDeep (parent.getDeep ()+1);
+            boolean hasChildren = collectionService.hasChildren (col.getId ());
+            CollectionData collection =
+               new CollectionData (col.getId (), col.getName (),
+                  col.getDescription (), parent, hasChildren);
+            collection.setDeep (parent.getDeep () + 1);
             children.add (collection);
          }
 
          return children;
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -149,11 +188,12 @@ public class CollectionServiceImpl extends RemoteServiceServlet implements
          throw new CollectionServiceException (e.getMessage ());
       }
    }
-   
-   public List<CollectionData> getSubCollectionsWithProductsIds (CollectionData parent)
-      throws CollectionServiceException
+
+   public List<CollectionData> getSubCollectionsWithProductsIds (
+      CollectionData parent) throws CollectionServiceException, AccessDeniedException
    {
-      fr.gael.dhus.service.CollectionService collectionService = ApplicationContextProvider
+      fr.gael.dhus.service.CollectionService collectionService =
+         ApplicationContextProvider
             .getBean (fr.gael.dhus.service.CollectionService.class);
 
       try
@@ -165,12 +205,14 @@ public class CollectionServiceImpl extends RemoteServiceServlet implements
                .getId ());
          for (Collection col : collections)
          {
-            boolean hasChildren = collectionService.hasChildren (col.getId ());   
-            CollectionData collection = new CollectionData (col.getId (), col.getName (), col
-               .getDescription (), parent, hasChildren);
-            collection.setDeep (parent.getDeep ()+1);
-            List<Long> productIds = collectionService.getProductIds (col.getId());
-            if (productIds != null && productIds.contains (null)) 
+            boolean hasChildren = collectionService.hasChildren (col.getId ());
+            CollectionData collection =
+               new CollectionData (col.getId (), col.getName (),
+                  col.getDescription (), parent, hasChildren);
+            collection.setDeep (parent.getDeep () + 1);
+            List<Long> productIds =
+               collectionService.getProductIds (col.getId ());
+            if (productIds != null && productIds.contains (null))
             {
                productIds.remove (null);
             }
@@ -180,20 +222,31 @@ public class CollectionServiceImpl extends RemoteServiceServlet implements
 
          return children;
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
          throw new CollectionServiceException (e.getMessage ());
       }
    }
-   
-   public List<Long> getProductIds(Long cid) throws CollectionServiceException
+
+   public List<Long> getProductIds (Long cid) throws CollectionServiceException, AccessDeniedException
    {
-      fr.gael.dhus.service.CollectionService collectionService = ApplicationContextProvider
+      fr.gael.dhus.service.CollectionService collectionService =
+         ApplicationContextProvider
             .getBean (fr.gael.dhus.service.CollectionService.class);
       try
       {
-         return collectionService.getProductIds (cid);   
+         return collectionService.getProductIds (cid);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -201,17 +254,24 @@ public class CollectionServiceImpl extends RemoteServiceServlet implements
          throw new CollectionServiceException (e.getMessage ());
       }
    }
-   
-   public CollectionData getCollection (Long cid) throws CollectionServiceException
+
+   public CollectionData getCollection (Long cid)
+      throws CollectionServiceException, AccessDeniedException
    {
-      fr.gael.dhus.service.CollectionService collectionService = ApplicationContextProvider
+      fr.gael.dhus.service.CollectionService collectionService =
+         ApplicationContextProvider
             .getBean (fr.gael.dhus.service.CollectionService.class);
       try
       {
          Collection col = collectionService.getCollection (cid);
-         boolean hasChildren = collectionService.hasChildren (col.getId ());        
-         return new CollectionData (col.getId (), col.getName (), col
-            .getDescription (), null, hasChildren);   
+         boolean hasChildren = collectionService.hasChildren (col.getId ());
+         return new CollectionData (col.getId (), col.getName (),
+            col.getDescription (), null, hasChildren);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {

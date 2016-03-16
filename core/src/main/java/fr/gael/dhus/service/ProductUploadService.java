@@ -30,6 +30,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import fr.gael.dhus.database.dao.ActionRecordWritterDao;
 import fr.gael.dhus.database.object.Collection;
@@ -60,17 +62,22 @@ public class ProductUploadService extends WebService
    private UploadService uploadService;
    
    @Autowired
-   IncomingManager incomingManager;
+   private IncomingManager incomingManager;
       
    @Autowired
-   private DefaultDataStore dataStore;   
-   
-   @PreAuthorize("hasRole('ROLE_UPLOAD')") // throws UploadingException, UserNotExistingException
-   public void upload (Long userId, FileItem product, ArrayList<Long> collectionIds) throws UploadingException, RootNotModifiableException, ProductNotAddedException 
+   private DefaultDataStore dataStore;
+
+   // throws UploadingException, UserNotExistingException
+   @PreAuthorize("hasRole('ROLE_UPLOAD')")
+   @Transactional (propagation=Propagation.REQUIRED)
+   public void upload (Long user_id, FileItem product,
+         ArrayList<Long> collection_ids) throws UploadingException,
+         RootNotModifiableException, ProductNotAddedException
    {
-      User owner = securityService.getCurrentUser (); //userService.getUser (userId);
-      ArrayList<Collection> collections = new ArrayList<Collection> ();
-      for (Long cId : collectionIds)
+      //userService.getUser (userId);
+      User owner = securityService.getCurrentUser ();
+      ArrayList<Collection> collections = new ArrayList<> ();
+      for (Long cId : collection_ids)
       {
          Collection c;
 //         try
@@ -110,11 +117,16 @@ public class ProductUploadService extends WebService
          }
          File uploadedFile = new File (path, fileName);
          if (uploadedFile.createNewFile ())
+         {
             product.write (uploadedFile);
+         }
          else
+         {
             throw new IOException ("The file already exists in repository.");
+         }
 //         uploadDone (uploadedFile.toURI ().toURL (), owner, collections);
-         uploadService.addProduct (uploadedFile.toURI ().toURL (), owner, collections);
+         uploadService.addProduct (uploadedFile.toURI ().toURL (), owner,
+               collections);
       }
       catch (ProductNotAddedException e)
       {

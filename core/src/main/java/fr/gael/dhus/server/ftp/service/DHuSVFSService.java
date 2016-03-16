@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import fr.gael.dhus.service.ProductService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.ftpserver.ftplet.FtpFile;
@@ -63,6 +64,9 @@ public class DHuSVFSService
    private ProductDao productDao;
 
    @Autowired
+   private ProductService productService;
+
+   @Autowired
    private ConfigurationManager cfgManager;
    
    @Autowired
@@ -70,15 +74,15 @@ public class DHuSVFSService
 
    @Autowired
    private UserDao userDao;
-   
+
    public UserDao getUserDao ()
    {
       return userDao;
    }
 
-   public void setUserDao (UserDao userDao)
+   public void setUserDao (UserDao user_dao)
    {
-      this.userDao = userDao;
+      this.userDao = user_dao;
    }
 
    public ProductDao getProductDao ()
@@ -86,9 +90,9 @@ public class DHuSVFSService
       return productDao;
    }
 
-   public void setProductDao (ProductDao productDao)
+   public void setProductDao (ProductDao product_dao)
    {
-      this.productDao = productDao;
+      this.productDao = product_dao;
    }
 
    public CollectionDao getCollectionDao ()
@@ -96,9 +100,9 @@ public class DHuSVFSService
       return collectionDao;
    }
 
-   public void setCollectionDao (CollectionDao collectionDao)
+   public void setCollectionDao (CollectionDao collection_dao)
    {
-      this.collectionDao = collectionDao;
+      this.collectionDao = collection_dao;
    }
 
    /**
@@ -150,21 +154,7 @@ public class DHuSVFSService
       }
       Product product =
          productDao.getProductByDownloadableFilename (product_name, c);
-      if (product != null)
-      {
-         fr.gael.dhus.database.object.User dhusUser =
-            getDhusUserFromFtpUser (user);
-         List<fr.gael.dhus.database.object.User> authorized =
-                  productDao.getAuthorizedUsers (product);
-         if (cfgManager.isDataPublic () || 
-             authorized.contains (dhusUser) || 
-             authorized.contains (userDao.getPublicData ()))
-         {
-            return product;
-         }
-      }
-
-      return null;
+      return product;
    }
 
    public String getVPathByCollection (Collection collection)
@@ -324,7 +314,6 @@ public class DHuSVFSService
       List<Long> pids = collectionDao.getProductIds (c.getId (), user);
       for (Long pid : pids)
       {
-         // !!! HSQL retourne NULL ici ?
          if (pid == null) continue;
          Product p = productDao.read (pid);
          boolean matched = false;
@@ -351,7 +340,8 @@ public class DHuSVFSService
 
       for (Product p : products)
       {
-         Iterator<MetadataIndex> it = p.getIndexes ().iterator ();
+         Iterator<MetadataIndex> it =
+               productService.getIndexes(p.getId ()).iterator ();
          String beginPosition = null;
          while (it.hasNext ())
          {

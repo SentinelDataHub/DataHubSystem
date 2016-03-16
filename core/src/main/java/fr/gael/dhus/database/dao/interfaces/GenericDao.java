@@ -24,8 +24,7 @@ import java.util.List;
 
 /**
  * Generic DAO Interface, containing minimal CRUD operations.
- * 
- * @author valette
+ *  
  * @param <T> Object concerned by this DAO
  * @param <PK> Primary Key of this Object.
  */

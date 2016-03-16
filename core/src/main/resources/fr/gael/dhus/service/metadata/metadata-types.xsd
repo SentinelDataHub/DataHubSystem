@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<xs:schema
+   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+   version="1.0"
+   elementFormDefault="unqualified"
+   attributeFormDefault="unqualified"
+   xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+   jxb:version="2.1">
+
+   <!-- Configure JAXB to generate classes in the Metadata Typing service
+        package dedicated to XML parsing classes -->
+   <xs:annotation>
+      <xs:appinfo>
+         <jxb:schemaBindings>
+            <jxb:package name="fr.gael.dhus.service.metadata.xml"/>
+         </jxb:schemaBindings>
+      </xs:appinfo>
+   </xs:annotation>
+
+   <!-- The top level element holwing a series of metadata type definition
+        This element is not part of the DRB Cortex Ontology property and is
+        to be added to form valid XML with a unique root element. -->
+   <xs:element name="metadataTypes">
+      <xs:complexType>
+         <xs:sequence>
+
+            <!-- The metadata type definition element -->
+            <xs:element name="metadataType" minOccurs="1" maxOccurs="unbounded">
+               <xs:complexType>
+
+                  <xs:sequence>
+                     <xs:element name="solrField" minOccurs="0">
+                        <xs:complexType>
+                           <xs:attribute name="name" type="xs:string"
+                                         use="required"/>
+                           <xs:attribute name="type" type="xs:string"
+                                         use="required"/>
+                           <xs:attribute name="indexed" type="xs:boolean"/>
+                           <xs:attribute name="stored" type="xs:boolean"/>
+                           <xs:attribute name="multiValued" type="xs:boolean"/>
+                           <xs:attribute name="required" type="xs:boolean"/>
+                           <!-- TODO: complete with Solr field attributes
+                                cf. https://cwiki.apache.org/confluence/display/solr/Defining+Fields -->
+                        </xs:complexType>
+                     </xs:element>
+                  </xs:sequence>
+
+                  <xs:attribute name="id" type="xs:NCName" use="required"/>
+                  <xs:attribute name="name" type="xs:string" use="required"/>
+                  <xs:attribute name="contentType" type="xs:string"
+                                default="text/plain"/>
+                  <xs:attribute name="category" type="xs:string"/>
+
+               </xs:complexType>
+            </xs:element>
+
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+
+</xs:schema>

@@ -24,14 +24,15 @@ import java.util.List;
 import com.google.gwt.user.client.rpc.RemoteService;
 
 import fr.gael.dhus.gwt.share.ProductData;
+import fr.gael.dhus.gwt.share.exceptions.AccessDeniedException;
 import fr.gael.dhus.gwt.share.exceptions.ProductCartServiceException;
 
 public interface ProductCartService extends RemoteService
 {
-   public void addProductToCart(Long uId, Long pId) throws ProductCartServiceException;
-   public void removeProductFromCart(Long uId, Long pId) throws ProductCartServiceException;
-   public List<Long> getProductsIdOfCart(Long uId) throws ProductCartServiceException;
-   public List<ProductData> getProductsOfCart(int start, int count, Long uId) throws ProductCartServiceException;
-   public int countProductsInCart (Long uId) throws ProductCartServiceException;
-   public void clearCart (Long uId) throws ProductCartServiceException;
+   public void addProductToCart(Long uId, Long pId) throws ProductCartServiceException, AccessDeniedException;
+   public void removeProductFromCart(Long uId, Long pId) throws ProductCartServiceException, AccessDeniedException;
+   public List<Long> getProductsIdOfCart(Long uId) throws ProductCartServiceException, AccessDeniedException;
+   public List<ProductData> getProductsOfCart(int start, int count, Long uId) throws ProductCartServiceException, AccessDeniedException;
+   public int countProductsInCart (Long uId) throws ProductCartServiceException, AccessDeniedException;
+   public void clearCart (Long uId) throws ProductCartServiceException, AccessDeniedException;
 }

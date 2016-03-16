@@ -30,19 +30,19 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.SimpleCheckBox;
 import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.TextBox;
 
-import fr.gael.dhus.gwt.share.RoleData;
+import fr.gael.dhus.gwt.client.AccessDeniedRedirectionCallback;
 import fr.gael.dhus.gwt.client.GWTClient;
 import fr.gael.dhus.gwt.client.page.AbstractPage;
 import fr.gael.dhus.gwt.services.CollectionServiceAsync;
 import fr.gael.dhus.gwt.services.ProductServiceAsync;
 import fr.gael.dhus.gwt.share.CollectionData;
 import fr.gael.dhus.gwt.share.ProductData;
+import fr.gael.dhus.gwt.share.RoleData;
 
 public class ManagementCollectionsPage extends AbstractPage
 {
@@ -286,11 +286,11 @@ public class ManagementCollectionsPage extends AbstractPage
             }
             
             collectionService.deleteCollection (selectedId,
-               new AsyncCallback<Void> ()
+               new AccessDeniedRedirectionCallback<Void> ()
                {
 
                   @Override
-                  public void onFailure (Throwable caught)
+                  public void _onFailure (Throwable caught)
                   {
                      Window.alert ("Cannot delete collection.\n" +
                         caught.getMessage ());
@@ -367,11 +367,11 @@ public class ManagementCollectionsPage extends AbstractPage
       DOM.setStyleAttribute (RootPanel.getBodyElement (), "cursor", "wait");
       
       collectionService.getProductIds (new Long(collectionId),
-         new AsyncCallback<List<Long>> ()
+         new AccessDeniedRedirectionCallback<List<Long>> ()
          {
 
             @Override
-            public void onFailure (Throwable caught)
+            public void _onFailure (Throwable caught)
             {
                Window
                   .alert ("Cannot load products of selected collection.\n" +
@@ -410,10 +410,10 @@ public class ManagementCollectionsPage extends AbstractPage
 
       disableAll ();
 
-      AsyncCallback<Void> callback = new AsyncCallback<Void> ()
+      AccessDeniedRedirectionCallback<Void> callback = new AccessDeniedRedirectionCallback<Void> ()
       {
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             Window.alert ("Cannot save collection.\n" + caught.getMessage ());
             setState (create ? State.CREATE : State.EDIT, false);
@@ -542,10 +542,10 @@ public class ManagementCollectionsPage extends AbstractPage
       else
       {
          DOM.setStyleAttribute (RootPanel.getBodyElement (), "cursor", "wait");
-         requestCollections(parent, new AsyncCallback<Void>()
+         requestCollections(parent, new AccessDeniedRedirectionCallback<Void>()
          {
             @Override
-            public void onFailure (Throwable caught) {
+            public void _onFailure (Throwable caught) {
                DOM.setStyleAttribute (RootPanel.getBodyElement (),
                   "cursor", "default");
             }
@@ -582,10 +582,10 @@ public class ManagementCollectionsPage extends AbstractPage
          }
       }
       displayedCollections.clear ();
-      requestCollections(root, new AsyncCallback<Void>()
+      requestCollections(root, new AccessDeniedRedirectionCallback<Void>()
          {
             @Override
-            public void onFailure (Throwable caught) 
+            public void _onFailure (Throwable caught) 
             {
                DOM.setStyleAttribute (RootPanel.getBodyElement (),
                   "cursor", "default");
@@ -611,13 +611,13 @@ public class ManagementCollectionsPage extends AbstractPage
          });      
    }
    
-   private static void requestCollections(final CollectionData parent, final AsyncCallback<Void> callback)
+   private static void requestCollections(final CollectionData parent, final AccessDeniedRedirectionCallback<Void> callback)
    {
       collectionService.getSubCollections (parent,
-         new AsyncCallback<List<CollectionData>> ()
+         new AccessDeniedRedirectionCallback<List<CollectionData>> ()
          {
             @Override
-            public void onFailure (Throwable caught)
+            public void _onFailure (Throwable caught)
             {
                callback.onFailure (caught);
             }
@@ -642,7 +642,7 @@ public class ManagementCollectionsPage extends AbstractPage
    
    private static ArrayList<Long> toRefresh;
    
-   private static void refreshEnded(CollectionData refreshed, AsyncCallback<Void> callback)
+   private static void refreshEnded(CollectionData refreshed, AccessDeniedRedirectionCallback<Void> callback)
    {      
       toRefresh.remove (refreshed.getId ());
       if (toRefresh.size () == 0)
@@ -723,11 +723,10 @@ public class ManagementCollectionsPage extends AbstractPage
       final Long parentId = selectedCollection != null  && selectedCollection.getParent() != null ? selectedCollection.getParent ().getId () : null;
       
       GWTClient.callback (function, JsonUtils.safeEval ("{\"aaData\": [],\"iTotalRecords\" : 0, \"iTotalDisplayRecords\" : 0}"));
-      productService.count (search, parentId, new AsyncCallback<Integer> ()
+      productService.count (search, parentId, new AccessDeniedRedirectionCallback<Integer> ()
       {
-
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             DOM.setStyleAttribute (RootPanel.getBodyElement (), "cursor",
                "default");
@@ -739,10 +738,10 @@ public class ManagementCollectionsPage extends AbstractPage
          {
             //selectedCollection.getParent ().getId ()
             productService.getProducts (start, length, search, parentId, 
-               new AsyncCallback<List<ProductData>> ()
+               new AccessDeniedRedirectionCallback<List<ProductData>> ()
                {
                   @Override
-                  public void onFailure (Throwable caught)
+                  public void _onFailure (Throwable caught)
                   {
                      DOM.setStyleAttribute (RootPanel.getBodyElement (),
                         "cursor", "default");

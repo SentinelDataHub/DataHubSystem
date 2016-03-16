@@ -1,0 +1,168 @@
+#productView .modal-dialog {
+    /* 80% of window height */
+    /*width:80%; 
+    height: 80%;*/
+  width: 80%;
+  max-height: 90%;
+  margin: 0px auto;
+  position: relative;
+  margin-top: 2%;
+  margin-bottom: 2%
+  position: fixed;
+  height: 100%;
+  padding: 0;
+  background: white;
+  overflow: auto;
+  padding-bottom: 65px;
+}
+
+ #productView .btn{
+  background: #373B50;
+  color: #FFF;
+}  
+
+#productView .modal-title {
+  font-size: 16px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#productView .modal-header{  
+  background: #373B50;
+  color: #FFF;
+}  
+/*#product-map {
+	background: #eaeaea;
+	height: 200px;	
+}
+
+#productView .sider {	
+	height: 600px;	
+}
+
+#productView .glyphicon-chevron-left {	
+	line-height: 600px;	
+}
+
+#productView .glyphicon-chevron-right {	
+	line-height: 600px;	
+}*/
+
+#productView .title{
+  background-color: rgb(55, 59, 80);
+  color: #fff;
+  text-align: center;
+  padding: 10px;
+  margin-bottom: 15px;
+}
+
+#productView .prodlink{
+  font-size: 12px;
+  color: #fff;
+  background-color: rgb(55, 59, 80);
+}
+
+#productView .modal-container {
+  padding: 20px;
+}
+#page-container .page {
+  min-height: 100%;
+  padding: 20px 20px 40px 20px;
+    
+}
+#page-container .core-selected{
+  display: inline-block;
+  position: relative;
+  min-width: 100%;
+}
+
+
+.modal {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: hidden;
+}
+
+.modal-content {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.modal-header {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 50px;
+  padding: 10px;
+  background: #6598d9;
+  border: 0;
+}
+
+.modal-body {
+  position: absolute;
+  top: 51px;
+  bottom: 75px;
+  width: 100%;
+  overflow: auto;
+  padding: 0px !important;
+}
+
+.modal-footer {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: #f1f3f5;
+  padding: 10px;
+  height: 65px;
+}
+.modal-footer .left{
+  text-align: left;
+}
+.modal-footer .right{
+  text-align: right;
+}
+
+paper-fab{
+  margin: 0px 10px 0px 10px
+}
+
+.modal-dialog > paper-fab.right-button{
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  z-index: 10;
+  margin-top: -30px;
+}
+
+.modal-dialog > paper-fab.left-button{
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  z-index: 10;
+  margin-top: -30px;
+}
+
+.core-header {
+  padding: 0px !important;
+  height: initial !important;
+}
+
+.core-header .title{
+  padding: 10px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.row {
+  margin: 0px
+}

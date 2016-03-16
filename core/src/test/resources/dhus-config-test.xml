@@ -191,21 +191,22 @@
          schemaPath=""
          synonymPath="" />
    </search>
-   <server protocol="http" host="localhost" port="8080">
+   <server>
       <external protocol="" host="" port="" path="" />
       <ftp port="2121" ftps="false" />
    </server>
    <system>
       <name long="Data Hub Service" short="DHuS" />
-      <administrator name="root" password="a" />
-      <support name="DHuS Support Team" mail="dhus@gael.fr" />
+      <administrator name="root" password="a" />      
+      <support name="DHuS Support Team" mail="dhus@gael.fr" registrationMail="dhus@gael.fr" />
       <archive path="&dataFolder;">
          <eviction maxDiskUsage="80" maxEvictedProducts="1000"
             keepPeriod="10" />
          <incoming path="&varFolder;/incoming" maxFileNo="10" />
       </archive>
       <database path="&varFolder;/database/hsqldb" dumpPath="&varFolder;/database_dump"/> 
-      <processing corePoolSize="4" maxPoolSize = "10" queueCapacity="10000" />
+      <processing corePoolSize="4" />
       <tomcat path="&varFolder;/tomcat" />
+      <executor enabled="false" batchModeEnabled="false" />
    </system>
 </configuration>

@@ -30,18 +30,18 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
 
-import fr.gael.dhus.gwt.share.RoleData;
+import fr.gael.dhus.gwt.client.AccessDeniedRedirectionCallback;
 import fr.gael.dhus.gwt.client.GWTClient;
 import fr.gael.dhus.gwt.client.page.AbstractPage;
 import fr.gael.dhus.gwt.client.page.SearchViewPage;
 import fr.gael.dhus.gwt.services.EvictionServiceAsync;
 import fr.gael.dhus.gwt.share.EvictionStrategyData;
 import fr.gael.dhus.gwt.share.ProductData;
+import fr.gael.dhus.gwt.share.RoleData;
 import fr.gael.dhus.gwt.share.UserData;
 
 public class ManagementEvictionPage extends AbstractPage
@@ -118,7 +118,7 @@ public class ManagementEvictionPage extends AbstractPage
 
    private static void refresh()
    {
-      evictionService.getMaxDiskUsage (new AsyncCallback<Integer>()
+      evictionService.getMaxDiskUsage (new AccessDeniedRedirectionCallback<Integer>()
       {         
          @Override
          public void onSuccess (Integer result)
@@ -127,12 +127,12 @@ public class ManagementEvictionPage extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             Window.alert("There was an error while accessing eviction properties.");
          }
       });
-      evictionService.getKeepPeriod (new AsyncCallback<Integer>()
+      evictionService.getKeepPeriod (new AccessDeniedRedirectionCallback<Integer>()
       {         
          @Override
          public void onSuccess (Integer result)
@@ -142,13 +142,13 @@ public class ManagementEvictionPage extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             Window.alert("There was an error while accessing eviction properties.");
          }
       });
       strategy.clear ();
-      evictionService.getAllStrategies (new AsyncCallback<List<EvictionStrategyData>>()
+      evictionService.getAllStrategies (new AccessDeniedRedirectionCallback<List<EvictionStrategyData>>()
       {         
          @Override
          public void onSuccess (List<EvictionStrategyData> result)
@@ -157,7 +157,7 @@ public class ManagementEvictionPage extends AbstractPage
             {
                strategy.addItem (strat.getDescription (), strat.getId ());
             }
-            evictionService.getStrategy (new AsyncCallback<String>()
+            evictionService.getStrategy (new AccessDeniedRedirectionCallback<String>()
                {         
                @Override
                public void onSuccess (String result)
@@ -173,7 +173,7 @@ public class ManagementEvictionPage extends AbstractPage
                }
                
                @Override
-               public void onFailure (Throwable caught)
+               public void _onFailure (Throwable caught)
                {
                   Window.alert("There was an error while accessing eviction properties.");
                }
@@ -181,7 +181,7 @@ public class ManagementEvictionPage extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             Window.alert("There was an error while accessing eviction properties.");
          }
@@ -220,7 +220,7 @@ public class ManagementEvictionPage extends AbstractPage
                return;
             }
             evictionService.save (strategy.getValue (strategy.getSelectedIndex ()), new Integer(keepingPeriod.getValue ()), 
-               new Integer(maxDiskUsage.getElement ().getInnerText ()), (new AsyncCallback<Void>()
+               new Integer(maxDiskUsage.getElement ().getInnerText ()), (new AccessDeniedRedirectionCallback<Void>()
                {         
                @Override
                public void onSuccess (Void result)
@@ -229,7 +229,7 @@ public class ManagementEvictionPage extends AbstractPage
                }
                
                @Override
-               public void onFailure (Throwable caught)
+               public void _onFailure (Throwable caught)
                {
                   Window.alert("There was an error while saving your new eviction properties.\n"+caught.getMessage ());
                }
@@ -247,13 +247,13 @@ public class ManagementEvictionPage extends AbstractPage
                return;
             }
             evictionService.save (strategy.getValue (strategy.getSelectedIndex ()), new Integer(keepingPeriod.getValue ()), 
-               new Integer(maxDiskUsage.getElement ().getInnerText ()), (new AsyncCallback<Void>()
+               new Integer(maxDiskUsage.getElement ().getInnerText ()), (new AccessDeniedRedirectionCallback<Void>()
                {         
                @Override
                public void onSuccess (Void result)
                {
                   evictionService.doEvict (
-                     new AsyncCallback<Void>()
+                     new AccessDeniedRedirectionCallback<Void>()
                      {         
                          @Override
                          public void onSuccess (Void result)
@@ -262,7 +262,7 @@ public class ManagementEvictionPage extends AbstractPage
                             Window.alert("Product successfully evicted.");
                          }
                          @Override
-                         public void onFailure (Throwable caught)
+                         public void _onFailure (Throwable caught)
                          {
                             Window.alert("There was an error while evicting your new eviction properties.\n"+caught.getMessage ());
                          }
@@ -271,7 +271,7 @@ public class ManagementEvictionPage extends AbstractPage
                }
                
                @Override
-               public void onFailure (Throwable caught)
+               public void _onFailure (Throwable caught)
                {
                   Window.alert("There was an error while saving your new eviction properties.\n"+caught.getMessage ());
                }
@@ -300,11 +300,11 @@ public class ManagementEvictionPage extends AbstractPage
       
       GWTClient.callback (function, JsonUtils.safeEval ("{\"aaData\": [],\"iTotalRecords\" : 0, \"iTotalDisplayRecords\" : 0}"));
       
-      evictionService.getEvictableProducts (new AsyncCallback<List<ProductData>>()
+      evictionService.getEvictableProducts (new AccessDeniedRedirectionCallback<List<ProductData>>()
       {
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             DOM.setStyleAttribute (RootPanel.getBodyElement (), "cursor",
             "default");

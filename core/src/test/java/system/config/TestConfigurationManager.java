@@ -174,20 +174,19 @@ public class TestConfigurationManager extends AbstractTransactionalTestNGSpringC
    public void testgetServerConfiguration ()
    {
       Assert.assertNotNull (configurationManager.getServerConfiguration ());
-      Assert.assertEquals (configurationManager.getServerConfiguration ().getProtocol (), "http");
-      Assert.assertEquals (configurationManager.getServerConfiguration ().getHost (), "localhost");
-      Assert.assertEquals (configurationManager.getServerConfiguration ().getPort ().intValue (), 8080);
       Assert.assertEquals (configurationManager.getServerConfiguration ().getExternalProtocol (), "http");
       Assert.assertEquals (configurationManager.getServerConfiguration ().getExternalHostname (), "dhus2");
       Assert.assertEquals (configurationManager.getServerConfiguration ().getUrl (), "http://localhost:8080/");
-      Assert.assertEquals (configurationManager.getServerConfiguration ().getExternalUrl (), "http://dhus2:8282/test/");      
+      Assert.assertEquals (configurationManager.getServerConfiguration ().getExternalUrl (), "http://dhus2:8282/test/");    
    }
 
    @Test
    public void testgetFtpServerConfiguration ()
    {
       Assert.assertNotNull (configurationManager.getFtpServerConfiguration ());
-      Assert.assertEquals (configurationManager.getFtpServerConfiguration ().getPort ().intValue (), 2121);    
+      Assert.assertEquals (configurationManager.getFtpServerConfiguration ().getPort ().intValue (), 2121);
+      Assert.assertEquals (configurationManager.getFtpServerConfiguration ().isFtps ().booleanValue (), false);
+      Assert.assertEquals (configurationManager.getFtpServerConfiguration ().getPassivePort (), "30200-30220");
    }
 
    @Test
@@ -214,6 +213,7 @@ public class TestConfigurationManager extends AbstractTransactionalTestNGSpringC
       Assert.assertNotNull (configurationManager.getSupportConfiguration ());
       Assert.assertEquals (configurationManager.getSupportConfiguration ().getName (), "DHuS Support");
       Assert.assertEquals (configurationManager.getSupportConfiguration ().getMail (), "dhus-support@gael.fr");
+      Assert.assertEquals (configurationManager.getSupportConfiguration ().getRegistrationMail (), "dhus@gael.fr");
    }
 
    @Test
@@ -237,8 +237,6 @@ public class TestConfigurationManager extends AbstractTransactionalTestNGSpringC
    {
       Assert.assertNotNull (configurationManager.getProcessingConfiguration ());
       Assert.assertEquals (configurationManager.getProcessingConfiguration ().getCorePoolSize ().intValue (), 1);
-      Assert.assertEquals (configurationManager.getProcessingConfiguration ().getMaxPoolSize ().intValue (), 10);
-      Assert.assertEquals (configurationManager.getProcessingConfiguration ().getQueueCapacity ().intValue (), 10000);
    }
 
    @Test

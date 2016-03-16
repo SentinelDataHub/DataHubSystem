@@ -19,8 +19,19 @@
    along with this program. If not, see <http://www.gnu.org/licenses/>.
 -->
 <web-app id="DHuS GUI - User Webapp" version="3.0"
-   	xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-   	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
-   
-   	<!-- Filters -->
+   xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+
+
+   <listener>
+      <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+   </listener>
+   <listener>
+      <listener-class>fr.gael.dhus.spring.security.handler.SessionDestroyedCleaner</listener-class>
+   </listener>
+
+   <session-config>
+      <!-- 24h timeout -->
+      <session-timeout>1440</session-timeout>
+   </session-config>
 </web-app>

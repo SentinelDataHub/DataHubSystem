@@ -24,7 +24,7 @@ import java.util.Map;
 
 import org.apache.olingo.odata2.api.exception.ODataException;
 
-import fr.gael.dhus.olingo.v1.entitySet.ItemEntitySet;
+import fr.gael.dhus.olingo.v1.entityset.ItemEntitySet;
 
 /**
  * Item Bean. Base object of the data served by the DHuS.
@@ -50,11 +50,13 @@ public abstract class Item extends V1Entity
    public abstract String getContentType ();
 
    public abstract Long getContentLength ();
+   
+   public abstract fr.gael.dhus.olingo.v1.entity.Class getItemClass ();
 
    @Override
-   public Map<String, Object> toEntityResponse (String rootUrl)
+   public Map<String, Object> toEntityResponse (String root_url)
    {
-      Map<String, Object> res = new HashMap<String, Object> ();
+      Map<String, Object> res = new HashMap<> ();
       res.put (ItemEntitySet.ID, getId ());
       res.put (ItemEntitySet.NAME, getName ());
       res.put (ItemEntitySet.CONTENT_TYPE, getContentType ());
@@ -63,19 +65,19 @@ public abstract class Item extends V1Entity
    }
 
    @Override
-   public Object getProperty (String propName) throws ODataException
+   public Object getProperty (String prop_name) throws ODataException
    {
-      if (propName.equals (ItemEntitySet.ID)) return getId ();
+      if (prop_name.equals (ItemEntitySet.ID)) return getId ();
 
-      if (propName.equals (ItemEntitySet.NAME)) return getName ();
+      if (prop_name.equals (ItemEntitySet.NAME)) return getName ();
 
-      if (propName.equals (ItemEntitySet.CONTENT_TYPE))
+      if (prop_name.equals (ItemEntitySet.CONTENT_TYPE))
          return getContentType ();
 
-      if (propName.equals (ItemEntitySet.CONTENT_LENGTH))
+      if (prop_name.equals (ItemEntitySet.CONTENT_LENGTH))
          return getContentLength ();
 
-      throw new ODataException ("Property '" + propName + "' not found.");
+      throw new ODataException ("Property '" + prop_name + "' not found.");
    }
 
    @Override

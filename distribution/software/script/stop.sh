@@ -1,3 +1,4 @@
+#!/bin/sh
 BASENAME=`basename $0`
 SCRIPT_DIR=`dirname $0`
 PID_FILE=dhus.pid

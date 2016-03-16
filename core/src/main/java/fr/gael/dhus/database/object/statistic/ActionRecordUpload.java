@@ -30,6 +30,9 @@ import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
+
 @Entity
 @Table (name = "ACTION_RECORD_UPLOADS")
 public class ActionRecordUpload extends ActionRecord implements Serializable
@@ -39,7 +42,8 @@ public class ActionRecordUpload extends ActionRecord implements Serializable
    /**
     * Notification (case of upload)
     */
-   @Column (name = "NOTIFICATION", columnDefinition = "BOOLEAN", nullable = true)
+   @Column (name = "NOTIFICATION", columnDefinition = "BOOLEAN",
+            nullable = true)
    private boolean notificationRequired;
 
    /**
@@ -59,7 +63,9 @@ public class ActionRecordUpload extends ActionRecord implements Serializable
     * Collection list.
     */
    @ElementCollection (targetClass=String.class)
-   @CollectionTable (name = "COLLECTION_ID_NAME", joinColumns = @JoinColumn (name="ACTION_RECORD_UPLOAD_ID"))
+   @Cascade(value={CascadeType.ALL})
+   @CollectionTable (name = "COLLECTION_ID_NAME",
+                     joinColumns = @JoinColumn (name="ACTION_RECORD_UPLOAD_ID"))
    private Set<String> collectionNameList = new HashSet<String> ();
 
    public boolean isNotificationRequired ()
@@ -77,9 +83,9 @@ public class ActionRecordUpload extends ActionRecord implements Serializable
       return productIdentifier;
    }
 
-   public void setProductIdentifier (String productIdentifier)
+   public void setProductIdentifier (String product_identifier)
    {
-      this.productIdentifier = productIdentifier;
+      this.productIdentifier = product_identifier;
    }
 
    public Long getProductSize ()
@@ -87,9 +93,9 @@ public class ActionRecordUpload extends ActionRecord implements Serializable
       return productSize;
    }
 
-   public void setProductSize (Long productSize)
+   public void setProductSize (Long product_size)
    {
-      this.productSize = productSize;
+      this.productSize = product_size;
    }
 
    public Set<String> getCollectionNameList ()
@@ -97,8 +103,8 @@ public class ActionRecordUpload extends ActionRecord implements Serializable
       return collectionNameList;
    }
 
-   public void setCollectionNameList (Set<String> collectionNameList)
+   public void setCollectionNameList (Set<String> collection_name_list)
    {
-      this.collectionNameList = collectionNameList;
+      this.collectionNameList = collection_name_list;
    }
 }

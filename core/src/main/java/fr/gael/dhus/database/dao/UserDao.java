@@ -46,12 +46,10 @@ import fr.gael.dhus.database.dao.interfaces.DaoEvent;
 import fr.gael.dhus.database.dao.interfaces.DaoListener;
 import fr.gael.dhus.database.dao.interfaces.DaoUtils;
 import fr.gael.dhus.database.dao.interfaces.HibernateDao;
-import fr.gael.dhus.database.dao.interfaces.RightChangedListener;
 import fr.gael.dhus.database.dao.interfaces.UserListener;
 import fr.gael.dhus.database.object.Collection;
 import fr.gael.dhus.database.object.FileScanner;
 import fr.gael.dhus.database.object.Preference;
-import fr.gael.dhus.database.object.Product;
 import fr.gael.dhus.database.object.Role;
 import fr.gael.dhus.database.object.Search;
 import fr.gael.dhus.database.object.User;
@@ -62,6 +60,7 @@ import fr.gael.dhus.service.exception.UserAlreadyExistingException;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
 import fr.gael.dhus.system.config.ConfigurationManager;
 
+
 @Repository
 public class UserDao extends HibernateDao<User, Long>
 {
@@ -70,9 +69,6 @@ public class UserDao extends HibernateDao<User, Long>
    
    @Autowired
    private ConfigurationManager cfgManager;
-
-   @Autowired
-   private ProductDao productDao;
 
    @Autowired
    private ProductCartDao productCartDao;
@@ -85,7 +81,7 @@ public class UserDao extends HibernateDao<User, Long>
 
    @Autowired
    private FileScannerDao fileScannerDao;
-
+   
    /**
     * Unique public data user.
     */
@@ -98,28 +94,11 @@ public class UserDao extends HibernateDao<User, Long>
 
    public User getByName (final String name)
    {
-      class ReturnValue
-      {
-         User value;
-      }
-      final ReturnValue rv = new ReturnValue ();
-
-      getHibernateTemplate ().execute (new HibernateCallback<Void> ()
-      {
-         public Void doInHibernate (Session session) throws HibernateException,
-               SQLException
-         {
-            rv.value =
-                  (User) session.createQuery (
-                        "from " + entityClass.getName () +
-                              " as u where lower(u.username)=lower('" + name +
-                              "')")
-                        .uniqueResult ();
-            return null;
-         }
-      });
-      return rv.value;
+      return (User)DataAccessUtils.uniqueResult (
+         getHibernateTemplate ().find (
+            "From User u where lower(u.username)=lower(?)", name));
    }
+   
 
    @Override
    public void delete (final User user)
@@ -217,8 +196,8 @@ public class UserDao extends HibernateDao<User, Long>
                               "'" +
                               cfgManager.getAdministratorConfiguration ()
                                     .getName () +
-                              " AND not username = '" + getPublicDataName () +
-                              "'" +
+                              " AND not username = '" +
+                              getPublicData ().getUsername () + "'" +
                               " ORDER BY username";
                   Query query = session.createQuery (hql).setReadOnly (true);
                   query.setFirstResult (skip);
@@ -228,13 +207,13 @@ public class UserDao extends HibernateDao<User, Long>
             });
    }
 
-   public List<User> scrollForDataRight()
+   public Iterator<User> scrollForDataRight()
    {
-      String filter =
-         "WHERE deleted is false AND (not username = '" +
+      String filter = "WHERE deleted is false AND (not username = '" +
             cfgManager.getAdministratorConfiguration ().getName () +
             "' ORDER BY username";
-      return scroll (filter, -1, -1);
+      String query = "FROM " + entityClass.getName () + " " + filter;
+      return new PagedIterator<User> (this, query);
    }
 
    @SuppressWarnings ("unchecked")
@@ -242,35 +221,47 @@ public class UserDao extends HibernateDao<User, Long>
    {
       return (List<User>)find (
          "FROM " + entityClass.getName () + " u WHERE u.deleted is false and " +
-            "         not u.username='" +
-            cfgManager.getAdministratorConfiguration ().getName () + "'" +
-            " and not u.username LIKE '"+getPublicDataName ()+"' " +
-            "order by username");
+            "not u.username='" +
+            cfgManager.getAdministratorConfiguration ().getName () + "' " +
+            "and not u.username LIKE '"+ getPublicData ().getUsername () + 
+            "' " + "order by username");
    }
 
-   public List<User> scrollNotDeleted (String filter)
+   public Iterator<User> scrollNotDeleted (final String filter, int skip)
    {
-      return scroll ("WHERE deleted is false AND username LIKE '%" + filter +
-         "%' and not username='" +
-         cfgManager.getAdministratorConfiguration ().getName () + "'" +
-         " and not username LIKE '" + getPublicDataName () + "' " +
-         "ORDER BY username", -1, -1);
+      StringBuilder query = new StringBuilder ();
+      query.append ("FROM ").append (entityClass.getName ()).append (" ");
+      query.append ("WHERE deleted is false AND ")
+            .append ("username LIKE'%").append (filter).append ("%' AND ");
+      query.append ("not username='").append (getRootUser ().getUsername ())
+            .append ("' AND not username='").append (getPublicDataName ())
+            .append ("' ");
+      query.append ("ORDER BY username");
+      return new PagedIterator<> (this, query.toString (), skip, 3);
    }
 
-   public List<User> scrollForDataRight (String filter, int skip, int top)
+   public Iterator<User> scrollForDataRight (String filter, int skip)
    {
-      return scroll ("WHERE deleted is false AND username LIKE '%" + filter +
-            "%' and not username='" +
-            cfgManager.getAdministratorConfiguration ().getName () + "'" +
-            "ORDER BY CASE username WHEN '" + getPublicDataName () +
-            "' THEN 1 ELSE 2 END, username", skip, top);
+      StringBuilder query = new StringBuilder ();
+      query.append ("FROM ").append (entityClass.getName ()).append (" ");
+      query.append ("WHERE deleted is false AND username LIKE '%")
+            .append (filter).append ("%' AND not username='")
+            .append (cfgManager.getAdministratorConfiguration ().getName ())
+            .append ("' ");
+      query.append ("ORDER BY CASE username WHEN '").append (getPublicDataName ())
+            .append ("' THEN 1 ELSE 2 END, username");
+      return new PagedIterator<> (this, query.toString (), skip);
    }
    
-   public List<User> scrollAll (String filter, int skip, int top)
+   public Iterator<User> scrollAll (String filter, int skip)
    {
-      return scroll ("WHERE username LIKE '%" + filter + "%' " +
-            " and not username LIKE '" + getPublicDataName () + "' " +
-            " ORDER BY username", skip, top);
+      StringBuilder query = new StringBuilder ();
+      query.append ("FROM ").append (entityClass.getName ()).append (" ");
+      query.append ("WHERE username LIKE '%").append (filter).append ("%' ");
+      query.append ("AND not username='")
+            .append (getPublicData ().getUsername ()).append ("' ");
+      query.append ("ORDER BY username");
+      return new PagedIterator<> (this, query.toString (), skip);
    }
    
    public int countNotDeleted (String filter)
@@ -280,7 +271,7 @@ public class UserDao extends HibernateDao<User, Long>
             " u WHERE u.deleted is false AND u.username LIKE '%" + filter +
             "%' and " + "not u.username='" +
             cfgManager.getAdministratorConfiguration ().getName () + "'" +
-            " and not u.username LIKE '"+getPublicDataName ()+"' "));
+            " and not u.username LIKE '"+getPublicData ().getUsername ()+"' "));
    }
    
    public int countForDataRight (String filter)
@@ -296,149 +287,28 @@ public class UserDao extends HibernateDao<User, Long>
    {
       return DataAccessUtils.intResult (find (
          "select count(*) FROM " + entityClass.getName () +
-            " u WHERE u.username LIKE '%" + filter +"%'" +
-            " and not u.username LIKE '"+getPublicDataName ()+"' " ));
-   }
-   
-   public void addAccessToProduct (final User user, final Long pId)
-   {
-      if (user == null)
-      {
-         return;
-      }
-      Product product = productDao.read (pId);
-      List<User> users = productDao.getAuthorizedUsers (product);
-      boolean wasPublic = false;
-      boolean found = false;
-      final User publicDataUser = getPublicData ();
-      // Check is already granted
-      for (User u : users)
-      {
-         if (u.getId () == user.getId())
-         {
-            found = true;
-         }
-         // Can not be public data if user is already agreed
-         if (u.getId () == publicDataUser.getId())
-         {
-            wasPublic = true;
-         }
-      }
-      
-      if (!found)
-      {
-         getHibernateTemplate().execute  (
-            new HibernateCallback<Void>()
-            {
-               public Void doInHibernate(Session session) 
-                  throws HibernateException, SQLException
-               {
-                  session.createSQLQuery(
-                     "insert into PRODUCT_USER_AUTH(PRODUCTS_ID,USERS_ID) " +
-                     " values(:pid, :uid)").
-                     setParameter ("pid", pId).
-                     setParameter ("uid", user.getId()).executeUpdate ();
-                  return null;
-                  
-               }
-            });
-         fireRightAdded (new DaoEvent<User> (user), product);
-      }
-      if (wasPublic)
-      {         
-         getHibernateTemplate().execute  (
-            new HibernateCallback<Void>()
-            {
-               public Void doInHibernate(Session session) 
-                  throws HibernateException, SQLException
-               {
-                  session.createSQLQuery(
-                     "DELETE FROM PRODUCT_USER_AUTH p " +
-                     " WHERE p.PRODUCTS_ID = :pid AND p.USERS_ID = :uid").
-                     setParameter ("pid", pId).
-                     setParameter (
-                           "uid", publicDataUser.getId()).executeUpdate ();
-                  return null;
-                  
-               }
-            });
-         fireRightRemoved (new DaoEvent<User> (publicDataUser), product);
-      }
+            " u WHERE u.username LIKE '%" + filter + "%'" +
+            " and not u.username LIKE '" + getPublicData ().getUsername () +
+            "' " ));
    }
 
    public void addAccessToCollection (User user, Collection collection)
    {
       List<User> users = collectionDao.getAuthorizedUsers (collection);
-      boolean wasPublic = false;
-      boolean found = false;
-      final User publicDataUser = getPublicData ();
       // Check is already granted
       for (User u : users)
       {
-         if (u.getId () == user.getId())
+         if (u.getId ().equals (user.getId()))
          {
-            found = true;
-         }
-         // Can not be public data if user is already agreed
-         if (u.getId () == publicDataUser.getId())
-         {
-            wasPublic = true;
+            return;
          }
       }
-      if (!found)
-      {
-         users.add (user);
-      }
-//      fireRightAdded (new DaoEvent<User> (user), collection);
-      if (wasPublic)
-      {         
-         users.remove (publicDataUser);
-      }
+      users.add (user);
       collection.setAuthorizedUsers (new HashSet<User> (users));
       collectionDao.update (collection);
    }
 
-   public void removeAccessToProduct (final Long userId, final Long pId)
-   {
-      // if data are public, not possible to remove user right.
-      if (cfgManager.isDataPublic ())
-      {
-         return;
-      }
-      Product product = productDao.read (pId);
-      List<User> users = productDao.getAuthorizedUsers (product);
-      // Check is already granted
-      User selection = null;
-      for (User u : users)
-      {
-         if (u.getId () == userId)
-         {
-            selection = u;
-            break;
-         }
-      }
-      if (selection != null)
-      {
-         getHibernateTemplate().execute (
-               new HibernateCallback<Void> ()
-               {
-                  public Void doInHibernate (Session session)
-                        throws HibernateException, SQLException
-                  {
-                     session.createSQLQuery (
-                           "DELETE FROM PRODUCT_USER_AUTH p " +
-                                 " WHERE p.PRODUCTS_ID = :pid AND p.USERS_ID = :uid")
-                           .
-                                 setParameter ("pid", pId).
-                           setParameter ("uid", userId).executeUpdate ();
-                     return null;
-                  }
-               });
-         fireRightRemoved (new DaoEvent<User> (selection), product);
-      }
-   }
-
-   public void removeAccessToCollection (Long userId, Collection collection)
+   public void removeAccessToCollection (Long user_id, Collection collection)
    {
       // if data are public, not possible to remove user right.
       if (cfgManager.isDataPublic ())
@@ -450,7 +320,7 @@ public class UserDao extends HibernateDao<User, Long>
       User selection = null;
       for (User u : users)
       {
-         if (u.getId ().equals (userId))
+         if (u.getId ().equals (user_id))
          {
             selection = u;
          }
@@ -460,31 +330,6 @@ public class UserDao extends HibernateDao<User, Long>
          users.remove (selection);
          collection.setAuthorizedUsers (new HashSet<User> (users));
          collectionDao.update (collection);
-//         fireRightRemoved (new DaoEvent<User> (selection), collection);
-      }
-   }
-
-   void fireRightAdded (DaoEvent<User> e, Object o)
-   {
-      if (o instanceof Collection) e.addParameter ("collection", o);
-      if (o instanceof Product) e.addParameter ("product", o);
-
-      for (DaoListener<?> listener : getListeners ())
-      {
-         if (listener instanceof RightChangedListener)
-            ((RightChangedListener) listener).rightAdded (e);
-      }
-   }
-
-   void fireRightRemoved (DaoEvent<User> e, Object o)
-   {
-      if (o instanceof Collection) e.addParameter ("collection", o);
-      if (o instanceof Product) e.addParameter ("product", o);
-
-      for (DaoListener<?> listener : getListeners ())
-      {
-         if (listener instanceof RightChangedListener)
-            ((RightChangedListener) listener).rightRemoved (e);
       }
    }
 
@@ -630,31 +475,8 @@ public class UserDao extends HibernateDao<User, Long>
       return false;
    }
 
-   public void cleanupTmpUser (int maxDays)
+   public void cleanupTmpUser (int max_days)
    {
-//      Iterator<User> sri = readAll ().iterator ();
-//      while (sri.hasNext ())
-//      {
-//         User u = sri.next ();
-//         for (AccessRestriction ar : u.getRestrictions ())
-//         {
-//            if (ar instanceof TmpUserLockedAccessRestriction)
-//            {
-//               Date creation =
-//                  ((TmpUserLockedAccessRestriction) ar).getLockDate ();
-//               Date now = new Date ();
-//               long MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24;
-//               long delta = now.getTime () - creation.getTime ();
-//               if ( (delta / (MILLISECONDS_PER_DAY)) >= maxDays)
-//               {
-//                  logger.info ("Remove unregistered User " + u.getUsername ());
-//                  forceDelete (u);
-//               }
-//               break;
-//            }
-//         }
-//      }
-
       int skip = 0;
       final int top = DaoUtils.DEFAULT_ELEMENTS_PER_PAGE;
       long MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24;
@@ -688,7 +510,7 @@ public class UserDao extends HibernateDao<User, Long>
                      TmpUserLockedAccessRestriction.class.cast (objects[1]);
             
             long date = runtime - restriction.getLockDate ().getTime ();
-            if ((date / MILLISECONDS_PER_DAY) >= maxDays)
+            if ((date / MILLISECONDS_PER_DAY) >= max_days)
             {
                logger.info ("Remove unregistered User " + user.getUsername ());
                forceDelete (user);
@@ -735,7 +557,7 @@ public class UserDao extends HibernateDao<User, Long>
       search.setFootprint (footprint);
       search.setAdvanced (advanced);
       search.setComplete (complete);
-      search.setNotify (true);
+      search.setNotify (false);
       search = searchDao.create (search);
       pref.getSearches ().add (search);
       updateUserPreference (user);
@@ -743,7 +565,7 @@ public class UserDao extends HibernateDao<User, Long>
 
    public void removeUserSearch (User user, Long id)
    {
-      Search search = searchDao.read (id);
+      Search search = searchDao.read(id);
       if (search != null)
       {
          Preference pref = user.getPreferences ();
@@ -777,9 +599,10 @@ public class UserDao extends HibernateDao<User, Long>
 
    public List<Search> getUserSearches (User user)
    {
-      Set<Search> searches = read (user.getId ()).getPreferences ().getSearches ();
-      List<Search> list = new ArrayList<> (searches);
-      Collections.sort (list, new Comparator<Search>()
+      Set<Search> searches = read (user.getId ()).getPreferences ().
+            getSearches ();
+      List<Search> list = new ArrayList<Search> (searches);
+      Collections.sort (list, new Comparator<Search> ()
       {
          @Override
          public int compare (Search arg0, Search arg1)
@@ -796,7 +619,7 @@ public class UserDao extends HibernateDao<User, Long>
     * updated otherwise, it is created and added.
     */
    public FileScanner addFileScanner (User user, String url, String username,
-         String password, String pattern, String cronSchedule,
+         String password, String pattern, String cron_schedule,
          Set<Collection> collections)
    {
       FileScanner fs = null;
@@ -814,9 +637,9 @@ public class UserDao extends HibernateDao<User, Long>
       fs.setStatus (FileScanner.STATUS_ADDED);
       SimpleDateFormat sdf = new SimpleDateFormat (
             "EEEE dd MMMM yyyy - HH:mm:ss", Locale.ENGLISH);
-      fs.setStatusMessage ("Added on "+sdf.format(new Date()));
+      fs.setStatusMessage ("Added on "+sdf.format(new Date ()));
       fs.setCollections (collections);
-      fs.setCronSchedule (cronSchedule);
+      fs.setCronSchedule (cron_schedule);
 
       // Create and retrieve the fs ibnstance in DB;
       if (create)
@@ -833,11 +656,12 @@ public class UserDao extends HibernateDao<User, Long>
       }
       return fs;
    }
-   public void updateFileScanner (Long scanId, String url, String username,
-         String password, String pattern, String cronSchedule,
+
+   public void updateFileScanner (Long scan_id, String url, String username,
+         String password, String pattern, String cron_schedule,
          Set<Collection> collections)
    {
-      FileScanner fs = fileScannerDao.read (scanId);
+      FileScanner fs = fileScannerDao.read (scan_id);
       
       fs.setUrl (url);
       fs.setUsername (username);      
@@ -846,16 +670,16 @@ public class UserDao extends HibernateDao<User, Long>
       fs.setStatus (FileScanner.STATUS_ADDED);
       SimpleDateFormat sdf = new SimpleDateFormat (
             "EEEE dd MMMM yyyy - HH:mm:ss", Locale.ENGLISH);
-      fs.setStatusMessage ("Updated on "+sdf.format(new Date()));
+      fs.setStatusMessage ("Updated on " + sdf.format (new Date ()));
       fs.setCollections (collections);
-      fs.setCronSchedule (cronSchedule);
+      fs.setCronSchedule (cron_schedule);
 
       fileScannerDao.update (fs);
    }
 
-   public void removeFileScanner (User user, Long scannerId)
+   public void removeFileScanner (User user, Long scanner_id)
    {
-      FileScanner fs = fileScannerDao.read (scannerId);
+      FileScanner fs = fileScannerDao.read (scanner_id);
       if (fs != null)
       {
          deleteFileScanner (user, fs);
@@ -876,19 +700,19 @@ public class UserDao extends HibernateDao<User, Long>
       getHibernateTemplate ().execute (new HibernateCallback<Void> ()
       {
          public Void doInHibernate (Session session) throws HibernateException,
-            SQLException
+               SQLException
          {
 
             Long pref_id = user.getPreferences ().getId ();
             Long fs_id = fs.getId ();
 
             session
-               .createSQLQuery (
-                  "delete from FILE_SCANNER_PREFERENCES "
-                     + "where FILE_SCANNER_ID=:fsid AND "
-                     + "      PREFERENCE_ID= :prefid")
-               .setParameter ("fsid", fs_id).setParameter ("prefid", pref_id)
-               .executeUpdate ();
+                  .createSQLQuery (
+                        "delete from FILE_SCANNER_PREFERENCES "
+                              + "where FILE_SCANNER_ID=:fsid AND "
+                              + "      PREFERENCE_ID= :prefid")
+                  .setParameter ("fsid", fs_id).setParameter ("prefid", pref_id)
+                  .executeUpdate ();
             return null;
          }
       });
@@ -919,14 +743,14 @@ public class UserDao extends HibernateDao<User, Long>
 
    public User getPublicData ()
    {
-      User user = getByName (getPublicDataName ());
-      if (user == null)
+      if (publicData != null)
+      {
+         return publicData;
+      }
+      publicData = getByName (getPublicDataName ());
+      if (publicData == null)
       {
          createPublicData ();
-      }
-      else if (publicData == null)
-      {
-         publicData = user;
       }
       return publicData;
    }
@@ -944,4 +768,104 @@ public class UserDao extends HibernateDao<User, Long>
    {
       return "~" + publicDataName;
    }
+   
+   /**
+    *  Get not deleted users for the given filter, offset and limit
+    * @param filter
+    * @param offset
+    * @param limit
+    * @return
+    */
+   public Iterator<User> scrollNotDeletedByFilter (String filter, int skip)
+   {
+      String s = filter.toLowerCase ();
+      StringBuilder sb = new StringBuilder ();
+      sb.append ("FROM ").append (entityClass.getName ()).append (" ");
+      sb.append ("WHERE deleted is false AND ");
+      sb.append ("(username LIKE '%").append (s).append ("%' ")
+            .append ("OR lower(firstname) LIKE '%").append (s).append ("%' ")
+            .append ("OR lower(lastname) LIKE '%").append (s).append ("%') ");
+      sb.append ("AND not username='")
+            .append (cfgManager.getAdministratorConfiguration ().getName ())
+            .append ("' AND not username='").append (getPublicDataName ())
+            .append ("' ");
+      sb.append ("ORDER BY username");
+      return new PagedIterator<> (this, sb.toString (), skip);
+   }
+   
+   public int countNotDeletedByFilter (String filter)
+   {
+      return DataAccessUtils.intResult (find (
+         "select count(*) FROM " + entityClass.getName () +
+            " u WHERE u.deleted is false AND (u.username LIKE '%" + filter +
+         "%'  OR lower(u.firstname) LIKE '%"+filter.toLowerCase()+ "%'  OR lower(u.lastname) LIKE '%"+filter.toLowerCase()+
+         "%'  OR lower(u.email) LIKE '%"+filter.toLowerCase()+ "%') and not u.username='" +
+            cfgManager.getAdministratorConfiguration ().getName () + "'" +
+            " and not u.username LIKE '"+getPublicData ().getUsername ()+"' "));
+   }
+
+   /**
+    * Retrieve the users list by (top,skip) page according to the passed filter
+    * with configurable ordering.
+    * @param filter the filter to run, if null, all the users will be returned.
+    * @param order_by the order sequence, if null, default database order will be returned. 
+    * @param skip elements number to skip in the list.
+    * @param top element kept in the list.
+    * @return the list of filtered users.
+    */
+   public List<User> getUsers (String filter, String order_by, final int skip,
+      final int top)
+   {
+      // TODO Security on filter & orderBy string
+      StringBuilder qBuilder = new StringBuilder ();
+
+      // Scroll already add FROM entity class
+      // qBuilder.append ("FROM User u ");
+      // Just add the entity referer
+      qBuilder.append (" u ");
+
+      if (filter != null && !filter.isEmpty ())
+      {
+         qBuilder.append ("WHERE ");
+         qBuilder.append (filter);
+      }
+
+      // Builds the ORDER BY clause.
+      if (order_by != null && !order_by.isEmpty ())
+      {
+         qBuilder.append (" ORDER BY ");
+         qBuilder.append (order_by);
+      }
+
+      String hql = qBuilder.toString ();
+      return scroll (hql, skip, top);
+   }
+
+   /**
+    * Count the user according to the passed filter.
+    * @param filter filter over users. If null all the users will be returned.
+    * @return number of users.
+    */
+   public int countUsers (String filter)
+   {
+      // TODO Security on filter string
+      StringBuilder qBuilder = new StringBuilder ();
+
+      qBuilder.append ("SELECT count (*) FROM User u ");
+
+      if (filter != null && !filter.isEmpty ())
+      {
+         qBuilder.append ("WHERE ");
+         qBuilder.append (filter);
+      }
+
+      return ((Long) getHibernateTemplate ().find (qBuilder.toString ())
+            .get (0)).intValue ();
+   }
+
+   public Iterator<User> getAllUsers ()
+   {
+      return new PagedIterator<> (this, "FROM " + entityClass.getName ());
+   }
 }
+

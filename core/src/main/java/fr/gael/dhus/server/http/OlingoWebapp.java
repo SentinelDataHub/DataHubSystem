@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 public class OlingoWebapp extends WebApplication
 {
    @Override
-   public void configure (String destFolder) throws IOException
+   public void configure (String dest_folder) throws IOException
    {
       String configurationFolder = "fr/gael/dhus/server/http/olingo/webapp";
       URL u =
@@ -39,12 +39,12 @@ public class OlingoWebapp extends WebApplication
             .getResource (configurationFolder);
       if (u != null && "jar".equals (u.getProtocol ()))
       {
-         extractJarFolder (u, configurationFolder, destFolder);
+         extractJarFolder (u, configurationFolder, dest_folder);
       }
       else
          if (u != null)
          {
-            File webAppFolder = new File (destFolder);
+            File webAppFolder = new File (dest_folder);
             copyFolder (new File (u.getFile ()), webAppFolder);
          }
    }

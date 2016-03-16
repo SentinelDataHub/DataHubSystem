@@ -24,8 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import fr.gael.dhus.datastore.DefaultDataStore;
-import fr.gael.dhus.datastore.exception.DataStoreLocalArchiveNotExistingException;
+import fr.gael.dhus.datastore.exception
+      .DataStoreLocalArchiveNotExistingException;
 
 /**
  * Archive Service provides connected clients with a set of method
@@ -38,24 +38,32 @@ public class ArchiveService extends WebService
    private static Logger logger = Logger.getLogger (ArchiveService.class);
    
    @Autowired
-   private DefaultDataStore dataStore;
-   
+   private ProductService productService;
+
    /**
     * Resets the archive according to the properties. In the future, a specific
     * panel will be implemented to set the archive settings. 
     * @throws DataStoreLocalArchiveNotExistingException 
     */
-   @PreAuthorize ("hasRole('ROLE_SYSTEM_MANAGER')") // Role temporaire en attendaant le panneau d'archive.
-   public int synchronizeLocalArchive () throws DataStoreLocalArchiveNotExistingException
+   // Role temporaire en attendant le panneau d'archive.
+   @PreAuthorize ("hasRole('ROLE_SYSTEM_MANAGER')")
+   public int synchronizeLocalArchive () throws
+         DataStoreLocalArchiveNotExistingException
    {
       try
       {
-         return dataStore.processArchiveSync(false);
+         return productService.processArchiveSync();
       }
       catch (InterruptedException e)
       {
          logger.warn("Synchronization stopped by the user.");
       }
       return -1;
+   }
+
+   // Methods for unit tests
+   void setDefaultDataStore (ProductService productService)
+   {
+      this.productService = productService;
    }
 }

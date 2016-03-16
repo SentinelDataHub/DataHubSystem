@@ -19,19 +19,20 @@
  */
 package fr.gael.dhus.database.dao;
 
-import java.math.BigInteger;
-import java.sql.SQLException;
-import java.util.List;
+import fr.gael.dhus.database.dao.interfaces.HibernateDao;
+import fr.gael.dhus.database.object.Collection;
+import fr.gael.dhus.database.object.FileScanner;
+import fr.gael.dhus.database.object.User;
 
 import org.hibernate.HibernateException;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
+import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.stereotype.Repository;
 
-import fr.gael.dhus.database.dao.interfaces.HibernateDao;
-import fr.gael.dhus.database.object.Collection;
-import fr.gael.dhus.database.object.FileScanner;
+import java.sql.SQLException;
+import java.util.List;
 
 /**
  * @author pidancier
@@ -58,28 +59,13 @@ public class FileScannerDao extends HibernateDao<FileScanner, Long>
    }
    
    @SuppressWarnings ("unchecked")
-   public List<BigInteger> getScannerCollections (final Long scanId)
-   {    
-      class ReturnValue
-      {
-         List<BigInteger> value;
-      }
-      final ReturnValue rv = new ReturnValue ();
-
-      getHibernateTemplate ().execute (new HibernateCallback<Void> ()
-      {
-         public Void doInHibernate (Session session) throws HibernateException,
-            SQLException
-         {
-            rv.value =
-               (List<BigInteger>) session.createSQLQuery (
-                  "SELECT s.COLLECTIONS_ID FROM FILESCANNER_COLLECTIONS s"+
-                   " WHERE s.FILE_SCANNER_ID = "+scanId)
-                  .list ();
-            return null;
-         }
-      });
-      return rv.value;
+   public List<Long> getScannerCollections (final Long scan_id)
+   {
+      return (List<Long>)getHibernateTemplate().find(
+         "select c.id " +
+         "from FileScanner fs inner join fs.collections c " +
+         "where fs.id=?)", 
+         scan_id);
    }
    
    @Override
@@ -107,9 +93,23 @@ public class FileScannerDao extends HibernateDao<FileScanner, Long>
     */
    public void resetAll ()
    {
-      String sql = "UPDATE FileScanner SET status = '" + 
-         FileScanner.STATUS_ERROR + "',statusMessage = 'Scanner was stopped because system was shutdown.' " +
+      String sql = "UPDATE FileScanner SET status = '" +
+            FileScanner.STATUS_ERROR +
+            "', statusMessage = " +
+            "'Scanner was stopped because system was shutdown.' " +
             " WHERE status = '" + FileScanner.STATUS_RUNNING + "'";
       getHibernateTemplate ().bulkUpdate (sql);
+   }
+   
+   /**
+    * Retrieve the owner user of a file scanner.
+    * @param fs the scanner to retrieve the user. 
+    * @return the owner.
+    */
+   public User getUserFromScanner (FileScanner fs)
+   {
+      return (User)DataAccessUtils.uniqueResult (getHibernateTemplate ().find (
+         "select u from User u where ? in elements(u.preferences.fileScanners)",
+         fs));
    }
 }

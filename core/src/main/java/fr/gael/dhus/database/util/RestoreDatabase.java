@@ -36,11 +36,20 @@ public class RestoreDatabase
    private static Log logger = LogFactory.getLog (RestoreDatabase.class);
 
    /**
+    * Hide utility class constructor
+    */
+   private RestoreDatabase ()
+   {
+
+   }
+
+   /**
     * @param args
     * @throws IllegalAccessException 
     * @throws IOException 
     */
-   public static void main (String[] args) throws IllegalAccessException, IOException
+   public static void main (String[] args) throws IllegalAccessException,
+         IOException
    {
       if (args.length != 2)
       {
@@ -52,7 +61,8 @@ public class RestoreDatabase
       File dump = new File (args[0]);
       File db = new File (args[1]);
       
-      logger.info ("Restoring " + dump.getPath () + " into " + db.getPath () + ".");
+      logger.info ("Restoring " + dump.getPath () + " into " + db.getPath () +
+            ".");
       
       if (!db.exists ())
          throw new IllegalArgumentException (
@@ -62,7 +72,8 @@ public class RestoreDatabase
       if (!dump.exists ())
          throw new IllegalArgumentException (
             RestoreDatabase.class.getCanonicalName () + 
-            ": Input database dump path not found (\"" + db.getPath () + "\").");
+            ": Input database dump path not found (\"" + db.getPath () +
+                  "\").");
 
 
       FileUtils.deleteDirectory (db);

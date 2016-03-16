@@ -26,8 +26,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.authentication
+      .AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.www
+      .BasicAuthenticationFilter;
 
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
 import fr.gael.dhus.spring.security.handler.LoginSuccessHandler;
@@ -36,20 +38,21 @@ public class BasicAuthFilter extends BasicAuthenticationFilter
 {
    private final AuthenticationSuccessHandler handler;
 
-   public BasicAuthFilter (AuthenticationManager authenticationManager)
+   public BasicAuthFilter (AuthenticationManager authentication_manager)
    {
-      super (authenticationManager);
-      this.handler = ApplicationContextProvider.getBean (LoginSuccessHandler.class);;
+      super (authentication_manager);
+      this.handler = ApplicationContextProvider.getBean (
+            LoginSuccessHandler.class);
    }
 
    @Override
    protected void onSuccessfulAuthentication (HttpServletRequest request,
-      HttpServletResponse response, Authentication authResult)
+      HttpServletResponse response, Authentication auth_result)
       throws IOException
    {
       try
       {
-         handler.onAuthenticationSuccess (request, response, authResult);
+         handler.onAuthenticationSuccess (request, response, auth_result);
       }
       catch (Exception e)
       {

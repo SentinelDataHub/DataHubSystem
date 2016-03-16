@@ -34,14 +34,14 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.RootPanel;
 
-import fr.gael.dhus.gwt.share.RoleData;
+import fr.gael.dhus.gwt.client.AccessDeniedRedirectionCallback;
 import fr.gael.dhus.gwt.client.GWTClient;
 import fr.gael.dhus.gwt.client.page.AbstractPage;
 import fr.gael.dhus.gwt.client.page.SearchPage;
 import fr.gael.dhus.gwt.services.UserServiceAsync;
+import fr.gael.dhus.gwt.share.RoleData;
 import fr.gael.dhus.gwt.share.SearchData;
 import fr.gael.dhus.gwt.share.UserData;
 
@@ -132,10 +132,10 @@ public class ProfileSearches extends AbstractPage
             {
                return;
             }
-            userService.clearSavedSearches (GWTClient.getCurrentUser ().getId (), new AsyncCallback<Void>()
+            userService.clearSavedSearches (GWTClient.getCurrentUser ().getId (), new AccessDeniedRedirectionCallback<Void>()
             {               
                @Override
-               public void onFailure (Throwable caught)
+               public void _onFailure (Throwable caught)
                {
                   DOM.setStyleAttribute (RootPanel.getBodyElement (), "cursor",
                   "default");
@@ -161,10 +161,10 @@ public class ProfileSearches extends AbstractPage
       GWTClient.callback (function, JsonUtils.safeEval ("{\"aaData\": [],\"iTotalRecords\" : 0, \"iTotalDisplayRecords\" : 0}"));
       displayedSearches.clear ();
       final UserData user = GWTClient.getCurrentUser ();
-      userService.countUserSearches (user.getId (), new AsyncCallback<Integer>()
+      userService.countUserSearches (user.getId (), new AccessDeniedRedirectionCallback<Integer>()
       {         
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             DOM.setStyleAttribute (RootPanel.getBodyElement (), "cursor",
             "default");
@@ -174,10 +174,10 @@ public class ProfileSearches extends AbstractPage
          @Override
          public void onSuccess (final Integer total)
          {
-            userService.scrollSearchesOfUser (start, length, user.getId (), new AsyncCallback<List<SearchData>>()
+            userService.scrollSearchesOfUser (start, length, user.getId (), new AccessDeniedRedirectionCallback<List<SearchData>>()
             {
                @Override
-               public void onFailure (Throwable caught)
+               public void _onFailure (Throwable caught)
                {
                   Window.alert("There was an error while getting your saved searches.");
                }
@@ -220,8 +220,10 @@ public class ProfileSearches extends AbstractPage
                         advancedText += ")</i>";
                      }
                      displayedSearches.put(search.getId (), search);
-                     json += "[\"" + search.getValue ().replace ("\"", "\\\"") + advancedText.replace ("\"", "\\\"") + "\"," + search.getId () + "," +
-                     		"{\"id\":"+search.getId ()+", \"notify\":"+search.isNotify ()+"},\"" + search.getId () + "\"],";
+//                     json += "[\"" + search.getValue ().replace ("\"", "\\\"") + advancedText.replace ("\"", "\\\"") + "\"," + search.getId () + "," +
+//                     		"{\"id\":"+search.getId ()+", \"notify\":"+search.isNotify ()+"},\"" + search.getId () + "\"],";
+                     json += "[\"" + search.getComplete ().replace ("\"", "\\\"") + "\"," + search.getId () + "," +
+                              "{\"id\":"+search.getId ()+", \"notify\":"+search.isNotify ()+"},\"" + search.getId () + "\"],";
                   }
                   if (total >= 1)
                   {
@@ -241,10 +243,10 @@ public class ProfileSearches extends AbstractPage
    private static void deleteSearch (int id)
    {
       UserData user = GWTClient.getCurrentUser ();
-      userService.removeUserSearch (user.getId (), new Long(id), new AsyncCallback<Void>()
+      userService.removeUserSearch (user.getId (), new Long(id), new AccessDeniedRedirectionCallback<Void>()
       {
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             Window.alert("There was an error while removing your saved searches.");
          }
@@ -269,10 +271,10 @@ public class ProfileSearches extends AbstractPage
    
    private static void setSearchInfos ()
    {
-      userService.getNextScheduleSearch (new AsyncCallback<Date>()
+      userService.getNextScheduleSearch (new AccessDeniedRedirectionCallback<Date>()
          {
             @Override
-            public void onFailure (Throwable caught)
+            public void _onFailure (Throwable caught)
             {
                searchInfos.getElement ().setInnerText ("An active saved search means that it will be run every day.");            
             }
@@ -294,10 +296,10 @@ public class ProfileSearches extends AbstractPage
       {
          return;
       }
-      userService.activateUserSearchNotification (new Long(id), !search.isNotify (), new AsyncCallback<Void>()
+      userService.activateUserSearchNotification (new Long(id), !search.isNotify (), new AccessDeniedRedirectionCallback<Void>()
       {
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             Window.alert("There was an error while removing your saved searches.");
          }

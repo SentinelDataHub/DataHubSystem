@@ -1,0 +1,56 @@
+<div>
+<!-- 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+-->
+<style>
+.nav-tabs {
+  overflow-y: auto;
+  max-height: 42px;
+}
+</style>
+<div style="overflow: hidden;">
+<ul class="nav nav-tabs">
+  <li ng-if="isUserManagement" class="active"><a data-toggle="tab" data-target="#mngusers">USERS</a></li>
+  <li ng-if="isDataManagement"><a data-toggle="tab" data-target="#mngcollections">COLLECTIONS</a></li>
+  <li ng-if="false"><a data-toggle="tab" data-target="#mngdataright">DATA RIGHT ACCESS</a></li>
+  <li ng-if="isSystemManagement"><a data-toggle="tab" data-target="#mngsystem">SYSTEM</a></li>
+  <li ng-if="isSystemManagement"><a data-toggle="tab" data-target="#mngeviction">EVICTION</a></li>
+</ul>
+</div>
+<div class="tab-content">
+  <div  id="mngusers" class="tab-pane fade in active">
+    <management-users></management-users>
+  </div>
+  <div  id="mngcollections" class="tab-pane fade">
+    <management-collections></management-collections>
+  </div>
+  <div  id="mngdataright" class="tab-pane fade">
+    <h3>Coming Soon</h3>
+  </div>
+  <div  id="mngsystem" class="tab-pane fade">
+    <system-panel-container></system-panel-container>
+  </div>
+  <div  id="mngeviction" class="tab-pane fade">
+    <eviction-container></eviction-container>
+  </div>
+</div>
+</div>

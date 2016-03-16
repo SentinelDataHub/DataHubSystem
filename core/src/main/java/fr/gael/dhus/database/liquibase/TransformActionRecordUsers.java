@@ -19,10 +19,6 @@
  */
 package fr.gael.dhus.database.liquibase;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
 import liquibase.change.custom.CustomTaskChange;
 import liquibase.database.Database;
 import liquibase.database.jvm.JdbcConnection;
@@ -30,9 +26,16 @@ import liquibase.exception.CustomChangeException;
 import liquibase.exception.SetupException;
 import liquibase.exception.ValidationErrors;
 import liquibase.resource.ResourceAccessor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class TransformActionRecordUsers implements CustomTaskChange
 {
+   private static final Logger LOGGER = LogManager.getLogger ();
    private long end = -1;
 
    @Override
@@ -42,7 +45,7 @@ public class TransformActionRecordUsers implements CustomTaskChange
    }
 
    @Override
-   public void setFileOpener (ResourceAccessor resourceAccessor)
+   public void setFileOpener (ResourceAccessor resource_accessor)
    {
    }
 
@@ -109,7 +112,7 @@ public class TransformActionRecordUsers implements CustomTaskChange
          }
          catch (SQLException e)
          {
-            ;
+            LOGGER.warn ("Database error access: ", e);
          }
       }
       end = System.currentTimeMillis () - start;

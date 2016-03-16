@@ -20,24 +20,15 @@
 package fr.gael.dhus.olingo;
 
 import java.util.List;
-import java.util.Locale;
 
 import org.apache.olingo.odata2.api.ODataCallback;
 import org.apache.olingo.odata2.api.ODataService;
 import org.apache.olingo.odata2.api.ODataServiceFactory;
-import org.apache.olingo.odata2.api.commons.HttpStatusCodes;
 import org.apache.olingo.odata2.api.edm.provider.EdmProvider;
-import org.apache.olingo.odata2.api.ep.EntityProvider;
 import org.apache.olingo.odata2.api.exception.ODataException;
 import org.apache.olingo.odata2.api.processor.ODataContext;
-import org.apache.olingo.odata2.api.processor.ODataErrorContext;
-import org.apache.olingo.odata2.api.processor.ODataResponse;
 import org.apache.olingo.odata2.api.processor.ODataSingleProcessor;
 import org.apache.olingo.odata2.api.uri.PathSegment;
-import org.apache.olingo.odata2.api.uri.info.GetEntitySetUriInfo;
-import org.apache.olingo.odata2.api.uri.info.GetEntityUriInfo;
-import org.apache.olingo.odata2.api.uri.info.GetMetadataUriInfo;
-import org.apache.olingo.odata2.api.uri.info.GetServiceDocumentUriInfo;
 
 import fr.gael.dhus.olingo.v1.V1Model;
 import fr.gael.dhus.olingo.v1.V1Processor;
@@ -70,7 +61,7 @@ public class OlingoServiceFactory extends ODataServiceFactory
       // The length of the `root` part of the URL can be extended with the
       // servlet's split parameter.
       // see
-      // http://olingo.apache.org/doc/tutorials/Olingo_Tutorial_Advanced_Service_Resolution.html
+      // http://http://olingo.apache.org/doc/odata2/index.html
 
       List<PathSegment> pathSegs = ctx.getPathInfo ().getPrecedingSegments ();
       String serviceName = pathSegs.get (pathSegs.size () - 1).getPath ();
@@ -82,11 +73,6 @@ public class OlingoServiceFactory extends ODataServiceFactory
 
          res = createODataSingleProcessorService (edmProvider, oDataProcessor);
       }
-      else
-      {
-         res =
-            createODataSingleProcessorService (null, new NoServiceProcessor ());
-      }
 
       return res;
    }
@@ -97,76 +83,15 @@ public class OlingoServiceFactory extends ODataServiceFactory
     */
    @SuppressWarnings ("unchecked")
    @Override
-   public <T extends ODataCallback> T getCallback (
-      Class<? extends ODataCallback> callbackInterface)
+   public <T extends ODataCallback> T getCallback(Class<T> callback_interface)
    {
-      if (callbackInterface.isAssignableFrom (OlingoLogger.class))
+      if (callback_interface.isAssignableFrom (OlingoLogger.class))
       {
          return (T) new OlingoLogger ();
       }
       else
       {
-         return super.getCallback (callbackInterface);
-      }
-   }
-
-   /**
-    * This processor returns an error message on every request. This service is
-    * returned by the service factory when no service fits the user's request. #
-    * # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    * This class and its inner classes are a workaround and must be removed as
-    * soon as [https://issues.apache.org/jira/browse/OLINGO-339] is fixed. # # #
-    * # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    */
-   public class NoServiceProcessor extends ODataSingleProcessor
-   {
-      private static final String ERROR_MESSAGE =
-         "The requested OData Service does not exist";
-
-      /** Builds an error ODataResponse */
-      public ODataResponse makeErrorODataResponse (String contentType)
-      {
-         ODataErrorContext oec = new ODataErrorContext ();
-         oec.setMessage (ERROR_MESSAGE);
-         oec.setHttpStatus (HttpStatusCodes.NOT_FOUND);
-         oec.setContentType (contentType);
-         oec.setLocale (Locale.ENGLISH);
-         return EntityProvider.writeErrorDocument (oec);
-      }
-
-      @Override
-      public void setContext (ODataContext context)
-      {
-         super.setContext (context);
-      }
-
-      @Override
-      public ODataResponse readMetadata (GetMetadataUriInfo uriInfo,
-         String contentType) throws ODataException
-      {
-         return makeErrorODataResponse (contentType);
-      }
-
-      @Override
-      public ODataResponse readServiceDocument (
-         GetServiceDocumentUriInfo uriInfo, String contentType)
-         throws ODataException
-      {
-         return makeErrorODataResponse (contentType);
-      }
-
-      @Override
-      public ODataResponse readEntitySet (GetEntitySetUriInfo uriInfo,
-         String contentType) throws ODataException
-      {
-         return makeErrorODataResponse (contentType);
-      }
-
-      @Override
-      public ODataResponse readEntity (GetEntityUriInfo uriInfo,
-         String contentType) throws ODataException
-      {
-         return makeErrorODataResponse (contentType);
+         return super.getCallback (callback_interface);
       }
    }
 

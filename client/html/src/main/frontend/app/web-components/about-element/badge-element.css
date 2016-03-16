@@ -1,0 +1,36 @@
+a{
+	display: block;
+	padding: 10px 0px;
+	font-weight: bold;
+	color: #23527c !important;;
+	
+}
+a:hover{text-decoration: underline;}
+
+#datahublogo{
+	max-width: 50px;
+	display: inline-block;
+	vertical-align: middle;
+}
+#datahubtitle{
+	display: inline-block;
+	vertical-align: middle !important;
+	font-weight: bold;
+	padding: 0px 15px;
+	font-size: 20px;
+}
+
+hr{
+	border: 0px;
+	border-bottom: 1px solid #ADADAD;
+	margin: 10px 0px;
+}
+
+#logos{
+	vertical-align: middle;
+	text-align: center;
+	padding-top:20px;
+}
+#logos img{
+	vertical-align: middle;
+}

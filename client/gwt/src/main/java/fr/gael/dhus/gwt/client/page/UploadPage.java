@@ -35,7 +35,6 @@ import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.regexp.shared.RegExp;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.FileUpload;
 import com.google.gwt.user.client.ui.FormPanel;
 import com.google.gwt.user.client.ui.FormPanel.SubmitCompleteEvent;
@@ -45,6 +44,7 @@ import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.SimpleCheckBox;
 import com.google.gwt.user.client.ui.TextBox;
 
+import fr.gael.dhus.gwt.client.AccessDeniedRedirectionCallback;
 import fr.gael.dhus.gwt.client.GWTClient;
 import fr.gael.dhus.gwt.services.CollectionServiceAsync;
 import fr.gael.dhus.gwt.services.UploadServiceAsync;
@@ -360,11 +360,11 @@ public class UploadPage extends AbstractPage
                return;
             }
             uploadService.addFileScanner (url.getValue (), username.getValue (),
-               password.getValue (), pattern.getValue(), selectedCollections, new AsyncCallback<Long> ()
+               password.getValue (), pattern.getValue(), selectedCollections, new AccessDeniedRedirectionCallback<Long> ()
                {
 
                   @Override
-                  public void onFailure (Throwable caught)
+                  public void _onFailure (Throwable caught)
                   {
                      Window.alert ("There was an error during adding '" +
                         url.getValue () + "' to your file scanners.\n" + caught.getMessage ());
@@ -393,10 +393,10 @@ public class UploadPage extends AbstractPage
             if (state == State.EDIT_FILESCANNER && editedScannerId != null)
             {
                uploadService.updateFileScanner (new Long(editedScannerId.longValue ()), url.getValue (), username.getValue (),
-                  password.getValue (), pattern.getValue(), selectedCollections, new AsyncCallback<Void> ()
+                  password.getValue (), pattern.getValue(), selectedCollections, new AccessDeniedRedirectionCallback<Void> ()
                   {
                      @Override
-                     public void onFailure (Throwable caught)
+                     public void _onFailure (Throwable caught)
                      {
                         Window.alert ("There was an error during adding '" +
                            url.getValue () + "' to your file scanners.\n" + caught.getMessage ());
@@ -407,10 +407,10 @@ public class UploadPage extends AbstractPage
                      {
 //                        final String sUrl = url.getValue();
                         setState (State.DEFAULT);
-                        uploadService.processScan (new Long(editedScannerId.longValue ()), new AsyncCallback<Void> ()
+                        uploadService.processScan (new Long(editedScannerId.longValue ()), new AccessDeniedRedirectionCallback<Void> ()
                            {
                               @Override
-                              public void onFailure (Throwable caught)
+                              public void _onFailure (Throwable caught)
                               {}
             
                               @Override
@@ -423,10 +423,10 @@ public class UploadPage extends AbstractPage
             else
             {
             uploadService.addFileScanner (url.getValue (), username.getValue (),
-               password.getValue (), pattern.getValue(), selectedCollections, new AsyncCallback<Long> ()
+               password.getValue (), pattern.getValue(), selectedCollections, new AccessDeniedRedirectionCallback<Long> ()
                {
                   @Override
-                  public void onFailure (Throwable caught)
+                  public void _onFailure (Throwable caught)
                   {
                      Window.alert ("There was an error during adding '" +
                         url.getValue () + "' to your file scanners.\n" + caught.getMessage ());
@@ -438,10 +438,10 @@ public class UploadPage extends AbstractPage
 //                     final String sUrl = url.getValue();
                      setState (State.ADDING_FILESCANNER);
                      setState (State.DEFAULT);
-                     uploadService.processScan (scanId, new AsyncCallback<Void> ()
+                     uploadService.processScan (scanId, new AccessDeniedRedirectionCallback<Void> ()
                         {
                            @Override
-                           public void onFailure (Throwable caught)
+                           public void _onFailure (Throwable caught)
                            {}
          
                            @Override
@@ -463,10 +463,10 @@ public class UploadPage extends AbstractPage
             {
                return;
             }
-            uploadService.stopScan (new Long(editedScannerId.longValue ()), new AsyncCallback<Void> ()
+            uploadService.stopScan (new Long(editedScannerId.longValue ()), new AccessDeniedRedirectionCallback<Void> ()
                {
                   @Override
-                  public void onFailure (Throwable caught)
+                  public void _onFailure (Throwable caught)
                   {}
 
                   @Override
@@ -531,11 +531,11 @@ public class UploadPage extends AbstractPage
                return;
             }
             uploadService.updateFileScanner (new Long(editedScannerId), url.getValue (), username.getValue (),
-               password.getValue (), pattern.getValue(), selectedCollections, new AsyncCallback<Void> ()
+               password.getValue (), pattern.getValue(), selectedCollections, new AccessDeniedRedirectionCallback<Void> ()
                {
 
                   @Override
-                  public void onFailure (Throwable caught)
+                  public void _onFailure (Throwable caught)
                   {
                      Window.alert ("There was an error while updating your file scanner.\n" + caught.getMessage ());
                   }
@@ -585,10 +585,10 @@ public class UploadPage extends AbstractPage
       else
       {
          DOM.setStyleAttribute (RootPanel.getBodyElement (), "cursor", "wait");
-         requestCollections(parent, new AsyncCallback<Void>()
+         requestCollections(parent, new AccessDeniedRedirectionCallback<Void>()
          {
             @Override
-            public void onFailure (Throwable caught) {
+            public void _onFailure (Throwable caught) {
                DOM.setStyleAttribute (RootPanel.getBodyElement (),
                   "cursor", "default");
             }
@@ -625,10 +625,10 @@ public class UploadPage extends AbstractPage
          }
       }
       displayedCollections.clear ();
-      requestCollections(root, new AsyncCallback<Void>()
+      requestCollections(root, new AccessDeniedRedirectionCallback<Void>()
          {
             @Override
-            public void onFailure (Throwable caught) 
+            public void _onFailure (Throwable caught) 
             {
             }
 
@@ -694,13 +694,13 @@ public class UploadPage extends AbstractPage
       refreshCollections ();
    }   
    
-   private static void requestCollections(final CollectionData parent, final AsyncCallback<Void> callback)
+   private static void requestCollections(final CollectionData parent, final AccessDeniedRedirectionCallback<Void> callback)
    {
       collectionService.getSubCollections (parent,
-         new AsyncCallback<List<CollectionData>> ()
+         new AccessDeniedRedirectionCallback<List<CollectionData>> ()
          {
             @Override
-            public void onFailure (Throwable caught)
+            public void _onFailure (Throwable caught)
             {
                callback.onFailure (caught);
             }
@@ -725,7 +725,7 @@ public class UploadPage extends AbstractPage
    
    private static ArrayList<Long> collectionsToRefresh;
    
-   private static void refreshEnded(CollectionData refreshed, AsyncCallback<Void> callback)
+   private static void refreshEnded(CollectionData refreshed, AccessDeniedRedirectionCallback<Void> callback)
    {      
       collectionsToRefresh.remove (refreshed.getId ());
       if (collectionsToRefresh.size () == 0)
@@ -769,10 +769,10 @@ public class UploadPage extends AbstractPage
       displayedScanners.clear ();
       GWTClient.callback (function, JsonUtils.safeEval ("{\"aaData\": [],\"iTotalRecords\" : 0, \"iTotalDisplayRecords\" : 0}"));
       
-      uploadService.countFileScanners (new AsyncCallback<Integer>()
+      uploadService.countFileScanners (new AccessDeniedRedirectionCallback<Integer>()
       {         
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             Window.alert("There was an error while counting your saved file scanners.");
          }
@@ -780,10 +780,10 @@ public class UploadPage extends AbstractPage
          @Override
          public void onSuccess (final Integer total)
          {
-            uploadService.getFileScanners (new AsyncCallback<List<FileScannerData>>()
+            uploadService.getFileScanners (new AccessDeniedRedirectionCallback<List<FileScannerData>>()
             {
                @Override
-               public void onFailure (Throwable caught)
+               public void _onFailure (Throwable caught)
                {
                   Window.alert("There was an error while getting your saved file scanners.");
                }
@@ -820,10 +820,10 @@ public class UploadPage extends AbstractPage
    
    private static void removeScanner(int id)
    {
-      uploadService.removeFileScanner (new Long(id), new AsyncCallback<Void>()
+      uploadService.removeFileScanner (new Long(id), new AccessDeniedRedirectionCallback<Void>()
       {         
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             Window.alert("There was an error while deleting your saved file scanner.");
          }
@@ -853,10 +853,10 @@ public class UploadPage extends AbstractPage
       }
       
       uploadService.setFileScannerActive (new Long(id), !scan.isActive (),
-         new AsyncCallback<Void> ()
+         new AccessDeniedRedirectionCallback<Void> ()
          {
             @Override
-            public void onFailure (Throwable caught)
+            public void _onFailure (Throwable caught)
             {
                Window.alert ("There was an error while updating your file scanner.\n" + caught.getMessage ());
             }
@@ -961,10 +961,10 @@ public class UploadPage extends AbstractPage
          enableRefreshButton();
       }
       
-      uploadService.getNextScheduleFileScanner (new AsyncCallback<Date>()
+      uploadService.getNextScheduleFileScanner (new AccessDeniedRedirectionCallback<Date>()
       {
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             scannerInfos.getElement ().setInnerText ("An active file scanner means that it will be run every day.");            
          }

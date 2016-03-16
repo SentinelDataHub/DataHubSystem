@@ -20,49 +20,88 @@
 package fr.gael.dhus;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Map;
 import java.util.TimeZone;
 
+import fr.gael.dhus.service.ISynchronizerService;
+import fr.gael.dhus.service.SystemService;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import fr.gael.dhus.datastore.IncomingManager;
+import fr.gael.dhus.search.SolrDao;
 import fr.gael.dhus.server.http.TomcatException;
 import fr.gael.dhus.server.http.TomcatServer;
-import fr.gael.dhus.server.http.web.WebApplication;
+import fr.gael.dhus.server.http.WebApplication;
 import fr.gael.dhus.server.http.web.WebPostProcess;
 import fr.gael.dhus.server.http.web.WebServlet;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
+import fr.gael.dhus.util.LoggingOutputStream;
 import fr.gael.drb.impl.DrbFactoryResolver;
 import fr.gael.drbx.cortex.DrbCortexMetadataResolver;
 import fr.gael.drbx.cortex.DrbCortexModel;
 
+/**
+ * DHuS Main class.
+ *
+ * Spanws servers, creates the Spring application context, starts background
+ * process.
+ */
 public class DHuS
 {
-   private static Log logger = LogFactory.getLog (DHuS.class);
-   
+   /** Logger. */
+   private static final Log LOGGER = LogFactory.getLog (DHuS.class);
+
+   /** {@code true} if the DHuS is started. */
+   private static boolean started = false;
+
+   /** Apache Tomcat: HTTP server, servlet container, JSP processor, ... */
    private static TomcatServer server;
-   private static boolean started=false;
-   
+
+   //** FTP server. */
+   //private static FtpServer ftp;
+
+   /** Hide utility class constructor. */
+   private DHuS () {}
+
+   /**
+    * Returns true if DHuS is already started.
+    * @return true if DHuS is already started, otherwise false.
+    */
    public static boolean isStarted ()
    {
       return started;
    }
-//   private static FtpServer ftp;
 
+   /** Starts the DHuS (starts Tomcat, creates the Spring application context. */
    public static void start ()
    {
+      // Transfer System.err in logger
+      System.setErr (new PrintStream(new LoggingOutputStream (LOGGER), true));
+
       String version = DHuS.class.getPackage ().getImplementationVersion ();
-      
+
       // Force ehcache not to call home
       System.setProperty ("net.sf.ehcache.skipUpdateCheck", "true");
       System.setProperty ("org.terracotta.quartz.skipUpdateCheck", "true");
       System.setProperty ("user.timezone", "UTC");
-      TimeZone.setDefault(TimeZone.getTimeZone ("UTC"));
-      System.setProperty ("fr.gael.dhus.version", version == null ? "dev" : version);
-      
-      Runtime.getRuntime ().addShutdownHook (new Thread (new Runnable()
+      TimeZone.setDefault (TimeZone.getTimeZone ("UTC"));
+      System.setProperty ("fr.gael.dhus.version", version == null? "dev": version);
+
+      if (!SystemService.restore ())
+      {
+         LOGGER.error ("Cannot run system restoration.");
+         LOGGER.error ("Check the restoration file \"" + 
+            SystemService.RESTORATION_PROPERTIES + 
+            "\" from the current directory.");
+         System.exit (1);
+      }
+
+      Runtime.getRuntime ().addShutdownHook (new Thread (new Runnable ()
       {
          @Override
          public void run ()
@@ -75,105 +114,116 @@ public class DHuS
                }
                catch (TomcatException e)
                {
-                  e.printStackTrace();
+                  e.printStackTrace ();
                }
             }
          }
       }));
 
       // Always add JMSAppender
-//      Logger rootLogger = LogManager.getRootLogger ();
-//      org.apache.logging.log4j.core.Logger coreLogger = (org.apache.logging.log4j.core.Logger)rootLogger;
-//      JMSAppender jmsAppender = JMSAppender.createAppender ();
-//      coreLogger.addAppender (jmsAppender);
-      
-      // Activates the resolver for Drb
+      //Logger rootLogger = LogManager.getRootLogger ();
+      //org.apache.logging.log4j.core.Logger coreLogger =
+      //(org.apache.logging.log4j.core.Logger)rootLogger;
+      //JMSAppender jmsAppender = JMSAppender.createAppender ();
+      //coreLogger.addAppender (jmsAppender);
       try
       {
+         // Activates the resolver for Drb
          DrbFactoryResolver.setMetadataResolver (new DrbCortexMetadataResolver (
-            DrbCortexModel.getDefaultModel ()));
+               DrbCortexModel.getDefaultModel ()));
       }
       catch (IOException e)
       {
-         logger.error ("Resolver cannot be handled.");
-//         logger.error (new Message(MessageType.SYSTEM, "Resolver cannot be handled."));
+         LOGGER.error ("Resolver cannot be handled.");
+         //logger.error (new Message(MessageType.SYSTEM,
+         //"Resolver cannot be handled."));
       }
 
-      logger.info ("Launching Data Hub Service...");
-//      logger.info (new Message(MessageType.SYSTEM, "Loading Data Hub Service..."));
-      
-      ClassPathXmlApplicationContext context =
-         new ClassPathXmlApplicationContext (
-            "classpath:fr/gael/dhus/spring/dhus-core-context.xml");
+      LOGGER.info ("Launching Data Hub Service...");
+      //logger.info (new Message(MessageType.SYSTEM,
+      //"Loading Data Hub Service..."));
+
+      ClassPathXmlApplicationContext context
+            = new ClassPathXmlApplicationContext (
+                  "classpath:fr/gael/dhus/spring/dhus-core-context.xml");
       context.registerShutdownHook ();
-      
+
+      // Registers ContextClosedEvent listeners to properly save states before
+      // the Spring context is destroyed.
+      ApplicationListener sync_sv = context.getBean (ISynchronizerService.class);
+      context.addApplicationListener (sync_sv);
+
       // Initialize Database Incoming folder
-      IncomingManager incomingManager = (IncomingManager)
-         context.getBean ("incomingManager");
-      incomingManager.initIncoming ();
-         
+      IncomingManager incoming_manager =
+            (IncomingManager) context.getBean ("incomingManager");
+      incoming_manager.initIncoming ();
+
       // Initialize DHuS loggers
-//         jmsAppender.cleanWaitingLogs ();
-//         
-//         logger.info (new Message(MessageType.SYSTEM, "DHuS Started"));
-      
+      //jmsAppender.cleanWaitingLogs ();
+      //logger.info (new Message(MessageType.SYSTEM, "DHuS Started"));
       try
       {
-//         ftp = xml.getBean (FtpServer.class);
-//         ftp.start ();
+         //ftp = xml.getBean (FtpServer.class);
+         //ftp.start ();
 
          server = ApplicationContextProvider.getBean (TomcatServer.class);
          server.init ();
 
-         logger.info ("Starting server " + server.getClass () + "...");
-//       logger.info (new Message(MessageType.SYSTEM, "Starting server..."));
-       server.start ();
-//       logger.info (new Message(MessageType.SYSTEM, "Server started."));
+         LOGGER.info ("Starting server " + server.getClass () + "...");
+         //logger.info (new Message(MessageType.SYSTEM, "Starting server..."));
+         server.start ();
+         //logger.info (new Message(MessageType.SYSTEM, "Server started."));
 
-       logger.info ("Server started.");
-       
-         Map<String, fr.gael.dhus.server.http.WebApplication> webapps =
-            context
-               .getBeansOfType (fr.gael.dhus.server.http.WebApplication.class);
-         for (String beanName : webapps.keySet ())
+         LOGGER.info ("Server started.");
+
+         // Initialises SolrDAO
+         SolrDao solr_dao = (SolrDao) context.getBean("solrDao");
+         solr_dao.initServerStarted();
+
+         Map<String, WebApplication> webapps =
+               context.getBeansOfType (WebApplication.class);
+         for (String beanName: webapps.keySet ())
          {
             server.install (webapps.get (beanName));
          }
 
-         WebApplication.installAll (server);
+         fr.gael.dhus.server.http.web.WebApplication.installAll (server);
          WebServlet.installAll (server);
          WebPostProcess.launchAll ();
 
-       
-         logger.info ("Server is ready...");
-         started=true;
-         
-//
-//         InitializableComponent.initializeAll ();
-//         logger.info (new Message(MessageType.SYSTEM, "Server is ready..."));
-         
+         LOGGER.info ("Server is ready...");
+         started = true;
+
+         //InitializableComponent.initializeAll ();
+         //logger.info (new Message(MessageType.SYSTEM, "Server is ready..."));
          server.await ();
       }
       catch (Exception e)
       {
-         context.close ();
-         logger.error ("Cannot start system.", e);         
-//         logger.error (new Message(MessageType.SYSTEM, "Cannot start DHuS."), e);
-         // Force exit !
-//         ftp.stop ();
+         LOGGER.error ("Cannot start system.", e);
+         //logger.error (new Message(MessageType.SYSTEM, "Cannot start DHuS."), e);
+         //ftp.stop ();
          System.exit (1);
       }
    }
 
+   /**
+    * Allows to exit program.
+    * @param exit_code return code value.
+    */
    public static void stop (int exit_code)
    {
-//      logger.info (new Message(MessageType.SYSTEM, "DHuS Shutdown "));
-//      ftp.stop ();
+      //logger.info (new Message(MessageType.SYSTEM, "DHuS Shutdown "));
+      //ftp.stop ();
       System.exit (exit_code);
    }
 
+   /**
+    * Main method.
+    * @param args String table of arguments (command line).
+    */
    public static void main (String[] args)
-   {      
+   {
       start ();
    }
 }

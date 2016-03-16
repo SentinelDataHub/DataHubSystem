@@ -1,0 +1,24 @@
+<ehcache>
+   <cache 
+      name="product"
+      maxElementsInMemory="10000"
+      eternal="false"
+      overflowToDisk="false"
+      timeToIdleSeconds="0"
+      timeToLiveSeconds="0"
+      memoryStoreEvictionPolicy="LRU">
+      <cacheEventListenerFactory
+         class="fr.gael.dhus.util.LoggingCacheListenerFactory"/>
+   </cache>
+   <cache 
+      name="user"
+      maxElementsInMemory="1000"
+      eternal="false"
+      overflowToDisk="false"
+      timeToIdleSeconds="0"
+      timeToLiveSeconds="0"
+      memoryStoreEvictionPolicy="LRU">
+      <cacheEventListenerFactory
+         class="fr.gael.dhus.util.LoggingCacheListenerFactory"/>
+   </cache>
+</ehcache>

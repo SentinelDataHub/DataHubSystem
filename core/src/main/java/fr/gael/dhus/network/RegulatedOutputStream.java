@@ -27,7 +27,7 @@ public class RegulatedOutputStream extends BufferedOutputStream
    /**
     * Default buffer size in bytes.
     */
-   public static int DEFAULT_BUFFER_SIZE = 8192;
+   public static final int DEFAULT_BUFFER_SIZE = 8192;
 
    /**
     * The network regulator to be used.

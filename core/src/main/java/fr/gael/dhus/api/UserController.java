@@ -38,7 +38,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication
+      .UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,7 +47,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.w3c.dom.Document;
 
 import fr.gael.dhus.database.object.Product;
-import fr.gael.dhus.database.object.ProductCart;
 import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.service.ProductCartService;
 import fr.gael.dhus.service.UserService;
@@ -86,7 +86,8 @@ public class UserController
       catch (Exception e)
       {
          msg = "There was an error while validating your account";
-         logger.error ("There was an error while validating an account with code '"+code+"'", e);
+         logger.error ("There was an error while validating an account " +
+               "with code '" + code + "'", e);
       }
       model.addAttribute ("message", msg);
       return "validation";
@@ -94,31 +95,37 @@ public class UserController
 
    @PreAuthorize ("hasRole('ROLE_DOWNLOAD')")
    @RequestMapping (value = "/cart")
-   public void cartToMetalink (Principal principal, HttpServletResponse res) throws UserNotExistingException, IOException, ParserConfigurationException, TransformerException
+   public void cartToMetalink (Principal principal, HttpServletResponse res)
+         throws UserNotExistingException, IOException,
+         ParserConfigurationException, TransformerException
    {
-      User user = (User)((UsernamePasswordAuthenticationToken)principal).getPrincipal ();
-      ProductCart cart = productCartService.getCartOfUser (user.getId ());
+      User user = (User)((UsernamePasswordAuthenticationToken)principal).
+            getPrincipal ();
       
-      if (cart == null || cart.getProducts () == null || cart.getProducts ().isEmpty ()) return;
+      if (!productCartService.hasProducts(user.getId()))
+         return;
+
       res.setContentType ("application/metalink+xml");
       res.setHeader ("Content-Disposition",
          "inline; filename=products"+MetalinkBuilder.FILE_EXTENSION);
 
-      res.getWriter ().println(
-         makeMetalinkDocument (cart.getProducts ()));
+      res.getWriter ().println(makeMetalinkDocument (
+         productCartService.getProductsOfCart(user.getId(), -1, -1)));
    }
    
    /** Makes the metalink XML Document for given products. 
     * @throws ParserConfigurationException 
     * @throws TransformerException */
-   private String makeMetalinkDocument (Iterable<Product> lp) throws ParserConfigurationException, TransformerException
+   private String makeMetalinkDocument (Iterable<Product> lp)
+         throws ParserConfigurationException, TransformerException
    {
       MetalinkBuilder mb = new MetalinkBuilder ();
       
       for (Product p: lp)
       {
-         String product_entity = configurationManager.getServerConfiguration ().getExternalUrl () + 
-               "odata/v1/Products('" + p.getUuid () + "')/$value";
+         String product_entity = configurationManager.getServerConfiguration ()
+               .getExternalUrl () + "odata/v1/Products('" + p.getUuid ()
+               + "')/$value";
          
          MetalinkFileBuilder fb = mb.addFile (
             new File(p.getDownload ().getPath ()).getName ()).
@@ -134,9 +141,11 @@ public class UserController
       StringWriter sw = new StringWriter ();
       
       Document doc = mb.build ();
-      Transformer transformer = TransformerFactory.newInstance().newTransformer();
+      Transformer transformer = TransformerFactory.newInstance()
+            .newTransformer();
       transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-      transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+      transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount",
+            "2");
       transformer.transform(new DOMSource(doc), new StreamResult(sw));
       return sw.toString ();
    }

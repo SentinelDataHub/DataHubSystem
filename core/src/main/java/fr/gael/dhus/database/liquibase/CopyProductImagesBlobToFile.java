@@ -42,7 +42,9 @@ import liquibase.resource.ResourceAccessor;
 
 public class CopyProductImagesBlobToFile implements CustomTaskChange
 {
-   private static Log logger = LogFactory.getLog (CopyProductImagesBlobToFile.class);
+   private static Log logger = LogFactory.getLog (
+         CopyProductImagesBlobToFile.class);
+
    @Override
    public String getConfirmationMessage ()
    {
@@ -50,7 +52,7 @@ public class CopyProductImagesBlobToFile implements CustomTaskChange
    }
 
    @Override
-   public void setFileOpener (ResourceAccessor resourceAccessor)
+   public void setFileOpener (ResourceAccessor resource_accessor)
    {
    }
 
@@ -108,7 +110,8 @@ public class CopyProductImagesBlobToFile implements CustomTaskChange
             if (ql != null)
             {
                // Copy file
-               String ql_path = download_path.replaceAll ("(?i)(.*).zip", "$1-ql.gif");
+               String ql_path = download_path.replaceAll ("(?i)(.*).zip",
+                     "$1-ql.gif");
                blobToFile (ql, ql_path);
                
                // Update products table
@@ -125,14 +128,21 @@ public class CopyProductImagesBlobToFile implements CustomTaskChange
                finally
                {
                   if (product_flags_stmt!=null) 
-                     try { product_flags_stmt.close (); }
-                     catch (Exception e) {;}
+                     try
+                     {
+                        product_flags_stmt.close ();
+                     }
+                     catch (Exception e)
+                     {
+                        logger.warn ("Cannot close Statement !");
+                     }
                }
             }
                
             if (th != null)
             {
-               String th_path = download_path.replaceAll ("(?i)(.*).zip", "$1-th.gif");
+               String th_path = download_path.replaceAll ("(?i)(.*).zip",
+                     "$1-th.gif");
                blobToFile (th, th_path);
                // Update products table
                PreparedStatement product_flags_stmt = null;
@@ -148,8 +158,14 @@ public class CopyProductImagesBlobToFile implements CustomTaskChange
                finally
                {
                   if (product_flags_stmt!=null) 
-                     try { product_flags_stmt.close (); }
-                     catch (Exception e) {;}
+                     try
+                     {
+                        product_flags_stmt.close ();
+                     }
+                     catch (Exception e)
+                     {
+                        logger.warn ("Cannot close Statement !");
+                     }
                }
             }
          }
@@ -163,13 +179,20 @@ public class CopyProductImagesBlobToFile implements CustomTaskChange
          }
          catch (Exception e)
          {
-            logger.error ("Cannot perform database checkpoint defrag command", e);
+            logger.error ("Cannot perform database checkpoint defrag command",
+                  e);
          }
          finally
          {
             if (product_flags_stmt!=null) 
-               try { product_flags_stmt.close (); }
-               catch (Exception e) {;}
+               try
+               {
+                  product_flags_stmt.close ();
+               }
+               catch (Exception e)
+               {
+                  logger.warn ("Cannot close Statement !", e);
+               }
          }
       }
       catch (Exception e)
@@ -178,9 +201,30 @@ public class CopyProductImagesBlobToFile implements CustomTaskChange
       }
       finally
       {
-         if (products_res!=null) try { products_res.close (); } catch (Exception e) {}
-         if (products!=null) try { products.close (); } catch (Exception e) {}
-         //if (db_connection!=null) try { db_connection.close (); } catch (Exception e) {}
+         if (products_res!=null)
+         {
+            try
+            {
+               products_res.close ();
+            }
+            catch (Exception e)
+            {
+               logger.warn ("Cannot close ResultSet !");
+            }
+         }
+         if (products!=null)
+         {
+            try
+            {
+               products.close ();
+            }
+            catch (Exception e)
+            {
+               logger.warn ("Cannot close Statement !");
+            }
+         }
+         //if (db_connection!=null) try { db_connection.close (); }
+         // catch (Exception e) {}
       }
    }
    
@@ -204,9 +248,39 @@ public class CopyProductImagesBlobToFile implements CustomTaskChange
       }
       finally
       {
-         if (is != null)  try { is.close (); } catch (IOException e) {;}
-         if (bos != null) try { bos.close (); } catch (IOException e) {;}
-         if (os != null)  try { os.close (); } catch (IOException e) {;}
+         if (is != null)
+         {
+            try
+            {
+               is.close ();
+            }
+            catch (IOException e)
+            {
+               logger.warn ("Cannot close InputStream !");
+            }
+         }
+         if (bos != null)
+         {
+            try
+            {
+               bos.close ();
+            }
+            catch (IOException e)
+            {
+               logger.warn ("Cannot close BufferedOutputStream !");
+            }
+         }
+         if (os != null)
+         {
+            try
+            {
+               os.close ();
+            }
+            catch (IOException e)
+            {
+               logger.warn ("Cannot close OutputStream !");
+            }
+         }
       }
    }
 }

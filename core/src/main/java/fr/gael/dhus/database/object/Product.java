@@ -50,10 +50,10 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 
 /**
  * Product instance implements a product entry into the database. This product
@@ -61,6 +61,7 @@ import org.hibernate.annotations.FetchMode;
  */
 @Entity
 @Table (name = "PRODUCTS")
+@Cache(usage=CacheConcurrencyStrategy.READ_WRITE, region="product")
 public class Product implements Serializable
 {
    /**
@@ -90,13 +91,15 @@ public class Product implements Serializable
    @Column (name = "IDENTIFIER", nullable = true)
    private String identifier;
 
-   @ElementCollection (targetClass = MetadataIndex.class, fetch = FetchType.EAGER)
+   @ElementCollection (targetClass = MetadataIndex.class,
+                       fetch = FetchType.LAZY)
    @Cascade(value={CascadeType.ALL})
-   @Fetch(value = FetchMode.SUBSELECT)
-   @CollectionTable(name="METADATA_INDEXES", joinColumns=@JoinColumn(name="PRODUCT_ID"))
+   @CollectionTable(name="METADATA_INDEXES",
+      joinColumns=@JoinColumn(name="PRODUCT_ID"))
    private List<MetadataIndex> indexes=new ArrayList<MetadataIndex> ();
 
-   @Column (name = "PROCESSED", nullable = false, columnDefinition = "boolean default false")
+   @Column (name = "PROCESSED", nullable = false,
+            columnDefinition = "boolean default false")
    private Boolean processed = false;
 
    @Column (name = "QUICKLOOK_SIZE")
@@ -114,13 +117,14 @@ public class Product implements Serializable
    /**
     * Locked flag used by eviction
     */
-   @Column (name = "LOCKED", nullable = false, columnDefinition = "boolean default false")
+   @Column (name = "LOCKED", nullable = false,
+            columnDefinition = "boolean default false")
    private Boolean locked = false;
 
    /**
     * GML footprint string if any
     */
-   @Column (name = "FOOTPRINT", nullable = true, length = 4096)
+   @Column (name = "FOOTPRINT", nullable = true, length = 8192)
    private String footPrint;
 
    @ManyToMany (fetch = FetchType.LAZY)
@@ -155,6 +159,9 @@ public class Product implements Serializable
    @Column (name = "contentEnd")
    private Date contentEnd;
 
+   @Column (name = "ITEM_CLASS")
+   private String itemClass;
+
    /**
     * @return the productId
     */
@@ -182,6 +189,22 @@ public class Product implements Serializable
    public void setCreated (Date created)
    {
       this.created = created;
+   }
+   
+   /**
+    * @return the created
+    */
+   public Date getUpdated ()
+   {
+      return updated;
+   }
+
+   /**
+    * @param created the created to set
+    */
+   public void setUpdated (Date updated)
+   {
+      this.updated = updated;
    }
 
    /**
@@ -249,11 +272,11 @@ public class Product implements Serializable
    }
 
    /**
-    * @param footPrint the footPrint to set
+    * @param foot_print the footPrint to set
     */
-   public void setFootPrint (String footPrint)
+   public void setFootPrint (String foot_print)
    {
-      this.footPrint = footPrint;
+      this.footPrint = foot_print;
    }
 
    /**
@@ -265,11 +288,11 @@ public class Product implements Serializable
    }
 
    /**
-    * @param authorizedUsers the authorizedUsers to set
+    * @param authorized_users the authorizedUsers to set
     */
-   public void setAuthorizedUsers (Set<User> authorizedUsers)
+   public void setAuthorizedUsers (Set<User> authorized_users)
    {
-      this.authorizedUsers = authorizedUsers;
+      this.authorizedUsers = authorized_users;
    }
 
    /**
@@ -281,11 +304,11 @@ public class Product implements Serializable
    }
 
    /**
-    * @param downloadablePath the downloadablePath to set
+    * @param downloadable_path the downloadablePath to set
     */
-   public void setDownloadablePath (String downloadablePath)
+   public void setDownloadablePath (String downloadable_path)
    {
-      getDownload ().setPath (downloadablePath);
+      getDownload ().setPath (downloadable_path);
    }
 
    /**
@@ -367,11 +390,11 @@ public class Product implements Serializable
    }
 
    /**
-    * @param quicklookPath the quicklookPath to set
+    * @param quicklook_path the quicklookPath to set
     */
-   public void setQuicklookPath (String quicklookPath)
+   public void setQuicklookPath (String quicklook_path)
    {
-      this.quicklookPath = quicklookPath;
+      this.quicklookPath = quicklook_path;
    }
 
    /**
@@ -391,11 +414,11 @@ public class Product implements Serializable
    }
 
    /**
-    * @param thumbnailPath the thumbnailPath to set
+    * @param thumbnail_path the thumbnailPath to set
     */
-   public void setThumbnailPath (String thumbnailPath)
+   public void setThumbnailPath (String thumbnail_path)
    {
-      this.thumbnailPath = thumbnailPath;
+      this.thumbnailPath = thumbnail_path;
    }
 
    /**
@@ -431,9 +454,9 @@ public class Product implements Serializable
       return ingestionDate;
    }
 
-   public void setIngestionDate (Date ingestionDate)
+   public void setIngestionDate (Date ingestion_date)
    {
-      this.ingestionDate = ingestionDate;
+      this.ingestionDate = ingestion_date;
    }
 
    public User getOwner ()
@@ -451,9 +474,9 @@ public class Product implements Serializable
       return contentStart;
    }
 
-   public void setContentStart (Date contentStart)
+   public void setContentStart (Date content_start)
    {
-      this.contentStart = contentStart;
+      this.contentStart = content_start;
    }
 
    public Date getContentEnd ()
@@ -461,19 +484,29 @@ public class Product implements Serializable
       return contentEnd;
    }
 
-   public void setContentEnd (Date contentEnd)
+   public void setContentEnd (Date content_end)
    {
-      this.contentEnd = contentEnd;
-   }
-   
-   public void setQuicklookSize (Long quicklookSize)
-   {
-      this.quicklookSize = quicklookSize;
+      this.contentEnd = content_end;
    }
 
-   public void setThumbnailSize (Long thumbnailSize)
+   public String getItemClass()
    {
-      this.thumbnailSize = thumbnailSize;
+      return this.itemClass;
+   }
+
+   public void setItemClass (String item_class)
+   {
+      this.itemClass = item_class;
+   }
+   
+   public void setQuicklookSize (Long quicklook_size)
+   {
+      this.quicklookSize = quicklook_size;
+   }
+
+   public void setThumbnailSize (Long thumbnail_size)
+   {
+      this.thumbnailSize = thumbnail_size;
    }
    
    public Long getQuicklookSize ()
@@ -507,8 +540,10 @@ public class Product implements Serializable
    }
 
    @Embeddable
-   public static class Download
+   public static class Download implements Serializable
    {
+      private static final long serialVersionUID = -3040416544960325852L;
+
       @Column (name = "DOWNLOAD_PATH")
       private String path;
 

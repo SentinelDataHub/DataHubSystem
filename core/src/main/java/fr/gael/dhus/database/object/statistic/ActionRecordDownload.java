@@ -47,9 +47,9 @@ public class ActionRecordDownload extends ActionRecord
       return productIdentifier;
    }
 
-   public void setProductIdentifier (String productIdentifier)
+   public void setProductIdentifier (String product_identifier)
    {
-      this.productIdentifier = productIdentifier;
+      this.productIdentifier = product_identifier;
    }
 
    public Long getProductSize ()
@@ -57,8 +57,8 @@ public class ActionRecordDownload extends ActionRecord
       return productSize;
    }
 
-   public void setProductSize (Long productSize)
+   public void setProductSize (Long product_size)
    {
-      this.productSize = productSize;
+      this.productSize = product_size;
    }
 }

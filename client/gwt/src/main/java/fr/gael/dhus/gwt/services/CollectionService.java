@@ -24,25 +24,26 @@ import java.util.List;
 import com.google.gwt.user.client.rpc.RemoteService;
 
 import fr.gael.dhus.gwt.share.CollectionData;
+import fr.gael.dhus.gwt.share.exceptions.AccessDeniedException;
 import fr.gael.dhus.gwt.share.exceptions.CollectionServiceException;
 
 public interface CollectionService extends RemoteService
 {
    public void createCollection (CollectionData collectionData)
-      throws CollectionServiceException;
+      throws CollectionServiceException, AccessDeniedException;
 
    public void updateCollection (CollectionData collectionData)
-      throws CollectionServiceException;
+      throws CollectionServiceException, AccessDeniedException;
 
-   public void deleteCollection (Long id) throws CollectionServiceException;
+   public void deleteCollection (Long id) throws CollectionServiceException, AccessDeniedException;
 
    public List<CollectionData> getSubCollections (CollectionData parent)
-      throws CollectionServiceException;
+      throws CollectionServiceException, AccessDeniedException;
    
    public List<CollectionData> getSubCollectionsWithProductsIds (CollectionData parent)
-      throws CollectionServiceException;
+      throws CollectionServiceException, AccessDeniedException;
    
-   public List<Long> getProductIds (Long cid) throws CollectionServiceException;
+   public List<Long> getProductIds (Long cid) throws CollectionServiceException, AccessDeniedException;
    
-   public CollectionData getCollection (Long cid) throws CollectionServiceException;
+   public CollectionData getCollection (Long cid) throws CollectionServiceException, AccessDeniedException;
 }

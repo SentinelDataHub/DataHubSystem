@@ -17,10 +17,6 @@
    You should have received a copy of the GNU Affero General Public License
    along with this program. If not, see <http://www.gnu.org/licenses/>.
 -->
-<solr persistent="true" sharedLib="lib">
-    <cores adminPath="/admin/cores">
-        <core name="dhus" instanceDir="${solr.solr.home}">
-            <property name="dataDir" value="${solr.solr.home}/data/dhus" />
-        </core>
-    </cores>
+<solr>
+   <sharedLib>lib</sharedLib>
 </solr>

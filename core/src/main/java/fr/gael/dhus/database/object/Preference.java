@@ -19,6 +19,7 @@
  */
 package fr.gael.dhus.database.object;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -43,8 +44,10 @@ import org.hibernate.annotations.CascadeType;
  */
 @Entity
 @Table (name = "PREFERENCES")
-public class Preference
+public class Preference implements Serializable
 {
+   private static final long serialVersionUID = 3943794837766136598L;
+
    @Id
    @GeneratedValue (strategy = GenerationType.AUTO)
    @Column (name = "ID", nullable = false)
@@ -90,11 +93,11 @@ public class Preference
    }
 
    /**
-    * @param fileScanners the fileScanners to set
+    * @param file_scanners the fileScanners to set
     */
-   public void setFileScanners (Set<FileScanner> fileScanners)
+   public void setFileScanners (Set<FileScanner> file_scanners)
    {
-      this.fileScanners = fileScanners;
+      this.fileScanners = file_scanners;
    }
 
    /**

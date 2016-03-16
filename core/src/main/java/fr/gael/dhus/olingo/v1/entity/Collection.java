@@ -24,7 +24,7 @@ import java.util.Map;
 
 import org.apache.olingo.odata2.api.exception.ODataException;
 
-import fr.gael.dhus.olingo.v1.entitySet.CollectionEntitySet;
+import fr.gael.dhus.olingo.v1.entityset.CollectionEntitySet;
 import fr.gael.dhus.olingo.v1.map.impl.CollectionMap;
 import fr.gael.dhus.olingo.v1.map.impl.CollectionProductsMap;
 
@@ -36,19 +36,6 @@ public class Collection extends V1Entity
    private fr.gael.dhus.database.object.Collection collection;
    private Map<String, Collection> collections;
    private Map<String, Product> products;
-
-   /**
-    * Make a model Collection from a database Collection.
-    * 
-    * @param c database Collection
-    * @return model Collection
-    */
-   public static Collection fromDatabase (
-      fr.gael.dhus.database.object.Collection collection)
-   {
-      if (collection == null) return null;
-      return new Collection (collection);
-   }
 
    public Collection (fr.gael.dhus.database.object.Collection collection)
    {
@@ -99,9 +86,9 @@ public class Collection extends V1Entity
    }
 
    @Override
-   public Map<String, Object> toEntityResponse (String rootUrl)
+   public Map<String, Object> toEntityResponse (String root_url)
    {
-      Map<String, Object> res = new HashMap<String, Object> ();
+      Map<String, Object> res = new HashMap<> ();
       res.put (CollectionEntitySet.NAME, getName ());
       res.put (CollectionEntitySet.ID, getId ());
       res.put (CollectionEntitySet.DESCRIPTION, getDescription ());
@@ -109,14 +96,14 @@ public class Collection extends V1Entity
    }
 
    @Override
-   public Object getProperty (String propName) throws ODataException
+   public Object getProperty (String prop_name) throws ODataException
    {
-      if (propName.equals (CollectionEntitySet.NAME)) return getName ();
+      if (prop_name.equals (CollectionEntitySet.NAME)) return getName ();
 
-      if (propName.equals (CollectionEntitySet.DESCRIPTION))
+      if (prop_name.equals (CollectionEntitySet.DESCRIPTION))
          return getDescription ();
 
-      throw new ODataException ("Property '" + propName +
+      throw new ODataException ("Property '" + prop_name +
          "' not found in entity Collection.");
    }
 }

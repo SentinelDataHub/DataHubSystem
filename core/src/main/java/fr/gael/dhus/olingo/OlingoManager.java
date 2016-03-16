@@ -30,11 +30,14 @@ import org.springframework.stereotype.Service;
 
 import fr.gael.dhus.database.dao.ActionRecordWritterDao;
 import fr.gael.dhus.database.dao.CollectionDao;
+import fr.gael.dhus.database.dao.UserDao;
 import fr.gael.dhus.database.object.Collection;
 import fr.gael.dhus.database.object.Product;
 import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.olingo.v1.visitor.CollectionSQLVisitor;
 import fr.gael.dhus.olingo.v1.visitor.ProductSQLVisitor;
+import fr.gael.dhus.olingo.v1.visitor.UserSQLVisitor;
+import fr.gael.dhus.service.ProductService;
 
 /**
  * Product Service provides connected clients with a set of method to interact
@@ -47,17 +50,23 @@ public class OlingoManager
    private CollectionDao collectionDao;
    
    @Autowired
+   private UserDao userDao;
+
+   @Autowired
+   private ProductService productService;
+
+   @Autowired
    private ActionRecordWritterDao actionRecordWritterDao; 
 
-   public List<Product> getProducts (User user, FilterExpression filterExpr,
-      OrderByExpression orderByExpr, int skip, int top)
+   public List<Product> getProducts (User user, FilterExpression filter_expr,
+      OrderByExpression order_expr, int skip, int top)
       throws ExceptionVisitExpression, ODataApplicationException
    {
-      return getProducts (user, null, filterExpr, orderByExpr, skip, top);
+      return getProducts (user, null, filter_expr, order_expr, skip, top);
    }
 
    public List<Product> getProducts (User user, Long cid,
-      FilterExpression filterExpr, OrderByExpression orderByExpr, int skip,
+      FilterExpression filter_expr, OrderByExpression order_expr, int skip,
       int top) throws ExceptionVisitExpression, ODataApplicationException
    {
       Collection collection = null;
@@ -70,24 +79,23 @@ public class OlingoManager
       ProductSQLVisitor expV = new ProductSQLVisitor (productPrefix);
       String filter = "";
       String order = "";
-      if (filterExpr != null)
+      if (filter_expr != null)
       {
-         filter = filterExpr.accept (expV).toString ();
+         filter = filter_expr.accept (expV).toString ();
       }
 
-      if (orderByExpr != null)
+      if (order_expr != null)
       {
-         order = orderByExpr.accept (expV).toString ();
+         order = order_expr.accept (expV).toString ();
       }
       
       actionRecordWritterDao.search(filter, skip, top, user);
 
-      return collectionDao.getAuthorizedProducts (user, collection, filter,
-         order, skip, top);
+      return productService.getProducts (collection, filter, order, skip, top);
    }
 
    public List<Collection> getSubCollections (User user, Long cid,
-      FilterExpression filterExpr, OrderByExpression orderByExpr, int skip,
+      FilterExpression filter_expr, OrderByExpression order_expr, int skip,
       int top) throws ExceptionVisitExpression, ODataApplicationException
    {
       Collection collection = null;
@@ -101,14 +109,14 @@ public class OlingoManager
          new CollectionSQLVisitor (subCollectionPrefix);
       String filter = "";
       String order = "";
-      if (filterExpr != null)
+      if (filter_expr != null)
       {
-         filter = filterExpr.accept (expV).toString ();
+         filter = filter_expr.accept (expV).toString ();
       }
 
-      if (orderByExpr != null)
+      if (order_expr != null)
       {
-         order = orderByExpr.accept (expV).toString ();
+         order = order_expr.accept (expV).toString ();
       }
 
       if (collection == null)
@@ -121,13 +129,13 @@ public class OlingoManager
          filter, order, skip, top);
    }
 
-   public int getProductsNumber (FilterExpression filterExpr, User user)
+   public int getProductsNumber (FilterExpression filter_expr, User user)
       throws ExceptionVisitExpression, ODataApplicationException
    {
-      return getProductsNumber (null, filterExpr, user);
+      return getProductsNumber (null, filter_expr, user);
    }
 
-   public int getProductsNumber (Long cid, FilterExpression filterExpr,
+   public int getProductsNumber (Long cid, FilterExpression filter_expr,
       User user) throws ExceptionVisitExpression, ODataApplicationException
    {
       Collection collection = null;
@@ -139,16 +147,16 @@ public class OlingoManager
       String productPrefix = "p";
       ProductSQLVisitor expV = new ProductSQLVisitor (productPrefix);
       String filter = "";
-      if (filterExpr != null)
+      if (filter_expr != null)
       {
-         filter = filterExpr.accept (expV).toString ();
+         filter = filter_expr.accept (expV).toString ();
       }
 
-      return collectionDao.countAuthorizedProducts (user, collection, filter);
+      return productService.count (collection, filter);
    }
 
    public int getSubCollectionsNumber (User user, Long cid,
-      FilterExpression filterExpr) throws ExceptionVisitExpression,
+      FilterExpression filter_expr) throws ExceptionVisitExpression,
       ODataApplicationException
    {
       Collection collection = null;
@@ -164,12 +172,48 @@ public class OlingoManager
       CollectionSQLVisitor expV =
          new CollectionSQLVisitor (subCollectionPrefix);
       String filter = "";
-      if (filterExpr != null)
+      if (filter_expr != null)
       {
-         filter = filterExpr.accept (expV).toString ();
+         filter = filter_expr.accept (expV).toString ();
       }
 
       return collectionDao.countAuthorizedSubCollections (user, collection,
          filter);
+   }
+
+   public List<User> getUsers (
+      FilterExpression filter_expr, OrderByExpression order_expr, int skip,
+      int top) throws ExceptionVisitExpression, ODataApplicationException
+   {
+      String userPrefix = "u";
+      UserSQLVisitor expV = new UserSQLVisitor (userPrefix);
+      String filter = "";
+      String order = "";
+      if (filter_expr != null)
+      {
+         filter = filter_expr.accept (expV).toString ();
+      }
+
+      if (order_expr != null)
+      {
+         order = order_expr.accept (expV).toString ();
+      }
+
+      return userDao.getUsers (filter,
+         order, skip, top);
+   }
+
+   public int getUsersNumber (FilterExpression filter_expr)
+      throws ExceptionVisitExpression, ODataApplicationException
+   {
+      String userPrefix = "u";
+      UserSQLVisitor expV = new UserSQLVisitor (userPrefix);
+      String filter = "";
+      if (filter_expr != null)
+      {
+         filter = filter_expr.accept (expV).toString ();
+      }
+
+      return userDao.countUsers (filter);
    }
 }

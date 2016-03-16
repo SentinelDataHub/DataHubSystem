@@ -19,12 +19,6 @@
  */
 package fr.gael.dhus.database.liquibase;
 
-import java.io.File;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import liquibase.change.custom.CustomTaskChange;
 import liquibase.database.Database;
 import liquibase.database.jvm.JdbcConnection;
@@ -35,9 +29,15 @@ import liquibase.resource.ResourceAccessor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import java.io.File;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class ExtractProductDatesAndDownloadSize implements CustomTaskChange
 {
-   private static final Log logger = LogFactory.getLog (
+   private static final Log LOGGER = LogFactory.getLog (
       ExtractProductDatesAndDownloadSize.class);
    
    @Override
@@ -47,7 +47,7 @@ public class ExtractProductDatesAndDownloadSize implements CustomTaskChange
    }
 
    @Override
-   public void setFileOpener (ResourceAccessor resourceAccessor)
+   public void setFileOpener (ResourceAccessor resource_accessor)
    {
    }   
 
@@ -70,9 +70,10 @@ public class ExtractProductDatesAndDownloadSize implements CustomTaskChange
          (JdbcConnection) database.getConnection ();
       try
       {
+         // SELECT PRODUCT_ID, QUERYABLE, VALUE FROM METADA_INDEXES
          PreparedStatement getQueryables =
-            databaseConnection // SELECT PRODUCT_ID, QUERYABLE, VALUE FROM METADA_INDEXES
-               .prepareStatement ("SELECT PRODUCT_ID, QUERYABLE, VALUE " + 
+               databaseConnection
+                     .prepareStatement ("SELECT PRODUCT_ID, QUERYABLE, VALUE " +
                   "FROM METADATA_INDEXES");
          ResultSet res = getQueryables.executeQuery ();
          SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
@@ -84,24 +85,31 @@ public class ExtractProductDatesAndDownloadSize implements CustomTaskChange
             String query = "";
             if ("beginPosition".equals (queryable))
             {
-               Date d = new SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss.SSS").parse(value);
-               query = "UPDATE PRODUCTS SET CONTENTSTART = '"+sdf.format (d)+"' WHERE ID = "+productIdentifier;
+               Date d = new SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss.SSS")
+                     .parse(value);
+               query = "UPDATE PRODUCTS SET CONTENTSTART = '"+sdf.format (d)+
+                     "' WHERE ID = "+productIdentifier;
             }
             else if ("endPosition".equals (queryable))
             {
-               Date d = new SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss.SSS").parse(value);
-               query = "UPDATE PRODUCTS SET CONTENTEND = '"+sdf.format (d)+"' WHERE ID = "+productIdentifier;
+               Date d = new SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss.SSS")
+                     .parse(value);
+               query = "UPDATE PRODUCTS SET CONTENTEND = '"+sdf.format (d)+
+                     "' WHERE ID = "+productIdentifier;
             }
             else if ("ingestionDate".equals (queryable))
             {
-               Date d = new SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss.SSS").parse(value);
-               query = "UPDATE PRODUCTS SET INGESTIONDATE = '"+sdf.format (d)+"' WHERE ID = "+productIdentifier;
+               Date d = new SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss.SSS")
+                     .parse(value);
+               query = "UPDATE PRODUCTS SET INGESTIONDATE = '"+sdf.format (d)+
+                     "' WHERE ID = "+productIdentifier;
             }
             else
             {
                continue;
             }
-            PreparedStatement updateProduct = databaseConnection.prepareStatement (query);
+            PreparedStatement updateProduct = databaseConnection
+                  .prepareStatement (query);
             updateProduct.execute ();
             updateProduct.close();
          }
@@ -109,14 +117,15 @@ public class ExtractProductDatesAndDownloadSize implements CustomTaskChange
       }
       catch (Exception e)
       {
-         logger.error ("Error during liquibase update 'ExtractProductDatesAndDownloadSize'", e);
+         LOGGER.error ("Error during liquibase update " +
+               "'ExtractProductDatesAndDownloadSize'", e);
       }
       
       try
       {
          PreparedStatement getQueryables =
-            databaseConnection
-               .prepareStatement ("SELECT p.ID, p.DOWNLOAD_PATH FROM PRODUCTS p ");
+               databaseConnection.prepareStatement (
+                           "SELECT p.ID, p.DOWNLOAD_PATH FROM PRODUCTS p ");
          ResultSet res = getQueryables.executeQuery ();
 
          while (res.next ())
@@ -126,8 +135,9 @@ public class ExtractProductDatesAndDownloadSize implements CustomTaskChange
             File dl = new File(path);
             if (dl.exists())
             {
-               PreparedStatement updateProduct = databaseConnection.prepareStatement (
-                  "UPDATE PRODUCTS SET DOWNLOAD_SIZE = "+dl.length ()+" WHERE ID = "+productIdentifier);
+               PreparedStatement updateProduct = databaseConnection
+                     .prepareStatement ("UPDATE PRODUCTS SET DOWNLOAD_SIZE = " +
+                           dl.length ()+" WHERE ID = "+productIdentifier);
                updateProduct.execute ();
                updateProduct.close();
             }
@@ -136,7 +146,8 @@ public class ExtractProductDatesAndDownloadSize implements CustomTaskChange
       }
       catch (Exception e)
       {
-         logger.error ("Error during liquibase update 'ExtractProductDatesAndDownloadSize'", e);
+         LOGGER.error ("Error during liquibase update " +
+               "'ExtractProductDatesAndDownloadSize'", e);
       }
    }
 }

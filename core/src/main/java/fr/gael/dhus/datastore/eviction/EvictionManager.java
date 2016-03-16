@@ -23,6 +23,7 @@ import java.io.File;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -48,105 +49,136 @@ import fr.gael.dhus.system.config.ConfigurationManager;
 public class EvictionManager
 {
    private static Log logger = LogFactory.getLog (EvictionManager.class);
-      
+
    @Autowired
    private ProductDao productDao;
-   
+
    @Autowired
    private EvictionDao evictionDao;
-   
+
    @Autowired
    private DefaultDataStore dataStore;
-   
+
    @Autowired
    private ConfigurationManager cfgManager;
-      
+
    private EvictionManager(){}
-   
+
    /**
-    * Computes the path to be evicted. If the incoming path has been 
+    * Computes the path to be evicted. If the incoming path has been
     * entered, eviction spaces is managed according to this directory.
     * Otherwise it is computed from the archive data path.
-    * @param archive
-    * @return
+    *
+    * @return the path where the eviction is performed.
     */
    private String getPath ()
    {
       ArchiveConfiguration archive = cfgManager.getArchiveConfiguration ();
       String path = archive.getIncomingConfiguration ().getPath ();
       if (path == null) path = archive.getPath ();
-      return path;      
+      return path;
    }
-   
+
+   /**
+    * Computes the date <i>days</i> days ago.
+    *
+    * @param days number of days
+    * @return a date representation of date <i>days</i> ago.
+    */
    public Date getKeepPeriod (int days)
    {
       Calendar cal = Calendar.getInstance();
       cal.add(Calendar.DAY_OF_YEAR, -days);
       logger.info ("Eviction Max date : " + cal.getTime());
       return cal.getTime();
-   } 
-   
+   }
+
+   /**
+    * Computes free space on disk where the eviction works.
+    *
+    * @return number of available bytes on disk partition.
+    */
    public long getFreeSpace ()
    {
       String path = getPath ();
       File fpath = new File(path);
       return fpath.getFreeSpace ();
-   }   
-   
+   }
+
+   /**
+    * Computes the total space on disk where the eviction works.
+    *
+    * @return the total space in byte on disk partition.
+    */
    public long getTotalSpace ()
    {
       String path = getPath ();
       File fpath = new File(path);
       return fpath.getTotalSpace ();
    }
-   
+
+   /**
+    * Compute space disk usage on partition where the eviction works.
+    *
+    * @return space disk usage in bytes on disk partition.
+    */
    public long getUsableSpace ()
    {
       String path = getPath ();
       File fpath = new File(path);
       return fpath.getUsableSpace ();
    }
-   
+
    /**
-    * Returns free usable space
-    * @param archive
-    * @return
+    * Compute percentage of usage space disk of eviction partition.
+    *
+    * @return space disk usage in percent on disk partition.
+    * @see EvictionManager#getUsableSpace()
+    * @see EvictionManager#getTotalSpace()
     */
    public float getSpaceUsagePercentage ()
    {
       return 100-(((float)getUsableSpace ()/getTotalSpace ())*100.0f);
    }
-   
+
    /**
-    * Product can only be evicted if they have been uploaded (inside incoming 
-    * path) and if system archive space is missing.
-    * 
-    * Uploaded products only are removed because other ones have been manually 
-    * added in the archive and should be manually removed.
-    * @param product
-    * @param eviction
-    * @return
+    * Check if the limit of disk usage is exceeded
+    *
+    * @param eviction eviction system contains the limit of disk usage.
+    * @return true if disk usage of <i>eviction</i> is exceeded, otherwise false
     */
-   public boolean canEvictFromArchive (Product product, Eviction eviction)
+   public boolean canEvictFromArchive (Eviction eviction)
    {
-      if ((getSpaceUsagePercentage() > eviction.getMaxDiskUsage ())
-           && isRemovable (product))
+      if ((getSpaceUsagePercentage() > eviction.getMaxDiskUsage ()))
          return true;
       return false;
-   }   
-   
-   public List<Product> getProductsByIngestionDate(int keepPeriod, int skip, int top)
-   {
-      return productDao.getProductsByIngestionDate (getKeepPeriod (keepPeriod), skip, top);
    }
-   
-   public List<Product> getProductsByLowestAccess (int keepPeriod)
+
+   /**
+    * Seeks all products ingested <i>keep_period</i> days ago or more.
+    *
+    * @param keep_period number of days.
+    * @return a iterator of {@link Product}.
+    */
+   public Iterator<Product> getProductsByIngestionDate(int keep_period)
+   {
+      return productDao.getProductsByIngestionDate (getKeepPeriod (keep_period));
+   }
+
+   /**
+    * Seeks the least watched products on the given period.
+    * @param keep_period the period in day.
+    * @return a iterator of {@link Product}.
+    */
+   public Iterator<Product> getProductsByLowestAccess (int keep_period)
    {
       // FIXME never call
-      return productDao.getProductsLowerAccess (getKeepPeriod (keepPeriod), -1,
-         -1);
+      return productDao.getProductsLowerAccess (getKeepPeriod (keep_period));
    }
-   
+
+   /**
+    * Compute of next evictable products
+    */
    public void computeNextProducts ()
    {
       Eviction eviction = evictionDao.getEviction ();
@@ -155,15 +187,23 @@ public class EvictionManager
          logger.warn ("No Eviction setting found.");
          return;
       }
-      Set<Product>products = eviction.getStrategy ().getProductsToEvict (eviction);
+      Set<Product>products = eviction.getStrategy ().getProductsToEvict (
+            eviction);
       evictionDao.setProducts (products);
    }
-   
+
+   /**
+    * Returns the next evictable products.
+    * @return a set of {@link Product}.
+    */
    public Set<Product>getProducts ()
    {
       return evictionDao.getEviction ().getProducts ();
    }
-   
+
+   /**
+    * Performs a eviction of products.
+    */
    public void doEvict ()
    {
       Set<Product>products = getProducts ();
@@ -179,9 +219,15 @@ public class EvictionManager
          logger.info ("No product Evicted.");
       }
    }
+
+   /**
+    * Evicts <i>products</i> in a new {@link Thread}
+    *
+    * @param products set of products to evict.
+    */
    public void doEvict(Set<Product>products)
    {
-      Thread t = new Thread (new DeleteProductTask (products), 
+      Thread t = new Thread (new DeleteProductTask (products),
          "doEvictionTread");
       t.start ();
    }
@@ -194,49 +240,30 @@ public class EvictionManager
       {
         this.products = products;
       }
-      
+
+      @Override
       public void run()
       {
          for (Product product:products)
          {
             String path = ProductDao.getPathFromProduct (product);
             path = path.replaceAll ("file://?", "/");
-            logger.info ("Evicting product \"" + path + "\".");
+            logger.info ("Trying to evict product \"" + path + "\".");
 
             try
             {
-               if (isRemovable (product))
-               {
-                  dataStore.removeProduct (product.getId());
-               }
-               else
-                  logger.warn ("File " + path + 
-                     " cannot be removed from read-only archive.");
+               dataStore.removeProduct (product.getId ());
+               logger.info ("Evicted " + product.getIdentifier () + " (" +
+                  product.getSize () + " bytes, " +
+                  product.getDownloadableSize () + " bytes compressed)");
             }
             catch (DataStoreException e)
             {
-               logger.error ("Unable to delete product at path \"" + path + 
+               logger.error ("Unable to delete product at path \"" + path +
                   "\": " + e.getMessage (), e);
             }
          }
       }
    }
-   
-   /**
-    * Checks if the passed product can be removed:
-    *  - if it is located in local filesystem and passed to the system by 
-    *  upload process. (manually adds shall be manually removed).
-    *  - if the product has not been locked.
-    * @param product the product to check.
-    * @return
-    */
-   private boolean isRemovable (Product product)
-   {
-      String a_path = cfgManager.getArchiveConfiguration ().getIncomingConfiguration ().getPath ();
-      if (a_path.startsWith ("file:/")) a_path = a_path.substring (6);
-      
-      String p_file = product.getPath ().getPath ();
-      
-      return p_file.startsWith (a_path) && !product.getLocked ();
-   }
+
 }

@@ -70,7 +70,20 @@ public class MetadataIndexData implements IsSerializable
    @Override
    public boolean equals(Object o)
    {
-      return o instanceof MetadataIndexData && ((MetadataIndexData)o).getName().equals(this.getName());
+      if (o == null)
+      {
+         return false;
+      }
+      if (o == this)
+      {
+         return true;
+      }
+      if (!(o instanceof MetadataIndexData))
+      {
+         return false;
+      }
+      MetadataIndexData other = (MetadataIndexData) o;
+      return this.name.equals (other.name);
    }
 
    @Override

@@ -19,8 +19,8 @@
  */
 package fr.gael.dhus.search;
 
-import fr.gael.dhus.database.dao.ProductDao;
 import fr.gael.dhus.database.object.Product;
+import fr.gael.dhus.service.ProductService;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
 
 /**
@@ -31,14 +31,22 @@ public class SolrUtils
    public static final int MIN_COST_FILTER = 100;
    public static final String CURRENT_USER_ID = "currentUserId";
 
+   /**
+    * Hide utility class constructor
+    */
+   private SolrUtils ()
+   {
+
+   }
+
    public static String getUuidFromId (long id)
    {
-      ProductDao productDao =
-         ApplicationContextProvider.getBean (ProductDao.class);
+      ProductService product_service =
+         ApplicationContextProvider.getBean (ProductService.class);
 
-      if (productDao != null)
+      if (product_service != null)
       {
-         Product p = productDao.read (id);
+         Product p = product_service.systemGetProduct (id);
          if (p != null) return p.getUuid ();
       }
       return "Unresolved_UUID";

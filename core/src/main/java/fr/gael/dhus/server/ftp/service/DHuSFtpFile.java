@@ -62,13 +62,15 @@ public final class DHuSFtpFile implements FtpFile
    @Override
    public InputStream createInputStream (long arg0) throws IOException
    {
-      throw new IOException ("Virtual folder cannot be downloaded : " + getName ());
+      throw new IOException ("Virtual folder cannot be downloaded : " +
+            getName ());
    }
 
    @Override
    public OutputStream createOutputStream (long arg0) throws IOException
    {
-      throw new IOException ("Virtual folder cannot be uploaded : " + getName ());
+      throw new IOException ("Virtual folder cannot be uploaded : " +
+            getName ());
    }
 
    @Override
@@ -165,14 +167,15 @@ public final class DHuSFtpFile implements FtpFile
    @Override
    public List<FtpFile> listFiles ()
    {
-      ArrayList<FtpFile> files = new ArrayList<FtpFile> ();
+      ArrayList<FtpFile> files = new ArrayList<> ();
       Map<String, List<Product>> mappingProducts;
 
       switch (this.type)
       {
          case CONTENT_DATE:
          {
-            mappingProducts = service.groupProductBy (products, DHuSFtpFileType.YEAR);
+            mappingProducts = service.groupProductBy (products,
+                  DHuSFtpFileType.YEAR);
             for (String childName : mappingProducts.keySet ())
             {
                List<Product> productList = mappingProducts.get (childName);
@@ -221,6 +224,10 @@ public final class DHuSFtpFile implements FtpFile
                files.add (new DHuSFtpProduct (path, p, service, user));
             }
             break;
+         }
+         default:
+         {
+            return files;
          }
       }
       return files;

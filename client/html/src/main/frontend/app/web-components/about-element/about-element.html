@@ -1,0 +1,48 @@
+
+<link rel="import" href="../../libs/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../libs/paper-dialog/paper-dialog-transition.html">
+<link rel="import" href="../../libs/paper-button/paper-button.html">
+<link rel="import" href="../../libs/core-input/core-input.html">
+<link rel="import" href="../../libs/paper-input/paper-input.html">
+<link rel="import" href="../../libs/paper-input/paper-input-decorator.html">
+<link rel="import" href="../../libs/core-item/core-item.html">
+<link rel="import" href="../../libs/core-a11y-keys/core-a11y-keys.html">
+<link rel="import" href="../main-screen/routes.html">
+<link rel="import" href="../badge-element/badge-element.html">
+<link rel="import" href="../badge-button/badge-button.html">
+<link rel="import" href="../main-screen/routes.html">
+
+<polymer-element name="about-element">
+	<template>
+		<link rel="stylesheet" type="text/css" href="style.css">
+		<badge-button id="aboutbutton" on-click="{{openBadge}}" mini icon="info-outline" title="About" position="right-bottom"></badge-button>
+
+		<badge-element id="aboutbadge" on-core-overlay-open-completed="{{showTriangle}}" on-core-overlay-close-completed="{{hideTriangle}}" position="right-bottom" >
+			<link rel="stylesheet" type="text/css" href="badge-element.css">
+			<div class="row" >
+				<img src="" id="datahublogo"/>
+				<div id="datahubtitle"></div>
+			</div>
+		        	<div class="row" style=" margin: 15px 0px 0px; ">
+		            		The Sentinel Data Hub is a web based system designed to provide EO data users with distributed mirror archives and bulk dissemination capabilities for the Sentinels products.
+		        	
+		        		<a href="{{urlFor('terms')}}" on-click="{{goLink}}">Terms of Sentinel Data Hub portal and Data supply conditions</a>
+		        	</div>
+		        	<div class="row">
+		        		<hr/>
+		        		<div id="datahubversion"></div>
+		        		<div id="logos">
+		        			<img src="../../images/serco.png" height="20" width="48">
+		        			<img src="../../images/gael.png" height="20" width="48">
+		        			<img src="../../images/copernicus.jpg"  width="48">
+		        			<img src="../../images/logo_esa1.png" width="48">
+		        			<img src="../../images/european_union_emblem.png" width="48">
+		        		</div>
+			</div>
+		      
+		</badge-element>
+
+
+  	</template>
+	<script src="script.js"></script>
+</polymer-element>

@@ -1,0 +1,207 @@
+<div>
+<!-- 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+-->
+<div >
+    <style>
+            
+    #content {       
+        max-height: calc(100% - 120px);
+        overflow-y: auto !important;
+        overflow-x: hidden;
+        padding: 0px 3% !important;
+        margin-top: 60px !important;
+        position: absolute;
+        width: 100%;
+    }
+
+    #container {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;    
+    }
+    header {
+        width: 100%;
+        height: 60px;
+        position: fixed;        
+        background: white;
+        text-align: center;
+        font-size: 16px;
+        font-weight: bold;
+        padding-top: 20px;
+    }
+    
+    @media screen and (min-width: 993px) and (max-width: 1200px) { 
+        
+        header {
+           font-size: 16px;
+        }
+      } 
+
+      @media screen and (min-width: 769px) and(max-width: 992px) { 
+        
+        header {
+           font-size: 14px;
+        }
+      } 
+
+      @media screen and (max-width: 768px) { 
+        
+        header {
+           font-size: 14px;
+        }
+      }  
+
+    footer {
+        width: 100%;
+        height: 60px;        
+        position: fixed;
+        bottom: 0;  
+        line-height: 60px;      
+        padding-left: 5px;
+    }
+
+    footer .cart-button {
+        border-radius: 0px;
+        vertical-align: middle;
+        margin-bottom: 20px;
+        line-height: 20px;
+        font-size: 14px;
+        font-weight: bold;
+        margin-right: 20px;
+        position: relative;    
+        padding: 10px;                
+        text-decoration: none;
+        text-align: center;
+        background-color: rgb(55, 59, 80);
+        color: white;
+        cursor: pointer;
+        float: right; 
+        margin-top: 10px;       
+    }
+
+    footer .cart-button:hover {                
+        background-color: rgb(55, 59, 80) !important;
+        color: white !important;
+        cursor: pointer !important;
+    }
+    
+    footer .cart-button:disabled {
+        background-color: #afb1b9 !important;        
+        cursor: default !important;
+        color: black !important;        
+    }        
+
+    .disabled-button{
+        opacity:0.4;
+        cursor: default;
+     }
+
+     .select-page-button{
+        cursor: pointer;
+     }
+
+     .page-selector-input{
+        width: 40px !important;
+        cursor: pointer;
+        margin: 0px;
+        padding: 7px;
+        height: 30px;
+        border-bottom: 1px solid #9A9A9A !important;
+        text-align: center;
+		display: inline;
+     }
+
+	 .pagination-button{
+        margin-right: 2.5px;
+        margin-left: 2.5px;
+        display:inline;
+     } 
+
+     .page-label {
+        font-weight: bold;
+        font-size: 13px;
+        padding-right: 3px;
+     }   
+
+     .cart-toolbar {
+        line-height: 60px;
+        vertical-align: middle;
+     }
+
+     .fab-cart {
+        vertical-align: middle;
+        margin-top: 10px;
+        /* padding: 15px; */
+        line-height: 25px;
+        font-size: 16px; 
+        position: relative;
+        float: right;
+        display: block;
+        height: 40px;
+        width: 40px;
+        color: #fff;
+        fill: currentColor;
+        cursor: pointer;
+        text-decoration: none;
+        border-radius: 50%;
+        overflow: hidden;
+        box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+        background-color: #373B50;
+        text-align: center;
+        padding: 5px;
+        display:none;
+        margin-right: 20px;
+      }
+
+      .fab-cart-disabled {
+        background-color: #afb1b9 !important;        
+        cursor: default !important;
+        color: black !important;
+      }
+
+      .cart-title {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+     
+    </style>
+    <div id="container">
+        <header class="cart-header row">
+            <div class="col-md-1 "></div>
+            <div class="col-md-10 col-sd-8 col-xs-8 cart-title" ng-if="synchronizerCount==0">
+            Your ODATA synchronizer is empty 
+            </div>   
+            <div class="col-md-10 col-sd-8 col-xs-8 cart-title"ng-if="synchronizerCount>0">
+                Your ODATA synchronizer contains {{synchronizerCount}} synchronizers. Display {{visualizedSynchronizersFrom}} to {{visualizedSynchronizersTo} of {{synchronizerCount}} synchronizers. 
+            </div>
+            <div class="col-md-1 col-sd-3 col-xs-3"><gotomap-button></gotomap-button></div>
+        </header>
+        <div id="content">
+            <odata-synchronizer-list></odata-synchronizer-list>
+        </div>
+    </div>  
+</div>
+</div>

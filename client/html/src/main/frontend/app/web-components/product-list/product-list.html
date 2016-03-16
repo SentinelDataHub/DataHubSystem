@@ -1,0 +1,44 @@
+<polymer-element name="product-list" attributes="attr" layout vertical on-keydown="{{enableMulti}}" on-keyup="{{disableMulti}}">
+	<link rel="import" href="../../libs/core-list/core-list.html">  
+	<link rel="import" href="../../libs/core-tooltip/core-tooltip.html"> 	
+	<link rel="import" href="../serco-icons/serco-icons.html">
+		
+	<link rel="import" href="../../libs/left-swipe-action/left-swipe-action.html"> 
+	<link rel="import" href="../../libs/left-swipe-action/left-swipe-action-button.html"> 
+	<template>
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<div id="mycontainer" class="mycontainer" >				     		
+		  <core-list id="list" class="list" data="{{data}}" selectionEnabled="true"
+		    selection="{{selection}}" on-scroll="{{updateView}}" flex>
+
+
+
+
+		    <template >	
+		      <div id="item-{{model.id}}" class="item {{ {selected: selected} | tokenList }}" layout horizontal center data-object="{{index}}" on-click="{{checkSelection}}" >              							
+		        <core-image id="thumbnail-image" class="thumbnail-image"
+			                  src="{{model.thumbnail}}"
+			                  placeholder="{{placeholder}}"
+			                  data-index="{{index}}"
+			                  preload fade> 
+			    </core-image>
+			
+			<div layout vertical flex>					
+				  <span id ="from" class="from" title="{{model.title}}">{{model.shorttitle}}</span>		  			  
+				  <span class="modelbody" >{{model.date}}</span>
+				  <span class="modelbody" > Instrument: {{model.instr}}</span>
+				  <div layout horizontal reverse>				
+				  	<paper-icon-button icon="get-app" title="Download Product" data-object="{{model.link}}" on-click="{{downloadProduct}}"></paper-icon-button>
+				  	<paper-icon-button icon="serco:serco-cart-add" title="Add Product to Cart" data-object="{{model.cartid}}" on-click="{{addProductToCart}}" hidden?="{{!model.canAddCart}}"></paper-icon-button>
+				  	<paper-icon-button icon="serco:serco-cart-remove" title="Remove Product From Cart" data-object="{{model.cartid}}" on-click="{{removeProductFromCart}}" hidden?="{{model.canAddCart}}"></paper-icon-button>
+					<paper-icon-button icon="search" title="View Product Details" data-object="{{model.id}}" on-click="{{showProductDetails}}"></paper-icon-button>					
+				  	<div class="button raised {{model.satellite}}">{{model.satellite}}</div>	                                
+				  </div>                                                   
+                  </div>
+			  </div> 		                  			  			  		          		       	             	    	
+		    </template>
+		  </core-list>		  
+	</div>	
+</template>
+<script src="script.js"></script> 
+</polymer-element>

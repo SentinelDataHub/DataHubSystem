@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 
-import javax.persistence.Transient;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -50,9 +49,11 @@ import fr.gael.dhus.database.object.Eviction;
 import fr.gael.dhus.database.object.Role;
 import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.database.object.config.Configuration;
-import fr.gael.dhus.database.object.config.cron.ArchiveSynchronizationCronConfiguration;
+import fr.gael.dhus.database.object.config.cron
+      .ArchiveSynchronizationCronConfiguration;
 import fr.gael.dhus.database.object.config.cron.CleanDatabaseCronConfiguration;
-import fr.gael.dhus.database.object.config.cron.CleanDatabaseDumpCronConfiguration;
+import fr.gael.dhus.database.object.config.cron
+      .CleanDatabaseDumpCronConfiguration;
 import fr.gael.dhus.database.object.config.cron.DumpDatabaseCronConfiguration;
 import fr.gael.dhus.database.object.config.cron.EvictionCronConfiguration;
 import fr.gael.dhus.database.object.config.cron.FileScannersCronConfiguration;
@@ -76,6 +77,7 @@ import fr.gael.dhus.database.object.config.system.AdministratorConfiguration;
 import fr.gael.dhus.database.object.config.system.ArchiveConfiguration;
 import fr.gael.dhus.database.object.config.system.DatabaseConfiguration;
 import fr.gael.dhus.database.object.config.system.EvictionConfiguration;
+import fr.gael.dhus.database.object.config.system.ExecutorConfiguration;
 import fr.gael.dhus.database.object.config.system.NameConfiguration;
 import fr.gael.dhus.database.object.config.system.ProcessingConfiguration;
 import fr.gael.dhus.database.object.config.system.SupportConfiguration;
@@ -120,8 +122,8 @@ public class ConfigurationManager implements InitializingBean
 
       // detect if no configuration is already stored or if a partial one is 
       // stored (typically stored by liquibase migration script, so this 
-      // configuration is missing some fields like cron configuration)
-      if (storedConf != null && storedConf.getCronConfiguration () == null)
+      // configuration is missing some fields)
+      if (storedConf != null)
       {
          loadedConf = storedConf.completeWith (loadedConf);
          configurationDao.update(loadedConf);
@@ -132,8 +134,8 @@ public class ConfigurationManager implements InitializingBean
          configurationDao.create(loadedConf);        
       }
 
-      AdministratorConfiguration cfg = loadedConf.getSystemConfiguration ().
-         getAdministratorConfiguration ();
+      AdministratorConfiguration cfg = loadedConf.getSystemConfiguration ()
+            .getAdministratorConfiguration ();
       User rootUser = userDao.getByName (cfg.getName ());
       if (rootUser != null)
       {
@@ -169,11 +171,6 @@ public class ConfigurationManager implements InitializingBean
          HashSet<User> users = new HashSet<User> ();
          rootCollection.setDescription ("Root of all the collections");
          rootCollection.setName (Collection.ROOT_NAME);
-         if (isDataPublic())
-         {
-            users.add (userDao.getPublicData ());
-//             rootCollection.setPublicData (true);
-         }
          users.add (rootUser);
          rootCollection.setAuthorizedUsers (users);
          collectionDao.create (rootCollection);
@@ -394,7 +391,13 @@ public class ConfigurationManager implements InitializingBean
       return notStoredPartOfConfiguration.getSystemConfiguration ().
          getDatabaseConfiguration ();
    }
-   
+
+   public ExecutorConfiguration getExecutorConfiguration ()
+   {
+      return notStoredPartOfConfiguration.getSystemConfiguration ().
+         getExecutorConfiguration ();
+   }
+
    @Component ("configurationLoader")
    static class ConfigurationLoader implements InitializingBean
    {
@@ -412,11 +415,11 @@ public class ConfigurationManager implements InitializingBean
       @Override
       public void afterPropertiesSet() throws Exception
       {
-         Configuration _loadedConfiguration  = null;
+         Configuration loadedConfig  = null;
          Configuration internalConfiguration = null;
          try
          {
-            _loadedConfiguration = loadConfiguation (ClassLoader.
+            loadedConfig = loadConfiguation (ClassLoader.
                getSystemResource ("dhus.xml"));
          }
          catch (Exception e)
@@ -434,10 +437,21 @@ public class ConfigurationManager implements InitializingBean
             throw new ConfigurationException("Internal configuration error.",e);
          }
 
-         loadedConfiguration = _loadedConfiguration.completeWith (
+         loadedConfiguration = loadedConfig.completeWith (
             internalConfiguration);
 
          notStoredPartOfConfiguration = loadedConfiguration.getNotStoredPart ();
+
+         // Set support mail as registration mail if it is empty or null
+         SupportConfiguration supportConf = loadedConfiguration.
+                  getSystemConfiguration ().getSupportConfiguration ();
+         
+         if (supportConf.getRegistrationMail () == null || 
+                  supportConf.getRegistrationMail().isEmpty ())
+         {
+            supportConf.setRegistrationMail (supportConf.getMail ());
+         }
+                  
          // Temp fix waiting full configurability in GUI
          notStoredPartOfConfiguration.setCronConfiguration (
             loadedConfiguration.getCronConfiguration ());
@@ -445,8 +459,10 @@ public class ConfigurationManager implements InitializingBean
             loadedConfiguration.getProductConfiguration ());
          notStoredPartOfConfiguration.setSearchConfiguration (
             loadedConfiguration.getSearchConfiguration ());
-         notStoredPartOfConfiguration.getSystemConfiguration ().setNameConfiguration (
-            loadedConfiguration.getSystemConfiguration ().getNameConfiguration ());
+         notStoredPartOfConfiguration.getSystemConfiguration ()
+               .setNameConfiguration (
+                     loadedConfiguration.getSystemConfiguration ()
+                           .getNameConfiguration ());
       }
       
       /**
@@ -488,6 +504,9 @@ public class ConfigurationManager implements InitializingBean
                            event.getLocator ().getColumnNumber () + ": " +
                            event.getMessage ()));
                         break;
+                     default:
+                        logger.warn ("Invalid configuration validation event!");
+                        break;
                   }
                   return false;
                }
@@ -497,10 +516,10 @@ public class ConfigurationManager implements InitializingBean
          InputStream configStream = configuration.openConnection ().
             getInputStream ();
 
-         Configuration _loadedConfiguration = null;
+         Configuration loadedConfig = null;
          try
          {
-            _loadedConfiguration =
+            loadedConfig =
                unmarshaller.unmarshal (new StreamSource (configStream),
                   Configuration.class).getValue ();
          }
@@ -509,7 +528,7 @@ public class ConfigurationManager implements InitializingBean
             configStream.close ();
          }
          
-         return _loadedConfiguration;
+         return loadedConfig;
       }
       
       // Used in dhus-core-database.xml 

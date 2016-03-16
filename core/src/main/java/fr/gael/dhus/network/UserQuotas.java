@@ -132,7 +132,8 @@ class UserQuotas
        * @param max_concurrent
        * @throws IllegalArgumentException
        */
-      void maxConcurrent(final int max_concurrent) throws IllegalArgumentException
+      void maxConcurrent(final int max_concurrent)
+            throws IllegalArgumentException
       {
          // Check parameter
          if (max_concurrent <= 0)
@@ -217,8 +218,9 @@ class UserQuotas
        * @param period_unit
        * @throws IllegalArgumentException
        */
-      Builder maxCumulativeSize(final long max_cumulative_size, final long period,
-            final TimeUnit period_unit) throws IllegalArgumentException
+      Builder maxCumulativeSize(final long max_cumulative_size,
+            final long period, final TimeUnit period_unit)
+            throws IllegalArgumentException
       {
          // Check parameter
          if (max_cumulative_size <= 0)
@@ -248,7 +250,8 @@ class UserQuotas
          this.maxCumulativeSize = Long.valueOf(max_cumulative_size);
 
          // Assign period in milliseconds
-         this.maxCumulativeSizePeriod = Long.valueOf(period_unit.toMillis(period));
+         this.maxCumulativeSizePeriod = Long.valueOf(period_unit.toMillis(
+               period));
 
          // Return this builder to allow cascading calls
          return this;

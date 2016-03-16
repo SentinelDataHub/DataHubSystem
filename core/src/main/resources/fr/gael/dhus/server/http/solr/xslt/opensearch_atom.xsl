@@ -18,8 +18,9 @@
    You should have received a copy of the GNU Affero General Public License
    along with this program. If not, see <http://www.gnu.org/licenses/>.
 -->
+
 <!--
-    Sample OpenSearch Atom search results representation. 
+    Sample OpenSearch Atom search results representation.
 -->
 <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 		xmlns:java="http://xml.apache.org/xslt/java"
@@ -58,13 +59,13 @@
             <title><xsl:value-of select="$dhusLongname" /> search results for: <xsl:value-of select="$originalQuery" /></title>
         	<xsl:choose>
                 <xsl:when test="number($totalHits) &gt; number($rows) and (number($totalHits) - number($start)) &gt; number($rows)">
-                	<subtitle>Displaying <xsl:value-of select="$start" /> to <xsl:value-of select="$start + $rows - 1" /> of <xsl:value-of select="$totalHits" /> total results. Request done in <xsl:value-of select="$searchTimeSecs" /> seconds.</subtitle>           
+                	<subtitle>Displaying <xsl:value-of select="$start" /> to <xsl:value-of select="$start + $rows - 1" /> of <xsl:value-of select="$totalHits" /> total results. Request done in <xsl:value-of select="$searchTimeSecs" /> seconds.</subtitle>
                 </xsl:when>
                 <xsl:when test="number($totalHits) &gt; number($rows) and number($start) &gt; 0">
-                	<subtitle>Displaying <xsl:value-of select="$start" /> to <xsl:value-of select="$totalHits - 1" /> of <xsl:value-of select="$totalHits" /> total results. Request done in <xsl:value-of select="$searchTimeSecs" /> seconds.</subtitle>                           
+                	<subtitle>Displaying <xsl:value-of select="$start" /> to <xsl:value-of select="$totalHits - 1" /> of <xsl:value-of select="$totalHits" /> total results. Request done in <xsl:value-of select="$searchTimeSecs" /> seconds.</subtitle>
                 </xsl:when>
                 <xsl:otherwise>
-                	<subtitle>Displaying <xsl:value-of select="$totalHits" /> results. Request done in <xsl:value-of select="$searchTimeSecs" /> seconds.</subtitle>           
+                	<subtitle>Displaying <xsl:value-of select="$totalHits" /> results. Request done in <xsl:value-of select="$searchTimeSecs" /> seconds.</subtitle>
                 </xsl:otherwise>
             </xsl:choose>
             <updated><xsl:value-of select='java:format(java:java.text.SimpleDateFormat.new("yyyy-MM-dd"), java:java.util.Date.new())' />T<xsl:value-of select='java:format(java:java.text.SimpleDateFormat.new("HH:mm:ss.SSS"), java:java.util.Date.new())' />Z</updated>
@@ -74,15 +75,15 @@
             <opensearch:startIndex><xsl:value-of select="$start" /></opensearch:startIndex>
             <opensearch:itemsPerPage><xsl:value-of select="$rows" /></opensearch:itemsPerPage>
             <opensearch:Query role="request" searchTerms="{$originalQuery}" startPage="1" />
-            <!-- You might want to add another stylesheet to emit HTML... 
-            <link rel="alternate" type="text/html" 
+            <!-- You might want to add another stylesheet to emit HTML...
+            <link rel="alternate" type="text/html"
                 href="{$dhusServer}api/search?q={$originalQuery}&amp;start=TODO&amp;rows=TODO" />
             -->
-            <!-- 
+            <!--
                 You should use XPath 2.0 functions to "escape-uri" these link href state transitions.
-                See http://wiki.apache.org/solr/XsltResponseWriter for help on switching to XPath 2.0 
+                See http://wiki.apache.org/solr/XsltResponseWriter for help on switching to XPath 2.0
             -->
-            <link rel="self" type="application/atom+xml" 
+            <link rel="self" type="application/atom+xml"
                 href="{$dhusServer}api/search?q={$originalQuery}&amp;start={$start}&amp;rows={$rows}" />
             <link rel="first" type="application/atom+xml"
                 href="{$dhusServer}api/search?q={$originalQuery}&amp;start=0&amp;rows={$rows}" />
@@ -97,7 +98,7 @@
                 <xsl:when test="number($totalHits) &gt; number($rows) and (number($totalHits) - number($start)) &gt; number($rows)">
                     <xsl:variable name="next" select="(number($currentPage) + 1) * number($rows)" />
                     <link rel="next" type="application/atom+xml"
-                        href="{$dhusServer}api/search?q={$originalQuery}&amp;start={$next}&amp;rows={$rows}" />                    
+                        href="{$dhusServer}api/search?q={$originalQuery}&amp;start={$next}&amp;rows={$rows}" />
                 </xsl:when>
             </xsl:choose>
             <link rel="last" type="application/atom+xml"
@@ -107,7 +108,16 @@
                 href="opensearch_description.xml" />
             <xsl:for-each select="response/result/doc">
                 <xsl:variable name="id" select="long[@name='id']" />
-                <xsl:variable name="uuid" select="java:fr.gael.dhus.search.SolrUtils.getUuidFromId(number($id))" />
+                <xsl:variable name="uuid">
+                    <xsl:choose>
+                        <xsl:when test="str[@name='uuid'] != ''">
+                            <xsl:value-of select="str[@name='uuid']" />
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="java:fr.gael.dhus.search.SolrUtils.getUuidFromId(number($id))" />
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:variable>
                 <entry>
                     <title>
                         <xsl:value-of select="str[@name='identifier']" />
@@ -130,7 +140,7 @@
                         <xsl:variable name="mode"  select="str[@name='polarisationmode']" />
                         <xsl:variable name="satellite"  select="str[@name='platformname']" />
                         <xsl:variable name="size"  select="str[@name='size']" />
-                        <xsl:value-of 
+                        <xsl:value-of
                            select="concat('Date: ', $contentDate,
                               ', Instrument: ', $instrument,
                               ', Mode: ', $mode,
@@ -139,7 +149,7 @@
                     </summary>
      			        <xsl:copy-of select="*[@name != 'contents' and @name != 'id' and @name != 'path' and @name != '_version_' and @name != 'user']"></xsl:copy-of>
                 </entry>
-            </xsl:for-each>            
+            </xsl:for-each>
         </feed>
     </xsl:template>
 </xsl:stylesheet>

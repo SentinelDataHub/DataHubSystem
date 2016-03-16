@@ -118,7 +118,7 @@
 		#managementSystem_supportPanel
 		{
 		  width: 948px;
-		  height: 45px;	  
+		  height: 70px;	  
 		  border: solid 1px #aaa;
 		  background: #DEDEDE;
 		  padding: 5px;
@@ -247,6 +247,7 @@
 			var password = document.getElementById('managementSystem_password').value;
 			var fromName = document.getElementById('managementSystem_expeditorName').value;
 			var supportName = document.getElementById('managementSystem_supportName').value;
+			var registrationMail = document.getElementById('managementSystem_registrationMail').value;
 					
 			if (port == null || port == "" || !intCheck.test(port) ||
 				fromMail == null || fromMail == "" || !mailCheck.test(fromMail) ||
@@ -256,7 +257,8 @@
 				username == null || username == "" ||
 				password == null || password == "" ||
 				fromName == null || fromName == "" ||
-				supportName == null || supportName == "" )
+				supportName == null || supportName == "" ||
+				registrationMail == null || registrationMail == "" || !mailCheck.test(registrationMail))
 			{			
 				document.getElementById('managementSystem_saveModifications').className = 
 				"button_disabled"; 
@@ -396,6 +398,22 @@
 			activateSaveModificationsButton();
 		}
 		
+		function validateRegistrationMail()
+		{
+			var registrationMail = document.getElementById('managementSystem_registrationMail').value;
+			
+			if (registrationMail == null || registrationMail == "" || !mailCheck.test(registrationMail))
+			{		
+				document.getElementById('managementSystem_registrationMail').setCustomValidity('Registration mail must be filled');			  
+			}
+			else
+			{
+			 	document.getElementById('managementSystem_registrationMail').setCustomValidity('');
+			}	
+								  
+			activateSaveModificationsButton();			
+		}
+		
 		function validateSupportName()
 		{
 			var supportName = document.getElementById('managementSystem_supportName').value;
@@ -496,6 +514,7 @@
 			validatePassword();
 			validateExpeditorName();
 			validateSupportName();
+			validateRegistrationMail();
 		}
 	
 		function showSystemManagement()
@@ -571,6 +590,12 @@
 				<input type="text" name="managementSystem_supportName" 
 					id="managementSystem_supportName" class="managementSystem_field"
 					onkeyup="validateSupportName()"/>
+			</div>	    			
+			<div>
+				<div class="managementSystem_label">Registration mail</div>
+				<input type="text" name="managementSystem_registrationMail" 
+					id="managementSystem_registrationMail" class="managementSystem_field"
+					onkeyup="validateRegistrationMail()"/>
 			</div>	
     	</div>    	
     	<div id="managementSystem_buttonsPanel">        	

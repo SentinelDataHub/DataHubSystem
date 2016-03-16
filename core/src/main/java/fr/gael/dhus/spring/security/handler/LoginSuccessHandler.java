@@ -42,7 +42,7 @@ import fr.gael.dhus.util.encryption.EncryptPassword;
 @Component
 public class LoginSuccessHandler implements AuthenticationSuccessHandler
 {
-   private static final Log logger = LogFactory
+   private static final Log LOGGER = LogFactory
       .getLog (LoginSuccessHandler.class);
 
    @Autowired
@@ -56,34 +56,38 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler
       try
       {
          ValidityAuthentication auth = (ValidityAuthentication) authentication;
-
+         
          name = EncryptPassword.encrypt (name, PasswordEncryption.MD5);
-         Cookie authCookie = new Cookie (CookieKey.AUTHENTICATION_COOKIE_NAME, name);
+         Cookie authCookie = new Cookie (CookieKey.AUTHENTICATION_COOKIE_NAME,
+               name);
          authCookie.setPath ("/");
          authCookie.setHttpOnly (true);
+         authCookie.setMaxAge (-1);
 
          String validity = auth.getValidity ();
-//         Cookie validityCookie = new Cookie (CookieKey.VALIDITY_COOKIE_NAME, validity);
+//         Cookie validityCookie = new Cookie (CookieKey.VALIDITY_COOKIE_NAME,
+//             validity);
 //         validityCookie.setPath ("/");
 //         validityCookie.setHttpOnly (true);
 
          String integrity =
             EncryptPassword.encrypt (name + validity, PasswordEncryption.SHA1);
-         Cookie integrityCookie = new Cookie (CookieKey.INTEGRITY_COOKIE_NAME, integrity);
+         Cookie integrityCookie = new Cookie (CookieKey.INTEGRITY_COOKIE_NAME,
+               integrity);
          integrityCookie.setPath ("/");
          integrityCookie.setHttpOnly (true);
+         integrityCookie.setMaxAge (-1);
 
          response.addCookie (authCookie);
 //         response.addCookie (validityCookie);
          response.addCookie (integrityCookie);
-
-         SecurityContext ctx = SecurityContextHolder.getContext ();
-         SecurityContextProvider.saveSecurityContext (integrity, ctx);
+         request.getSession ().setAttribute ("integrity", integrity);
+         SecurityContextProvider.saveSecurityContext (integrity, SecurityContextHolder.getContext ());
       }
       catch (Exception e)
       {
-         logger.warn (
-            "Authentication process failed ! No cookie was generated", e);
+         LOGGER.warn (
+               "Authentication process failed ! No cookie was generated", e);
       }
    }
 }

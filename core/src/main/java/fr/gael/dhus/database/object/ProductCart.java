@@ -45,11 +45,13 @@ public class ProductCart
    @Column (name = "ID", nullable = false)
    private Long id;
 
-   @OneToOne (fetch=FetchType.EAGER)
+   @OneToOne (fetch=FetchType.LAZY)
    private User user;
    
-   @ManyToMany (fetch = FetchType.EAGER)
-   @JoinTable (name = "CART_PRODUCTS", joinColumns = { @JoinColumn (name = "CART_ID") }, inverseJoinColumns = { @JoinColumn (name = "PRODUCT_ID") })
+   @ManyToMany (fetch = FetchType.LAZY)
+   @JoinTable (name = "CART_PRODUCTS",
+               joinColumns = { @JoinColumn (name = "CART_ID") },
+               inverseJoinColumns = { @JoinColumn (name = "PRODUCT_ID") })
    private Set<Product> products;
 
    /**
@@ -91,6 +93,21 @@ public class ProductCart
    @Override
    public boolean equals (Object o)
    {
-      return o instanceof ProductCart && ((ProductCart) o).id.equals (this.id);
+      if (this == o) return true;
+      if (!(o instanceof ProductCart)) return false;
+
+      ProductCart that = (ProductCart) o;
+
+      if (id != null ? !id.equals (that.id) : that.id != null) return false;
+      return !(user != null ? !user.equals (that.user) : that.user != null);
+
+   }
+
+   @Override
+   public int hashCode ()
+   {
+      int result = id != null ? id.hashCode () : 0;
+      result = 31 * result + (user != null ? user.hashCode () : 0);
+      return result;
    }
 }

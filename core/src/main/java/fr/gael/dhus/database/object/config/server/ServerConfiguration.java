@@ -19,27 +19,34 @@
  */
 package fr.gael.dhus.database.object.config.server;
 
+import fr.gael.dhus.server.http.TomcatServer;
+import fr.gael.dhus.spring.context.ApplicationContextProvider;
+
 
 public class ServerConfiguration extends AbstractServerConfiguration
 {
-   @Override
-   public String getProtocol ()
+   private String getProtocol ()
    {
-      return (protocol == null || protocol.trim ().isEmpty ()) ? "http"
-         : protocol;
+      return "http";
+   }
+   
+   private String getLocalHost ()
+   {
+      return "localhost";
    }
 
-   @Override
-   public Integer getPort ()
+   private int getPort ()
    {
-      return (port <= 0) ? 80 : port;
+      TomcatServer server =
+         (TomcatServer) ApplicationContextProvider.getBean (TomcatServer.class);
+      return server.getPort ();
    }
-
+   
    public String getUrl ()
    {
       String protocol = getProtocol ();
       int port = getPort ();
-      String url = protocol + "://" + getHost ();
+      String url = protocol + "://" + getLocalHost ();
 
       if ( (port == 0) ||
          ( (port == 80) && (protocol.equalsIgnoreCase ("http"))) ||
@@ -57,7 +64,7 @@ public class ServerConfiguration extends AbstractServerConfiguration
    {
       String extHost = externalServerConfiguration.getHost ();
       extHost =
-         (extHost == null || extHost.trim ().isEmpty ()) ? getHost () : extHost;
+         (extHost == null || extHost.trim ().isEmpty ()) ? getLocalHost () : extHost;
       return extHost;
    }
 
@@ -65,8 +72,8 @@ public class ServerConfiguration extends AbstractServerConfiguration
    {
       String extProtocol = externalServerConfiguration.getProtocol ();
       extProtocol =
-         (extProtocol == null || extProtocol.trim ().isEmpty ()) ? getProtocol ()
-            : extProtocol;
+         (extProtocol == null || extProtocol.trim ().isEmpty ()) ?
+               getProtocol () : extProtocol;
       return extProtocol;
    }
 

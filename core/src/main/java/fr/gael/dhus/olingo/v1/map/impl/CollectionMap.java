@@ -49,11 +49,11 @@ import fr.gael.dhus.spring.context.ApplicationContextProvider;
 public class CollectionMap extends AbstractDelegatingMap<String, Collection>
    implements SubMap<String, Collection>
 {
-   private static Logger logger = LogManager.getLogger (CollectionMap.class
-      .getName ());
-   private static OlingoManager olingoManager = ApplicationContextProvider.getBean (OlingoManager.class);
-   private static CollectionService collectionService = ApplicationContextProvider
-         .getBean (CollectionService.class);
+   private static Logger logger = LogManager.getLogger (CollectionMap.class);
+   private static OlingoManager olingoManager =
+         ApplicationContextProvider.getBean (OlingoManager.class);
+   private static CollectionService collectionService =
+         ApplicationContextProvider.getBean (CollectionService.class);
 
    private Long parentId;
    private FilterExpression filter;
@@ -66,19 +66,19 @@ public class CollectionMap extends AbstractDelegatingMap<String, Collection>
       this (null, null, 0, -1, null);
    }
 
-   public CollectionMap (Long parentId)
+   public CollectionMap (Long parent_id)
    {
-      this (null, null, 0, -1, parentId);
+      this (null, null, 0, -1, parent_id);
    }
 
-   private CollectionMap (FilterExpression filter, OrderByExpression orderBy,
-      int skip, int top, Long parentId)
+   private CollectionMap (FilterExpression filter, OrderByExpression order,
+      int skip, int top, Long parent_id)
    {
       this.filter = filter;
-      this.orderBy = orderBy;
+      this.orderBy = order;
       this.skip = skip;
       this.top = top;
-      this.parentId = parentId;
+      this.parentId = parent_id;
    }
 
    @Override
@@ -93,7 +93,7 @@ public class CollectionMap extends AbstractDelegatingMap<String, Collection>
          {
             if (child.getName ().equals (key))
             {
-               return Collection.fromDatabase (child);
+               return new Collection (child);
             }
          }
       }
@@ -121,7 +121,10 @@ public class CollectionMap extends AbstractDelegatingMap<String, Collection>
          while (it.hasNext ())
          {
             fr.gael.dhus.database.object.Collection col = it.next ();
-            cols.add (Collection.fromDatabase (col));
+            if (col != null)
+            {
+               cols.add (new Collection (col));
+            }
          }
 
          return cols.iterator ();

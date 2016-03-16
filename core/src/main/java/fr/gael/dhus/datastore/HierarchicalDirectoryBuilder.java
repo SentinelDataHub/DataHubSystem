@@ -20,7 +20,9 @@
 package fr.gael.dhus.datastore;
 
 import java.io.File;
+import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -29,88 +31,19 @@ import org.apache.log4j.Logger;
  */
 public class HierarchicalDirectoryBuilder implements DirectoryBuilder
 {
+   public static final String DHUS_ENTRY_NAME = "dhus_entry";
    private static Logger logger = Logger.getLogger (
       HierarchicalDirectoryBuilder.class);
-   private File root;
-   private Long max_occurence;
-   public final static String DHUS_ENTRY_NAME = "dhus_entry";
    private static Long counter = 0L;
-   
+
+   private File root;
+   private Long maxOccurence;
+
    public HierarchicalDirectoryBuilder (File root, int max_occurence)
    {
       this.root = root;
-      this.max_occurence = new Long(max_occurence);
-      
-   }
-   /**
-    * Returns the next available incoming folder.
-    * @return unused incoming path. This path is available.
-    */
-   @Override
-   public File getDirectory ()
-   {
-       return getUnused ();
-   }
-   /**
-    * @return the root
-    */
-   public File getRoot ()
-   {
-      return root;
-   }
-   /**
-    * Reset the path computation counter.
-    */
-   public void resetCounter ()
-   {
-      HierarchicalDirectoryBuilder.counter = 0L;
-   }
-   
-   /**
-    * Reset this hierarchical path builder algorithm counter to let the next 
-    * call quickly access to the first free path.
-    * This method helps to fill empty directories from the hierarchy if any. 
-    */
-   void recomputeCounterFirstFreePath ()
-   {
-      resetCounter ();
-      File unused = null;
-      do
-      {
-         String h_path = getHierarchicalPath (counter++, max_occurence);
-         unused = new File (new File (getRoot (), h_path),  DHUS_ENTRY_NAME);
-      } while (isUsed (unused));
-      // place the counter to the fee position.
-      counter--;
-      logger.info ("Computed incoming counter to " + counter);
-   }
-   /**
-    * Looks for and creates a new incoming directory according to 
-    * {@link #getHierarchicalPath(Long, Long)} method. If the computed path is
-    * already used {@link #getUnused()} method recompute it.
-    * @return available path.
-    */
-   private File getUnused ()
-   {
-      File unused = null;
-      do
-      {
-         String h_path = getHierarchicalPath (counter++, max_occurence);
-         unused = new File (new File (getRoot (), h_path),  DHUS_ENTRY_NAME);
-      } while (isUsed (unused));
-      unused.mkdirs ();
-      return unused;
-   }
-   
-   /**
-    * Checks if the passed path is already used. The path is considered 'used'
-    * if it has been already created. 
-    * @param path to check.
-    * @return true if the directory is used, false otherwise.
-    */
-   private boolean isUsed (File path)
-   {
-      return path.exists ();
+      this.maxOccurence = new Long(max_occurence);
+
    }
 
    /**
@@ -118,14 +51,14 @@ public class HierarchicalDirectoryBuilder implements DirectoryBuilder
     * entry per level. The path steps are expressed in hexadecimal numbers with
     * an "x" prefix and are separated by a slash. All paths begin by a leading
     * slash.
-    * 
+    *
     * The algorithm is equivalent to the base conversion of the input <code>
     * counter</code> to a base radix equal to the <code>max_occurence</code>.
     * As a consequence, the <code>counter</code> shall not be negative and the
     * <code>max_occurence</code> shall be greater or equal to 2.
-    * 
+    *
     * Example, for a counter running from 0 to 100 with a max_occurrence of 3:
-    * 
+    *
     * <pre>
     * 0 -> "/x0"
     * 1 -> "/x1"
@@ -167,7 +100,7 @@ public class HierarchicalDirectoryBuilder implements DirectoryBuilder
     * @return the hierarchical path (never null).
     */
    static String getHierarchicalPath (final long counter,
-      final long max_occurrence) throws IllegalArgumentException
+         final long max_occurrence) throws IllegalArgumentException
    {
       // Check that counter is positive or null
       if (counter < 0)
@@ -179,7 +112,7 @@ public class HierarchicalDirectoryBuilder implements DirectoryBuilder
       if (max_occurrence <= 1)
       {
          throw new IllegalArgumentException(
-                  "Maximum occurrence shall be greater than 1");
+               "Maximum occurrence shall be greater than 1");
       }
 
       // Prepare output path
@@ -193,7 +126,8 @@ public class HierarchicalDirectoryBuilder implements DirectoryBuilder
       {
          // Concatenate the remainder to the output path
          output_path += "/x" +
-            Long.toHexString(running_quotient % max_occurrence).toUpperCase();
+               Long.toHexString(running_quotient % max_occurrence)
+                     .toUpperCase();
 
          // !update the quotient
          running_quotient = running_quotient / max_occurrence;
@@ -203,5 +137,157 @@ public class HierarchicalDirectoryBuilder implements DirectoryBuilder
       // Return the built path
       return output_path;
 
-   } // End getHierarchicalPath(long, long)
+   }
+
+   /**
+    * Returns the next available incoming folder.
+    * @return unused incoming path. This path is available.
+    */
+   @Override
+   public File getDirectory ()
+   {
+       return getUnused ();
+   }
+   /**
+    * @return the root
+    */
+   public File getRoot ()
+   {
+      return root;
+   }
+   /**
+    * Reset the path computation counter.
+    */
+   public void resetCounter ()
+   {
+      HierarchicalDirectoryBuilder.counter = 0L;
+   }
+   
+   /**
+    * Reset this hierarchical path builder algorithm counter to let the next 
+    * call quickly access to the first free path.
+    * This method helps to fill empty directories from the hierarchy if any. 
+    */
+   void recomputeCounterFirstFreePath ()
+   {
+      resetCounter ();
+      File unused = null;
+      do
+      {
+         String h_path = getHierarchicalPath (counter++, maxOccurence);
+         unused = new File (new File (getRoot (), h_path),  DHUS_ENTRY_NAME);
+      } while (isUsed (unused));
+      // place the counter to the fee position.
+      counter--;
+      logger.info ("Computed incoming counter to " + counter);
+   }
+   
+   private static boolean isHookInstalled = false;
+   private static String COUNTER_FILE_NAME = ".counter";
+   /**
+    * The initialization of incoming consists re-computing the counter. 
+    * For optimization purpose, the counter is saved/retrieved form 
+    * incoming root file. A shutdown hook is installed to save the counter at
+    * system exit.
+    */
+   void init()
+   {
+      // Try to read counter from local file
+      File root = getRoot();
+      File counter_file = new File(root, COUNTER_FILE_NAME);
+      Long counter = null;
+      if (counter_file.exists ())
+      {
+         try
+         {
+            String  counter_string=FileUtils.readFileToString(counter_file);
+            counter_string=counter_string.trim();
+            counter=Long.parseLong(counter_string);
+         }
+         catch(IOException e)
+         {
+            logger.error("Counter file " + counter_file.getPath() + 
+               " cannot be accessed", e);
+         }
+         catch(NumberFormatException nfe)
+         {
+            logger.error("Counter file " + counter_file.getPath() + 
+               " malformed: " + nfe.getMessage ());
+         }
+         catch(NullPointerException npe)
+         {
+            logger.error("Counter file " + counter_file.getPath() + 
+                     "is empty.");
+         }
+      }
+      // Counter file found: save it
+      if(counter != null)
+      {
+         HierarchicalDirectoryBuilder.counter = counter;
+      }
+      else
+      {
+         // Counter file not found: compute it
+         recomputeCounterFirstFreePath();
+      }
+      // Install shutdown hook to save the counter at the end of the 
+      // system execution: shall be run only once.
+      if(!isHookInstalled)
+      {
+         isHookInstalled = true;
+         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable()
+         {
+            
+            @Override
+            public void run ()
+            {
+               try
+               {
+                  // Recompute the counter path (case of root changed).
+                  File root = getRoot();
+                  File counter_file = new File(root, COUNTER_FILE_NAME);
+                  // Save the counter.
+                  FileUtils.writeStringToFile (counter_file, 
+                     HierarchicalDirectoryBuilder.counter.toString ());
+               }
+               catch (IOException e)
+               {
+                  logger.error ("Unable to save Incoming counter: " + 
+                     e.getMessage ());
+               }
+            }
+         }));
+      }
+   }
+
+   /**
+    * Looks for and creates a new incoming directory according to 
+    * {@link #getHierarchicalPath(Long, Long)} method. If the computed path is
+    * already used {@link #getUnused()} method recompute it.
+    * @return available path.
+    */
+   private File getUnused ()
+   {
+      File unused = null;
+      do
+      {
+         String h_path = getHierarchicalPath (counter++, maxOccurence);
+         unused = new File (new File (getRoot (), h_path),  DHUS_ENTRY_NAME);
+      } while (isUsed (unused));
+      unused.mkdirs ();
+      return unused;
+   }
+   
+   /**
+    * Checks if the passed path is already used. The path is considered 'used'
+    * if it has been already created. 
+    * @param path to check.
+    * @return true if the directory is used, false otherwise.
+    */
+   private boolean isUsed (File path)
+   {
+      return path.exists ();
+   }
+
+// End getHierarchicalPath(long, long)
 }

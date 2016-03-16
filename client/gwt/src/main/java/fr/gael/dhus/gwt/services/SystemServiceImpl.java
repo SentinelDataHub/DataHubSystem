@@ -33,6 +33,7 @@ import fr.gael.dhus.database.object.config.system.SupportConfiguration;
 import fr.gael.dhus.database.object.config.system.SystemConfiguration;
 import fr.gael.dhus.gwt.services.annotation.RPCService;
 import fr.gael.dhus.gwt.share.ConfigurationData;
+import fr.gael.dhus.gwt.share.exceptions.AccessDeniedException;
 import fr.gael.dhus.gwt.share.exceptions.SystemServiceException;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
 
@@ -47,7 +48,7 @@ public class SystemServiceImpl extends RemoteServiceServlet implements
 {
    private static final long serialVersionUID = -2489815211609414182L;
 
-   public ConfigurationData getConfiguration () throws SystemServiceException
+   public ConfigurationData getConfiguration () throws SystemServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.SystemService systemService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.SystemService.class);
@@ -57,6 +58,11 @@ public class SystemServiceImpl extends RemoteServiceServlet implements
          Configuration cfg = systemService.getCurrentConfiguration ();
          return convertConfiguration (cfg);
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -65,7 +71,7 @@ public class SystemServiceImpl extends RemoteServiceServlet implements
    }
 
    public ConfigurationData saveConfiguration (ConfigurationData configurationData)
-      throws SystemServiceException
+      throws SystemServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.SystemService systemService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.SystemService.class);
@@ -75,6 +81,11 @@ public class SystemServiceImpl extends RemoteServiceServlet implements
             systemService.saveSystemSettings (convertConfigurationData (configurationData));
          return convertConfiguration (cfg);
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -83,7 +94,7 @@ public class SystemServiceImpl extends RemoteServiceServlet implements
    }
 
    public ConfigurationData resetToDefaultConfiguration ()
-      throws SystemServiceException
+      throws SystemServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.SystemService systemService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.SystemService.class);
@@ -93,6 +104,11 @@ public class SystemServiceImpl extends RemoteServiceServlet implements
          Configuration cfg = systemService.resetToDefaultConfiguration ();
          return convertConfiguration (cfg);
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -101,13 +117,18 @@ public class SystemServiceImpl extends RemoteServiceServlet implements
    }
 
    public void changeRootPassword (String new_pwd, String old_pwd)
-      throws SystemServiceException
+      throws SystemServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.SystemService systemService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.SystemService.class);
       try
       {
          systemService.changeRootPassword (new_pwd, old_pwd);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -117,7 +138,7 @@ public class SystemServiceImpl extends RemoteServiceServlet implements
    }
 
    public List<Date> getDumpDatabaseList ()
-      throws SystemServiceException
+      throws SystemServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.SystemService systemService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.SystemService.class);
@@ -126,6 +147,11 @@ public class SystemServiceImpl extends RemoteServiceServlet implements
       {
          return systemService.getDumpDatabaseList ();
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -133,7 +159,7 @@ public class SystemServiceImpl extends RemoteServiceServlet implements
       }
    }
 
-   public void restoreDatabase (Date date) throws SystemServiceException
+   public void restoreDatabase (Date date) throws SystemServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.SystemService systemService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.SystemService.class);
@@ -141,6 +167,11 @@ public class SystemServiceImpl extends RemoteServiceServlet implements
       try
       {
          systemService.restoreDumpDatabase (date);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -167,6 +198,8 @@ public class SystemServiceImpl extends RemoteServiceServlet implements
       configurationData.setMailServerFromName (cfg.getMessagingConfiguration ().getMailConfiguration ().getServerConfiguration ().getMailFromConfiguration ().getName ());
       configurationData.setMailServerReplyTo (cfg.getMessagingConfiguration ().getMailConfiguration ().getServerConfiguration ().getReplyTo ());
 
+      configurationData.setRegistrationMail (cfg.getSystemConfiguration ().getSupportConfiguration ().getRegistrationMail ());
+      
       configurationData.setSupportMail (cfg.getSystemConfiguration ().getSupportConfiguration ().getMail ());
       configurationData.setSupportName (cfg.getSystemConfiguration ().getSupportConfiguration ().getName ());
 
@@ -209,6 +242,7 @@ public class SystemServiceImpl extends RemoteServiceServlet implements
       
       SupportConfiguration supportCfg = new SupportConfiguration ();
       
+      supportCfg.setRegistrationMail (configurationData.getRegistrationMail ());
       supportCfg.setMail (configurationData.getSupportMail ());
       supportCfg.setName (configurationData.getSupportName ());
       

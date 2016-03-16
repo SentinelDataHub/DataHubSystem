@@ -82,6 +82,12 @@
 			width: 202px;
 		}
 		
+		#register_country
+		{
+			height: 18px;
+			width: 202px;
+		}
+		
 		#register_subDomainLabel
 		{
 			display: none;
@@ -123,7 +129,7 @@
 			var mailConfirm = document.getElementById('register_mail_confirm').value;
 			var firstNameValue = document.getElementById('register_firstname').value;
 			var lastNameValue = document.getElementById('register_lastname').value;
-			var countryValue = document.getElementById('register_country').value;
+			var countryValue = document.getElementById("register_country").value;
 			var usageValue = document.getElementById("register_usage").options[document.getElementById("register_usage").value].text;
 			var domainValue = document.getElementById("register_domain").options[document.getElementById("register_domain").value].text;
 			
@@ -266,20 +272,6 @@
 			activateRegisterButton();
 		}
 	
-		function validateCountry()
-		{
-			var value = document.getElementById('register_country').value;
-			if (value ==null || value=="")
-			{
-			  document.getElementById('register_country').setCustomValidity('Country field must be filled')	
-			}
-			else
-			{
-			  document.getElementById('register_country').setCustomValidity('')
-			}			  
-			activateRegisterButton();
-		}
-	
 		function validateSubUsage()
 		{
 			var value = document.getElementById('register_subUsage').value;
@@ -347,13 +339,27 @@
 			document.getElementById("register_subUsage").style.display = ("other" == value.toLowerCase() ? "inline-block" : "none");
 			validateSubUsage();
 		}
+	
+		function validateCountry()
+		{
+			var value = document.getElementById("register_country").value;
+			if (value == null || value =="")
+			{
+			  document.getElementById('register_country').setCustomValidity('Country field must be filled')	
+			}
+			else
+			{
+			  document.getElementById('register_country').setCustomValidity('')
+			}
+			activateRegisterButton();
+		}
 		
 	</script>
 </head>
 <body>
 	<div id="register_div">
 	<center>
-	Please fill this form to start the registration procedure then you will receive a mail with a link to validate your mail address. Finally an administrator will be able to let you access to the Sentinel Data Hub.<br/>
+	Please fill this form to start the registration procedure then you will receive a mail with a link to validate your mail address.<br/>
    Please note that username and e-mail address should be provided in lower case only.<br/><br/>
 	<div id="register_panel">
 		<div class="register_line">
@@ -396,13 +402,15 @@
 			<div class="register_label">Usage</div>
 			<select name="register_usage" id="register_usage" class="register_field" onchange="register_usageChange()"/>
 			<div class="register_label" id="register_subUsageLabel">Please specify</div>
-			<input type="text" name="register_subUsage" id="register_subUsage" class="register_field" 
-				onkeyup="validateSubUsage()"/>
+			<input name="register_subUsage" id="register_subUsage" class="register_field" 
+				onchange="validateSubUsage()"/>
 		</div>	
 		<div class="register_line">
 			<div class="register_label">Country</div>
-			<input type="text" name="register_country" id="register_country" class="register_field" 
-				onkeyup="validateCountry()"/>
+			<select type="text" name="register_country" id="register_country" class="register_field" 
+				onChange="validateCountry()">
+				<option disabled selected></option>
+			</select>
 		</div>	
 		<input type="text" name="username" id="username" class="register_field"/>
 		

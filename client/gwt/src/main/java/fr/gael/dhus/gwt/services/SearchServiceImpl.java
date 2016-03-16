@@ -34,6 +34,7 @@ import fr.gael.dhus.database.object.Product;
 import fr.gael.dhus.gwt.services.annotation.RPCService;
 import fr.gael.dhus.gwt.share.MetadataIndexData;
 import fr.gael.dhus.gwt.share.ProductData;
+import fr.gael.dhus.gwt.share.exceptions.AccessDeniedException;
 import fr.gael.dhus.gwt.share.exceptions.SearchServiceException;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
 
@@ -44,11 +45,15 @@ public class SearchServiceImpl extends RemoteServiceServlet implements
    private static final long serialVersionUID = 503312188474097406L;
 
    @Override
-   public List<ProductData> search (String filter, int startIndex, int numElement, Long userId)
-      throws SearchServiceException
+   public List<ProductData> search (String filter, int startIndex, 
+      int numElement, Long userId) throws SearchServiceException, AccessDeniedException
    {      
-      fr.gael.dhus.service.SearchService searchService = ApplicationContextProvider
-            .getBean (fr.gael.dhus.service.SearchService.class);
+      fr.gael.dhus.service.SearchService searchService= 
+         ApplicationContextProvider.getBean(
+            fr.gael.dhus.service.SearchService.class);
+      fr.gael.dhus.service.ProductService productService= 
+         ApplicationContextProvider.getBean(
+            fr.gael.dhus.service.ProductService.class);
       try
       {
          List<Product> products =
@@ -78,7 +83,8 @@ public class SearchServiceImpl extends RemoteServiceServlet implements
                ArrayList<MetadataIndexData> indexes =
                   new ArrayList<MetadataIndexData> ();
 
-               for (MetadataIndex index : product.getIndexes ())
+               for (MetadataIndex index : 
+                    productService.getIndexes(product.getId()))
                {
                   MetadataIndexData category =
                      new MetadataIndexData (index.getCategory (), null);
@@ -113,6 +119,11 @@ public class SearchServiceImpl extends RemoteServiceServlet implements
          }
          return productDatas;
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -120,7 +131,7 @@ public class SearchServiceImpl extends RemoteServiceServlet implements
       }
    }
 
-   public Integer count (String query) throws SearchServiceException
+   public Integer count (String query) throws SearchServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.SearchService searchService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.SearchService.class);
@@ -128,6 +139,11 @@ public class SearchServiceImpl extends RemoteServiceServlet implements
       try
       {
          return searchService.getResultCount (query);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {

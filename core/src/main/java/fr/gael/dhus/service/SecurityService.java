@@ -35,9 +35,9 @@ import fr.gael.dhus.database.object.User;
 @Service
 public class SecurityService extends WebService
 {
-   private static Log logger = LogFactory.getLog (SecurityService.class);
+   public static final String AUTHENTICATION_KEY = "DHUS_AUTHENTICATION_KEY";
 
-   public final static String AUTHENTICATION_KEY = "DHUS_AUTHENTICATION_KEY";
+   private static Log logger = LogFactory.getLog (SecurityService.class);
 
    /**
     * Get currently connected User.

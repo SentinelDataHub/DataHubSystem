@@ -20,6 +20,10 @@
          <directory>etc</directory>
          <outputDirectory>etc</outputDirectory>
       </fileSet>
+      <fileSet>
+         <directory>native</directory>
+         <outputDirectory>lib/native</outputDirectory>
+      </fileSet>
    </fileSets>
    
    <!-- Includes dependent Jar archives -->

@@ -19,14 +19,11 @@
  */
 package fr.gael.dhus.database.object;
 
-import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import java.util.Date;
 
 /**
  * Timestamp being applied to tables
@@ -36,23 +33,11 @@ public abstract class AbstractTimestampEntity
 {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created", nullable = false)
-    private Date created;
+    private Date created=new Date ();
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "updated", nullable = false)
-    private Date updated;
-
-    @PrePersist
-    protected void onCreate()
-    {
-       this.created = this.updated = new Date();
-    }
-
-    @PreUpdate
-    protected void onUpdate()
-    {
-       this.updated = new Date();
-    }
+    private Date updated=new Date();
 
    /**
     * @return the created
@@ -72,13 +57,12 @@ public abstract class AbstractTimestampEntity
 
    public void setCreated (Date created)
    {
-	   this.created = created;
-	   setUpdated(created);
+      this.created = created;
+      setUpdated (created);
    }
-   
+
    public void setUpdated (Date updated)
    {
-	   this.updated = updated;
+      this.updated = updated;
    }
-   
 }

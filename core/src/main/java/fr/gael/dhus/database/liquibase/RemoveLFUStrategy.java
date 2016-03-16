@@ -29,9 +29,13 @@ import liquibase.exception.CustomChangeException;
 import liquibase.exception.SetupException;
 import liquibase.exception.ValidationErrors;
 import liquibase.resource.ResourceAccessor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class RemoveLFUStrategy implements CustomTaskChange
 {
+    private static Logger logger = LogManager.getLogger ();
+
    @Override
    public String getConfirmationMessage ()
    {
@@ -39,7 +43,7 @@ public class RemoveLFUStrategy implements CustomTaskChange
    }
 
    @Override
-   public void setFileOpener (ResourceAccessor resourceAccessor)
+   public void setFileOpener (ResourceAccessor resource_accessor)
    {
    }
 
@@ -81,7 +85,8 @@ public class RemoveLFUStrategy implements CustomTaskChange
             }
             PreparedStatement updateStrategy =
                databaseConnection
-                  .prepareStatement ("UPDATE EVICTION SET STRATEGY = '"+strategy+"' WHERE ID = "+res.getObject ("ID"));
+                  .prepareStatement ("UPDATE EVICTION SET STRATEGY = '" +
+                        strategy+"' WHERE ID = "+res.getObject ("ID"));
             updateStrategy.execute ();
             updateStrategy.close ();
          }
@@ -89,7 +94,7 @@ public class RemoveLFUStrategy implements CustomTaskChange
       }
       catch (Exception e)
       {
-         e.printStackTrace ();
+         logger.error ("Error during liquibase update 'removeLFUStrategy'", e);
       }
    }
 }

@@ -43,7 +43,10 @@ public class AsynchronousLinkedList<E> extends AbstractList<E>
    /**
     * This list possible events: ADD and REMOVE event are implemented.
     */
-   public enum EventType {ADD, REMOVE};
+   public enum EventType
+   {
+      ADD, REMOVE
+   }
    /**
     * The event happened in this {@link Listener} class.
     * @param <E> element type passed into the list.
@@ -55,7 +58,8 @@ public class AsynchronousLinkedList<E> extends AbstractList<E>
       int index;
       /**
        * Build the event.
-       * @param type the type of event passed according to {@link EventType} types.
+       * @param type the type of event passed according to {@link EventType}
+       *             types.
        * @param element the changed element in the list.
        * @param index the index of the element in the list.
        */

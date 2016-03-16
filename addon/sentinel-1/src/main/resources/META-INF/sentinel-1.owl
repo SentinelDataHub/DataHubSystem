@@ -49,21 +49,314 @@
    ****************************************************************************
    ************************************************************************ -->
    <rdf:Description rdf:about="&s1;product">
+      <dhus:support/>
+      <dhus:metadataTypes rdf:parseType="Literal">
+
+         <metadataType id="platformName"
+                       name="Satellite name"
+                       contentType="text/plain"
+                       category="platform">
+            <solrField name="platformname"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="platformNumber"
+                       name="Satellite number"
+                       contentType="text/plain"
+                       category="platform">
+         </metadataType>
+
+         <metadataType id="platformIdentifier"
+                       name="NSSDC identifier"
+                       contentType="text/plain"
+                       category="platform">
+            <solrField name="platformidentifier"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="operator"
+                       name="Operator"
+                       contentType="text/plain"
+                       category="platform">
+         </metadataType>
+
+         <metadataType id="missionType"
+                       name="Mission type"
+                       contentType="text/plain"
+                       category="platform">
+         </metadataType>
+
+         <metadataType id="carrierRocket"
+                       name="Carrier rocket"
+                       contentType="text/plain"
+                       category="platform">
+         </metadataType>
+
+         <metadataType id="launchDate"
+                       name="Launch date"
+                       contentType="text/plain"
+                       category="platform">
+         </metadataType>
+
+         <metadataType id="satelliteDescription"
+                       name="Satellite description"
+                       contentType="text/plain"
+                       category="platform">
+         </metadataType>
+
+         <metadataType id="instrumentName"
+                       name="Instrument name"
+                       contentType="text/plain"
+                       category="instrument">
+            <solrField name="instrumentname"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="instrumentShortName"
+                       name="Instrument abbreviation"
+                       contentType="text/plain"
+                       category="instrument">
+            <solrField name="instrumentshortname"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="instrument"
+                       name="Instrument"
+                       contentType="text/plain"
+                       category="summary">
+         </metadataType>
+
+         <metadataType id="instrumentDescription"
+                       name="Instrument description"
+                       contentType="text/plain"
+                       category="instrument">
+         </metadataType>
+
+         <metadataType id="instrumentDescriptionText"
+                       name="Instrument description text"
+                       contentType="text/plain"
+                       category="">
+         </metadataType>
+
+         <metadataType id="filename"
+                       name="Filename"
+                       contentType="text/plain"
+                       category="">
+            <solrField name="filename"
+                       type="string"
+                       required="true"/>
+         </metadataType>
+
+         <metadataType id="resolutionDetail"
+                       name="Resolution"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="resolutiondetail"
+                       type="string"
+                       stored="false"/>
+         </metadataType>
+
+         <metadataType id="format"
+                       name="Format"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="format"
+                       type="string"
+                       required="true"/>
+         </metadataType>
+
+         <metadataType id="missionDataTakeId"
+                       name="Mission datatake id"
+                       contentType="text/integer"
+                       category="product">
+            <solrField name="missiondatatakeid"
+                       type="int"/>
+         </metadataType>
+
+         <metadataType id="sliceNumber"
+                       name="Slice number"
+                       contentType="text/integer"
+                       category="product">
+            <solrField name="slicenumber"
+                       type="int"/>
+         </metadataType>
+
+         <metadataType id="productClass"
+                       name="Product class"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="productclass"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="productClassDescription"
+                       name="Product class description"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+         <metadataType id="productComposition"
+                       name="Product composition"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+         <metadataType id="beginPosition"
+                       name="Sensing start"
+                       contentType="text/date+iso8601"
+                       category="product">
+            <solrField name="beginposition"
+                       type="tdate"/>
+         </metadataType>
+
+         <metadataType id="endPosition"
+                       name="Sensing stop"
+                       contentType="text/date+iso8601"
+                       category="product">
+            <solrField name="endposition"
+                       type="tdate"/>
+         </metadataType>
+
+         <metadataType id="orbitNumber"
+                       name="Orbit number (start)"
+                       contentType="text/integer"
+                       category="product">
+            <solrField name="orbitnumber"
+                       type="int"/>
+         </metadataType>
+
+         <metadataType id="lastOrbitNumber"
+                       name="Orbit number (stop)"
+                       contentType="text/integer"
+                       category="product">
+            <solrField name="lastorbitnumber"
+                       type="int"/>
+         </metadataType>
+
+         <metadataType id="relativeOrbitNumber"
+                       name="Relative orbit (start)"
+                       contentType="text/integer"
+                       category="product">
+            <solrField name="relativeorbitnumber"
+                       type="int"/>
+         </metadataType>
+
+         <metadataType id="lastRelativeOrbitNumber"
+                       name="Relative orbit (stop)"
+                       contentType="text/integer"
+                       category="product">
+            <solrField name="lastrelativeorbitnumber"
+                       type="int"/>
+         </metadataType>
+
+         <!-- TODO: verify why this field is a duplicated of a previous one.
+                    Because of int / text types ? -->
+         <metadataType id="startRelativeOrbitNumberText"
+                       name="Start relative orbit number"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+         <!-- TODO: verify why this field is a duplicated of a previous one.
+                    Because of int / text types ? -->
+         <metadataType id="stopRelativeOrbitNumberText"
+                       name="Stop relative orbit number"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+         <metadataType id="cycleNumber"
+                       name="Cycle number"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+         <metadataType id="phaseIdentifier"
+                       name="Phase identifier"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+         <!-- TODO: general comment: polarization deals with instrument more
+              than product category -->
+         <metadataType id="polarisationMode"
+                       name="Polarisation"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="polarisationmode"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="acquisitionType"
+                       name="Acquisition Type"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="acquisitiontype"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="status"
+                       name="Status"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="status"
+                       type="text_general"/>
+         </metadataType>
+
+         <!-- TODO: why again a text about platform name and at this position?
+                    Because of the category? So why not allowing multiple
+                    categories for a type? -->
+         <metadataType id="satellite"
+                       name="Satellite"
+                       contentType="text/plain"
+                       category="summary">
+         </metadataType>
+
+         <!-- TODO: why this size is defined and indexed as a string? It also
+              seems to be a duplicate of the contentLength general
+              property. If it is because of the unit, this could be defined
+              in this type definition and suffixed only at rendering time -->
+         <metadataType id="size"
+                       name="Size"
+                       contentType="text/plain"
+                       category="summary">
+            <solrField name="size"
+                       type="string"/>
+         </metadataType>
+
+         <metadataType id="date"
+                       name="Date"
+                       contentType="text/date+iso8601"
+                       category="summary">
+         </metadataType>
+
+      </dhus:metadataTypes>
+   </rdf:Description>
+
+   <rdf:Description rdf:about="&s1;product">
       <dhus:metadataExtractor  rdf:parseType="Literal">
       <![CDATA[
+         declare function local:round-half-down($arg, $precision) as
+            xs:double*
+         {
+            xs:integer((xs:double($arg)*math:power(10, $precision))) div
+               math:power(10, $precision)
+         };
+
          <metadata
             queryable="platformName"
             category="platform" name="Satellite name" type="text/plain">
             Sentinel-1
          </metadata>,
 
-         <metadata category="platform" name="Satellite number" type="text/plain">
+         <metadata category="platform" name="Satellite number"
+                   type="text/plain">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[@ID="platform"]/metadataWrap/xmlData/
                 platform/number)}
          </metadata>,
 
-         <metadata queryable="platformIdentifier" 
+         <metadata queryable="platformIdentifier"
             category="platform"
             name="NSSDC identifier"
             type="text/plain">
@@ -88,70 +381,39 @@
             April 3rd, 2014
          </metadata>,
 
-       <metadata category="platform" name="Satellite description" type="text/html">
-         &lt;a target=&quot;_blank&quot; href=&quot;https://sentinel.esa.int/web/sentinel/missions/sentinel-1&quot;&gt;https://sentinel.esa.int/web/sentinel/missions/sentinel-1&lt;/a&gt;
+         <metadata category="platform" name="Satellite description"
+                   type="text/html">
+            &lt;a target=&quot;_blank&quot; href=&quot;https://sentinel.esa.int/web/sentinel/missions/sentinel-1&quot;&gt;https://sentinel.esa.int/web/sentinel/missions/sentinel-1&lt;/a&gt;
          </metadata>,
-       (:
-         <metadata category="" name="Satellite description text" type="text/plain">
-            The Sentinel-1 mission is a polar-orbiting satellite system for the
-            continuation of Synthetic Aperture Radar (SAR) operational applications.
-            Sentinel-1 is a C-band imaging radar mission to provide an
-            all-weather day-and-night supply of imagery for GMES user services.
-            The first Sentinel-1 satellite was launch in 2014 and
-            will be followed by the second satellite a few years later.
-            The SAR sensor will operate in two main modes: Interferometric Wide
-            Swath and Wave. The first has a swath width of 250 km and a ground
-            resolution of 5 to 20 m. These two modes will satisfy most of the
-            envisaged service requirements. Two other mutually exclusive modes
-            are provided for continuity with other SAR missions and to
-            accommodate emerging user requirements.
-            Sentinel-1's revisit time, geographical coverage and rapid data
-            dissemination are key to providing essential data for GMES. The
-            Sentinel-1 pair is expected to provide coverage over Europe, Canada
-            and main shipping routes in 13 days, regardless of weather
-            conditions. Radar data will be delivered within an hour of
-            acquisition  a big improvement over existing SAR systems.
-            Sentinel-1 will aid sea-ice monitoringThe mission will benefit
-            numerous services. For example, services that relate to the
-            monitoring of Arctic sea-ice extent, routine sea-ice mapping,
-            surveillance of the marine environment, including oil-spill
-            monitoring and ship detection for maritime security, monitoring
-            land-surface for motion risks, mapping for forest, water and soil
-            management and mapping to support humanitarian aid and crisis
-            situations.
-            The design of the Sentinel-1 mission with its focus on reliability,
-            operational stability, global coverage, consistent operations and
-            quick data delivery is expected to enable the development of new
-            applications and meet the evolving needs of GMES.
-         </metadata>,
-         :)
 
          <metadata queryable="instrumentName"
-            category="instrument" 
-            name="Instrument name" 
+            category="instrument"
+            name="Instrument name"
             type="text/plain">
             Synthetic Aperture Radar (C-band)
          </metadata>,
 
          <metadata queryable="instrumentShortName"
-            category="instrument" 
-            name="Instrument abbreviation" 
+            category="instrument"
+            name="Instrument abbreviation"
             type="text/plain">
             SAR-C SAR
          </metadata>,
-         
+
          <metadata
-            category="summary" 
-            name="Instrument" 
+            category="summary"
+            name="Instrument"
             type="text/plain">
             SAR-C
          </metadata>,
 
-       <metadata category="instrument" name="Instrument description" type="text/html">
-         &lt;a target=&quot;_blank&quot; href=&quot;https://sentinel.esa.int/web/sentinel/missions/sentinel-1&quot;&gt;https://sentinel.esa.int/web/sentinel/missions/sentinel-1&lt;/a&gt;
+         <metadata category="instrument" name="Instrument description"
+                   type="text/html">
+            &lt;a target=&quot;_blank&quot; href=&quot;https://sentinel.esa.int/web/sentinel/missions/sentinel-1&quot;&gt;https://sentinel.esa.int/web/sentinel/missions/sentinel-1&lt;/a&gt;
          </metadata>,
-         
-         <metadata category="" name="Instrument description text" type="text/plain">
+
+         <metadata category="" name="Instrument description text"
+                   type="text/plain">
             The SAR Antenna Subsystem (SAS) is developed and build by Astrium
             GmbH. It is a large foldable planar phased array antenna, which is
             formed by a centre panel and two antenna side wings. In deployed
@@ -172,18 +434,18 @@
             allows an efficient use of on-board storage resources and minimises
             downlink times.
          </metadata>,
-         
+
          <!-- name too long: removed category to not stitch the view window -->
          <metadata queryable="filename"
-            category=""  
-            name="Filename" 
+            category=""
+            name="Filename"
             type="text/plain">
                {name()}
          </metadata>,
-         
+
          <metadata queryable="resolutionDetail"
-            category="product" 
-            name="Resolution" 
+            category="product"
+            name="Resolution"
             type="text/plain">
             {
                let $res:=fn:substring (name(), 11,1)
@@ -193,75 +455,79 @@
                if ($res="M") then "Medium" else ()
             }
          </metadata>,
-         
+
           <metadata queryable="format"
-            category="product" 
-            name="Format" 
+            category="product"
+            name="Format"
             type="text/plain">
             {
                fn:substring (name(),69,4)
             }
          </metadata>,
-         
-         
+
          <metadata queryable="missionDataTakeId"
-            category="product" 
-            name="Mission datatake id" 
+            category="product"
+            name="Mission datatake id"
             type="text/integer">
                {data(manifest.safe/XFDU/metadataSection/
                   metadataObject[@ID="generalProductInformation"]/
                   metadataWrap/xmlData/
-                  *[matches(name(),"standAloneProductInformation|generalProductInformation")]/
+                  *[matches(name(),
+                  "standAloneProductInformation|generalProductInformation")]/
                   missionDataTakeID)}
          </metadata>,
-         
+
          <metadata queryable="sliceNumber"
-            category="product" 
-            name="Slice number" 
+            category="product"
+            name="Slice number"
             type="text/integer">
                {data(manifest.safe/XFDU/metadataSection/
                   metadataObject[@ID="generalProductInformation"]/
                   metadataWrap/xmlData/
-                  *[matches(name(),"standAloneProductInformation|generalProductInformation")]/
+                  *[matches(name(),
+                  "standAloneProductInformation|generalProductInformation")]/
                   sliceNumber)}
          </metadata>,
-         
+
          <metadata queryable="productClass"
-            category="product" 
-            name="Product class" 
+            category="product"
+            name="Product class"
             type="text/plain">
                {data(manifest.safe/XFDU/metadataSection/
                   metadataObject[@ID="generalProductInformation"]/
                   metadataWrap/xmlData/
-                  *[matches(name(),"standAloneProductInformation|generalProductInformation")]/
+                  *[matches(name(),
+                  "standAloneProductInformation|generalProductInformation")]/
                   productClass)}
          </metadata>,
-         
+
          <metadata
-            category="product" 
-            name="Product class description" 
+            category="product"
+            name="Product class description"
             type="text/plain">
                {data(manifest.safe/XFDU/metadataSection/
                   metadataObject[@ID="generalProductInformation"]/
                   metadataWrap/xmlData/
-                  *[matches(name(),"standAloneProductInformation|generalProductInformation")]/
+                  *[matches(name(),
+                  "standAloneProductInformation|generalProductInformation")]/
                   productClassDescription)}
          </metadata>,
-         
+
          <metadata
-            category="product" 
-            name="Product composition" 
+            category="product"
+            name="Product composition"
             type="text/plain">
                {data(manifest.safe/XFDU/metadataSection/
                   metadataObject[@ID="generalProductInformation"]/
                   metadataWrap/xmlData/
-                  *[matches(name(),"standAloneProductInformation|generalProductInformation")]/
+                  *[matches(name(),
+                  "standAloneProductInformation|generalProductInformation")]/
                   productComposition)}
          </metadata>,
-         
-         <metadata queryable="beginPosition" 
-            category="product" 
-            name="Sensing start" 
+
+         <metadata queryable="beginPosition"
+            category="product"
+            name="Sensing start"
             type="text/date+iso8601">
             {
                drb:Iso8601DateFormatter(
@@ -271,9 +537,9 @@
             }
          </metadata>,
 
-         <metadata queryable="endPosition" 
-            category="product" 
-            name="Sensing stop" 
+         <metadata queryable="endPosition"
+            category="product"
+            name="Sensing stop"
             type="text/date+iso8601">
             {
                drb:Iso8601DateFormatter(
@@ -283,7 +549,7 @@
             }
          </metadata>,
 
-         <metadata queryable="orbitNumber" 
+         <metadata queryable="orbitNumber"
             category="product"
             name="Orbit number (start)"
             type="text/integer">
@@ -291,46 +557,52 @@
                 metadataObject[fn:matches(@ID,".+OrbitReference")]/
                 metadataWrap/xmlData/orbitReference/orbitNumber[@type="start"])}
          </metadata>,
-         
+
          <metadata queryable="lastOrbitNumber"
-            category="product" 
-            name="Orbit number (stop)" 
+            category="product"
+            name="Orbit number (stop)"
             type="text/integer">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[fn:matches(@ID,".+OrbitReference")]/
                 metadataWrap/xmlData/orbitReference/orbitNumber[@type="stop"])}
          </metadata>,
 
-         <metadata queryable="relativeOrbitNumber" 
+         <metadata queryable="relativeOrbitNumber"
             category="product"
             name="Relative orbit (start)"
             type="text/integer">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[fn:matches(@ID,".+OrbitReference")]/
-                metadataWrap/xmlData/orbitReference/relativeOrbitNumber[@type="start"])}
+                metadataWrap/xmlData/orbitReference/
+                relativeOrbitNumber[@type="start"])}
          </metadata>,
-         
-         <metadata queryable="lastRelativeOrbitNumber" 
+
+         <metadata queryable="lastRelativeOrbitNumber"
             category="product"
             name="Relative orbit (stop)"
             type="text/integer">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[fn:matches(@ID,".+OrbitReference")]/
-                metadataWrap/xmlData/orbitReference/relativeOrbitNumber[@type="stop"])}
+                metadataWrap/xmlData/orbitReference/
+                relativeOrbitNumber[@type="stop"])}
          </metadata>,
 
-         <metadata category="product" name="Start relative orbit number" type="text/plain">
+         <metadata category="product" name="Start relative orbit number"
+                   type="text/plain">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[fn:matches(@ID,".+OrbitReference")]/
-                metadataWrap/xmlData/orbitReference/relativeOrbitNumber[@type="start"])}
+                metadataWrap/xmlData/orbitReference/
+                relativeOrbitNumber[@type="start"])}
          </metadata>,
 
-         <metadata category="product" name="Stop relative orbit number" type="text/plain">
+         <metadata category="product" name="Stop relative orbit number"
+                   type="text/plain">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[fn:matches(@ID,".+OrbitReference")]/
-                metadataWrap/xmlData/orbitReference/relativeOrbitNumber[@type="stop"])}
+                metadataWrap/xmlData/orbitReference/
+                relativeOrbitNumber[@type="stop"])}
          </metadata>,
-         
+
          <metadata category="product" name="Cycle number" type="text/plain">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[fn:matches(@ID,".+OrbitReference")]/
@@ -342,57 +614,71 @@
                 metadataObject[fn:matches(@ID,".+OrbitReference")]/
                 metadataWrap/xmlData/orbitReference/phaseIdentifier)}
          </metadata>,
-         
+
          <metadata
             queryable="polarisationMode"
-            category="product" 
-            name="Polarisation" 
+            category="product"
+            name="Polarisation"
             type="text/plain">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[@ID="generalProductInformation"]/
                 metadataWrap/xmlData/
-                *[matches(name(),"standAloneProductInformation|generalProductInformation")]/
+                *[matches(name(),
+                "standAloneProductInformation|generalProductInformation")]/
                 transmitterReceiverPolarisation)}
          </metadata>,
-         
+
          <metadata
             queryable="acquisitionType"
-            category="product" 
-            name="Acquisition Type" 
+            category="product"
+            name="Acquisition Type"
             type="text/plain">NOMINAL</metadata>,
-            
+
           <metadata
             queryable="status"
-            category="product" 
+            category="product"
             name="Status" 
             type="text/plain">ARCHIVED</metadata>,
-         
-         <metadata category="summary" name="Satellite" type="text/plain">Sentinel-1</metadata>,
-         <metadata queryable="size" 
-            category="summary" name="Size" type="text/plain">
+
+         <metadata category="summary" name="Satellite"
+                   type="text/plain">Sentinel-1</metadata>,
+
+         <metadata queryable="size"
+                   category="summary" name="Size" type="text/plain">
          {
-            let $size := xs:integer(fn:sum (manifest.safe/XFDU/dataObjectSection//@size))
+            let $size := xs:double(fn:sum (manifest.safe/XFDU/
+                            dataObjectSection//@size))
+            let $kilo := 1024
+            let $mega := xs:integer($kilo * 1024)
+            let $giga := xs:integer($mega * 1024)
+            let $tera := xs:integer($giga * 1024)
+            let $kilo_size := local:round-half-down(($size div $kilo), 2)
+            let $mega_size := local:round-half-down(($size div $mega), 2)
+            let $giga_size := local:round-half-down(($size div $giga), 2)
+            let $tera_size := local:round-half-down(($size div $tera), 2)
             return
                if ($size < 1024)
-               then 
+               then
                   concat ($size, " bytes")
                else
-                  if (($size div 1024) < 1024)
+                  if (($size div $kilo) < 1024)
                   then
-                     concat (($size div 1024), " KB")
+                     concat ($kilo_size, " KB")
                   else
-                     if (($size div (1024*1024)) < 1024)
-                        then concat (($size div (1024*1024)), " MB")
-                     else
-                        if (($size div (1024*1024*1024)) < 1024)
+                     if (($size div $mega) < 1024)
                         then
-                           concat (($size div (1024*1024*1024)), " GB")
+                           concat ($mega_size, " MB")
+                     else
+                        if (($size div $giga) < 1024)
+                        then
+                           concat ($giga_size, " GB")
                         else 
-                           concat (($size div (1024*1024*1024*1024)), " TB")
+                           concat ($tera_size, " TB")
          }
          </metadata>,
+
          <metadata category="summary" 
-            name="Date" 
+            name="Date"
             type="text/date+iso8601">
             {
                drb:Iso8601DateFormatter(
@@ -406,24 +692,50 @@
    </rdf:Description>
 
    <rdf:Description rdf:about="&s1;manifestFootPrintProduct">
+      <dhus:metadataTypes rdf:parseType="Literal">
+
+         <metadataType id="GMLfootprint"
+                       name="Footprint"
+                       contentType="application/gml+xml"
+                       category="product">
+            <solrField name="gmlfootprint"
+                       type="string"/>
+         </metadataType>
+
+         <!-- TODO: holding two representations of the footprint is cumbersome
+                    and confusing. Please select one maybe providing tool-boxes
+                    to convert the geometries at the final rendering -->
+         <metadataType id="footprint"
+                       name="JTS footprint"
+                       contentType="application/jts"
+                       category="product">
+            <solrField name="footprint"
+                       type="location_rpt"/>
+         </metadataType>
+
+      </dhus:metadataTypes>
+   </rdf:Description>
+
+   <rdf:Description rdf:about="&s1;manifestFootPrintProduct">
       <dhus:metadataExtractor  rdf:parseType="Literal">
       <![CDATA[
          declare function local:trim ($arg as xs:string) as xs:string
          {
             replace(replace(replace($arg,'\s+$',''),'^\s+',''), '\s+', ' ')
          };
+
          declare function local:revert ($coords as xs:string) as xs:string
          {
             let $tcoords := fn:tokenize ($coords, ",")
             return
                concat ($tcoords[2], ",", $tcoords[1])
          };
-         
-         declare function local:formatCoordinates ($coords as xs:string, 
+
+         declare function local:formatCoordinates ($coords as xs:string,
             $revert_flag as xs:boolean) as xs:string
          {
             let $tcoords := fn:tokenize (local:trim($coords), " ")
-            let $reverted := 
+            let $reverted :=
                (
                   for $c in $tcoords
                   return
@@ -436,7 +748,7 @@
             return
                fn:string-join ($reverted, " ")
          };
-         
+
          declare function local:checkSrsName ($srs as xs:string) as xs:string
          {
             fn:replace($srs, "(?i)([a-z]*:)/*(.*)", "$1//$2")
@@ -449,30 +761,30 @@
                  metadataWrap/xmlData/frameSet/frame[1]/
                  footPrint/coordinates)
          };
-         
+
          declare function local:srsName() as xs:string
          {
             data(manifest.safe/XFDU/metadataSection/
                  metadataObject[fn:matches(@ID,".+FrameSet")]/
                  metadataWrap/xmlData/frameSet/frame[1]/footPrint/@srsName)
          };
-         
-         let $points_count:=fn:count(fn:tokenize(local:trim(local:points())," "))
+
+         let $points_count := fn:count(fn:tokenize(
+                                 local:trim(local:points())," "))
          return
          if ($points_count<4)
          then
-            trace ((), 
-               concat ("XQUERY WARN: Not enough coordinates in footprint (", $points_count, ")"))
+            trace ((),
+               concat ("XQUERY WARN: Not enough coordinates in footprint (",
+                  $points_count, ")"))
          else
          (
-            <metadata 
-               queryable="GMLfootprint"
-               category="product" 
-               name="Footprint" 
-               type="application/gml+xml">
-            <gml:Polygon srsName="{local:checkSrsName(local:srsName())}"
-                 
-               xmlns:gml="http://www.opengis.net/gml">
+            <metadata queryable="GMLfootprint"
+                      category="product"
+                      name="Footprint"
+                      type="application/gml+xml">
+               <gml:Polygon srsName="{local:checkSrsName(local:srsName())}"
+                         xmlns:gml="http://www.opengis.net/gml">
                   <gml:outerBoundaryIs>
                      <gml:LinearRing>
                         <gml:coordinates>
@@ -484,36 +796,115 @@
                   </gml:outerBoundaryIs>
                </gml:Polygon>
             </metadata>,
-            <metadata 
-               queryable="footprint"
-               category="product" 
-               name="JTS footprint" 
-               type="application/jts">
-               {
+            <metadata queryable="footprint"
+                      category="product"
+                      name="JTS footprint"
+                      type="application/jts">
+            {
                concat ("POLYGON ((",
-                  fn:replace ( 
+                  fn:replace (
                   fn:replace (
                   fn:replace (
                      local:formatCoordinates(local:points(), fn:true()), 
                         " +", "@"), "@*,@*", " "), "@", ","), "))")
                    (: switch " " with "," :)
-                }
+            }
             </metadata>
          )
       ]]>
       </dhus:metadataExtractor>
    </rdf:Description>
 
+   <rdf:Description rdf:about="&s1;level0product">
+      <dhus:metadataTypes rdf:parseType="Literal">
+
+         <metadataType id="productLevel"
+                       name="Product level"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+         <metadataType id="productType"
+                       name="Product type"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="producttype"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="sensorOperationalMode"
+                       name="Instrument mode"
+                       contentType="text/plain"
+                       category="instrument">
+            <solrField name="sensoroperationalmode"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="mode"
+                       name="Mode"
+                       contentType="text/plain"
+                       category="summary">
+         </metadataType>
+
+         <metadataType id="orbitDirection"
+                       name="Pass direction"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="orbitdirection"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="echoCompressionType"
+                       name="Echo Compression Type"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+         <metadataType id="noiseCompressionType"
+                       name="Noise Compression Type"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+         <metadataType id="circulationFlag"
+                       name="Circulation flag"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+         <metadataType id="productConsolidation"
+                       name="Product consolidation"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="productconsolidation"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="calCompressionType"
+                       name="Cal Compression Type"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+         <metadataType id="byteOrder"
+                       name="Byte Order"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+      </dhus:metadataTypes>
+   </rdf:Description>
 
    <rdf:Description rdf:about="&s1;level0product">
       <dhus:metadataExtractor  rdf:parseType="Literal">
       <![CDATA[
-      
-         <metadata category="product" name="Product level" type="text/plain">L0</metadata>,
-         
+         <metadata category="product" name="Product level"
+                   type="text/plain">L0</metadata>,
+
          <metadata queryable="productType"
-            category="product" name="Product type" type="text/plain">RAW</metadata>,
-         
+            category="product" name="Product type"
+            type="text/plain">RAW</metadata>,
+
          <metadata
             queryable="sensorOperationalMode"
             category="instrument" name="Instrument mode" type="text/plain">
@@ -521,98 +912,161 @@
                 metadataObject[@ID="platform"]/metadataWrap/xmlData/
                 platform/instrument/extension/instrumentMode/mode)}
          </metadata>,
-         
+
          <metadata category="summary" name="Mode" type="text/plain">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[@ID="platform"]/metadataWrap/xmlData/platform/
                 instrument/extension/instrumentMode/mode)}
          </metadata>,
-         
+
          <metadata queryable="orbitDirection"
-            category="product" 
-            name="Pass direction" 
+            category="product"
+            name="Pass direction"
             type="text/plain">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[fn:matches(@ID,".+OrbitReference")]/
-                metadataWrap/xmlData/orbitReference/extension/orbitProperties/pass)}
+                metadataWrap/xmlData/orbitReference/extension/
+                orbitProperties/pass)}
          </metadata>,
-         
+
          <metadata
-            category="product" 
-            name="Echo Compression Type" 
+            category="product"
+            name="Echo Compression Type"
             type="text/plain">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[@ID="generalProductInformation"]/
                 metadataWrap/xmlData/
-                *[matches(name(),"standAloneProductInformation|generalProductInformation")]/
+                *[matches(name(),
+                "standAloneProductInformation|generalProductInformation")]/
                 echoCompressionType)}
          </metadata>,
-         
+
          <metadata
-            category="product" 
-            name="Noise Compression Type" 
+            category="product"
+            name="Noise Compression Type"
             type="text/plain">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[@ID="generalProductInformation"]/
                 metadataWrap/xmlData/
-                *[matches(name(),"standAloneProductInformation|generalProductInformation")]/
+                *[matches(name(),
+                "standAloneProductInformation|generalProductInformation")]/
                 noiseCompressionType)}
          </metadata>,
-         
+
          <metadata
-            category="product" 
-            name="Circulation flag" 
+            category="product"
+            name="Circulation flag"
             type="text/plain">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[@ID="generalProductInformation"]/
                 metadataWrap/xmlData/
-                *[matches(name(),"standAloneProductInformation|generalProductInformation")]/
+                *[matches(name(),
+                "standAloneProductInformation|generalProductInformation")]/
                 circulationFlag)}
          </metadata>,
-         
+
          <metadata
             queryable="productConsolidation"
-            category="product" 
-            name="Product consolidation" 
+            category="product"
+            name="Product consolidation"
             type="text/plain">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[@ID="generalProductInformation"]/
                 metadataWrap/xmlData/
-                *[matches(name(),"standAloneProductInformation|generalProductInformation")]/
+                *[matches(name(),
+                "standAloneProductInformation|generalProductInformation")]/
                 productConsolidation)}
          </metadata>,
 
          <metadata
-            category="product" 
-            name="Cal Compression Type" 
+            category="product"
+            name="Cal Compression Type"
             type="text/plain">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[@ID="generalProductInformation"]/
                 metadataWrap/xmlData/
-                *[matches(name(),"standAloneProductInformation|generalProductInformation")]/
+                *[matches(name(),
+                "standAloneProductInformation|generalProductInformation")]/
                 calCompressionType)}
          </metadata>,
-         
+
          <metadata
-            category="product" 
-            name="Byte Order" 
+            category="product"
+            name="Byte Order"
             type="text/plain">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[@ID="generalProductInformation"]/
                 metadataWrap/xmlData/
-                *[matches(name(),"standAloneProductInformation|generalProductInformation")]/
+                *[matches(name(),
+                "standAloneProductInformation|generalProductInformation")]/
                 byteOrder)}
          </metadata>
-         
       ]]>
       </dhus:metadataExtractor>
    </rdf:Description>
-   
+
+   <rdf:Description rdf:about="&s1;level1product">
+      <dhus:metadataTypes rdf:parseType="Literal">
+
+         <metadataType id="productLevel"
+                       name="Product level"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+         <metadataType id="sensorOperationalMode"
+                       name="Instrument mode"
+                       contentType="text/plain"
+                       category="instrument">
+            <solrField name="sensoroperationalmode"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="mode"
+                       name="Mode"
+                       contentType="text/plain"
+                       category="summary">
+         </metadataType>
+
+         <metadataType id="swathIdentifier"
+                       name="Instrument swath"
+                       contentType="text/plain"
+                       category="instrument">
+            <solrField name="swathidentifier"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="orbitDirection"
+                       name="Pass direction"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="orbitdirection"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="productType"
+                       name="Product type"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="producttype"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="timelinessCategory"
+                       name="Timeliness Category"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+      </dhus:metadataTypes>
+   </rdf:Description>
+
    <rdf:Description rdf:about="&s1;level1product">
       <dhus:metadataExtractor  rdf:parseType="Literal">
       <![CDATA[
-         <metadata category="product" name="Product level" type="text/plain">L1</metadata>,
-         
+         <metadata category="product" name="Product level"
+                   type="text/plain">L1</metadata>,
+
          <metadata
             queryable="sensorOperationalMode"
             category="instrument" name="Instrument mode" type="text/plain">
@@ -620,22 +1074,22 @@
                 metadataObject[@ID="platform"]/metadataWrap/xmlData/
                 platform/instrument/extension/instrumentMode/mode)}
          </metadata>,
-         
+
          <metadata category="summary" name="Mode" type="text/plain">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[@ID="platform"]/metadataWrap/xmlData/
                 platform/instrument/extension/instrumentMode/mode)}
          </metadata>,
-         
-         <metadata  queryable="swathIdentifier" 
+
+         <metadata queryable="swathIdentifier"
             category="instrument" name="Instrument swath" type="text/plain">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[@ID="platform"]/metadataWrap/xmlData/
                 platform/instrument/extension/instrumentMode/swath)}
          </metadata>,
-         
+
          <metadata queryable="orbitDirection"
-            category="product" 
+            category="product"
             name="Pass direction"
             type="text/plain">
             {data(manifest.safe/XFDU/metadataSection/
@@ -643,34 +1097,94 @@
                 metadataWrap/xmlData/
                 orbitReference/extension/orbitProperties/pass)}
          </metadata>,
-         
+
          <metadata queryable="productType"
             category="product" name="Product type" type="text/plain">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[@ID="generalProductInformation"]/
                 metadataWrap/xmlData/
-                *[matches(name(),"standAloneProductInformation|generalProductInformation")]/
+                *[matches(name(),
+                "standAloneProductInformation|generalProductInformation")]/
                 productType)}
          </metadata>,
-         
+
           <metadata
-            category="product" 
-            name="Timeliness Category" 
+            category="product"
+            name="Timeliness Category"
             type="text/plain">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[@ID="generalProductInformation"]/
                 metadataWrap/xmlData/
-                *[matches(name(),"standAloneProductInformation|generalProductInformation")]/
+                *[matches(name(),
+                "standAloneProductInformation|generalProductInformation")]/
                 productTimelinessCategory)}
          </metadata>
       ]]>
       </dhus:metadataExtractor>
    </rdf:Description>
-   
+
+   <rdf:Description rdf:about="&s1;level2product">
+      <dhus:metadataTypes rdf:parseType="Literal">
+
+         <metadataType id="productLevel"
+                       name="Product level"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+         <metadataType id="sensorOperationalMode"
+                       name="Instrument mode"
+                       contentType="text/plain"
+                       category="instrument">
+            <solrField name="sensoroperationalmode"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="mode"
+                       name="Mode"
+                       contentType="text/plain"
+                       category="summary">
+         </metadataType>
+
+         <metadataType id="swathIdentifier"
+                       name="Instrument swath"
+                       contentType="text/plain"
+                       category="instrument">
+            <solrField name="swathidentifier"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="orbitDirection"
+                       name="Pass direction"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="orbitdirection"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="productType"
+                       name="Product type"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="producttype"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="timelinessCategory"
+                       name="Timeliness Category"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+      </dhus:metadataTypes>
+   </rdf:Description>
+
    <rdf:Description rdf:about="&s1;level2product">
       <dhus:metadataExtractor  rdf:parseType="Literal">
       <![CDATA[
-         <metadata category="product" name="Product level" type="text/plain">L2</metadata>,
+         <metadata category="product" name="Product level"
+                   type="text/plain">L2</metadata>,
+
          <metadata
             queryable="sensorOperationalMode"
             category="instrument" name="Instrument mode" type="text/plain">
@@ -678,22 +1192,22 @@
                 metadataObject[@ID="platform"]/metadataWrap/xmlData/
                 platform/instrument/extension/instrumentMode/mode)}
          </metadata>,
-         
+
          <metadata category="summary" name="Mode" type="text/plain">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[@ID="platform"]/metadataWrap/xmlData/
                 platform/instrument/extension/instrumentMode/mode)}
          </metadata>,
-         
-         <metadata  queryable="swathIdentifier" 
+
+         <metadata  queryable="swathIdentifier"
             category="instrument" name="Instrument swath" type="text/plain">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[@ID="platform"]/metadataWrap/xmlData/
                 platform/instrument/extension/instrumentMode/swath)}
          </metadata>,
-         
+
          <metadata queryable="orbitDirection"
-            category="product" 
+            category="product"
             name="Pass direction"
             type="text/plain">
             {data(manifest.safe/XFDU/metadataSection/
@@ -701,48 +1215,47 @@
                 metadataWrap/xmlData/
                 orbitReference/extension/orbitProperties/pass)}
          </metadata>,
-         
+
          <metadata queryable="productType"
             category="product" name="Product type" type="text/plain">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[@ID="generalProductInformation"]/
                 metadataWrap/xmlData/
-                *[matches(name(),"standAloneProductInformation|generalProductInformation")]/
+                *[matches(name(),
+                "standAloneProductInformation|generalProductInformation")]/
                 productType)}
          </metadata>,
-         
-          <metadata
-            category="product" 
-            name="Timeliness Category" 
+
+         <metadata
+            category="product"
+            name="Timeliness Category"
             type="text/plain">
             {data(manifest.safe/XFDU/metadataSection/
                 metadataObject[@ID="generalProductInformation"]/
                 metadataWrap/xmlData/
-                *[matches(name(),"standAloneProductInformation|generalProductInformation")]/
+                *[matches(name(),
+                "standAloneProductInformation|generalProductInformation")]/
                 productTimelinessCategory)}
          </metadata>
-         
       ]]>
       </dhus:metadataExtractor>
    </rdf:Description>
 
-
-
-
    <rdf:Description rdf:about="&s1;product">
+
       <rdfs:subClassOf rdf:resource="&s1;manifestFootPrintProduct"/>
+
       <dhus:identifier rdf:parseType="Literal">
       <![CDATA[
          fn:tokenize(name (.), '\.')[1]
       ]]>
       </dhus:identifier>
-      
+
       <img:descriptor rdf:parseType="Literal" xmlns:img="&img;">
          <img:collection xmlns:img="&img;">
             <img:raster name="preview">
                <img:source>preview/quick-look.png</img:source>
             </img:raster>
-            
          </img:collection>
       </img:descriptor>
 
@@ -751,17 +1264,17 @@
             <img:script language="beanshell" version="1.0">
                ParameterBlock transpose_pb = new ParameterBlock();
                transpose_pb.addSource(source);
-               
+
                if (fr.gael.drb.cortex.topic.sentinel1.Sentinel1Utils.isAscending (source))
                   transpose_pb.add(javax.media.jai.operator.TransposeDescriptor.FLIP_VERTICAL);
                else
                   transpose_pb.add(javax.media.jai.operator.TransposeDescriptor.FLIP_HORIZONTAL);
-                  
+
                return JAI.create("transpose",transpose_pb);
             </img:script>
          </img:operator>
       </img:rendering>
-      
+
    </rdf:Description>
 
 </rdf:RDF>

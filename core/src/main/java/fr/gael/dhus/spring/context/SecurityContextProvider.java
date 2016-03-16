@@ -19,13 +19,31 @@
  */
 package fr.gael.dhus.spring.context;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import fr.gael.dhus.database.object.Role;
+import fr.gael.dhus.database.object.User;
 
 public class SecurityContextProvider
 {
-   public static HashMap<String, SecurityContext> context;
+   private static ConcurrentHashMap<String, SecurityContext> context;
+   private static ConcurrentHashMap<String, Integer> sessions;
+
+   /**
+    * Hide Utility Class Constructor
+    */
+   private SecurityContextProvider ()
+   {
+   }
 
    public static SecurityContext getSecurityContext (String key)
    {
@@ -37,8 +55,77 @@ public class SecurityContextProvider
    {
       if (context == null)
       {
-         context = new HashMap<String, SecurityContext> ();
+         context = new ConcurrentHashMap<String, SecurityContext> ();
       }
+      if (sessions == null)
+      {
+         sessions = new ConcurrentHashMap<String, Integer> ();
+      }
+      Integer count = sessions.get (key);
+      if (count == null)
+      {
+         count = 0;
+      }
+      count += 1;
+      sessions.put(key, count);
       context.put (key, ctx);
+   }
+
+   public static void removeSecurityContext (String key)
+   {
+      if (context == null || sessions == null || key == null)
+      {
+         return;
+      }  
+      Integer count = sessions.get (key);
+      if (count == null)
+      {
+         return;
+      }
+      count -=1;
+      if (count == 0)
+      {
+         sessions.remove (key);
+         context.remove (key); // only remove if the last session has timed out
+      }
+      else
+      {
+         sessions.put(key, count);
+      }
+   }
+
+   public static void logout (String key)
+   {
+      if (context == null || sessions == null)
+      {
+         return;
+      }
+      Integer count = sessions.get (key);
+      if (count == null)
+      {
+         return;
+      }
+      sessions.remove (key);
+      context.remove (key); // only remove if the last session has timed out
+   }
+   
+   public static void forceLogout (String userName)
+   {
+      for (String key : context.keySet ())
+      {
+         SecurityContext securityContext = context.get (key);
+         if (securityContext == null)
+         {
+            continue;
+         }
+
+         Authentication auth = securityContext.getAuthentication ();
+         if (auth != null && userName.equals (auth.getName ()))
+         {
+            securityContext.setAuthentication (null);
+            context.remove (key);
+            sessions.remove (key);
+         }
+      }
    }
 }

@@ -61,6 +61,7 @@
          <uniqueVersion>true</uniqueVersion>
          <id>osf-releases</id>
          <name>OSF Releases Repository</name>
+	
          <url>
            https://copernicus.serco.eu/repository/nexus/content/repositories/releases/
          </url>

@@ -6,7 +6,7 @@
    <modelVersion>4.0.0</modelVersion>
 
    <properties>
-      <dhus.version>0.4.3-5-2</dhus.version>
+      <dhus.version>0.9.0-2</dhus.version>
       <log4j.version>2.1</log4j.version>
       <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
    </properties>
@@ -14,7 +14,7 @@
    <groupId>fr.gael.dhus</groupId>
    <artifactId>dhus-parent</artifactId>
    <packaging>pom</packaging>
-   <version>0.4.3-5-2</version>
+   <version>0.9.0-2</version>
 
    <name>DHuS - Parent</name>
    <url>http://www.gael.fr/software/dhus</url>
@@ -28,9 +28,20 @@
             <artifactId>dhus-core</artifactId>
             <version>${dhus.version}</version>
          </dependency>
+         <!--<dependency>-->
+            <!--<groupId>fr.gael.dhus</groupId>-->
+            <!--<artifactId>dhus-gwt-client</artifactId>-->
+            <!--<version>${dhus.version}</version>-->
+         <!--</dependency>-->
          <dependency>
             <groupId>fr.gael.dhus</groupId>
-            <artifactId>dhus-gwt-client</artifactId>
+            <artifactId>dhus-client-html</artifactId>
+            <version>${dhus.version}</version>
+         </dependency>
+
+         <dependency>
+            <groupId>fr.gael.dhus</groupId>
+            <artifactId>dhus-web-client</artifactId>
             <version>${dhus.version}</version>
          </dependency>
          
@@ -149,6 +160,10 @@
          </url>
          <layout>default</layout>
       </repository>
+      <snapshotRepository>
+      <id>dhus-SNAPSHOT</id>
+      <url>https://copernicus.serco.eu/repository/nexus/content/repositories/dhus-SNAPSHOT</url>
+      </snapshotRepository>
       <site>
          <id>gael-site</id>
          <url>${site.baseUrl}/</url>

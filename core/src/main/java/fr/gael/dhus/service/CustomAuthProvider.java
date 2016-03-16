@@ -21,10 +21,14 @@ package fr.gael.dhus.service;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.authentication.encoding.MessageDigestPasswordEncoder;
-import org.springframework.security.authentication.encoding.PlaintextPasswordEncoder;
+import org.springframework.security.authentication
+      .UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.dao
+      .DaoAuthenticationProvider;
+import org.springframework.security.authentication.encoding
+      .MessageDigestPasswordEncoder;
+import org.springframework.security.authentication.encoding
+      .PlaintextPasswordEncoder;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -36,11 +40,11 @@ public class CustomAuthProvider extends DaoAuthenticationProvider
    private static Log logger = LogFactory.getLog (CustomAuthProvider.class);
 
    @Override
-   protected void additionalAuthenticationChecks (UserDetails userDetails,
+   protected void additionalAuthenticationChecks (UserDetails user_details,
       UsernamePasswordAuthenticationToken authentication)
       throws AuthenticationException
    {
-      User u = (User) userDetails;
+      User u = (User) user_details;
       if (u.getPasswordEncryption () != PasswordEncryption.NONE)
       {
          try
@@ -59,6 +63,6 @@ public class CustomAuthProvider extends DaoAuthenticationProvider
       {
          super.setPasswordEncoder (new PlaintextPasswordEncoder ());
       }
-      super.additionalAuthenticationChecks (userDetails, authentication);
+      super.additionalAuthenticationChecks (user_details, authentication);
    }
 }

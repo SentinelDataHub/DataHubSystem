@@ -55,14 +55,15 @@ public class DHuSFtpUserManager implements UserManager
    private static Log logger = LogFactory.getLog (DHuSFtpUserManager.class);
    private UserDao userDao;
    
-   public DHuSFtpUserManager (UserDao userDao)
+   public DHuSFtpUserManager (UserDao user_dao)
    {
-      this.userDao = userDao; 
+      this.userDao = user_dao;
    }
    
 
    /* (non-Javadoc)
-    * @see org.apache.ftpserver.ftplet.UserManager#authenticate(org.apache.ftpserver.ftplet.Authentication)
+    * @see org.apache.ftpserver.ftplet.UserManager#authenticate(
+    * org.apache.ftpserver.ftplet.Authentication)
     */
    @Override
    public User authenticate(final Authentication authentication)
@@ -90,12 +91,15 @@ public class DHuSFtpUserManager implements UserManager
             {
                try
                {
-                  MessageDigest md = MessageDigest.getInstance(encryption.getAlgorithmKey());
-                  password  = new String(Hex.encode(md.digest(password.getBytes("UTF-8"))));
+                  MessageDigest md =
+                        MessageDigest.getInstance(encryption.getAlgorithmKey());
+                  password  = new String(Hex.encode(
+                        md.digest(password.getBytes("UTF-8"))));
                }
                catch (Exception e)
                {
-                  throw new UserBadEncryptionException ("There was an error while encrypting password.", e);
+                  throw new UserBadEncryptionException (
+                        "There was an error while encrypting password.", e);
                }
             }
          }
@@ -107,7 +111,8 @@ public class DHuSFtpUserManager implements UserManager
          // Something missing in username
          if ((user == null) || (username == null))
          {
-            throw new AuthenticationFailedException("Authentication failed (user not correct)");
+            throw new AuthenticationFailedException(
+                  "Authentication failed (user not correct)");
          }
          // User not enable
          if (!user.getEnabled())
@@ -178,7 +183,8 @@ public class DHuSFtpUserManager implements UserManager
    }
 
    /* (non-Javadoc)
-    * @see org.apache.ftpserver.ftplet.UserManager#getUserByName(java.lang.String)
+    * @see org.apache.ftpserver.ftplet.UserManager#getUserByName(
+    * java.lang.String)
     */
    @Override
    public User getUserByName(final String name) throws FtpException
@@ -224,7 +230,8 @@ public class DHuSFtpUserManager implements UserManager
    }
 
    /* (non-Javadoc)
-    * @see org.apache.ftpserver.ftplet.UserManager#save(org.apache.ftpserver.ftplet.User)
+    * @see org.apache.ftpserver.ftplet.UserManager#save(
+    * org.apache.ftpserver.ftplet.User)
     */
    @Override
    public void save(User user) throws FtpException

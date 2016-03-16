@@ -31,6 +31,7 @@ import fr.gael.dhus.database.object.restriction.LockedAccessRestriction;
 import fr.gael.dhus.gwt.services.annotation.RPCService;
 import fr.gael.dhus.gwt.share.RoleData;
 import fr.gael.dhus.gwt.share.UserData;
+import fr.gael.dhus.gwt.share.exceptions.AccessDeniedException;
 import fr.gael.dhus.gwt.share.exceptions.SecurityServiceException;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
 
@@ -46,7 +47,7 @@ public class SecurityServiceImpl extends RemoteServiceServlet implements
    private static final long serialVersionUID = -7662946485307664158L;
 
    @Override
-   public UserData getCurrentUser () throws SecurityServiceException
+   public UserData getCurrentUser () throws SecurityServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.SecurityService securityService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.SecurityService.class);
@@ -80,6 +81,11 @@ public class SecurityServiceImpl extends RemoteServiceServlet implements
             user.getAddress (), lock == null ? null : lock.getBlockingReason (),
             user.getCountry (), user.getUsage (), user.getSubUsage (),
             user.getDomain (), user.getSubDomain ());
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {

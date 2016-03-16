@@ -39,20 +39,27 @@ import javax.persistence.Table;
 @Table (name = "ACCESS_RESTRICTION")
 public abstract class AccessRestriction
 {
-   @Id
-   @GeneratedValue(strategy=GenerationType.AUTO)
-   @Column ( name="ID", nullable = false )
-   private Long id;
-   
    @Column (name = "BLOCKING_REASON")
    protected String blockingReason;
 
    /**
-    * @param blockingReason the blockingReason to set
+    * inheritance management within hibernate.
     */
-   public void setBlockingReason (String blockingReason)
+   @Column(name="ACCESS_RESTRICTION",insertable=false,updatable=false)
+   String discriminator;
+
+
+   @Id
+   @GeneratedValue(strategy=GenerationType.AUTO)
+   @Column ( name="ID", nullable = false )
+   private Long id;
+
+   /**
+    * @param blocking_reason the blockingReason to set
+    */
+   public void setBlockingReason (String blocking_reason)
    {
-      this.blockingReason = blockingReason;
+      this.blockingReason = blocking_reason;
    }
 
    /**
@@ -79,11 +86,6 @@ public abstract class AccessRestriction
       return id;
    }
 
-   /**
-    * inheritance management within hibernate. 
-    */
-   @Column(name="ACCESS_RESTRICTION",insertable=false,updatable=false)
-   String discriminator;
-   
+
    public abstract boolean isBlocked();
 }

@@ -42,11 +42,11 @@ public class DHuSFtpCollection implements FtpFile
    private User user;
    private DHuSVFSService vfsService;
    
-   public DHuSFtpCollection (String path, DHuSVFSService vfsService, User user)
+   public DHuSFtpCollection (String path, DHuSVFSService vfs_service, User user)
    {
       this.path = path;
       this.user = user;
-      this.vfsService = vfsService;
+      this.vfsService = vfs_service;
    }
    
 
@@ -83,7 +83,8 @@ public class DHuSFtpCollection implements FtpFile
    @Override
    public boolean doesExist()
    {
-      boolean result = vfsService.getCollectionByVPath(this.path, user)==null?false:true;
+      boolean result = vfsService.getCollectionByVPath(this.path, user) ==null ?
+            false : true;
       return result;
    }
 
@@ -230,7 +231,8 @@ public class DHuSFtpCollection implements FtpFile
    }
 
    /* (non-Javadoc)
-    * @see org.apache.ftpserver.ftplet.FtpFile#move(org.apache.ftpserver.ftplet.FtpFile)
+    * @see org.apache.ftpserver.ftplet.FtpFile#move(
+    * org.apache.ftpserver.ftplet.FtpFile)
     */
    @Override
    public boolean move(FtpFile arg0)

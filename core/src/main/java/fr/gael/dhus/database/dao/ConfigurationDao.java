@@ -26,10 +26,6 @@ import org.springframework.stereotype.Repository;
 import fr.gael.dhus.database.dao.interfaces.HibernateDao;
 import fr.gael.dhus.database.object.config.Configuration;
 
-/**
- * @author valette
- *
- */
 @Repository
 public class ConfigurationDao extends HibernateDao<Configuration, Long>
 {   

@@ -26,8 +26,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import fr.gael.dhus.DHuS;
-import fr.gael.dhus.datastore.DefaultDataStore;
-import fr.gael.dhus.datastore.exception.DataStoreLocalArchiveNotExistingException;
+import fr.gael.dhus.datastore.exception
+      .DataStoreLocalArchiveNotExistingException;
+import fr.gael.dhus.service.ProductService;
 import fr.gael.dhus.system.config.ConfigurationManager;
 
 /**
@@ -44,21 +45,21 @@ public class ArchiveSynchronizationJob extends AbstractJob
    private ConfigurationManager configurationManager;
 
    @Autowired
-   private DefaultDataStore dataStore;
+   private ProductService productService;
    
    @Override
    public String getCronExpression ()
    {
-      return configurationManager.getArchiveSynchronizationCronConfiguration ().
-         getSchedule ();
+      return configurationManager.getArchiveSynchronizationCronConfiguration ()
+            .getSchedule ();
    }
 
    @Override
    protected void executeInternal (JobExecutionContext arg0) 
       throws JobExecutionException
    {
-      if (!configurationManager.getArchiveSynchronizationCronConfiguration ().
-         isActive ()) return;
+      if (!configurationManager.getArchiveSynchronizationCronConfiguration ()
+            .isActive ()) return;
       long start = System.currentTimeMillis ();
       logger.info ("SCHEDULER : Local archive synchronization.");
       if (!DHuS.isStarted ())
@@ -73,7 +74,7 @@ public class ArchiveSynchronizationJob extends AbstractJob
          running=true;
          try
          {
-            dataStore.processArchiveSync (false);
+            productService.processArchiveSync ();
          }
          catch (InterruptedException e)
          {
@@ -93,7 +94,8 @@ public class ArchiveSynchronizationJob extends AbstractJob
       }
       else
       {
-         logger.warn ("SCHEDULER : Previous local archive synchronisation is still running (aborted).");
+         logger.warn ("SCHEDULER : Previous local archive synchronisation " +
+               "is still running (aborted).");
       }
    }
 }

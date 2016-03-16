@@ -37,7 +37,6 @@ import com.google.gwt.http.client.Response;
 import com.google.gwt.http.client.URL;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.xml.client.Document;
@@ -45,12 +44,13 @@ import com.google.gwt.xml.client.Node;
 import com.google.gwt.xml.client.NodeList;
 import com.google.gwt.xml.client.XMLParser;
 
-import fr.gael.dhus.gwt.share.RoleData;
+import fr.gael.dhus.gwt.client.AccessDeniedRedirectionCallback;
 import fr.gael.dhus.gwt.client.GWTClient;
 import fr.gael.dhus.gwt.services.CollectionServiceAsync;
 import fr.gael.dhus.gwt.services.ProductServiceAsync;
 import fr.gael.dhus.gwt.share.MetadataIndexData;
 import fr.gael.dhus.gwt.share.ProductData;
+import fr.gael.dhus.gwt.share.RoleData;
 import fr.gael.dhus.gwt.share.XMLNodeData;
 
 public class SearchViewPage extends AbstractPage
@@ -141,12 +141,12 @@ public class SearchViewPage extends AbstractPage
    {           
       resetSearchView("View product '"+displayedProduct.getIdentifier ()+"'");
       initialized = false;
-      Double[][] footprint = displayedProduct.getFootprint ();
+      Double[][][] footprint = displayedProduct.getFootprint ();
 
       if (footprint != null && footprint.length > 0)
       {                           
          JavaScriptObject footPrintJS = 
-            ProductData.getJsFootprintLayer (footprint); 
+            ProductData.getJsFootprintLayer (footprint, false); 
          setSearchViewFootprint(footPrintJS);
       }
       else
@@ -197,10 +197,10 @@ public class SearchViewPage extends AbstractPage
    
    public static void viewProduct(final int id)
    {          
-      productService.getProduct (new Long(id), new AsyncCallback<ProductData>()
+      productService.getProduct (new Long(id), new AccessDeniedRedirectionCallback<ProductData>()
       {
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             Window.alert ("An error occured while getting product '#"+id+"'");
          }
@@ -264,10 +264,10 @@ public class SearchViewPage extends AbstractPage
                "cursor", "default");
             return;
          }
-         requestXMLNode(parent, loadMoreNodeClicked, new AsyncCallback<Void>()
+         requestXMLNode(parent, loadMoreNodeClicked, new AccessDeniedRedirectionCallback<Void>()
          {
             @Override
-            public void onFailure (Throwable caught) {
+            public void _onFailure (Throwable caught) {
                DOM.setStyleAttribute (RootPanel.getBodyElement (),
                   "cursor", "default");
             }
@@ -323,10 +323,10 @@ public class SearchViewPage extends AbstractPage
          return;
       }
       
-      requestXMLNode(root, false, new AsyncCallback<Void>()
+      requestXMLNode(root, false, new AccessDeniedRedirectionCallback<Void>()
          {
             @Override
-            public void onFailure (Throwable caught) 
+            public void _onFailure (Throwable caught) 
             {
                DOM.setStyleAttribute (RootPanel.getBodyElement (),
                   "cursor", "default");
@@ -351,13 +351,13 @@ public class SearchViewPage extends AbstractPage
          });      
    }
    
-   private static void requestXMLNode(final XMLNodeData parent, boolean loadMoreNodeClicked, final AsyncCallback<Void> callback)
+   private static void requestXMLNode(final XMLNodeData parent, boolean loadMoreNodeClicked, final AccessDeniedRedirectionCallback<Void> callback)
    {    
-      getHTML(parent, loadMoreNodeClicked, new AsyncCallback<List<XMLNodeData>>()
+      getHTML(parent, loadMoreNodeClicked, new AccessDeniedRedirectionCallback<List<XMLNodeData>>()
       {
 
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
              callback.onFailure (caught);
          }
@@ -434,7 +434,7 @@ public class SearchViewPage extends AbstractPage
    }
    
    private static void getHTML(final XMLNodeData parent, boolean loadMoreNodeClicked, 
-      final AsyncCallback<List<XMLNodeData>> callback) 
+      final AccessDeniedRedirectionCallback<List<XMLNodeData>> callback) 
    {           
       String request =
          loadMoreNodeClicked ? parent.getLoadMoreRequest () : parent

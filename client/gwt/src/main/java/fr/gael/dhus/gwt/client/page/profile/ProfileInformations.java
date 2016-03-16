@@ -19,21 +19,24 @@
  */
 package fr.gael.dhus.gwt.client.page.profile;
 
+import java.util.List;
+
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.core.client.JsonUtils;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.PasswordTextBox;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
 
-import fr.gael.dhus.gwt.share.RoleData;
+import fr.gael.dhus.gwt.client.AccessDeniedRedirectionCallback;
 import fr.gael.dhus.gwt.client.GWTClient;
 import fr.gael.dhus.gwt.client.page.AbstractPage;
 import fr.gael.dhus.gwt.services.UserServiceAsync;
+import fr.gael.dhus.gwt.share.CountryData;
+import fr.gael.dhus.gwt.share.RoleData;
 import fr.gael.dhus.gwt.share.UserData;
 import fr.gael.dhus.gwt.share.exceptions.UserServiceMailingException;
 
@@ -50,7 +53,7 @@ public class ProfileInformations extends AbstractPage
    private static PasswordTextBox password;
    private static PasswordTextBox oldPassword;
    private static PasswordTextBox confirmPassword;
-   private static TextBox country;
+   private static ListBox country;
    private static ListBox domain;
    private static ListBox usage;
    private static TextBox subUsage;
@@ -99,7 +102,7 @@ public class ProfileInformations extends AbstractPage
    /*-{
        $wnd.profileInfos_refreshDone();
    }-*/;
-
+   
    private static native void selectDomain(String domain)
    /*-{
        $wnd.profileInfos_selectDomain(domain);
@@ -119,31 +122,54 @@ public class ProfileInformations extends AbstractPage
    private static void refresh()
    {
       refreshRoles ();
-      UserData user = GWTClient.getCurrentUser ();      
-      username.setEnabled (false);
-      username.setValue (user.getUsername ());
-      mail.setValue (user.getEmail ());
-      firstname.setValue (user.getFirstname ());
-      lastname.setValue (user.getLastname ());
-      address.setValue (user.getAddress ());
-      phone.setValue (user.getPhone ());
-      country.setValue (user.getCountry ());
-      
-      selectDomain (user.getDomain ());
-      selectUsage (user.getUsage ());
-      
-      if ("other".equals (user.getDomain ().toLowerCase ()))
-      {
-         subDomain.setValue (user.getSubDomain ());
-      }
-      
-      if ("other".equals (user.getUsage ().toLowerCase ()))
-      {
-         subUsage.setValue (user.getSubUsage ());
-      }
-      
 
-      refreshDone();
+      AccessDeniedRedirectionCallback<UserData> callback = new AccessDeniedRedirectionCallback<UserData> ()
+      {
+         public void onSuccess (UserData user)
+         {               
+            username.setEnabled (false);
+            username.setValue (user.getUsername ());
+            mail.setValue (user.getEmail ());
+            firstname.setValue (user.getFirstname ());
+            lastname.setValue (user.getLastname ());
+            address.setValue (user.getAddress ());
+            phone.setValue (user.getPhone ());
+            
+            int ctyIdx = -1;
+            String cty = user.getCountry ();
+            for (int i=0; i<country.getItemCount(); i++) {
+               if (country.getItemText(i).equals(cty)) {
+                   ctyIdx = i;
+                   break;
+               }
+            }
+            country.setSelectedIndex (ctyIdx);
+            
+            selectDomain (user.getDomain ());
+            selectUsage (user.getUsage ());
+            
+            if ("other".equals (user.getDomain ().toLowerCase ()))
+            {
+               subDomain.setValue (user.getSubDomain ());
+            }
+            
+            if ("other".equals (user.getUsage ().toLowerCase ()))
+            {
+               subUsage.setValue (user.getSubUsage ());
+            }
+            
+
+            refreshDone();
+         }
+
+         public void _onFailure (Throwable ex)
+         {
+            Window.alert ("Error while requesting user information.\n" +
+               ex.getMessage ());
+         }
+      };
+
+      userService.getCurrentUserInformation (callback);
    }
 
    private static void init ()
@@ -159,7 +185,7 @@ public class ProfileInformations extends AbstractPage
       oldPassword = PasswordTextBox.wrap (RootPanel.get ("profileInfos_oldPassword").getElement ());
       password = PasswordTextBox.wrap (RootPanel.get ("profileInfos_password").getElement ());
       confirmPassword = PasswordTextBox.wrap (RootPanel.get ("profileInfos_password_confirm").getElement ());
-      country = TextBox.wrap (RootPanel.get ("profileInfos_country").getElement ());
+      country = ListBox.wrap (RootPanel.get ("profileInfos_country").getElement ());
       domain = ListBox.wrap (RootPanel.get ("profileInfos_domain").getElement ());
       subDomain = TextBox.wrap (RootPanel.get ("profileInfos_subDomain").getElement ());
       usage = ListBox.wrap (RootPanel.get ("profileInfos_usage").getElement ());
@@ -178,13 +204,13 @@ public class ProfileInformations extends AbstractPage
                return;
             }
             
-            UserData toSave = GWTClient.getCurrentUser ();
+            UserData toSave = GWTClient.getCurrentUser ().copy ();
             toSave.setAddress (address.getValue ());
             toSave.setPhone (phone.getValue ());
             toSave.setEmail (mail.getValue ());
             toSave.setFirstname (firstname.getValue ());
             toSave.setLastname (lastname.getValue ());
-            toSave.setCountry (country.getValue ());
+            toSave.setCountry (country.getValue (country.getSelectedIndex ()));
             String domainStr = domain.getItemText (domain.getSelectedIndex ());
             toSave.setDomain (domainStr);
             toSave.setSubDomain ("other".equals (domainStr.toLowerCase ()) ? subDomain.getValue () : "unknown" );
@@ -208,10 +234,10 @@ public class ProfileInformations extends AbstractPage
 
             enableAll (false, false);
 
-            AsyncCallback<Void> callback = new AsyncCallback<Void> ()
+            AccessDeniedRedirectionCallback<Void> callback = new AccessDeniedRedirectionCallback<Void> ()
             {
                @Override
-               public void onFailure (Throwable caught)
+               public void _onFailure (Throwable caught)
                {
                   if (caught instanceof UserServiceMailingException)
                   {
@@ -238,7 +264,7 @@ public class ProfileInformations extends AbstractPage
                   refresh();
                }
             };
-
+            
             userService.selfUpdateUser (toSave, callback);
          }
       }, ClickEvent.getType ());
@@ -251,7 +277,7 @@ public class ProfileInformations extends AbstractPage
             if (savePassword.getElement ().getClassName ().contains ("disabled"))
             {
                return;
-            }           
+            }
             
             if (password.getValue () == null ||
                      password.getValue ().trim ().isEmpty () || 
@@ -273,10 +299,10 @@ public class ProfileInformations extends AbstractPage
 
             enableAll (false, false);
 
-            AsyncCallback<Void> callback = new AsyncCallback<Void> ()
+            AccessDeniedRedirectionCallback<Void> callback = new AccessDeniedRedirectionCallback<Void> ()
             {
                @Override
-               public void onFailure (Throwable caught)
+               public void _onFailure (Throwable caught)
                {
                   if (caught instanceof UserServiceMailingException)
                   {
@@ -308,7 +334,29 @@ public class ProfileInformations extends AbstractPage
                oldPassword.getValue (), password.getValue (), callback);
          }
       }, ClickEvent.getType ());
-      refresh();
+
+      
+      userService.getCountries (new AccessDeniedRedirectionCallback<List<CountryData>>()
+         {         
+            @Override
+            public void onSuccess (List<CountryData> result)
+            {
+               for (CountryData ctry : result)
+               {
+                  country.addItem (ctry.getName (), ctry.getId ().toString ());
+               }
+               refresh();
+            }
+            
+            @Override
+            public void _onFailure (Throwable caught)
+            {
+               Window
+                  .alert ("There was an error while requesting countries.\n" +
+                     caught.getMessage ());
+               refresh();
+            }
+         });   
    }
    
    private static void getRoles (final int start, final int length,

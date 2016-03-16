@@ -77,7 +77,10 @@
          /> </module> -->
 
       <module name="DeclarationOrder" />
-      <module name="RequireThis" />
+      <module name="RequireThis">
+         <property name="checkFields" value="false" />
+         <property name="checkMethods" value="false" />
+      </module>
       <!-- Avoid creating duplicate objects -->
       <module name="IllegalInstantiation">
          <property name="classes" value="java.lang.Boolean, java.lang.String" />
@@ -91,7 +94,7 @@
       <module name="EmptyStatement" />
       <module name="MissingSwitchDefault" />
       <module name="DefaultComesLast" />
-      <module name="RedundantThrows" />
+      <!--<module name="RedundantThrows" /> deprecated -->
       <!--================================================= -->
       <!-- Checks for imports -->
       <!--================================================= -->
@@ -133,6 +136,8 @@
       <module name="JavadocMethod">
          <!-- For allow runtime exception comment -->
          <property name="allowUndeclaredRTE" value="yes" />
+         <!--  allows missing javadoc on getters and setters -->
+         <property name="allowMissingPropertyJavadoc" value="true" />
       </module>
 
    </module>

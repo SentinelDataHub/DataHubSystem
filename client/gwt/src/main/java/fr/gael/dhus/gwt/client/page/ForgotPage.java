@@ -23,10 +23,10 @@ import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
 
+import fr.gael.dhus.gwt.client.AccessDeniedRedirectionCallback;
 import fr.gael.dhus.gwt.services.UserServiceAsync;
 import fr.gael.dhus.gwt.share.UserData;
 import fr.gael.dhus.gwt.share.exceptions.UserServiceMailingException;
@@ -105,10 +105,10 @@ public class ForgotPage extends AbstractPage
 
             enableAll (false);
 
-            AsyncCallback<Void> callback = new AsyncCallback<Void> ()
+            AccessDeniedRedirectionCallback<Void> callback = new AccessDeniedRedirectionCallback<Void> ()
             {
                @Override
-               public void onFailure (Throwable caught)
+               public void _onFailure (Throwable caught)
                {
                   if (caught instanceof UserServiceMailingException)
                   {

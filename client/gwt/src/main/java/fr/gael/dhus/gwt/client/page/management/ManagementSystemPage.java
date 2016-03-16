@@ -28,25 +28,25 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.SimpleCheckBox;
 import com.google.gwt.user.client.ui.TextBox;
 
-import fr.gael.dhus.gwt.share.RoleData;
+import fr.gael.dhus.gwt.client.AccessDeniedRedirectionCallback;
 import fr.gael.dhus.gwt.client.page.AbstractPage;
 import fr.gael.dhus.gwt.services.ArchiveServiceAsync;
 import fr.gael.dhus.gwt.services.SystemServiceAsync;
 import fr.gael.dhus.gwt.share.ConfigurationData;
+import fr.gael.dhus.gwt.share.RoleData;
 
 public class ManagementSystemPage extends AbstractPage
 {
    private static SystemServiceAsync systemService = SystemServiceAsync.Util.getInstance ();
    private static ArchiveServiceAsync archiveService = ArchiveServiceAsync.Util.getInstance ();
 
-   private static AsyncCallback<ConfigurationData> systemSettingsCallback;
-   private static AsyncCallback<List<Date>> getDumpDatabaseListCallback;
+   private static AccessDeniedRedirectionCallback<ConfigurationData> systemSettingsCallback;
+   private static AccessDeniedRedirectionCallback<List<Date>> getDumpDatabaseListCallback;
 
    private static List<Date> dumpDates;
 
@@ -58,6 +58,7 @@ public class ManagementSystemPage extends AbstractPage
    private static TextBox fromName;
    private static TextBox fromMail;
    private static TextBox replyTo;
+   private static TextBox registrationMail;
    private static TextBox supportMail;
    private static TextBox supportName;
    private static SimpleCheckBox mailDelete;
@@ -136,6 +137,7 @@ public class ManagementSystemPage extends AbstractPage
       fromName = TextBox.wrap (RootPanel.get ("managementSystem_expeditorName").getElement ());
       fromMail = TextBox.wrap (RootPanel.get ("managementSystem_expeditorMail").getElement ());
       replyTo = TextBox.wrap (RootPanel.get ("managementSystem_reply").getElement ());
+      registrationMail = TextBox.wrap (RootPanel.get ("managementSystem_registrationMail").getElement ());
       supportMail = TextBox.wrap (RootPanel.get ("managementSystem_supportMail").getElement ());
       supportName = TextBox.wrap (RootPanel.get ("managementSystem_supportName").getElement ());
       mailDelete = SimpleCheckBox.wrap (RootPanel.get ("managementSystem_mailOnDelete").getElement ());
@@ -174,10 +176,10 @@ public class ManagementSystemPage extends AbstractPage
             {
                return;
             }
-            archiveService.synchronizeLocalArchive (new AsyncCallback<Integer> ()
+            archiveService.synchronizeLocalArchive (new AccessDeniedRedirectionCallback<Integer> ()
             {
                @Override
-               public void onFailure (Throwable caught)
+               public void _onFailure (Throwable caught)
                {
                   Window.alert ("Local archive was not synchronized.\n" +
                      caught.getMessage ());
@@ -218,6 +220,7 @@ public class ManagementSystemPage extends AbstractPage
             confData.setMailServerFromName (fromName.getValue ());
             confData.setMailServerReplyTo (replyTo.getValue ());
 
+            confData.setRegistrationMail (registrationMail.getValue ());
             confData.setSupportMail (supportMail.getValue ());
             confData.setSupportName (supportName.getValue ());
 
@@ -241,10 +244,10 @@ public class ManagementSystemPage extends AbstractPage
             String newPassword = rootPassword.getValue ();
             String oldPassword = rootOldPassword.getValue ();
             systemService.changeRootPassword (newPassword, oldPassword,
-               new AsyncCallback<Void> ()
+               new AccessDeniedRedirectionCallback<Void> ()
                {
                   @Override
-                  public void onFailure (Throwable caught)
+                  public void _onFailure (Throwable caught)
                   {
                      Window.alert ("Root password was not changed.\n" +
                         caught.getMessage ());
@@ -282,11 +285,11 @@ public class ManagementSystemPage extends AbstractPage
             restoreButton.getElement ().setClassName ("button_disabled");
             systemService.restoreDatabase (
                dumpDates.get (dumpBox.getSelectedIndex ()),
-               new AsyncCallback<Void> ()
+               new AccessDeniedRedirectionCallback<Void> ()
                {
 
                   @Override
-                  public void onFailure (Throwable caught)
+                  public void _onFailure (Throwable caught)
                   {
                      Window.alert ("Error while restoring database.\n" +
                         caught.getMessage ());
@@ -305,10 +308,10 @@ public class ManagementSystemPage extends AbstractPage
          }
       }, ClickEvent.getType ());
 
-      systemSettingsCallback = new AsyncCallback<ConfigurationData> ()
+      systemSettingsCallback = new AccessDeniedRedirectionCallback<ConfigurationData> ()
       {
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             Window.alert ("Error while loading system data.\n" +
                caught.getMessage ());
@@ -323,6 +326,7 @@ public class ManagementSystemPage extends AbstractPage
             mailCreate.setValue (false);
             mailUpdate.setValue (false);
             mailDelete.setValue (false);
+            registrationMail.setValue ("");
             supportMail.setValue ("");
             supportName.setValue ("");
 
@@ -347,6 +351,7 @@ public class ManagementSystemPage extends AbstractPage
             mailCreate.setValue (result.isMailWhenCreate ());
             mailUpdate.setValue (result.isMailWhenUpdate ());
             mailDelete.setValue (result.isMailWhenDelete ());
+            registrationMail.setValue (result.getRegistrationMail ());
             supportMail.setValue (result.getSupportMail ());
             supportName.setValue (result.getSupportName ());
 
@@ -359,10 +364,10 @@ public class ManagementSystemPage extends AbstractPage
 
       };
 
-      getDumpDatabaseListCallback = new AsyncCallback<List<Date>> ()
+      getDumpDatabaseListCallback = new AccessDeniedRedirectionCallback<List<Date>> ()
       {
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             Window.alert ("Error while requesting dump dates.\n" +
                caught.getMessage ());
@@ -405,6 +410,7 @@ public class ManagementSystemPage extends AbstractPage
       mailCreate.setEnabled (false);
       mailUpdate.setEnabled (false);
       mailDelete.setEnabled (false);
+      registrationMail.setEnabled (false);
       supportMail.setEnabled (false);
       supportName.setEnabled (false);
 
@@ -425,6 +431,7 @@ public class ManagementSystemPage extends AbstractPage
       mailCreate.setEnabled (true);
       mailUpdate.setEnabled (true);
       mailDelete.setEnabled (true);
+      registrationMail.setEnabled (true);
       supportMail.setEnabled (true);
       supportName.setEnabled (true);
 

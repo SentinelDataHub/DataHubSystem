@@ -29,6 +29,7 @@ import java.util.Set;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
+import fr.gael.dhus.database.object.Country;
 import fr.gael.dhus.database.object.MetadataIndex;
 import fr.gael.dhus.database.object.Product;
 import fr.gael.dhus.database.object.Role;
@@ -37,10 +38,12 @@ import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.database.object.restriction.AccessRestriction;
 import fr.gael.dhus.database.object.restriction.LockedAccessRestriction;
 import fr.gael.dhus.gwt.services.annotation.RPCService;
+import fr.gael.dhus.gwt.share.CountryData;
 import fr.gael.dhus.gwt.share.ProductData;
 import fr.gael.dhus.gwt.share.RoleData;
 import fr.gael.dhus.gwt.share.SearchData;
 import fr.gael.dhus.gwt.share.UserData;
+import fr.gael.dhus.gwt.share.exceptions.AccessDeniedException;
 import fr.gael.dhus.gwt.share.exceptions.UserServiceException;
 import fr.gael.dhus.gwt.share.exceptions.UserServiceMailingException;
 import fr.gael.dhus.gwt.share.exceptions.UserServiceNotExistingException;
@@ -61,7 +64,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
    private static final long serialVersionUID = 7376586098351937899L;
 
    @Override
-   public Integer count (String filter) throws UserServiceException
+   public Integer count (String filter) throws UserServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UserService.class);
@@ -69,6 +72,11 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       try
       {
          return userService.count (filter);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -79,45 +87,20 @@ public class UserServiceImpl extends RemoteServiceServlet implements
 
    @Override
    public List<UserData> getUsers (int start, int count, String filter)
-      throws UserServiceException
+      throws UserServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UserService.class);
+
       try
       {
-         List<User> users = userService.getUsers (filter);
-         ArrayList<UserData> userDatas = new ArrayList<UserData> ();
-
-         for (int i = start; (i < users.size ())&&(i < count); i++)
-         {
-            User user = users.get (i);
-
-            LockedAccessRestriction lock = null;
-            for (AccessRestriction restriction : userService
-               .getRestrictions (user.getId ()))
-            {
-               if (restriction instanceof LockedAccessRestriction)
-               {
-                  lock = (LockedAccessRestriction) restriction;
-               }
-            }
-
-            List<RoleData> roles = new ArrayList<RoleData>();
-            for (Role role : user.getRoles())
-            {
-               roles.add (RoleData.valueOf (role.name ()));
-            }
-            
-            UserData userData =
-               new UserData (user.getId (), user.getUsername (),
-                  user.getFirstname (), user.getLastname (), user.getEmail (),
-                  roles, user.getPhone (),
-                  user.getAddress (), lock == null ? null : lock.getBlockingReason (),
-                  user.getCountry (), user.getUsage (), user.getSubUsage (),
-                  user.getDomain (), user.getSubDomain ());
-            userDatas.add (userData);
-         }
-         return userDatas;
+         Iterator<User> iterator = userService.getUsers (filter, start);
+         return convertUserToUserData (iterator, count);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -127,7 +110,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
    }
 
    @Override
-   public void createUser (UserData userData) throws UserServiceException,
+   public void createUser (UserData userData) throws UserServiceException, AccessDeniedException,
       UserServiceMailingException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
@@ -148,7 +131,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
          roles.add (Role.valueOf (role.name ()));
       }
       user.setRoles (roles);
-      user.setCountry (userData.getCountry ());
+      user.setCountry (userService.getCountry (Long.parseLong (userData.getCountry ())).getName ());
       user.setUsage (userData.getUsage ());
       user.setSubUsage (userData.getSubUsage ());
       user.setDomain (userData.getDomain ());
@@ -167,6 +150,11 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       {
          userService.createUser (user);
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (EmailNotSentException e)
       {
          throw new UserServiceMailingException (e.getMessage ());
@@ -179,7 +167,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
    }
 
    @Override
-   public void createTmpUser (UserData userData) throws UserServiceException,
+   public void createTmpUser (UserData userData) throws UserServiceException, AccessDeniedException,
       UserServiceMailingException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
@@ -193,7 +181,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       user.setEmail (userData.getEmail ());
       user.setPhone (userData.getPhone ());
       user.setPassword (userData.getPassword ());
-      user.setCountry (userData.getCountry ());
+      user.setCountry (userService.getCountry (Long.parseLong (userData.getCountry ())).getName ());
       user.setUsage (userData.getUsage ());
       user.setSubUsage (userData.getSubUsage ());
       user.setDomain (userData.getDomain ());
@@ -202,6 +190,11 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       try
       {
          userService.createTmpUser (user);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (EmailNotSentException e)
       {
@@ -215,7 +208,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
    }
    
    @Override
-   public void updateUser (UserData userData) throws UserServiceException,
+   public void updateUser (UserData userData) throws UserServiceException, AccessDeniedException,
       UserServiceMailingException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
@@ -236,7 +229,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
          roles.add (Role.valueOf (role.name ()));
       }
       user.setRoles (roles);
-      user.setCountry (userData.getCountry ());
+      user.setCountry (userService.getCountry (Long.parseLong (userData.getCountry ())).getName ());
       user.setUsage (userData.getUsage ());
       user.setSubUsage (userData.getSubUsage ());
       user.setDomain (userData.getDomain ());
@@ -254,6 +247,11 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       {
          userService.updateUser (user);
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (EmailNotSentException e)
       {
          e.printStackTrace ();
@@ -267,7 +265,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
    }
 
    @Override
-   public void deleteUser (Long id) throws UserServiceException,
+   public void deleteUser (Long id) throws UserServiceException, AccessDeniedException,
       UserServiceMailingException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
@@ -276,6 +274,11 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       try
       {
          userService.deleteUser (id);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (EmailNotSentException e)
       {
@@ -290,7 +293,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
    }
    
    @Override
-   public UserData getUser (Long id) throws UserServiceException
+   public UserData getUser (Long id) throws UserServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UserService.class);
@@ -324,6 +327,11 @@ public class UserServiceImpl extends RemoteServiceServlet implements
          
          return userData;
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -332,7 +340,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
    }
    
    @Override
-   public UserData getUserWithDataAccess (Long userId) throws UserServiceException
+   public UserData getUserWithDataAccess (Long userId) throws UserServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UserService.class);
@@ -363,6 +371,11 @@ public class UserServiceImpl extends RemoteServiceServlet implements
          
          return userData;
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -371,7 +384,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
    }
    
    @Override
-   public void updateDataAccess(UserData userData) throws UserServiceException
+   public void updateDataAccess(UserData userData) throws UserServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UserService.class);
@@ -395,6 +408,11 @@ public class UserServiceImpl extends RemoteServiceServlet implements
                 userService.removeAccessToProducts (userData.getId(), userData.getRemovedProductsIds ());
         }
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -402,7 +420,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       }
    }
    
-   public void forgotPassword(UserData userData) throws UserServiceException,
+   public void forgotPassword(UserData userData) throws UserServiceException, AccessDeniedException,
       UserServiceMailingException, UserServiceNotExistingException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
@@ -415,6 +433,11 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       try
       {
          userService.forgotPassword (user);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (EmailNotSentException e)
       {
@@ -432,7 +455,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
    }
    
    @Override
-   public void selfUpdateUser (UserData userData) throws UserServiceException,
+   public void selfUpdateUser (UserData userData) throws UserServiceException, AccessDeniedException,
       UserServiceMailingException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
@@ -445,7 +468,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       user.setAddress (userData.getAddress ());
       user.setEmail (userData.getEmail ());
       user.setPhone (userData.getPhone ());     
-      user.setCountry (userData.getCountry ());
+      user.setCountry (userService.getCountry (Long.parseLong (userData.getCountry ())).getName ());
       user.setUsage (userData.getUsage ());
       user.setSubUsage (userData.getSubUsage ());
       user.setDomain (userData.getDomain ());
@@ -453,6 +476,11 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       try
       {
          userService.selfUpdateUser (user);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (EmailNotSentException e)
       {
@@ -466,7 +494,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       }
    }
    
-   public void selfChangePassword(Long id, String oldPassword, String newPassword) throws UserServiceException,
+   public void selfChangePassword(Long id, String oldPassword, String newPassword) throws UserServiceException, AccessDeniedException,
       UserServiceMailingException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
@@ -474,6 +502,11 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       try
       {
          userService.selfChangePassword (id, oldPassword, newPassword);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (EmailNotSentException e)
       {
@@ -488,7 +521,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
    }
    
    public void storeUserSearch (Long uId, String search, String footprint, HashMap<String, String> advanced,
-      String complete) throws UserServiceException
+      String complete) throws UserServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UserService.class);    
@@ -496,14 +529,19 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       {
          userService.storeUserSearch (uId, search, footprint, advanced, complete);
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
          throw new UserServiceException (e.getMessage ());
       }
    }
-   
-   public void removeUserSearch (Long uId, Long sId) throws UserServiceException
+
+   public void removeUserSearch (Long uId, Long sId) throws UserServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UserService.class);    
@@ -511,6 +549,11 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       {
          userService.removeUserSearch (uId, sId);
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -518,7 +561,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       }
    }
    
-   public int countUserSearches (Long uId) throws UserServiceException
+   public int countUserSearches (Long uId) throws UserServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UserService.class);    
@@ -526,6 +569,11 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       {
          return userService.countUserSearches (uId);
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -533,7 +581,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       }
    }
    
-   public List<SearchData> getAllUserSearches (Long uId) throws UserServiceException
+   public List<SearchData> getAllUserSearches (Long uId) throws UserServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UserService.class);    
@@ -558,6 +606,11 @@ public class UserServiceImpl extends RemoteServiceServlet implements
          }
          return res;
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -566,7 +619,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
    }
    
    public List<SearchData> scrollSearchesOfUser (int start, int count, Long uId)
-            throws UserServiceException
+            throws UserServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
                   .getBean (fr.gael.dhus.service.UserService.class);    
@@ -594,6 +647,11 @@ public class UserServiceImpl extends RemoteServiceServlet implements
          }
          return searchDatas;
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -601,13 +659,18 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       }
    }
 
-   public void clearSavedSearches (Long uId) throws UserServiceException
+   public void clearSavedSearches (Long uId) throws UserServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
                   .getBean (fr.gael.dhus.service.UserService.class);     
       try
       {
          userService.clearSavedSearches (uId);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -616,10 +679,15 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       } 
    }
    
-   public List<ProductData> getUploadedProducts(int start, int count, Long uId) throws UserServiceException
+   public List<ProductData> getUploadedProducts(int start, int count, Long uId)
+      throws UserServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
                   .getBean (fr.gael.dhus.service.UserService.class);
+      fr.gael.dhus.service.ProductService productService = 
+               ApplicationContextProvider.getBean (
+                  fr.gael.dhus.service.ProductService.class);
+      
       try
       {         
          ArrayList<ProductData> productDatas = new ArrayList<ProductData> ();
@@ -638,21 +706,32 @@ public class UserServiceImpl extends RemoteServiceServlet implements
     
             ArrayList<String> summary = new ArrayList<String> ();
             
-            for (MetadataIndex index : product.getIndexes ())
+            List<MetadataIndex>indexes=
+               productService.getIndexes(product.getId());
+                  
+            if (indexes!=null)
             {
-               if ("summary".equals (index.getCategory ()))
+               for (MetadataIndex index:indexes)
                {
-                  summary.add (index.getName () + " : " + index.getValue ());
-                  Collections.sort (summary, null);
+                  if ("summary".equals (index.getCategory ()))
+                  {
+                     summary.add (index.getName () + " : " + index.getValue ());
+                     Collections.sort (summary, null);
+                  }
                }
+               productData.setSummary (summary);
             }
-            productData.setSummary (summary);    
             productData.setHasQuicklook (product.getQuicklookFlag ());
             productData.setHasThumbnail (product.getThumbnailFlag ());       
                         
             productDatas.add (productData);
          }
          return productDatas;
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -661,7 +740,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       } 
    }
 
-   public List<String> getUploadedProductsIdentifiers(int start, int count, Long uId) throws UserServiceException
+   public List<String> getUploadedProductsIdentifiers(int start, int count, Long uId) throws UserServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
                   .getBean (fr.gael.dhus.service.UserService.class);     
@@ -690,6 +769,11 @@ public class UserServiceImpl extends RemoteServiceServlet implements
          }
          return productsIdentifiers;
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -697,7 +781,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       } 
    }
    
-   public int countUploadedProducts (Long uId) throws UserServiceException
+   public int countUploadedProducts (Long uId) throws UserServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UserService.class);    
@@ -705,6 +789,11 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       {
          return userService.countUploadedProducts (uId);
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -712,7 +801,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       }
    }
    
-   public void activateUserSearchNotification (Long sId, boolean notify) throws UserServiceException
+   public void activateUserSearchNotification (Long sId, boolean notify) throws UserServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UserService.class);    
@@ -720,6 +809,11 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       {
          userService.activateUserSearchNotification (sId, notify);
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -727,13 +821,18 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       }
    }
    
-   public Date getNextScheduleSearch() throws UserServiceException
+   public Date getNextScheduleSearch() throws UserServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UserService.class);    
       try
       {
          return userService.getNextScheduleSearch ();
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -742,7 +841,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       }
    }
    @Override
-   public Integer countAll (String filter) throws UserServiceException
+   public Integer countAll (String filter) throws UserServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UserService.class);
@@ -750,6 +849,11 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       try
       {
          return userService.countAll (filter);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -760,44 +864,19 @@ public class UserServiceImpl extends RemoteServiceServlet implements
 
    @Override
    public List<UserData> getAllUsers (int start, int count, String filter)
-      throws UserServiceException
+      throws UserServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UserService.class);
       try
       {
-         List<User> users = userService.getAllUsers (filter, start, count);
-         ArrayList<UserData> userDatas = new ArrayList<UserData> ();
-
-         for (User user : users)
-         {
-            LockedAccessRestriction lock = null;
-            for (AccessRestriction restriction : userService
-               .getRestrictions (user.getId ()))
-            {
-               if (restriction instanceof LockedAccessRestriction)
-               {
-                  lock = (LockedAccessRestriction) restriction;
-               }
-            }
-
-            List<RoleData> roles = new ArrayList<RoleData>();
-            for (Role role : user.getRoles())
-            {
-               roles.add (RoleData.valueOf (role.name ()));
-            }
-
-            UserData userData =
-               new UserData (user.getId (), user.getUsername (),
-                  user.getFirstname (), user.getLastname (), user.getEmail (),
-                  roles, user.getPhone (),
-                  user.getAddress (), lock == null ? null : lock.getBlockingReason (),
-                  user.getCountry (), user.getUsage (), user.getSubUsage (),
-                  user.getDomain (), user.getSubDomain ());
-               userData.setDeleted (user.isDeleted ());
-            userDatas.add (userData);
-         }
-         return userDatas;
+         Iterator<User> users = userService.getAllUsers (filter, start);
+         return convertUserToUserData (users, count);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -806,7 +885,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       }
    }
    
-   public Boolean checkUserCodeForPasswordReset(String code)  throws UserServiceException
+   public Boolean checkUserCodeForPasswordReset(String code)  throws UserServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UserService.class);
@@ -815,6 +894,11 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       {
          return userService.checkUserCodeForPasswordReset (code);
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -822,7 +906,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       }
    }
    
-   public void resetPassword(String code, String newPassword) throws UserServiceException,
+   public void resetPassword(String code, String newPassword) throws UserServiceException, AccessDeniedException,
    UserServiceMailingException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
@@ -830,6 +914,11 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       try
       {
          userService.resetPassword (code, newPassword);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (EmailNotSentException e)
       {
@@ -843,13 +932,18 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       }
    }
    
-   public boolean isDataPublic() throws UserServiceException
+   public boolean isDataPublic() throws UserServiceException, AccessDeniedException
    {
       ConfigurationManager cfg = ApplicationContextProvider
             .getBean (ConfigurationManager.class);    
       try
       {
          return cfg.isDataPublic ();
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -859,7 +953,7 @@ public class UserServiceImpl extends RemoteServiceServlet implements
    }
    
    @Override
-   public Integer countForDataRight (String filter) throws UserServiceException
+   public Integer countForDataRight (String filter) throws UserServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UserService.class);
@@ -867,6 +961,11 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       try
       {
          return userService.countForDataRight (filter);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -877,44 +976,19 @@ public class UserServiceImpl extends RemoteServiceServlet implements
 
    @Override
    public List<UserData> getUsersForDataRight (int start, int count, String filter)
-      throws UserServiceException
+      throws UserServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UserService.class);
       try
       {
-         List<User> users = userService.getUsersForDataRight (filter, start, 
-            count);
-         ArrayList<UserData> userDatas = new ArrayList<UserData> ();
-
-         for (User user : users)
-         {
-            LockedAccessRestriction lock = null;
-            for (AccessRestriction restriction : userService
-               .getRestrictions (user.getId ()))
-            {
-               if (restriction instanceof LockedAccessRestriction)
-               {
-                  lock = (LockedAccessRestriction) restriction;
-               }
-            }
-
-            List<RoleData> roles = new ArrayList<RoleData>();
-            for (Role role : user.getRoles())
-            {
-               roles.add (RoleData.valueOf (role.name ()));
-            }
-            
-            UserData userData =
-               new UserData (user.getId (), user.getUsername (),
-                  user.getFirstname (), user.getLastname (), user.getEmail (),
-                  roles, user.getPhone (),
-                  user.getAddress (), lock == null ? null : lock.getBlockingReason (),
-                  user.getCountry (), user.getUsage (), user.getSubUsage (),
-                  user.getDomain (), user.getSubDomain ());
-            userDatas.add (userData);
-         }
-         return userDatas;
+         Iterator<User> it = userService.getUsersForDataRight (filter, start);
+         return convertUserToUserData (it, count);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -923,19 +997,145 @@ public class UserServiceImpl extends RemoteServiceServlet implements
       }
    }
    
-   public UserData getPublicData() throws UserServiceException
+   public UserData getPublicData() throws UserServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UserService userService = ApplicationContextProvider
                   .getBean (fr.gael.dhus.service.UserService.class);
+      fr.gael.dhus.service.CollectionService collectionService = ApplicationContextProvider
+               .getBean (fr.gael.dhus.service.CollectionService.class);
       try
       {
          Long userId = userService.getPublicDataUserId ();
-         return getUserWithDataAccess (userId);         
+         UserData publicData = getUserWithDataAccess (userId);
+         
+         List<Long> pIds = new ArrayList<Long> ();
+         for (Long cid : publicData.getAuthorizedCollections ())
+         {
+            if (cid == collectionService.getRootCollection ().getId ()) 
+               continue;
+            for (Long pid : collectionService.getProductIds (cid))
+            {
+               if (!pIds.contains (pid))
+                  pIds.add(pid);
+            }
+         }
+         publicData.setProductsFromPublicCollections (pIds);
+                  
+         return publicData;
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
          e.printStackTrace ();
          throw new UserServiceException (e.getMessage ());
       }      
+   }
+   
+   public List<CountryData> getCountries () throws UserServiceException, AccessDeniedException
+   {
+      fr.gael.dhus.service.UserService userService = ApplicationContextProvider
+                  .getBean (fr.gael.dhus.service.UserService.class);
+      try
+      {
+         List<Country> cts = userService.getCountries ();
+         List<CountryData> countries = new ArrayList<CountryData> ();
+         for (Country c : cts)
+         {
+            countries.add (new CountryData(c.getId(), c.getName ()));
+         }
+         return countries;
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
+      catch (Exception e)
+      {
+         e.printStackTrace ();
+         throw new UserServiceException (e.getMessage ());
+      }      
+   }
+   
+   public UserData getCurrentUserInformation () throws UserServiceException, AccessDeniedException
+   {
+      fr.gael.dhus.service.UserService userService = ApplicationContextProvider
+            .getBean (fr.gael.dhus.service.UserService.class);
+
+      try
+      {
+         User user = userService.getCurrentUserInformation ();
+         LockedAccessRestriction lock = null;
+         for (AccessRestriction restriction : userService
+            .getRestrictions (user.getId ()))
+         {
+            if (restriction instanceof LockedAccessRestriction)
+            {
+               lock = (LockedAccessRestriction) restriction;
+            }
+         }
+
+         List<RoleData> roles = new ArrayList<RoleData>();
+         for (Role role : user.getRoles())
+         {
+            roles.add (RoleData.valueOf (role.name ()));
+         }
+         
+         UserData userData =
+            new UserData (user.getId (), user.getUsername (),
+               user.getFirstname (), user.getLastname (), user.getEmail (),
+               roles, user.getPhone (),
+               user.getAddress (), lock == null ? null : lock.getBlockingReason (),
+               user.getCountry (), user.getUsage (), user.getSubUsage (),
+               user.getDomain (), user.getSubDomain ());
+         
+         return userData;
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
+      catch (Exception e)
+      {
+         e.printStackTrace ();
+         throw new UserServiceException (e.getMessage ());
+      }
+   }
+
+   private List<UserData> convertUserToUserData (Iterator<User> it, int max)
+   {
+      int n = 0;
+      List<UserData> user_data_list = new ArrayList<> ();
+      while (n < max && it.hasNext ())
+      {
+         User user = it.next ();
+         Set<AccessRestriction> restrictions = user.getRestrictions ();
+         String reason = null;
+         if (!restrictions.isEmpty ())
+         {
+            reason = restrictions.toArray (
+                  new AccessRestriction[restrictions.size ()])[0]
+                  .getBlockingReason ();
+         }
+         List<RoleData> roles = new ArrayList<> ();
+         for (Role role : user.getRoles ())
+         {
+            roles.add (RoleData.valueOf (role.name ()));
+         }
+         UserData user_data = new UserData (user.getId (),
+               user.getUsername (), user.getFirstname (),
+               user.getLastname (), user.getEmail (), roles,
+               user.getPhone (), user.getAddress (), reason,
+               user.getCountry (), user.getUsage (), user.getSubUsage (),
+               user.getDomain (), user.getSubDomain ());
+         user_data_list.add (user_data);
+         n++;
+      }
+      return user_data_list;
    }
 }

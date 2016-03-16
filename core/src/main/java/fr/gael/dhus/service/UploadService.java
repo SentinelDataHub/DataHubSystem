@@ -20,7 +20,6 @@
 package fr.gael.dhus.service;
 
 import java.io.File;
-import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -34,6 +33,8 @@ import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import fr.gael.dhus.database.dao.ActionRecordWritterDao;
 import fr.gael.dhus.database.dao.FileScannerDao;
@@ -80,6 +81,7 @@ public class UploadService extends WebService
    private JobScheduler scheduler;
    
    @PreAuthorize ("hasRole('ROLE_UPLOAD')")
+   @Transactional (propagation=Propagation.REQUIRED)
    public boolean addProduct (URL path, final User owner, 
       final List<Collection> collections) throws ProductNotAddedException
    {
@@ -90,7 +92,7 @@ public class UploadService extends WebService
          logger.info ("Reading uploaded product : " + path.toExternalForm ());
          
          product = new File(path.toURI ());
-         if (product.isFile () && UnZip.supported (product.getName ()))
+         if (product.isFile () && UnZip.supported (product.getPath ()))
          {
             try
             {
@@ -132,8 +134,8 @@ public class UploadService extends WebService
             
             for (URLExt url: scanner.getScanList ())
             {
-               dataStore.addProduct (url.getUrl (),
-                  owner, collections, null, scanner, null);
+               dataStore.addProduct (url.getUrl (), owner,
+                  collections, null, scanner, null);
                actionRecordWritterDao.uploadEnd (url.getUrl(), 
                   owner.getUsername (), collections, true);
             }
@@ -142,7 +144,8 @@ public class UploadService extends WebService
          /* Case of one file product i.e. ENVISAT uploaded uncompressed */
          else if (product.isFile ())
          {
-            dataStore.addProduct (path, owner, collections, null, null, null);
+            dataStore.addProduct (path, owner, collections,
+               null, null, null);
             actionRecordWritterDao.uploadEnd (path, owner.getUsername (),
                collections, true);
             return true;
@@ -192,12 +195,16 @@ public class UploadService extends WebService
       }
    }
    
-   private static boolean deleteDir(File dir) {
-      if (dir.isDirectory()) {
+   private static boolean deleteDir(File dir)
+   {
+      if (dir.isDirectory())
+      {
           String[] children = dir.list();
-          for (int i=0; i<children.length; i++) {
+          for (int i=0; i<children.length; i++)
+          {
               boolean success = deleteDir(new File(dir, children[i]));
-              if (!success) {
+              if (!success)
+              {
                   return false;
               }
           }
@@ -208,30 +215,30 @@ public class UploadService extends WebService
   } 
 
    @PreAuthorize ("hasRole('ROLE_UPLOAD')")
-   public void processScan (final Long scanId)
+   public void processScan (final Long scan_id)
    {
       User user = securityService.getCurrentUser ();
       try
       {
-         scannerFactory.processScan (scanId, user);
+         scannerFactory.processScan (scan_id, user);
       }
       catch (ScannerException e)
       {
-         logger.info ("Scanner id #" + scanId + " not started: " +
+         logger.info ("Scanner id #" + scan_id + " not started: " +
             e.getMessage ());
       }
    }
 
    @PreAuthorize ("hasRole('ROLE_UPLOAD')")
-   public void stopScan (final Long scanId)
+   public void stopScan (final Long scan_id)
    {
       try
       {
-         scannerFactory.stopScan (scanId);
+         scannerFactory.stopScan (scan_id);
       }
       catch (ScannerException e)
       {
-         logger.info ("Scanner id #" + scanId + " not started: " +
+         logger.info ("Scanner id #" + scan_id + " not started: " +
             e.getMessage ());
       }
    }
@@ -295,7 +302,7 @@ public class UploadService extends WebService
    }
 
    @PreAuthorize ("hasRole('ROLE_UPLOAD')")
-   public List<BigInteger> getFileScannerCollections (Long id)
+   public List<Long> getFileScannerCollections (Long id)
    {
       return fileScannerDao.getScannerCollections (id);
    }

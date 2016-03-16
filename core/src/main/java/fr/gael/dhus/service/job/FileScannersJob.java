@@ -19,7 +19,7 @@
  */
 package fr.gael.dhus.service.job;
 
-import java.util.Set;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.quartz.JobExecutionContext;
@@ -29,9 +29,11 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
 import fr.gael.dhus.DHuS;
+import fr.gael.dhus.database.dao.FileScannerDao;
 import fr.gael.dhus.database.dao.UserDao;
 import fr.gael.dhus.database.object.FileScanner;
 import fr.gael.dhus.database.object.User;
+import fr.gael.dhus.datastore.scanner.ScannerException;
 import fr.gael.dhus.datastore.scanner.ScannerFactory;
 import fr.gael.dhus.system.config.ConfigurationManager;
 
@@ -43,8 +45,13 @@ public class FileScannersJob extends AbstractJob
 {
    private static Logger logger=Logger.getLogger(FileScannersJob.class);
 
+   private static int thread_counter = 0;
+
    @Autowired
    private UserDao userDao;
+   
+   @Autowired
+   private FileScannerDao fileScannerDao;
 
    @Autowired
    private ScannerFactory scannerFactory;
@@ -53,10 +60,8 @@ public class FileScannersJob extends AbstractJob
    private ConfigurationManager configurationManager;
    
    @Autowired
-   TaskExecutor taskExecutor;
-   
-   private static int thread_counter = 0;
-   
+   private TaskExecutor taskExecutor;
+
    @Override
    public String getCronExpression ()
    {
@@ -80,18 +85,13 @@ public class FileScannersJob extends AbstractJob
       }
  
       logger.info ("Running FileScanners Executions.");
-      for (final User user:userDao.readAll ())
+      List<FileScanner>fscanners = fileScannerDao.readAll ();
+      if (fscanners != null)
       {
-         Set<FileScanner>fscanners = userDao.getFileScanners (user);
-         if ((fscanners == null) || (fscanners.size ()==0))
+         for (final FileScanner fs:fileScannerDao.readAll ())
          {
-            logger.debug ("No scanner for user \"" + 
-               user.getUsername () + "\".");
-            continue;
-         }
-
-         for (final FileScanner fs:fscanners)
-         {
+            final User user = fileScannerDao.getUserFromScanner(fs);
+         
             if (!fs.isActive ())
             {
                logger.info (user.getUsername () + "'s fileScanner \"" + 
@@ -101,7 +101,6 @@ public class FileScannersJob extends AbstractJob
             
             Runnable runnable = new Runnable()
             {
-               
                @Override
                public void run ()
                {
@@ -111,7 +110,7 @@ public class FileScannersJob extends AbstractJob
                               fs.getUrl () + "\" started.");
                      scannerFactory.processScan (fs.getId (), user);
                   }
-                  catch (Exception e)
+                  catch (ScannerException e)
                   {
                      logger.info ("Scanner \"" + user.getUsername () + "@" + 
                         fs.getUrl () + "\" not started: " + e.getMessage ());
@@ -127,6 +126,5 @@ public class FileScannersJob extends AbstractJob
       }
       logger.info ("SCHEDULER : Products scanners done - " + 
                (System.currentTimeMillis ()-start) + "ms");
-      
    }
 }

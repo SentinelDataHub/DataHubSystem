@@ -19,19 +19,17 @@
  */
 package fr.gael.dhus.olingo.v1.entity;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -41,69 +39,94 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import fr.gael.dhus.util.DownloadStreamCloserListener;
+import org.apache.commons.net.io.CopyStreamAdapter;
+import org.apache.commons.net.io.CopyStreamListener;
 import org.apache.log4j.Logger;
-import org.apache.olingo.odata2.api.commons.HttpStatusCodes;
 import org.apache.olingo.odata2.api.exception.ODataException;
 import org.apache.olingo.odata2.api.processor.ODataResponse;
-import org.apache.olingo.odata2.api.processor.ODataResponse.ODataResponseBuilder;
 import org.apache.olingo.odata2.api.processor.ODataSingleProcessor;
 import org.w3c.dom.Document;
 
 import fr.gael.dhus.database.object.MetadataIndex;
+import fr.gael.dhus.database.object.Role;
 import fr.gael.dhus.database.object.User;
-import fr.gael.dhus.datastore.processing.impl.ProcessingUtils;
+import fr.gael.dhus.datastore.processing.ProcessingUtils;
 import fr.gael.dhus.network.RegulatedInputStream;
 import fr.gael.dhus.network.TrafficDirection;
 import fr.gael.dhus.olingo.v1.V1Model;
 import fr.gael.dhus.olingo.v1.V1Util;
-import fr.gael.dhus.olingo.v1.entitySet.NodeEntitySet;
-import fr.gael.dhus.olingo.v1.entitySet.ProductEntitySet;
+import fr.gael.dhus.olingo.v1.entityset.NodeEntitySet;
+import fr.gael.dhus.olingo.v1.entityset.ProductEntitySet;
 import fr.gael.dhus.service.EvictionService;
+import fr.gael.dhus.service.ProductService;
+import fr.gael.dhus.service.SecurityService;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
+import fr.gael.dhus.system.config.ConfigurationManager;
 import fr.gael.dhus.util.DownloadActionRecordListener;
 import fr.gael.dhus.util.MetalinkBuilder;
 import fr.gael.drb.DrbNode;
 
 /**
- * Product Bean. A product served by the DHuS.
+ * A OData representation of a DHuS Product.
  */
 public class Product extends Node
 {
-   private static final Logger logger = Logger.getLogger (Product.class);
+   private static final Logger LOGGER = Logger.getLogger (Product.class);
 
-   private static final EvictionService evictionService =
+   private static final EvictionService EVICTION_SERVICE =
       ApplicationContextProvider.getBean (EvictionService.class);
 
-   protected final fr.gael.dhus.database.object.Product product;
+   private static final ProductService PRODUCT_SERVICE =
+      ApplicationContextProvider.getBean (ProductService.class);
 
-   private Map<String, Product> products;
+   /** To get the path of the incoming directory, to make localPaths. */
+   private static final ConfigurationManager CONFIG_MGR =
+      ApplicationContextProvider.getBean (ConfigurationManager.class);
+
+   /** Provides access to the user's roles (Expose more infos to admins). */
+   private static final SecurityService SECURITY_SERVICE =
+      ApplicationContextProvider.getBean (SecurityService.class);
+
+   protected final fr.gael.dhus.database.object.Product product;
 
    protected Map<String, Node> nodes;
 
    protected Map<String, Attribute> attributes;
 
-   private static final long DEFAULT_EXPIRE_TIME = 7 * 24 * 60 * 60 * 1000;
+   private Map<String, Product> products;
 
-   private static final String MULTIPART_BOUNDARY = "MULTIPART_BYTERANGES";
-
-   /**
-    * Make a model Product from a database Product.
-    * 
-    * @param product database Product
-    * @return model Product
-    */
-   public static Product fromDatabase (
-      fr.gael.dhus.database.object.Product product)
-   {
-      if (product == null) return null;
-      Product res = new Product (product);
-      return res;
-   }
-   
    public Product (fr.gael.dhus.database.object.Product product)
    {
       super (product.getPath ().toString ());
       this.product = product;
+   }
+
+   /**
+    * Retrieve the Class from this product entity.
+    *
+    * @return the DrbCortex class name.
+    * @throws UnsupportedOperationException if the model cannot be computed.
+    * @throws NullPointerException if this product does not related any class.
+    */
+   @Override
+   public fr.gael.dhus.olingo.v1.entity.Class getItemClass ()
+   {
+      // Case of ingestion performed before DHuS 0.4.4
+      if (product.getItemClass () == null)
+      {
+         try
+         {
+            return new fr.gael.dhus.olingo.v1.entity.Class (
+               ProcessingUtils.getItemClassUri (ProcessingUtils
+                  .getClassFromProduct (this.product)));
+         }
+         catch (Exception e)
+         {
+            throw new UnsupportedOperationException ("Cannot find product.", e);
+         }
+      }
+      return new fr.gael.dhus.olingo.v1.entity.Class (product.getItemClass ());
    }
 
    @Override
@@ -141,7 +164,7 @@ public class Product extends Node
       }
       return number;
    }
-   
+
    @Override
    public Object getValue ()
    {
@@ -156,7 +179,7 @@ public class Product extends Node
    public Date getEvictionDate ()
    {
       // dynamic date
-      return evictionService.getEvictionDate (product.getId ());
+      return EVICTION_SERVICE.getEvictionDate (product.getId ());
    }
 
    public Date getCreationDate ()
@@ -203,7 +226,7 @@ public class Product extends Node
 
    /**
     * This product requires system controls (statistics/quotas)
-    * 
+    *
     * @return true is control is required, false otherwise.
     */
    public boolean requiresControl ()
@@ -238,12 +261,12 @@ public class Product extends Node
       if (this.nodes == null)
       {
          this.nodes = new LinkedHashMap<String, Node> ();
-         DrbNode product_node = ProcessingUtils.getNodeFromPath (
-            product.getPath ().getPath ());
+         DrbNode product_node =
+            ProcessingUtils.getNodeFromPath (product.getPath ().getPath ());
          if (product_node == null)
-            throw new NullPointerException ("Cannot compute DRB node from " + 
+            throw new NullPointerException ("Cannot compute DRB node from " +
                product.getPath ().getPath ());
-         
+
          this.nodes.put (product_node.getName (), new Node (product_node));
       }
       return this.nodes;
@@ -255,9 +278,12 @@ public class Product extends Node
       if (this.attributes == null)
       {
          this.attributes = new LinkedHashMap<String, Attribute> ();
-         for (MetadataIndex index : this.product.getIndexes ())
+         boolean has_role = SECURITY_SERVICE.getCurrentUser ().
+            getRoles ().contains (Role.ARCHIVE_MANAGER);
+         for (MetadataIndex index :
+              PRODUCT_SERVICE.getIndexes (this.product.getId ()))
          {
-            if ("product".equalsIgnoreCase (index.getCategory ()))
+            if (has_role || "product".equalsIgnoreCase (index.getCategory ()))
             {
                Attribute attr =
                   new Attribute (index.getName (), index.getValue ());
@@ -269,7 +295,12 @@ public class Product extends Node
       return this.attributes;
    }
 
-   public String getDownloadableFileName ()
+   /**
+    * Returns the absolute local path to this product.
+    *
+    * @return path to this product.
+    */
+   public String getDownloadablePath ()
    {
       return product.getDownload ().getPath ();
    }
@@ -287,7 +318,7 @@ public class Product extends Node
       Map<String, Object> res = super.itemToEntityResponse (root_url);
 
       res.put (NodeEntitySet.CHILDREN_NUMBER, getChildrenNumber ());
-      
+
       LinkedHashMap<String, Date> dates = new LinkedHashMap<String, Date> ();
       dates.put (V1Model.TIME_RANGE_START, getContentStart ());
       dates.put (V1Model.TIME_RANGE_END, getContentEnd ());
@@ -302,6 +333,28 @@ public class Product extends Node
       res.put (ProductEntitySet.CREATION_DATE, getCreationDate ());
       res.put (ProductEntitySet.EVICTION_DATE, getEvictionDate ());
       res.put (ProductEntitySet.CONTENT_GEOMETRY, getGeometry ());
+
+      Path incoming_path =
+         Paths.get (CONFIG_MGR.getArchiveConfiguration ()
+            .getIncomingConfiguration ().getPath ());
+      String prod_path = this.getDownloadablePath ();
+      if (prod_path != null) // Can happen with not yet ingested products
+      {
+         Path prod_path_path = Paths.get (prod_path);
+         if (prod_path_path.startsWith (incoming_path))
+         {
+            prod_path = incoming_path.relativize (prod_path_path).toString ();
+         }
+         else
+         {
+            prod_path = null;
+         }
+      }
+      else
+      {
+         prod_path = null;
+      }
+      res.put (ProductEntitySet.LOCAL_PATH, prod_path);
 
       try
       {
@@ -321,55 +374,55 @@ public class Product extends Node
       }
       catch (ParserConfigurationException e)
       {
-         logger.error ("Error when creating Product EntityResponse", e);
+         LOGGER.error ("Error when creating Product EntityResponse", e);
       }
       catch (TransformerException e)
       {
-         logger.error ("Error when creating Product EntityResponse", e);
+         LOGGER.error ("Error when creating Product EntityResponse", e);
       }
       return res;
    }
 
    @Override
-   public Object getProperty (String propName) throws ODataException
+   public Object getProperty (String prop_name) throws ODataException
    {
-      if (propName.equals (ProductEntitySet.CREATION_DATE))
+      if (prop_name.equals (ProductEntitySet.CREATION_DATE))
          return getCreationDate ();
 
-      if (propName.equals (ProductEntitySet.INGESTION_DATE))
+      if (prop_name.equals (ProductEntitySet.INGESTION_DATE))
          return getIngestionDate ();
 
-      if (propName.equals (ProductEntitySet.EVICTION_DATE))
+      if (prop_name.equals (ProductEntitySet.EVICTION_DATE))
          return getEvictionDate ();
 
-      if (propName.equals (ProductEntitySet.CONTENT_GEOMETRY))
+      if (prop_name.equals (ProductEntitySet.CONTENT_GEOMETRY))
          return getGeometry ();
 
-      return super.getProperty (propName);
+      return super.getProperty (prop_name);
    }
 
    @Override
-   public Map<String, Object> getComplexProperty (String propName)
+   public Map<String, Object> getComplexProperty (String prop_name)
       throws ODataException
    {
-      if (propName.equals (ProductEntitySet.CONTENT_DATE))
+      if (prop_name.equals (ProductEntitySet.CONTENT_DATE))
       {
          Map<String, Object> values = new HashMap<String, Object> ();
          values.put (V1Model.TIME_RANGE_START, getContentStart ());
          values.put (V1Model.TIME_RANGE_END, getContentEnd ());
          return values;
       }
-      if (propName.equals (ProductEntitySet.CHECKSUM))
+      if (prop_name.equals (ProductEntitySet.CHECKSUM))
       {
          Map<String, Object> values = new HashMap<String, Object> ();
          values.put (V1Model.ALGORITHM, getChecksumAlgorithm ());
          values.put (V1Model.VALUE, getChecksumValue ());
          return values;
       }
-      throw new ODataException ("Complex property '" + propName +
+      throw new ODataException ("Complex property '" + prop_name +
          "' not found.");
    }
-
+   
    @Override
    public ODataResponse getEntityMedia (ODataSingleProcessor processor)
       throws ODataException
@@ -377,26 +430,35 @@ public class Product extends Node
       ODataResponse rsp = null;
       try
       {
-         User u = V1Util.getCurrentUser ();
-         String userName = (u == null ? null : u.getUsername ());
-         InputStream is;
+         InputStream is=new BufferedInputStream(getInputStream());
          if (requiresControl ())
          {
+            User u = V1Util.getCurrentUser ();
+            String user_name = (u == null ? null : u.getUsername ());
+
+            CopyStreamAdapter adapter = new CopyStreamAdapter ();
+            CopyStreamListener recorder = new DownloadActionRecordListener (
+                  product.getUuid (), product.getIdentifier (), u);
+            CopyStreamListener closer = new DownloadStreamCloserListener (is);
+            adapter.addCopyStreamListener (recorder);
+            adapter.addCopyStreamListener (closer);
+
             RegulatedInputStream.Builder builder =
-               new RegulatedInputStream.Builder (getInputStream (),
-                  TrafficDirection.OUTBOUND);
-            builder.userName (userName);
-            builder.copyStreamListener (new DownloadActionRecordListener (
-               product, u));
+               new RegulatedInputStream.Builder (is,TrafficDirection.OUTBOUND);
+            builder.userName (user_name);
+            builder.copyStreamListener (adapter);
 
             is = builder.build ();
          }
-         else
-         {
-            is = getInputStream ();
-         }
-         rsp = downloadResponseBuilder (this, is, processor).entity (is).
-            build ();
+
+         // Computes ETag
+         String etag = getChecksumValue ();
+         if (etag == null) etag = getId ();
+         String filename = new File (getDownloadablePath ()).getName ();
+         // Prepare the HTTP header for stream transfer.
+         rsp = V1Util.prepareMediaResponse (etag, filename, getContentType (),
+            getCreationDate ().getTime (), getContentLength (),
+            processor.getContext (), is);
       }
       catch (Exception e)
       {
@@ -406,332 +468,5 @@ public class Product extends Node
             "An exception occured while creating a stream" + inner_message, e);
       }
       return rsp;
-   }
-
-   /**
-    * Builds an ODataResponse according to the current http context header. The
-    * response manages resume or partial requests, and controls inputs requests
-    * to return expected return status. The passed input string is used to move
-    * its current position if required by the header.
-    * 
-    * @param product the product to handle.
-    * @param is the input stream references data to download.
-    * @return the OData response builder
-    */
-   private ODataResponseBuilder downloadResponseBuilder (Product product,
-      InputStream is, ODataSingleProcessor processor)
-   {
-      ODataResponseBuilder response = ODataResponse.newBuilder ();
-      long length = product.getContentLength ();
-      String fileName =
-         new File (product.getDownloadableFileName ()).getName ();
-      String etag = product.getChecksumValue ();
-      if (etag == null) etag = product.getId ();
-      Date lastModifiedObj = product.getCreationDate ();
-
-      long lastModified = lastModifiedObj.getTime ();
-      String contentType = product.getContentType ();
-      
-      // Validate request headers for caching ---------------------------------
-
-      // If-None-Match header should contain "*" or ETag. If so, then return 304
-      String ifNoneMatch =
-         processor.getContext ().getRequestHeader ("If-None-Match");
-      if (ifNoneMatch != null && matches (ifNoneMatch, etag))
-      {
-         response.header ("ETag", etag); // Required in 304.
-         response.status (HttpStatusCodes.NOT_MODIFIED);
-         return response;
-      }
-
-      // If-Modified-Since header should be greater than LastModified. If so,
-      // then return 304.
-      // This header is ignored if any If-None-Match header is specified.
-      long ifModifiedSince =
-         getHttpDate (processor.getContext ().getRequestHeader (
-            "If-Modified-Since"));
-
-      if ( (ifNoneMatch == null) && (ifModifiedSince != -1) &&
-         (ifModifiedSince + 1000 > lastModified))
-      {
-         response.header ("ETag", etag); // Required in 304.
-         response.status (HttpStatusCodes.NOT_MODIFIED);
-         return response;
-      }
-
-      // Validate request headers for resume ----------------------------------
-
-      // If-Match header should contain "*" or ETag. If not, then return 412.
-      String ifMatch = processor.getContext ().getRequestHeader ("If-Match");
-      if ( (ifMatch != null) && !matches (ifMatch, etag))
-      {
-         response.status (HttpStatusCodes.PRECONDITION_FAILED);
-         return response;
-      }
-
-      // If-Unmodified-Since header should be greater than LastModified.
-      // If not, then return 412.
-      long ifUnmodifiedSince =
-         getHttpDate (processor.getContext ().getRequestHeader (
-            "If-Unmodified-Since"));
-      if ( (ifUnmodifiedSince != -1) &&
-         (ifUnmodifiedSince + 1000 <= lastModified))
-      {
-         response.status (HttpStatusCodes.PRECONDITION_FAILED);
-         return response;
-      }
-
-      // Validate and process range --------------------------------------------
-
-      // Prepare some variables. The full Range represents the complete file.
-      Range full = new Range (0, length - 1, length);
-      List<Range> ranges = new ArrayList<Range> ();
-
-      // Validate and process Range and If-Range headers.
-      String range = processor.getContext ().getRequestHeader ("Range");
-      if (range != null)
-      {
-         // Range header should match format "bytes=n-n,n-n,n-n...".
-         // If not, then return 416.
-         if ( !range.matches ("^bytes=\\d*-\\d*(,\\d*-\\d*)*$"))
-         {
-            // Required in 416.
-            response.header ("Content-Range", "bytes */" + length);
-            response.status (HttpStatusCodes.REQUESTED_RANGE_NOT_SATISFIABLE);
-            return response;
-         }
-
-         String ifRange = processor.getContext ().getRequestHeader ("If-Range");
-         if ( (ifRange != null) && !ifRange.equals (etag))
-         {
-            ranges.add (full);
-         }
-
-         // If any valid If-Range header, then process each part of byte range.
-         if (ranges.isEmpty ())
-         {
-            for (String part : range.substring (6).split (","))
-            {
-               // Assuming a file with length of 100, the following examples
-               // returns bytes at:
-               // 50-80 (50 to 80),
-               // 40- (40 to length=100),
-               // -20 (length-20=80 to length=100).
-               long start = sublong (part, 0, part.indexOf ("-"));
-               long end =
-                  sublong (part, part.indexOf ("-") + 1, part.length ());
-
-               if (start == -1)
-               {
-                  start = length - end;
-                  end = length - 1;
-               }
-               else
-                  if (end == -1 || end > length - 1)
-                  {
-                     end = length - 1;
-                  }
-
-               // Check if Range is syntactically valid. If not, then return
-               // 416.
-               if (start > end)
-               {
-                  // Required in 416.
-                  response.header ("Content-Range", "bytes */" + length);
-                  response
-                     .status (HttpStatusCodes.REQUESTED_RANGE_NOT_SATISFIABLE);
-                  return response;
-               }
-               // Add range.
-               ranges.add (new Range (start, end, length));
-            }
-         }
-      }
-      // Prepare and initialize response --------------------------------------
-
-      // Get content type by file name and set content disposition.
-      String disposition = "inline";
-
-      /*
-       * If content type is unknown, then set the default value. For all content
-       * types, see: http://www.w3schools.com/media/media_mimeref.asp To add new
-       * content types, add new mime-mapping entry in web.xml.
-       */
-      if (contentType == null)
-      {
-         contentType = "application/octet-stream";
-      }
-      else
-         if ( !contentType.startsWith ("image"))
-         {
-            // Else, expect for images, determine content disposition.
-            // If content type is supported by the browser, then set to inline,
-            // else attachment which will pop a 'save as' dialogue.
-            String accept = processor.getContext ().getRequestHeader ("Accept");
-            disposition =
-               accept != null && accepts (accept, contentType) ? "inline"
-                  : "attachment";
-         }
-
-      // Initialize response.
-      response.header ("Content-Disposition", disposition + ";filename=\"" +
-         fileName + "\"");
-      response.header ("Accept-Ranges", "bytes");
-      response.header ("ETag", etag);
-      response.header ("Last-Modified", asHttpDate (lastModified));
-      response.header ("Expires", asHttpDate (System.currentTimeMillis () +
-         DEFAULT_EXPIRE_TIME));
-
-      if (ranges.isEmpty () || ranges.get (0) == full)
-      {
-         // Return full file.
-         Range r = full;
-         response.header ("Content-Type", contentType);
-         response.header ("Content-Range", "bytes " + r.start + "-" + r.end +
-            "/" + r.total);
-         response.header ("Content-Length", String.valueOf (r.length));
-         return response;
-      }
-      else
-         if (ranges.size () == 1)
-         {
-            // Return single part of file.
-            Range r = ranges.get (0);
-            response.header ("Content-Type", contentType);
-            response.header ("Content-Range", "bytes " + r.start + "-" + r.end +
-               "/" + r.total);
-            response.header ("Content-Length", String.valueOf (r.length));
-
-            try
-            {
-               is.skip (r.start);
-               response.status (HttpStatusCodes.PARTIAL_CONTENT); // 206.
-            }
-            catch (IOException e)
-            {
-               logger.error ("Cannot skip input stream of " + fileName +
-                  " to offset " + r.start);
-               response
-                  .status (HttpStatusCodes.REQUESTED_RANGE_NOT_SATISFIABLE);
-            }
-
-            return response;
-         }
-         else
-         {
-            // Return multiple parts of file.
-            response.header ("Content-Type", "multipart/byteranges; boundary=" +
-               MULTIPART_BOUNDARY);
-            response.status (HttpStatusCodes.NOT_IMPLEMENTED);
-            logger.error ("MULTIPART NOT SUPPORTED !");
-            return response;
-         }
-   }
-
-   /**
-    * Returns true if the given match header matches the given value.
-    * 
-    * @param matchHeader The match header.
-    * @param toMatch The value to be matched.
-    * @return True if the given match header matches the given value.
-    */
-   private boolean matches (String matchHeader, String toMatch)
-   {
-      String[] matchValues = matchHeader.split ("\\s*,\\s*");
-      Arrays.sort (matchValues);
-      return Arrays.binarySearch (matchValues, toMatch) > -1 ||
-         Arrays.binarySearch (matchValues, "*") > -1;
-   }
-
-   /**
-    * Returns a substring of the given string value from the given begin index
-    * to the given end index as a long. If the substring is empty, then -1 will
-    * be returned.
-    * 
-    * @param value The string value to return a substring as long for.
-    * @param beginIndex The begin index of the substring to be returned as long.
-    * @param endIndex The end index of the substring to be returned as long.
-    * @return A substring of the given string value as long or -1 if substring
-    *         is empty.
-    */
-   private long sublong (String value, int beginIndex, int endIndex)
-   {
-      String substring = value.substring (beginIndex, endIndex);
-      return (substring.length () > 0) ? Long.parseLong (substring) : -1;
-   }
-
-   /**
-    * Returns true if the given accept header accepts the given value.
-    * 
-    * @param acceptHeader The accept header.
-    * @param toAccept The value to be accepted.
-    * @return True if the given accept header accepts the given value.
-    */
-   private boolean accepts (String acceptHeader, String toAccept)
-   {
-      String[] acceptValues = acceptHeader.split ("\\s*(,|;)\\s*");
-      Arrays.sort (acceptValues);
-      return 
-         Arrays.binarySearch (acceptValues, toAccept) > -1 ||
-         Arrays.binarySearch (acceptValues, 
-            toAccept.replaceAll ("/.*$", "/*")) > -1 ||
-         Arrays.binarySearch (acceptValues, "*/*") > -1;
-   }
-
-   /**
-    * Returns long representation of the HTTP defined RFC 1123 date format.
-    * 
-    * @param date to parse
-    * @return the long value of date since 1st January 1970
-    */
-   private long getHttpDate (String date)
-   {
-      SimpleDateFormat dateFormat =
-         new SimpleDateFormat ("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
-      try
-      {
-         return dateFormat.parse (date).getTime ();
-      }
-      catch (Exception e)
-      {
-         return -1;
-      }
-   }
-
-   /**
-    * Returns string representation of the HTTP defined RFC 1123 date format.
-    * 
-    * @param date to parse
-    * @return the long value of date since 1st January 1970
-    */
-   private String asHttpDate (long date)
-   {
-      SimpleDateFormat dateFormat =
-         new SimpleDateFormat ("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
-
-      return dateFormat.format (new Date (date));
-   }
-
-   protected class Range
-   {
-      long start;
-      long end;
-      long length;
-      long total;
-
-      /**
-       * Construct a byte range.
-       * 
-       * @param start Start of the byte range.
-       * @param end End of the byte range.
-       * @param total Total length of the byte source.
-       */
-      public Range (long start, long end, long total)
-      {
-         this.start = start;
-         this.end = end;
-         this.length = end - start + 1;
-         this.total = total;
-      }
    }
 }

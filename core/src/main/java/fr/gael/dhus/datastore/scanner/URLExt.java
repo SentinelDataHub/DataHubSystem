@@ -23,20 +23,57 @@ import java.net.URL;
 
 
 /**
- * manages extended URL including isDirectory flag
- *
+ * manages extended URL including isDirectory flag and a name.
  */
 public class URLExt 
 {
    private URL url;
    private boolean isDirectory;
+   private String name;
    
-   public URLExt (URL url, boolean isDirectory)
+   /**
+    * Creates an URLExt with the given url.
+    * The name field will be the last segment of the path path of the given URL.
+    * @param url an URL.
+    * @param is_directory true if the referenced object is a directory.
+    */
+   public URLExt (URL url, boolean is_directory)
+   {
+      this (url, is_directory, null);
+      
+   }
+   
+   /**
+    * Creates an URLExt with the given URL and filename
+    * @param url an URL.
+    * @param is_directory true if the referenced object is a directory.
+    * @param name a name for the object referenced by the {@code url} param.
+    */
+   public URLExt (URL url, boolean is_directory, String name)
    {
       this.setUrl (url);
-      this.setDirectory (isDirectory);
-   }
+      this.setDirectory (is_directory);
+      if (name == null)
+      {
+         // Extracts the name from the last segment of the URL.
+         String path = url.getPath ();
 
+         if (path.endsWith ("/"))
+         {
+            path = path.substring (0, path.length ()-1);
+         }
+         
+         int lastslash = path.lastIndexOf ('/');
+         if (lastslash != -1)
+            name = path.substring (lastslash);
+
+         int zipind = name.lastIndexOf (".zip");
+         if (zipind != -1)
+            name = name.substring (0, zipind);
+      }
+      this.name = name;
+   }
+   
    /**
     * @param url the url to set
     */
@@ -54,11 +91,11 @@ public class URLExt
    }
 
    /**
-    * @param isDirectory the isDirectory to set
+    * @param is_directory the isDirectory to set
     */
-   public void setDirectory (boolean isDirectory)
+   public void setDirectory (boolean is_directory)
    {
-      this.isDirectory = isDirectory;
+      this.isDirectory = is_directory;
    }
 
    /**
@@ -69,5 +106,19 @@ public class URLExt
       return isDirectory;
    }
    
-
+   /**
+    * @return this referenced object.
+    */
+   public String getName ()
+   {
+      return name;
+   }
+   
+   /**
+    * @param name set the name for the referenced object.
+    */
+   public void setName (String name)
+   {
+      this.name = name;
+   }
 }

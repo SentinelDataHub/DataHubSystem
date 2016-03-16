@@ -22,6 +22,7 @@ package fr.gael.dhus.gwt.services;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 import fr.gael.dhus.gwt.services.annotation.RPCService;
+import fr.gael.dhus.gwt.share.exceptions.AccessDeniedException;
 import fr.gael.dhus.gwt.share.exceptions.ArchiveServiceException;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
 
@@ -37,13 +38,18 @@ public class ArchiveServiceImpl extends RemoteServiceServlet implements
 
    private static final long serialVersionUID = -5497578757713941068L;
 
-   public int synchronizeLocalArchive () throws ArchiveServiceException
+   public int synchronizeLocalArchive () throws ArchiveServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.ArchiveService archiveService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.ArchiveService.class);
       try
       {
          return archiveService.synchronizeLocalArchive ();
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {

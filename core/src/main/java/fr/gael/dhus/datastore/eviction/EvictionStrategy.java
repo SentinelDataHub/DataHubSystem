@@ -19,7 +19,9 @@
  */
 package fr.gael.dhus.datastore.eviction;
 
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -56,28 +58,25 @@ public enum EvictionStrategy
       @Override
       public Set<Product> getProductsToEvict(Eviction eviction)
       {
-         int skip = 0;
-         int top = DaoUtils.DEFAULT_ELEMENTS_PER_PAGE;
-         int max = eviction.getMaxProductNumber ();
-         List<Product> products;
-         Set<Product> result = new LinkedHashSet<Product> ();
-         do
+         Set<Product> result;
+         if (evictionManager.canEvictFromArchive (eviction))
          {
-            products = evictionManager.getProductsByIngestionDate (
-               eviction.getKeepPeriod (), skip, top);
-            for (Product product : products)
+            int max = eviction.getMaxProductNumber ();
+            Iterator<Product> it = evictionManager.getProductsByIngestionDate (
+                  eviction.getKeepPeriod ());
+            result = new LinkedHashSet<> ();
+            while (result.size () < max && it.hasNext ())
             {
+               Product product = it.next ();
                logger.info ("Product to evict \"" + product.getIdentifier () +
-                  "\" - date " + product.getCreated ());
-               if (evictionManager.canEvictFromArchive (product, eviction) &&
-                        result.size () < max)
-               {
-                  result.add(product);
-               }
+                     "\" - date " + product.getCreated ());
+               result.add (product);
             }
-            skip = skip + top;
          }
-         while (products.size () == top && result.size () < max);
+         else
+         {
+            result = Collections.emptySet ();
+         }
          logger.info ("Found " + result.size () + " product(s) to evict.");
          return result;
       }
@@ -87,31 +86,28 @@ public enum EvictionStrategy
       @Override
       public Set<Product> getProductsToEvict(Eviction eviction)
       {
-         int skip = 0;
-         int top = DaoUtils.DEFAULT_ELEMENTS_PER_PAGE;
-         int max = eviction.getMaxProductNumber ();
-         List<Product> products;
-         Set<Product> result = new LinkedHashSet<Product> ();
-         do
+         Set<Product> result;
+         if (evictionManager.canEvictFromArchive (eviction))
          {
-            products = evictionManager.getProductsByIngestionDate (
-               eviction.getKeepPeriod (), skip, top);
-            for (Product product : products)
+            int max = eviction.getMaxProductNumber ();
+            Iterator<Product> it = evictionManager.getProductsByIngestionDate (
+                  eviction.getKeepPeriod ());
+            result = new LinkedHashSet<> ();
+            while (result.size () < max && it.hasNext ())
             {
+               Product product = it.next ();
                logger.info ("Product to evict \"" + product.getIdentifier () +
-                  "\" - date " + product.getCreated ());
-               if (evictionManager.canEvictFromArchive (product, eviction) &&
-                        result.size () < max)
-               {
-                  result.add(product);
-               }
+                     "\" - date " + product.getCreated ());
+               result.add (product);
             }
-            skip = skip + top;
          }
-         while (products.size () == top && result.size () < max);
+         else
+         {
+            result = Collections.emptySet ();
+         }
          logger.info ("Found " + result.size () + " product(s) to evict.");
          return result;
-      }         
+      }
    }
    
    ;
@@ -151,9 +147,9 @@ public enum EvictionStrategy
       return this.description;
    }
    
-   private void setEvictionManager (EvictionManager evictionManager)
+   private void setEvictionManager (EvictionManager eviction_manager)
    {
-      this.evictionManager = evictionManager;
+      this.evictionManager = eviction_manager;
    }
    
    public abstract Set<Product> getProductsToEvict(Eviction eviction);

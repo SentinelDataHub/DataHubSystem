@@ -1,6 +1,6 @@
 /*
  * Data Hub Service (DHuS) - For Space data distribution.
- * Copyright (C) 2013,2014,2015 GAEL Systems
+ * Copyright (C) 2013,2014,2015,2016 GAEL Systems
  *
  * This file is part of DHuS software sources.
  *
@@ -46,6 +46,8 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.springframework.security.core.GrantedAuthority;
@@ -58,28 +60,55 @@ import fr.gael.dhus.service.exception.UserBadEncryptionException;
 
 @Entity
 @Table (name = "USERS")
+@Cache(usage=CacheConcurrencyStrategy.READ_WRITE, region="user")
 public class User extends AbstractTimestampEntity implements Serializable,
    UserDetails
 {
    private static final long serialVersionUID = -5230880505052446856L;
+   private static final Random RANDOM = new Random ();
+   private static final char[] SYMBOLS = new char[73];
+
+   /**
+    * Generating password.
+    */
+   static
+   {
+      for (int idx = 0; idx < 10; ++idx)
+         SYMBOLS[idx] = (char) ('0' + idx);
+      for (int idx = 10; idx < 36; ++idx)
+         SYMBOLS[idx] = (char) ('a' + (idx - 10));
+      for (int idx = 36; idx < 62; ++idx)
+         SYMBOLS[idx] = (char) ('A' + (idx - 36));
+      SYMBOLS[62] = '@';
+      SYMBOLS[63] = '/';
+      SYMBOLS[64] = '?';
+      SYMBOLS[65] = '$';
+      SYMBOLS[66] = '%';
+      SYMBOLS[67] = '?';
+      SYMBOLS[68] = '!';
+      SYMBOLS[69] = '.';
+      SYMBOLS[70] = ',';
+      SYMBOLS[71] = ';';
+      SYMBOLS[72] = ':';
+   }
 
    public enum PasswordEncryption
    {
       NONE ("none"), MD5 ("MD5"), SHA1 ("SHA-1"), SHA256 ("SHA-256"), 
          SHA384 ("SHA-384"), SHA512 ("SHA-512");
 
+      private String algorithmKey;
+
       private PasswordEncryption (String algorithm)
       {
          algorithmKey = algorithm;
       }
 
-      private String algorithmKey;
-
       public String getAlgorithmKey ()
       {
          return algorithmKey;
       }
-   };
+   }
 
    @Id
    @GeneratedValue (strategy = GenerationType.AUTO)
@@ -118,7 +147,8 @@ public class User extends AbstractTimestampEntity implements Serializable,
    private boolean deleted = false;
 
    @ElementCollection (targetClass = Role.class, fetch = FetchType.EAGER)
-   @CollectionTable (name = "USER_ROLES", joinColumns = @JoinColumn (name = "USER_ID"))
+   @CollectionTable (name = "USER_ROLES",
+                     joinColumns = @JoinColumn (name = "USER_ID"))
    @Enumerated (EnumType.STRING)
    @Cascade ({CascadeType.DELETE})
    private List<Role> roles;
@@ -134,7 +164,9 @@ public class User extends AbstractTimestampEntity implements Serializable,
     * User's restrictions
     */
    @OneToMany (fetch = FetchType.EAGER)
-   @JoinTable (name = "USER_RESTRICTIONS", joinColumns = { @JoinColumn (name = "USER_ID") }, inverseJoinColumns = { @JoinColumn (name = "RESTRICTION_ID") })
+   @JoinTable (name = "USER_RESTRICTIONS",
+               joinColumns = { @JoinColumn (name = "USER_ID") },
+               inverseJoinColumns = { @JoinColumn (name = "RESTRICTION_ID") })
    @Cascade ({CascadeType.SAVE_UPDATE, CascadeType.DELETE})
    private Set<AccessRestriction> restrictions;
 
@@ -142,19 +174,24 @@ public class User extends AbstractTimestampEntity implements Serializable,
    @Cascade ({CascadeType.SAVE_UPDATE, CascadeType.DELETE})
    private Quota quota;
 
-   @Column (name = "COUNTRY", nullable = false, columnDefinition = "VARCHAR(255) default 'unknown'")
+   @Column (name = "COUNTRY", nullable = false,
+            columnDefinition = "VARCHAR(255) default 'unknown'")
    private String country = "unknown";
 
-   @Column (name = "DOMAIN", nullable = false, columnDefinition = "VARCHAR(255) default 'unknown'")
+   @Column (name = "DOMAIN", nullable = false,
+            columnDefinition = "VARCHAR(255) default 'unknown'")
    private String domain = "unknown";
 
-   @Column (name = "SUBDOMAIN", nullable = false, columnDefinition = "VARCHAR(255) default 'unknown'")
+   @Column (name = "SUBDOMAIN", nullable = false,
+            columnDefinition = "VARCHAR(255) default 'unknown'")
    private String subDomain = "unknown";
 
-   @Column (name = "USAGE", nullable = false, columnDefinition = "VARCHAR(255) default 'unknown'")
+   @Column (name = "USAGE", nullable = false,
+            columnDefinition = "VARCHAR(255) default 'unknown'")
    private String usage = "unknown";
 
-   @Column (name = "SUBUSAGE", nullable = false, columnDefinition = "VARCHAR(255) default 'unknown'")
+   @Column (name = "SUBUSAGE", nullable = false,
+            columnDefinition = "VARCHAR(255) default 'unknown'")
    private String subUsage = "unknown";
 
    public String getUsername ()
@@ -184,7 +221,8 @@ public class User extends AbstractTimestampEntity implements Serializable,
             MessageDigest md =
                MessageDigest.getInstance (encryption.getAlgorithmKey ());
             password =
-               new String (Hex.encode (md.digest (password.getBytes ("UTF-8"))));
+               new String (
+                     Hex.encode (md.digest (password.getBytes ("UTF-8"))));
          }
          catch (Exception e)
          {
@@ -234,11 +272,11 @@ public class User extends AbstractTimestampEntity implements Serializable,
    /**
     * used internal
     * 
-    * @param passwordEncryption
+    * @param password_encryption
     */
-   private void setPasswordEncryption (PasswordEncryption passwordEncryption)
+   private void setPasswordEncryption (PasswordEncryption password_encryption)
    {
-      this.passwordEncryption = passwordEncryption;
+      this.passwordEncryption = password_encryption;
    }
 
    public String getFirstname ()
@@ -449,9 +487,11 @@ public class User extends AbstractTimestampEntity implements Serializable,
    {
       String str = "Available Services : ";
       if (roles == null || roles.isEmpty ())
-         return "Currently you have no available services."
-            + " You have to wait that an administrator give you access to services.";
-      for (Role role : roles)
+         return "Currently you have no available services." +
+               " You have to wait that an administrator give you access" +
+               " to services.";
+      HashSet<Role> uniqueRoles = new HashSet<> (roles);
+      for (Role role : uniqueRoles)
       {
          str += role.toString () + ", ";
       }
@@ -481,33 +521,6 @@ public class User extends AbstractTimestampEntity implements Serializable,
          return "";
    }
 
-   /**
-    * Generating password.
-    */
-   private static final char[] symbols = new char[73];
-   static
-   {
-      for (int idx = 0; idx < 10; ++idx)
-         symbols[idx] = (char) ('0' + idx);
-      for (int idx = 10; idx < 36; ++idx)
-         symbols[idx] = (char) ('a' + (idx - 10));
-      for (int idx = 36; idx < 62; ++idx)
-         symbols[idx] = (char) ('A' + (idx - 36));
-      symbols[62] = '@';
-      symbols[63] = '/';
-      symbols[64] = '?';
-      symbols[65] = '$';
-      symbols[66] = '%';
-      symbols[67] = '?';
-      symbols[68] = '!';
-      symbols[69] = '.';
-      symbols[70] = ',';
-      symbols[71] = ';';
-      symbols[72] = ':';
-   }
-
-   private static final Random random = new Random ();
-
    public void generatePassword ()
    {
       generatePassword (8);
@@ -523,7 +536,7 @@ public class User extends AbstractTimestampEntity implements Serializable,
       buf = new char[length];
 
       for (int idx = 0; idx < buf.length; ++idx)
-         buf[idx] = symbols[random.nextInt (symbols.length)];
+         buf[idx] = SYMBOLS[RANDOM.nextInt (SYMBOLS.length)];
       tmpPassword = new String (buf);
       setPassword (new String (buf));
    }
@@ -578,9 +591,9 @@ public class User extends AbstractTimestampEntity implements Serializable,
       return subDomain;
    }
 
-   public void setSubDomain (String subDomain)
+   public void setSubDomain (String sub_domain)
    {
-      this.subDomain = subDomain;
+      this.subDomain = sub_domain;
    }
 
    public String getUsage ()
@@ -598,9 +611,9 @@ public class User extends AbstractTimestampEntity implements Serializable,
       return subUsage;
    }
 
-   public void setSubUsage (String subUsage)
+   public void setSubUsage (String sub_usage)
    {
-      this.subUsage = subUsage;
+      this.subUsage = sub_usage;
    }
 
    public String getDisplayableUsage ()

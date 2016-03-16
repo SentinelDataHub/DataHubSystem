@@ -1,0 +1,11 @@
+{
+	"logger":{
+		"channels":{
+			"MainHttpInterceptor": false,
+			"map":  true,
+			"list": true
+		},
+		"active": true,
+		"level": "debug"
+	}
+}

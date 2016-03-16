@@ -1,0 +1,20 @@
+#badgetriangle{
+	width: 0;
+	height: 0;
+	border-style: solid;
+	border-width: 0 10px 10px 10px;
+	border-color: transparent transparent #fff transparent;
+	position:absolute;
+	margin-left: calc(50% - 18px);
+	bottom: -15px;
+	display: none;
+}
+
+.right-bottom{
+	bottom: 50px !important;
+	-webkit-transform: rotate(180deg) !important;
+	-moz-transform: rotate(180deg) !important;
+	-o-transform: rotate(180deg) !important;
+	-ms-transform: rotate(180deg) !important;
+	transform: rotate(180deg) !important;
+}

@@ -1,0 +1,27 @@
+<link rel="import" href="../../libs/core-icons/core-icons.html">
+<link rel="import" href="../../libs/paper-icon-button/paper-icon-button.html">
+
+<polymer-element name="product-quicklook" attributes="productuuid hasQuicklook">
+	<template id="app" >
+		
+	 	<link rel="stylesheet" type="text/css" href="style.css">
+	 	<link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">
+		<link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap-theme.min.css">
+			<div class="col-md-12">
+
+				<div id="carousel-container" class="carousel slide" data-ride="carousel">
+					<div class="carousel-inner" role="listbox">
+				    	<div class="item active">
+				    		<img src="{{url}}" alt="quicklook" onerror="{{noquicklook}}">
+				    	</div>
+				  	</div>
+
+				 <!--  <paper-icon-button class="left-button" mini icon="chevron-left"></paper-icon-button>
+				  <paper-icon-button class="right-button" mini icon="chevron-right"></paper-icon-button> -->
+				  
+				</div>
+			</div>
+	</template>
+
+  	<script src="script.js"></script>
+</polymer-element>

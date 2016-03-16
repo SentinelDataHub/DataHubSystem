@@ -1,0 +1,277 @@
+<div>
+<!-- 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+-->
+
+
+<div><style type="text/css">
+#eviction-container{
+  margin-top: 30px;
+}
+
+#eviction-container .eviction-button {
+    background-color: rgb(55, 59, 80)!important;
+    vertical-align: middle;
+    margin-top: 12px;
+    line-height: 20px;
+    font-size: 14px;
+    margin-left: 20px;
+    position: relative;
+    float: right;
+    padding: 10px;
+    cursor: pointer;
+    color:white;
+    text-decoration: none;
+
+}
+#eviction-container .eviction-button:hover{
+    color:white;
+    text-decoration: none;
+}
+#eviction-container .eviction-button:visited{
+    color:white;
+    text-decoration: none;
+}
+
+#eviction-container hr{
+  width: 80%;
+  border: 0px;
+}
+
+#eviction-container .group            { 
+  position:relative; 
+  margin-bottom:35px; 
+}
+#eviction-container input               {
+  font-size:13px;
+  padding:10px 10px 10px 5px;
+  display:block;
+  width:100%;
+  border:none;
+  border-bottom:1px solid #757575;
+}
+#eviction-container input:focus         { outline:none; }
+
+
+#eviction-container label                {
+  color:black; 
+  font-size:13px;
+  font-weight:normal;
+  position:absolute;
+  pointer-events:none;  
+  top:-15px;
+  transition:0.2s ease all; 
+  -moz-transition:0.2s ease all; 
+  -webkit-transition:0.2s ease all;
+}
+
+
+#eviction-container input:focus ~ #eviction-container .lbl-field, #eviction-container input:valid ~ #eviction-container .lbl-field, #eviction-container input:invalid ~ #eviction-container .lbl-field  {
+  top:-15px;
+  font-size:13px;
+  color: rgb(55, 59, 80);
+}
+
+#eviction-container input:invalid ~ #eviction-container .invalid-field{
+    display: inline-block !important;
+}
+
+#eviction-container .invalid-field {
+  display:none;
+  color: rgb(255,110,64);
+  top: 45px;
+  font-size: 9px;
+}
+
+#eviction-container .select-label {
+  display:none;  
+  top: -20px;
+  color: rgb(55, 59, 80);
+  font-size: 13px;
+}
+
+
+#eviction-container .bar    { position:relative; display:block; width:100%; }
+#eviction-container .bar:before, #eviction-container .bar:after     {
+  content:'';
+  height:2px; 
+  width:0;
+  bottom:1px; 
+  position:absolute;
+  background:rgb(55, 59, 80); 
+  transition:0.2s ease all; 
+  -moz-transition:0.2s ease all; 
+  -webkit-transition:0.2s ease all;
+}
+#eviction-container .bar:before {
+  left:50%;
+}
+#eviction-container .bar:after {
+  right:50%; 
+}
+
+
+#eviction-container input:focus ~ #eviction-container .bar:before, #eviction-container input:focus ~ #eviction-container .bar:after {
+  width:50%;
+}
+
+
+#eviction-container .highlight {
+  position:absolute;
+  height:60%; 
+  width:100px; 
+  top:25%; 
+  left:0;
+  pointer-events:none;
+  opacity:0.5;
+}
+
+
+#eviction-container input:focus ~ #eviction-container .highlight {
+  -webkit-animation:inputHighlighter 0.3s ease;
+  -moz-animation:inputHighlighter 0.3s ease;
+  animation:inputHighlighter 0.3s ease;
+}
+
+
+#eviction-container select {
+  font-family: inherit;
+  background-color: transparent;
+  width: 100%;
+  padding: 8px 0;
+  font-size: 13px;  
+  border: none;
+  border-bottom: 1px solid rgb(0,0,0);
+}
+
+
+#eviction-container select:focus {
+  outline: none;
+}
+
+
+#eviction-container .mdl-selectfield label {display:none;}
+
+
+#eviction-container .mdl-selectfield {
+  font-family: 'Roboto','Helvetica','Arial',sans-serif;
+  position: relative;    
+}
+
+#eviction-container .mdl-selectfield::after {  
+        position: absolute;
+        top: 0.75em;
+        right: 0.5em;
+        width: 0;
+        height: 0;
+        padding: 0;
+        content: '';
+        border-left: .25em solid transparent;
+        border-right: .25em solid transparent;
+        border-top: .375em solid rgba(0,0,0, 1);
+        pointer-events: none;   
+        color: black;     
+  
+}
+
+#eviction-container .mdl-selectfield select {-webkit-appearance: none;
+                         -moz-appearance: none;}
+
+#eviction-container .mdl-selectfield select::-ms-expand {display: none;}                         
+
+
+@-webkit-keyframes inputHighlighter {
+    from { background:rgb(55, 59, 80); }
+  to    { width:0; background:transparent; }
+}
+@-moz-keyframes inputHighlighter {
+    from { background:rgb(55, 59, 80); }
+  to    { width:0; background:transparent; }
+}
+@keyframes inputHighlighter {
+    from { background:rgb(55, 59, 80); }
+  to    { width:0; background:transparent; }
+}
+
+#eviction-container .gotomap {
+  top: 20px;
+}
+
+</style>
+
+<div id="eviction-container" class="container" ng-init="model={}">
+  <div class="row">
+    <div class="col-md-1 "></div>
+    <div class="col-md-10 col-sd-8 col-xs-8">
+    </div>
+    <div style="position:fixed; top:120px; right:40px;" class=" gotomap"><gotomap-button></gotomap-button></div>
+  </div>
+  <hr></hr>
+  <div class="row">
+    <div class="group col-md-6">    
+        <label >Eviction strategy</label>   
+        <div class="mdl-selectfield">             
+            <select class="browser-default" ng-init="model.strategy=null" ng-model="model.strategy" ng-change="checkStrategy()">
+              <option value="unknown" disabled selected>Select Strategy</option>
+              <option value="NONE">No Eviction Applied</option>
+              <option value="LRU">Least Recent Use Algorithm</option>
+              <option value="FIFO">First In First Out Algorithm</option>
+            </select>
+      </div>
+      <label class="invalid-field" ng-show="strategyError">Strategy is empty</label>      
+    </div>
+    <div class="group col-md-6">    
+      <div >  
+        <input type="range" min="0" max="100" ng-model="model.maxDiskUsage" ng-change="checkmaxDiskUsage(model.maxDiskUsage)"  >
+        <span class="highlight"></span>
+        <span class="bar"></span>
+        <label class="lbl-field">Maximum disk usage before eviction (in %): {{model.maxDiskUsage}}</label>
+        <label class="invalid-field" ng-show="maxDiskUsageError">Maximum disk usage before eviction empty</label>
+      </div>
+    </div>
+  </div>
+
+  <hr></hr>  
+  
+
+  <div class="row">
+    <div class="group col-md-6">            
+        <input type="number" min="0"  ng-model="model.keepPeriod" ng-change="checkKeepPeriod(model.keepPeriod)" >
+        <span class="highlight"></span>
+        <span class="bar"></span>
+        <label class="lbl-field"> Minimal keeping period for a product (days)</label>
+        <label class="invalid-field" ng-show="keepPeriodError">Minimal keeping period empty</label>
+    </div>
+  </div>
+  
+
+  <div class="row" style="text-align:right">
+     <div class="eviction-button" ng-click="cancel()">CANCEL</div>
+     <div class="eviction-button" ng-click="run()">RUN</div>
+     <div class="eviction-button" ng-click="save()">SAVE</div>     
+  </div>
+
+
+  <hr></hr>
+</div>
+</div>
+</div>

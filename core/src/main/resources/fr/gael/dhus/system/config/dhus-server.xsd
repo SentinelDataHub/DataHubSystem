@@ -19,84 +19,75 @@
    along with this program. If not, see <http://www.gnu.org/licenses/>.
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-	version="1.0" elementFormDefault="qualified" xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
-	jxb:version="2.1" xmlns:inheritance="http://jaxb2-commons.dev.java.net/basic/inheritance"
-	xmlns:annox="http://annox.dev.java.net" jxb:extensionBindingPrefixes="inheritance annox"
-	xmlns:dhusServer="fr.gael.dhus.database.object.config.server"
-	targetNamespace="fr.gael.dhus.database.object.config.server">
+           version="1.0" elementFormDefault="qualified" xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+           jxb:version="2.1" xmlns:inheritance="http://jaxb2-commons.dev.java.net/basic/inheritance"
+           xmlns:annox="http://annox.dev.java.net" jxb:extensionBindingPrefixes="inheritance annox"
+           xmlns:dhusServer="fr.gael.dhus.database.object.config.server"
+           targetNamespace="fr.gael.dhus.database.object.config.server">
 
-	<xs:annotation>
-		<xs:appinfo>
-			<jxb:schemaBindings>
-				<jxb:package name="fr.gael.dhus.database.object.config.server" />
-			</jxb:schemaBindings>
-		</xs:appinfo>
-	</xs:annotation>
+   <xs:annotation>
+      <xs:appinfo>
+         <jxb:schemaBindings>
+            <jxb:package name="fr.gael.dhus.database.object.config.server" />
+         </jxb:schemaBindings>
+      </xs:appinfo>
+   </xs:annotation>
 
-	<xs:complexType abstract="true" name="abstractServerConfiguration">
-		<xs:annotation>
-			<xs:appinfo>
-				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
-				</inheritance:extends>
-				<jxb:class name="AbstractServerConfiguration" implClass="fr.gael.dhus.database.object.config.server.ServerConfiguration" />
-			</xs:appinfo>
-		</xs:annotation>
-		<xs:all>
-			<xs:element minOccurs="0" name="external"
-				type="dhusServer:abstractExternalServerConfiguration">
-				<xs:annotation>
-					<xs:appinfo>
-						<jxb:property name="externalServerConfiguration">
-							<jxb:javadoc><![CDATA[@deprecated Use methods in ServerConfiguration to access to external server properties
-@see fr.gael.dhus.database.object.config.ServerConfigImpl.getExternalHostname
-@see fr.gael.dhus.database.object.config.ServerConfigImpl.getExternalProtocol
-@see fr.gael.dhus.database.object.config.ServerConfigImpl.getExternalUrl]]></jxb:javadoc>
-						</jxb:property>
-						<annox:annotate target="getter">@java.lang.Deprecated
-						</annox:annotate>
-					</xs:appinfo>
-				</xs:annotation>
-			</xs:element>
-			<xs:element minOccurs="0" name="ftp"
-				type="dhusServer:ftpServerConfiguration">
-				<xs:annotation>
-					<xs:appinfo>
-						<jxb:property name="ftpServerConfiguration" />
-					</xs:appinfo>
-				</xs:annotation>
-			</xs:element>
-		</xs:all>
-		<xs:attribute name="host" type="xs:string" />
-		<xs:attribute name="port" type="xs:int" />
-		<xs:attribute name="protocol" type="xs:string" />
-	</xs:complexType>
+   <xs:complexType abstract="true" name="abstractServerConfiguration">
+      <xs:annotation>
+         <xs:appinfo>
+            <inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart</inheritance:extends>
+            <jxb:class name="AbstractServerConfiguration" implClass="fr.gael.dhus.database.object.config.server.ServerConfiguration" />
+         </xs:appinfo>
+      </xs:annotation>
+      <xs:all>
+         <xs:element minOccurs="0" name="external" type="dhusServer:abstractExternalServerConfiguration">
+            <xs:annotation>
+               <xs:appinfo>
+                  <jxb:property name="externalServerConfiguration">
+                     <jxb:javadoc><![CDATA[@deprecated Use methods in ServerConfiguration to access to external server properties
+@see fr.gael.dhus.database.object.config.server.ServerConfiguration.getExternalHostname
+@see fr.gael.dhus.database.object.config.server.ServerConfiguration.getExternalProtocol
+@see fr.gael.dhus.database.object.config.server.ServerConfiguration.getExternalUrl]]></jxb:javadoc>
+                  </jxb:property>
+                  <annox:annotate target="getter">@java.lang.Deprecated</annox:annotate>
+               </xs:appinfo>
+            </xs:annotation>
+         </xs:element>
+         <xs:element minOccurs="0" name="ftp" type="dhusServer:ftpServerConfiguration">
+            <xs:annotation>
+               <xs:appinfo>
+                  <jxb:property name="ftpServerConfiguration" />
+               </xs:appinfo>
+            </xs:annotation>
+         </xs:element>
+      </xs:all>
+   </xs:complexType>
 
-	<xs:complexType abstract="true" name="abstractExternalServerConfiguration">
-		<xs:annotation>
-			<xs:appinfo>
-				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
-				</inheritance:extends>
-				<jxb:class name="AbstractExternalServerConfiguration"
-					implClass="fr.gael.dhus.database.object.config.server.ExternalServerConfiguration" />
-			</xs:appinfo>
-		</xs:annotation>
-		<xs:all />
-		<xs:attribute name="host" type="xs:string" />
-		<xs:attribute name="path" type="xs:string" />
-		<xs:attribute name="port" type="xs:int" />
-		<xs:attribute name="protocol" type="xs:string" />
-	</xs:complexType>
+   <xs:complexType abstract="true" name="abstractExternalServerConfiguration">
+      <xs:annotation>
+         <xs:appinfo>
+            <inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart</inheritance:extends>
+            <jxb:class name="AbstractExternalServerConfiguration" implClass="fr.gael.dhus.database.object.config.server.ExternalServerConfiguration" />
+         </xs:appinfo>
+      </xs:annotation>
+      <xs:all />
+      <xs:attribute name="host" type="xs:string" />
+      <xs:attribute name="path" type="xs:string" />
+      <xs:attribute name="port" type="xs:int" />
+      <xs:attribute name="protocol" type="xs:string" />
+   </xs:complexType>
 
-	<xs:complexType name="ftpServerConfiguration">
-		<xs:annotation>
-			<xs:appinfo>
-				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
-				</inheritance:extends>
-			</xs:appinfo>
-		</xs:annotation>
-		<xs:all />
-		<xs:attribute name="ftps" type="xs:boolean" />
-		<xs:attribute name="port" type="xs:int" />
-	</xs:complexType>
+   <xs:complexType name="ftpServerConfiguration">
+      <xs:annotation>
+         <xs:appinfo>
+            <inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart</inheritance:extends>
+         </xs:appinfo>
+      </xs:annotation>
+      <xs:all />
+      <xs:attribute name="ftps" type="xs:boolean" />
+      <xs:attribute name="port" type="xs:int" />
+      <xs:attribute name="passivePort" type="xs:string" />
+   </xs:complexType>
 
 </xs:schema>

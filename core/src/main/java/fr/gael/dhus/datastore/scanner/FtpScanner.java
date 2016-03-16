@@ -40,15 +40,17 @@ public class FtpScanner extends AbstractScanner
 {
    private static Log logger = LogFactory.getLog (FtpScanner.class);
 
-   FtpNode ftpNode;
-
    protected int scannedFiles = 0;
    protected int retrievedFile = 0;
 
-   public FtpScanner (String uri, boolean storeScanList, String username, String password)
+   FtpNode ftpNode;
+
+   public FtpScanner (String uri, boolean store_scan_list, String username,
+         String password)
    {
-      super (storeScanList);
-      ftpNode = (FtpNode)(new FtpFactory()).open (toUrl(uri), username, password);
+      super (store_scan_list);
+      ftpNode = (FtpNode)(new FtpFactory()).open (toUrl(uri), username,
+            password);
       
       if (!FtpConnectionFactory.isArchiveSupported (uri))
          throw new UnsupportedOperationException ("URI not supported");

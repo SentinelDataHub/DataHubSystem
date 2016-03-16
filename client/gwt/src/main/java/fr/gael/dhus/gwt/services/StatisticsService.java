@@ -24,19 +24,20 @@ import java.util.List;
 
 import com.google.gwt.user.client.rpc.RemoteService;
 
+import fr.gael.dhus.gwt.share.exceptions.AccessDeniedException;
 import fr.gael.dhus.gwt.share.exceptions.StatisticsServiceException;
 
 public interface StatisticsService extends RemoteService
 {
-   public Date getNextScheduleFileScanner () throws StatisticsServiceException;
-   public Date getNextScheduleSearch () throws StatisticsServiceException;
-   public Date getNextScheduleDumpDB () throws StatisticsServiceException;
-   public Date getNextScheduleCleanupDumpDB () throws StatisticsServiceException;
-   public Date getNextScheduleCleanupDB () throws StatisticsServiceException;
-   public Date getNextScheduleMailLogs () throws StatisticsServiceException;
-   public Date getNextScheduleEviction () throws StatisticsServiceException;
-   public Date getNextScheduleArchiveSynchronization () throws StatisticsServiceException;
-   public Date getNextScheduleSystemCheck () throws StatisticsServiceException;
+   public Date getNextScheduleFileScanner () throws StatisticsServiceException, AccessDeniedException;
+   public Date getNextScheduleSearch () throws StatisticsServiceException, AccessDeniedException;
+   public Date getNextScheduleDumpDB () throws StatisticsServiceException, AccessDeniedException;
+   public Date getNextScheduleCleanupDumpDB () throws StatisticsServiceException, AccessDeniedException;
+   public Date getNextScheduleCleanupDB () throws StatisticsServiceException, AccessDeniedException;
+   public Date getNextScheduleMailLogs () throws StatisticsServiceException, AccessDeniedException;
+   public Date getNextScheduleEviction () throws StatisticsServiceException, AccessDeniedException;
+   public Date getNextScheduleArchiveSynchronization () throws StatisticsServiceException, AccessDeniedException;
+   public Date getNextScheduleSystemCheck () throws StatisticsServiceException, AccessDeniedException;
    
    public int getTotalUsers ();   
    public int getTotalDeletedUsers ();   

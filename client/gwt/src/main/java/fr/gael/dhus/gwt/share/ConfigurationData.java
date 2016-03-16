@@ -37,6 +37,8 @@ public class ConfigurationData implements IsSerializable
    private boolean mailWhenDelete;
    private boolean mailWhenUpdate;
 
+   private String registrationMail;
+   
    private String supportMail;
    private String supportName;
    
@@ -144,4 +146,12 @@ public class ConfigurationData implements IsSerializable
    {
       this.supportName = supportName;
    }
+   public String getRegistrationMail ()
+   {
+      return registrationMail;
+   }
+   public void setRegistrationMail (String registrationMail)
+   {
+      this.registrationMail = registrationMail;
+   }   
 }

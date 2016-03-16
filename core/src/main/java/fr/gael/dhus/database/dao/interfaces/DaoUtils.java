@@ -38,15 +38,33 @@ import fr.gael.dhus.system.config.ConfigurationManager;
 
 public class DaoUtils
 {
-   @Autowired
-   UserDao userDao;
-
    public static final int DEFAULT_ELEMENTS_PER_PAGE = 3;
+
+   /**
+    * Hide utility class constructor
+    */
+   private DaoUtils ()
+   {
+
+   }
+   
+   /**
+    * Escape quote marks in the given string by doubling it (' -> '').
+    * @param s String to secure.
+    * @return a string with escaped quotes.
+    */
+   public static String secureString (String s)
+   {
+      if (s==null) return null;
+      return s.replace ("'", "''");
+   }
    
    public static String userRestriction (User u, String pattern)
    {
-      ConfigurationManager cfgManager = ApplicationContextProvider.getBean(ConfigurationManager.class);
-      if (cfgManager.isDataPublic () || u == null || u.getRoles ().contains (Role.DATA_MANAGER))
+      ConfigurationManager cfgManager = ApplicationContextProvider
+            .getBean(ConfigurationManager.class);
+      if (cfgManager.isDataPublic () || u == null
+            || u.getRoles ().contains (Role.DATA_MANAGER))
       {
          return "";
       }
@@ -60,14 +78,15 @@ public class DaoUtils
    
    public static void optimize ()
    {
-      HibernateDaoLocalSupport support = ApplicationContextProvider.getBean (HibernateDaoLocalSupport.class);
+      HibernateDaoLocalSupport support = ApplicationContextProvider.getBean (
+            HibernateDaoLocalSupport.class);
       support.getHibernateTemplate ().flush ();
       support.getHibernateTemplate ().executeWithNativeSession (
          new HibernateCallback<Void> ()
          {
             @Override
-            public Void doInHibernate (Session session) throws HibernateException,
-               SQLException
+            public Void doInHibernate (Session session) throws
+                  HibernateException, SQLException
             {
                SQLQuery query = session.createSQLQuery ("CHECKPOINT DEFRAG");
                query.executeUpdate ();
@@ -80,9 +99,9 @@ public class DaoUtils
    private static class HibernateDaoLocalSupport extends HibernateDaoSupport
    {           
       @Autowired
-      public void init (SessionFactory sessionFactory)
+      public void init (SessionFactory session_factory)
       {
-         setSessionFactory (sessionFactory);
+         setSessionFactory (session_factory);
       }
    }
 }

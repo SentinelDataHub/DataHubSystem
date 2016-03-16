@@ -32,7 +32,7 @@ public class DBInitializer implements InitializingBean
 {
    @Autowired
    private UserDao userDao;
-      
+
    @Autowired
    private EvictionDao evictionDao;
 

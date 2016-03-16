@@ -1,0 +1,237 @@
+<div>
+<!-- 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+-->
+<div>
+    <style>
+        
+        #wronglogin{
+          width: 100%;
+          text-align: center;
+          font-weight: bold;
+          margin: 10px 0px;
+          color: rgb(190, 0, 0);
+        }
+
+        .login {
+            background-color: rgb(55, 59, 80) !important;
+            vertical-align: middle;            
+            line-height: 20px;
+            font-size: 15px;            
+            margin-right: 20px;
+            position: relative;            
+            padding: 10px;
+            cursor: pointer;
+            width: 100%;           
+            text-align: center;
+        }
+
+        .signup {
+            background-color: rgb(173, 173, 173) !important;            
+        }
+
+        h4{
+        text-align: center;
+        color:black;
+        font-size: 25px;
+        }        
+
+        .modal {
+          text-align: center;
+        }
+
+        @media screen and (min-width: 768px) { 
+          .modal:before {
+            display: inline-block;
+            vertical-align: middle;
+            content: " ";
+            height: 100%;
+          }
+        }
+
+        .modal-dialog {
+          display: inline-block;
+          text-align: left;
+          vertical-align: middle;
+          width:90%;
+        }
+
+        @media screen and (min-width: 768px) { 
+          .modal-dialog {
+            display: inline-block;
+            vertical-align: middle;
+             width: 30%;            
+             max-width: 400px;            
+          }
+        }
+        /*.modal-dialog {
+            width: 30%;
+            max-width: 400px;
+        }*/
+
+        .modal-header {
+            border: none !important;
+        }        
+
+        .group            { 
+          position:relative; 
+          margin-bottom:35px; 
+        }
+        .form-control {
+            border: none;            
+            border-radius: 0px !important;
+            border-bottom:1px solid #757575;
+            box-shadow: none !important;
+        }
+
+        input               {
+          font-size:13px;
+          padding:10px 10px 10px 5px;
+          display:block;
+          width:100%;
+          border:none;
+          border-bottom:1px solid #757575;
+          color: rgb(55, 59, 80);
+        }
+        input:focus         { outline:none; }        
+        
+
+        /* BOTTOM BARS ================================= */
+        .bar    { position:relative; display:block; width:100%; }
+        .bar:before, .bar:after     {
+          content:'';
+          height:2px; 
+          width:0;
+          bottom:1px; 
+          position:absolute;
+          background:rgb(55, 59, 80); 
+          transition:0.2s ease all; 
+          -moz-transition:0.2s ease all; 
+          -webkit-transition:0.2s ease all;
+        }
+        .bar:before {
+          left:50%;
+        }
+        .bar:after {
+          right:50%; 
+        }
+
+        /* active state */
+        input:focus ~ .bar:before, input:focus ~ .bar:after {
+          width:50%;
+        }
+
+        /* HIGHLIGHTER ================================== */
+        .highlight {
+          position:absolute;
+          height:60%; 
+          width:100px; 
+          top:25%; 
+          left:0;
+          pointer-events:none;
+          opacity:0.5;
+        }
+
+        /* active state */
+        input:focus ~ .highlight {
+          -webkit-animation:inputHighlighter 0.3s ease;
+          -moz-animation:inputHighlighter 0.3s ease;
+          animation:inputHighlighter 0.3s ease;
+        }
+
+        .forgot{
+          text-align: center;
+          padding-top: 20px;
+          font-weight: bold;          
+        }
+
+        .forgot > a {
+          color: black;
+        }
+
+        .forgot > a:visited {
+          color: black;
+        }
+
+        .divider {
+          border-top: 1px solid #EEE !important;
+          width: 80%;
+        }
+                         
+
+/* ANIMATIONS ================ */
+@-webkit-keyframes inputHighlighter {
+    from { background:rgb(55, 59, 80); }
+  to    { width:0; background:transparent; }
+}
+@-moz-keyframes inputHighlighter {
+    from { background:rgb(55, 59, 80); }
+  to    { width:0; background:transparent; }
+}
+@keyframes inputHighlighter {
+    from { background:rgb(55, 59, 80); }
+  to    { width:0; background:transparent; }
+}
+    </style>    
+
+    <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginLabel" ng-keyup="$event.keyCode == 13 && login()">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">            
+            <h4 class="modal-title" id="loginLabel">LOGIN</h4>
+          </div>
+          <div class="modal-body">
+            <div id="wronglogin"></div>
+            <div class="row">
+                <div class="group"> 
+                    <input id="loginUsername" type="text" ng-model="user.username" class="form-control" placeholder="Username" value="">
+                    <span class="highlight"></span>
+                    <span class="bar"></span>                    
+                </div>
+            </div>
+            <div class="row">
+                <div class="group"> 
+                    <input type="password" ng-model="user.password" class="form-control" placeholder="Password" value="">
+                    <span class="highlight"></span>
+                    <span class="bar"></span>                    
+                </div>
+            </div>                       
+            <div class="row">
+                <div class="login" ng-click="login()">LOGIN</div>
+            </div>  
+            <div ng-if="showsignup" class="row">
+              <div class="col-md-12 forgot" ng-click="close()">
+                <a href="#/forgot-password">Forgot password?</a>
+              </div>
+            </div>          
+            <!--<div ng-show="showsignup" ng-model="showsignup">
+              <hr class="divider"></hr>
+              <div class="row" >              
+                  <div class="login signup" ng-click="signup()">SIGN UP</div>     
+              </div>
+            </div>-->
+            </div>                              
+        </div>
+      </div>
+    </div>
+</div>
+</div>

@@ -1,0 +1,446 @@
+<div>
+<!-- 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+-->
+<div id="system-container">
+  <style type="text/css">
+  #system-container .action-button {
+      background-color: rgb(55, 59, 80)!important;
+      vertical-align: middle;
+      margin-top: 12px;
+      line-height: 20px;
+      font-size: 14px;
+      margin-left: 20px;
+      position: relative;
+      float: right;
+      padding: 10px;
+      cursor: pointer;
+      color:white;
+      text-decoration: none;
+
+  }
+  #system-container .action-button:hover{
+      color:white;
+      text-decoration: none;
+  }
+  #system-container .action-button:visited{
+      color:white;
+      text-decoration: none;
+  }
+
+  #system-container  h3{
+    text-align: center;
+  }
+  #system-container  hr{
+    width: 80%;
+    border: 0px;
+  }
+
+  #system-container  .group            { 
+    position:relative; 
+    margin-bottom:35px; 
+  }
+  #system-container  input               {
+    font-size:13px;
+    padding:10px 10px 10px 5px;
+    display:block;
+    width:100%;
+    border:none;
+    border-bottom:1px solid #757575;
+  }
+  #system-container  input:focus         { outline:none; }
+
+ 
+  #system-container  label                {
+    color:#999; 
+    font-size:13px;
+    font-weight:normal;
+    position:absolute;
+    pointer-events:none;  
+    top:-15px;
+    display: none;
+    transition:0.2s ease all; 
+    -moz-transition:0.2s ease all; 
+    -webkit-transition:0.2s ease all;
+  }
+
+
+  #system-container input:invalid ~ #system-container .invalid-field{
+      display: inline-block !important;
+  }
+
+  #system-container .invalid-field {
+    display:none;
+    color: rgb(255,110,64);
+    top: 45px;
+    font-size: 9px;
+  }
+
+  #system-container .field-error {
+   
+    color: rgb(255,110,64);
+    top: 45px;
+    font-size: 9px;
+    }
+
+  #system-container  .select-label {
+    display:none;  
+    top: -20px;
+    color: rgb(55, 59, 80);
+    font-size: 13px;
+  }
+
+ 
+  #system-container  .bar    { position:relative; display:block; width:100%; }
+  #system-container  .bar:before,  #system-container .bar:after     {
+    content:'';
+    height:2px; 
+    width:0;
+    bottom:1px; 
+    position:absolute;
+    background:rgb(55, 59, 80); 
+    transition:0.2s ease all; 
+    -moz-transition:0.2s ease all; 
+    -webkit-transition:0.2s ease all;
+  }
+  #system-container .bar:before {
+    left:50%;
+  }
+  #system-container  .bar:after {
+    right:50%; 
+  }
+
+ 
+   #system-container input:focus ~ #system-container  .bar:before,  #system-container  input:focus ~ #system-container  .bar:after {
+    width:50%;
+  }
+
+  
+    #system-container .highlight {
+    position:absolute;
+    height:60%; 
+    width:100px; 
+    top:25%; 
+    left:0;
+    pointer-events:none;
+    opacity:0.5;
+  }
+
+ 
+   #system-container input:focus ~ #system-container .highlight {
+    -webkit-animation:inputHighlighter 0.3s ease;
+    -moz-animation:inputHighlighter 0.3s ease;
+    animation:inputHighlighter 0.3s ease;
+  }
+
+  
+  #system-container   select {
+    font-family: inherit;
+    background-color: transparent;
+    width: 100%;
+    padding: 8px 0;
+    font-size: 13px;  
+    border: none;
+    border-bottom: 1px solid rgb(0,0,0);
+  }
+
+  
+ #system-container  select:focus {
+    outline: none;
+  }
+
+ 
+  /*  .mdl-selectfield label {display:none;}
+  
+
+   .mdl-selectfield {
+    font-family: 'Roboto','Helvetica','Arial',sans-serif;
+    position: relative;    
+  }
+
+    .mdl-selectfield::after {  
+          position: absolute;
+          top: 0.75em;
+          right: 0.5em;
+         
+          width: 0;
+          height: 0;
+          padding: 0;
+          content: '';
+          border-left: .25em solid transparent;
+          border-right: .25em solid transparent;
+          border-top: .375em solid rgba(0,0,0, 1);
+          pointer-events: none;   
+          color: black;     
+    
+  }
+
+    .mdl-selectfield select {-webkit-appearance: none;
+                           -moz-appearance: none;}
+
+    .mdl-selectfield select::-ms-expand {display: none;}                         
+
+ */
+  @-webkit-keyframes inputHighlighter {
+      from { background:rgb(55, 59, 80); }
+    to    { width:0; background:transparent; }
+  }
+  @-moz-keyframes inputHighlighter {
+      from { background:rgb(55, 59, 80); }
+    to    { width:0; background:transparent; }
+  }
+  @keyframes inputHighlighter {
+      from { background:rgb(55, 59, 80); }
+    to    { width:0; background:transparent; }
+  }
+
+ #system-container .terms{
+    text-align: center;
+    padding: 20px 0px;
+    font-weight: bold;
+  }
+  #system-container .terms > a {
+      color: #23527c;
+  }
+
+  #system-container .form-control {
+      border: none;            
+      border-radius: 0px !important;
+      border-bottom:1px solid #757575;
+      box-shadow: none !important;
+  }
+  #system-container .gotomap {
+    top: 20px;
+  }
+  </style>
+  <div  class="container">
+    <div class="row">
+      <div class="col-md-1 "></div>
+      <div class="col-md-10 col-xs-8 col-sd-8">
+        <h3>Mail Configuration</h3>
+      </div>
+      <div class="col-md-1 col-sd-3 col-xs-3 gotomap"><gotomap-button></gotomap-button></div>
+    </div>
+    <hr></hr>    
+    <hr></hr>
+    <div class="row">
+      <div class="group col-md-6">      
+        <div > 
+          <p>SMTP Server</p>
+          <input type="text" ng-model="model.basic.mailServerSmtp"  ng-change="checkSMTPServer()" class="form-control" >
+          <span class="highlight"></span>
+          <span class="bar"></span>
+          
+          <span class="field-error" ng-show="SMTPServerError" >SMTP Server empty</span>
+        </div>
+      </div>
+      <div class="group col-md-6">    
+        <div class="group col-md-3" >  
+          <p>Port</p>
+          <input type="text" ng-model="model.basic.mailServerPort"  ng-change="checkPort()"  class="form-control" >
+          <span class="highlight"></span>
+          <span class="bar"></span>          
+          <span class="field-error" ng-show="portError">Port empty</span>
+        </div>
+        <div class="group col-md-3" >  
+         <span>TLS</span><input type="checkbox" style="width:30px;display:inline-block;" ng-model="model.basic.mailServerTls">
+        </div>
+      </div>
+    </div>  
+    <div class="row">
+      <div class="group col-md-6">      
+        <div > 
+          <p>Username</p>
+          <input type="text" ng-model="model.basic.mailServerUser"  ng-change="checkUsername()"  class="form-control" >
+          <span class="highlight"></span>
+          <span class="bar"></span>          
+          <span class="field-error" ng-show="mailServerUserError" >Username empty</span>
+        </div>
+      </div>    
+      <div class="group col-md-6">      
+        <p>Password</p>
+        <input  type="password" ng-model="model.basic.mailServerPassword" ng-change="checkPwd()" class="form-control" >
+        <span class="highlight"></span>
+        <span class="bar"></span>        
+        <span class="field-error" ng-show="passwordLengthError">Password too short. Minimum 8 characters.</span>
+        <span class="field-error" ng-show="passwordError">Password empty</span>
+      </div>
+    </div>  
+    <div class="row">
+      <div class="group col-md-6">      
+        <p>Expeditor Mail</p>
+        <input  type="email" ng-model="model.basic.mailServerFromMail" ng-change="checkExpeditorMail()" class="form-control" >
+        <span class="highlight"></span>
+        <span class="bar"></span>                
+        <span class="field-error" ng-show="expeditorMailError">Expeditor mail empty</span>
+      </div>
+      <div class="group col-md-6">      
+        <p>Expeditor Name</p>
+        <input  type="text" ng-model="model.basic.mailServerFromName" ng-change="checkExpeditorName()"  class="form-control" >
+        <span class="highlight"></span>
+        <span class="bar"></span>        
+        <span class="field-error" ng-show="checkExpeditorNameError" >Expeditor name empty</span> 
+      </div>
+    </div>    
+    <div class="row">
+      <div class="group col-md-6">      
+        <p>Reply to</p>
+        <input   type="email" ng-model="model.basic.mailServerReplyTo" ng-change="checkReplyTo()" class="form-control" >
+        <span class="highlight"></span>
+        <span class="bar"></span>        
+        <span class="field-error" ng-show="replyToError">Reply to empty</span>     
+      </div>      
+    </div>  
+    <div class="row">
+      <div class="group col-md-3">        
+        <span>Mail user when:</span>      
+      </div>
+      <div class="group col-md-3">        
+        <span>creating account:</span><input style="width:30px;display:inline-block;" type="checkbox" ng-model="model.basic.mailWhenCreate">    
+      </div>
+      <div class="group col-md-3">              
+        <span>administrator updates his account:</span><input style="width:30px;display:inline-block;" type="checkbox" ng-model="model.basic.mailWhenUpdate">
+      </div>    
+      <div class="group col-md-3">              
+        <span>deleting account:</span><input style="width:30px;display:inline-block;" type="checkbox" ng-model="model.basic.mailWhenDelete">
+      </div>          
+    </div>  
+  </div>
+  <!-- ___________________________________________________________-->
+  <br/><br/><br/>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-1 "></div>
+      <div class="col-md-10 col-xs-8 col-sd-8">
+        <h3>Support</h3>
+      </div>
+    </div>
+    <hr></hr>
+    <div class="row">
+      <div class="group col-md-6">      
+        <p>Mail</p>
+        <input  type="email" ng-model="model.basic.supportMail" ng-change="checkSupportMail()" class="form-control" >
+        <span class="highlight"></span>
+        <span class="bar"></span>                
+        <span class="field-error" ng-show="supportMailError">Support Mail empty</span>
+      </div>
+      <div class="group col-md-6">      
+        <p>Name</p>
+        <input  type="email" ng-model="model.basic.supportName" ng-change="checkSupportMailName()"  class="form-control" >
+        <span class="highlight"></span>
+        <span class="bar"></span>        
+        <!-- <span class="field-error" ng-init="supportMailNameError = false" ng-show="supportMailNameError">Support Name empty</span>  -->
+      </div>
+    </div>
+    <div class="row">
+      <div class="group col-md-6">      
+        <p>Registration mail</p>
+        <input   type="email" ng-model="model.basic.registrationMail" ng-change="checkRegistrationMail()" class="form-control" >
+        <span class="highlight"></span>
+        <span class="bar"></span>        
+        <span class="field-error" ng-show="registrationMailEmailError" >Registration Mail empty</span>     
+      </div>      
+    </div>  
+    <div class="row" style="text-align:right">       
+       <div class="action-button" ng-click="basicSave()">SAVE</div>  
+       <div class="action-button" ng-click="rootConfigReset()">RESET TO DEFAULT VALUES</div>           
+    </div>    
+  </div>
+  <!-- ___________________________________________________________-->
+  <br/><br/><br/>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-1 "></div>
+      <div class="col-md-10 col-xs-8 col-sd-8">
+        <h3>Root configuration</h3>
+      </div>      
+    </div>        
+    <div class="row">      
+      <div class="group col-md-6">      
+        <p>Old Password</p>
+        <input type="password" ng-init="model.rootConfig = {}" ng-model="model.rootConfig.oldPassword" ng-change="checkOldPassword()" class="form-control" >
+        <span class="highlight"></span>
+        <span class="bar"></span>                
+        <span class="field-error" ng-show="oldPasswordError">Old password empty</span>
+      </div>
+      <div class="group col-md-6">      
+        <p>New Password</p>
+        <input  type="password" ng-model="model.rootConfig.newPassword" ng-change="checkNewPassword()"  class="form-control" >
+        <span class="highlight"></span>
+        <span class="bar"></span>        
+        <span class="field-error" ng-show="newPasswordError" >New Password empty</span> 
+      </div>    
+    </div>
+    <div class="row">
+      <div class="group col-md-6">      
+        <p>Confirm Password</p>
+        <input type="password" ng-model="model.rootConfig.confirmPassword" ng-change="checkConfirmPassword()" class="form-control" >
+        <span class="highlight"></span>
+        <span class="bar"></span>        
+        <span class="field-error" ng-show="confirmPasswordError">Confirm password empty</span>
+        <span class="field-error" ng-if="passwordDoNotMatchError">Password do not match.</span>     
+      </div>      
+    </div>  
+    <div class="row" style="text-align:right">       
+       <div class="action-button" ng-click="rootConfigSave()">SAVE</div>
+        
+    </div>    
+  </div>
+  <!-- ___________________________________________________________-->
+  <br/><br/><br/>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-1 "></div>
+      <div class="col-md-10 col-xs-8 col-sd-8">
+        <h3>Restore Database</h3>
+      </div>      
+    </div>        
+    <div class="row">      
+      <div class="group col-md-4">      
+        <p>Choose database dump that will be restored</p>        
+      </div>
+      <div class="group col-md-4">      
+           <select class="browser-default"  ng-model="model.restoreDB.date" 
+             ng-options="item.value as   item.key   for item in dumpedDatabases">
+              
+            </select>
+      </div>
+      <div class="group col-md-4">
+        <div class="action-button" ng-click="restoreDatabase(model.restoreDB.date)">RESTORE</div>
+      </div>
+    </div>    
+  </div>
+  <!-- ____________________________-->
+  <br/><br/><br/>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-1 "></div>
+      <div class="col-md-10 col-xs-8 col-sd-8">
+        <h3>Local Archive</h3>
+      </div>      
+    </div>        
+    <div class="row">      
+      <div class="action-button" ng-click="synchronizeLocalArchive()">SYNCHRONIZE LOCAL ARCHIVE</div>
+    </div>    
+  </div>  
+</div>
+</div>

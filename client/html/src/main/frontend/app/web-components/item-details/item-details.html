@@ -1,0 +1,21 @@
+<polymer-element name="item-details" attributes="model">
+  <link rel="import" href="../product-details/product-details.html">
+  <template>
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<div id="item-{{model.id}}" layout vertical >		 
+		<div class="button label collection" >MyCollection</div>
+		<div layout horizontal centered reverse>				
+		<paper-icon-button icon="shopping-cart" title="Add to Cart" disabled></paper-icon-button>		
+		<paper-icon-button icon="get-app" title="Download Product" data-object="{{model.link}}" on-click="{{downloadProduct}}"></paper-icon-button>
+		<paper-icon-button icon="search" title="View Product Details" on-click="{{showDetails}}"></paper-icon-button>
+		<!--<product-details model="{{model}}"></product-details>-->
+		<!--<paper-action-dialog id="dialog" heading="{{model.title}}">
+	{{model.id}}
+	<paper-button affirmative autofocus>Close</paper-button>
+	</paper-action-dialog >			-->
+		</div> 	  			  		          		  		
+	</div>
+  </template>
+  <script src="script.js"></script>
+</polymer-element>
+          

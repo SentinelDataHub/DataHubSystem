@@ -93,9 +93,9 @@ public abstract class SubMapBuilder<K, V>
     * @param desc true if descending, ascending otherwise.
     * @return this
     */
-   public SubMapBuilder<K, V> setOrderBy (OrderByExpression orderBy)
+   public SubMapBuilder<K, V> setOrderBy (OrderByExpression order)
    {
-      this.orderBy = orderBy;
+      this.orderBy = order;
       return this;
    }
 

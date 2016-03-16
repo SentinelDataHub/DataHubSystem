@@ -1,0 +1,12 @@
+.button.collection {
+  background-color: #505050;    
+  color: #fff;
+  padding: 1px; 
+  font-family: 'Open Sans', Helvetica, sans-serif ;
+  font-size: 13px;     
+}
+.button.label {            
+  text-align: center;
+  line-height: 36px;
+  height: 36px;            
+}

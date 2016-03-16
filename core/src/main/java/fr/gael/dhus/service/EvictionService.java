@@ -23,18 +23,19 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
-import fr.gael.dhus.database.dao.EvictionDao;
+import fr.gael.dhus.database.dao.ProductDao;
+import fr.gael.dhus.database.dao.interfaces.IEvictionDao;
 import fr.gael.dhus.database.object.Product;
 import fr.gael.dhus.datastore.eviction.EvictionManager;
 import fr.gael.dhus.datastore.eviction.EvictionStrategy;
 
-/**
- * @author valette
- */
 @Service
 public class EvictionService extends WebService
 {
@@ -42,49 +43,77 @@ public class EvictionService extends WebService
    private EvictionManager evictionMgr;
    
    @Autowired
-   private EvictionDao evictionDao;
-
+   private IEvictionDao evictionDao;
+   
+   @Autowired
+   private ProductDao productDao;
+   
    @PreAuthorize ("hasRole('ROLE_SYSTEM_MANAGER')")
+   @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
    public int getKeepPeriod()
    {
       return evictionDao.getEviction ().getKeepPeriod ();
    }
 
    @PreAuthorize ("hasRole('ROLE_SYSTEM_MANAGER')")
+   @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
    public int getMaxDiskUsage()
    {
       return evictionDao.getEviction ().getMaxDiskUsage ();
    }
 
    @PreAuthorize ("hasRole('ROLE_SYSTEM_MANAGER')")
+   @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
    public EvictionStrategy getStrategy()
    {
       return evictionDao.getEviction ().getStrategy ();
    }
 
    @PreAuthorize ("hasRole('ROLE_SYSTEM_MANAGER')")
-   public void save(EvictionStrategy strategy, int keepPeriod, int maxDiskUsage)
+   @Transactional (readOnly=false, propagation=Propagation.REQUIRED)
+   public void save (EvictionStrategy strategy, int keep_period,
+         int max_disk_usage)
    {
-      evictionDao.update (strategy, keepPeriod, maxDiskUsage);
+      evictionDao.update (strategy, keep_period, max_disk_usage);
       evictionMgr.computeNextProducts ();
    }
 
    @PreAuthorize ("hasRole('ROLE_SYSTEM_MANAGER')")
+   @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
    public List<Product> getEvictableProducts()
    {
-      return new ArrayList<Product> (evictionMgr.getProducts ());
+      return new ArrayList<> (evictionMgr.getProducts ());
    }
    
    @PreAuthorize ("hasRole('ROLE_SYSTEM_MANAGER')")
+   @Transactional (readOnly=false, propagation=Propagation.REQUIRED)
    public void doEvict()
    {
       evictionMgr.doEvict ();
    }
    
    @PreAuthorize ("isAuthenticated ()")
+   @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
    public Date getEvictionDate (Long pid)
    {
-      // TODO Compute eviction date for given product
-      return null;
+      if (evictionDao.getEviction ().getStrategy () == EvictionStrategy.NONE)
+      {
+         return null;
+      }
+      Product p = productDao.read (pid);
+      DateTime dt = new DateTime (p.getIngestionDate ());
+      DateTime res = dt.plusDays (evictionDao.getEviction ().getKeepPeriod ());
+      return res.toDate ();
+   }
+
+   // Methods for unit tests
+   void setEvictionDao (IEvictionDao eviction_dao)
+   {
+      this.evictionDao = eviction_dao;
+   }
+
+   void setEvictionMgr (EvictionManager eviction_mgr)
+   {
+      this.evictionMgr = eviction_mgr;
    }
 }

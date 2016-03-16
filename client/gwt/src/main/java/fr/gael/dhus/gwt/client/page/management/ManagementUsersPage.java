@@ -29,16 +29,17 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.SimpleCheckBox;
 import com.google.gwt.user.client.ui.TextBox;
 
-import fr.gael.dhus.gwt.share.RoleData;
+import fr.gael.dhus.gwt.client.AccessDeniedRedirectionCallback;
 import fr.gael.dhus.gwt.client.GWTClient;
 import fr.gael.dhus.gwt.client.page.AbstractPage;
 import fr.gael.dhus.gwt.services.UserServiceAsync;
+import fr.gael.dhus.gwt.share.CountryData;
+import fr.gael.dhus.gwt.share.RoleData;
 import fr.gael.dhus.gwt.share.UserData;
 import fr.gael.dhus.gwt.share.exceptions.UserServiceMailingException;
 
@@ -54,7 +55,7 @@ public class ManagementUsersPage extends AbstractPage
    private static TextBox lastname;
    private static TextBox phone;
    private static TextBox address;
-   private static TextBox country;
+   private static ListBox country;
    private static ListBox domain;
    private static ListBox usage;
    private static TextBox subUsage;
@@ -193,7 +194,7 @@ public class ManagementUsersPage extends AbstractPage
       lastname = TextBox.wrap (RootPanel.get ("managementUser_lastname").getElement ());
       phone = TextBox.wrap (RootPanel.get ("managementUser_phone").getElement ());
       address = TextBox.wrap (RootPanel.get ("managementUser_address").getElement ());
-      country = TextBox.wrap (RootPanel.get ("managementUser_country").getElement ());
+      country = ListBox.wrap (RootPanel.get ("managementUser_country").getElement ());
       domain = ListBox.wrap (RootPanel.get ("managementUser_domain").getElement ());
       subDomain = TextBox.wrap (RootPanel.get ("managementUser_subDomain").getElement ());
       usage = ListBox.wrap (RootPanel.get ("managementUser_usage").getElement ());
@@ -206,6 +207,26 @@ public class ManagementUsersPage extends AbstractPage
       updateButton = RootPanel.get ("managementUser_buttonUpdate");
       deleteButton = RootPanel.get ("managementUser_buttonDelete");
       cancelButton = RootPanel.get ("managementUser_buttonCancel");
+
+      userService.getCountries (new AccessDeniedRedirectionCallback<List<CountryData>>()
+         {         
+            @Override
+            public void onSuccess (List<CountryData> result)
+            {
+               for (CountryData ctry : result)
+               {
+                  country.addItem (ctry.getName (), ctry.getId ().toString ());
+               }
+            }
+            
+            @Override
+            public void _onFailure (Throwable caught)
+            {
+               Window
+                  .alert ("There was an error while requesting countries.\n" +
+                     caught.getMessage ());
+            }
+         });   
       
       locked.addClickHandler (new ClickHandler ()
       {
@@ -289,11 +310,11 @@ public class ManagementUsersPage extends AbstractPage
             disableAll ();
 
             userService.deleteUser (selected.getId (),
-               new AsyncCallback<Void> ()
+               new AccessDeniedRedirectionCallback<Void> ()
                {
 
                   @Override
-                  public void onFailure (Throwable caught)
+                  public void _onFailure (Throwable caught)
                   {
                      if (caught instanceof UserServiceMailingException)
                      {
@@ -356,10 +377,10 @@ public class ManagementUsersPage extends AbstractPage
    private static void edit(int userId)
    {
       DOM.setStyleAttribute (RootPanel.getBodyElement (), "cursor", "wait");
-      userService.getUser (new Long(userId), new AsyncCallback<UserData> ()
+      userService.getUser (new Long(userId), new AccessDeniedRedirectionCallback<UserData> ()
       {
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             DOM.setStyleAttribute (RootPanel.getBodyElement (),
                "cursor", "default");
@@ -390,7 +411,7 @@ public class ManagementUsersPage extends AbstractPage
       toSave.setPhone (phone.getValue ());
       toSave.setUsername (username.getValue ());
       toSave.setLockedReason (locked.getValue()?lockedReason.getValue ():null);
-      toSave.setCountry (country.getValue ());
+      toSave.setCountry (country.getValue (country.getSelectedIndex ()));
       String domainStr = domain.getItemText (domain.getSelectedIndex ());
       toSave.setDomain (domainStr);
       toSave.setSubDomain ("other".equals (domainStr.toLowerCase ()) ? subDomain.getValue () : "unknown" );
@@ -414,10 +435,10 @@ public class ManagementUsersPage extends AbstractPage
 
       disableAll ();
 
-      AsyncCallback<Void> callback = new AsyncCallback<Void> ()
+      AccessDeniedRedirectionCallback<Void> callback = new AccessDeniedRedirectionCallback<Void> ()
       {
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             if (caught instanceof UserServiceMailingException)
             {
@@ -540,9 +561,19 @@ public class ManagementUsersPage extends AbstractPage
          lockedReason
             .setValue ( (state == State.EDIT && selectedUser != null) ? selectedUser
                .getLockedReason () : "");
-         
-         country.setValue ((state == State.EDIT && selectedUser != null) ? selectedUser
-            .getCountry () : "");
+                  
+         int ctyIdx = -1;
+         if (state == State.EDIT && selectedUser != null) 
+         {
+            String cty = selectedUser.getCountry ();
+            for (int i=0; i<country.getItemCount(); i++) {
+               if (country.getItemText(i).equals(cty)) {
+                   ctyIdx = i;
+                   break;
+               }
+            }
+         }
+         country.setSelectedIndex (ctyIdx);
          
          selectDomain ((state == State.EDIT && selectedUser != null) ? selectedUser
             .getDomain () : "");
@@ -604,11 +635,11 @@ public class ManagementUsersPage extends AbstractPage
       
       GWTClient.callback (function, JsonUtils.safeEval ("{\"aaData\": [],\"iTotalRecords\" : 0, \"iTotalDisplayRecords\" : 0}"));
       
-      userService.count (search, new AsyncCallback<Integer> ()
+      userService.count (search, new AccessDeniedRedirectionCallback<Integer> ()
       {
 
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             DOM.setStyleAttribute (RootPanel.getBodyElement (), "cursor",
                "default");
@@ -619,10 +650,10 @@ public class ManagementUsersPage extends AbstractPage
          public void onSuccess (final Integer total)
          {
             userService.getUsers (start, length, search,
-               new AsyncCallback<List<UserData>> ()
+               new AccessDeniedRedirectionCallback<List<UserData>> ()
                {
                   @Override
-                  public void onFailure (Throwable caught)
+                  public void _onFailure (Throwable caught)
                   {
                      DOM.setStyleAttribute (RootPanel.getBodyElement (),
                         "cursor", "default");

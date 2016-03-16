@@ -35,39 +35,46 @@ import org.w3c.dom.Node;
 /**
  * A Metalink v4 builder.<br>
  * It relies on the Standard Java API v.6 and higher.<br>
- * It supports the whole Metalink v4 specifications except the extensions elements.
+ * It supports the whole Metalink v4 specifications except the
+ * extensions elements.
  * <p>
  * Every method returns its instance for method chaining.
  * <p>
- * Names of fields in this class are the same as the names of elements in the produced XML document.
+ * Names of fields in this class are the same as the names of elements in
+ * the produced XML document.
  * <p>
- * <b>You MUST add at least one file and each file MUST contains at least one url.</b>
+ * <b>You MUST add at least one file and each file MUST contains
+ * at least one url.</b>
  * <p>
- * See the <a href="http://tools.ietf.org/html/rfc5854">RFC for Metalink v4 (RFC5854)</a>
+ * See the <a href="http://tools.ietf.org/html/rfc5854">
+ *    RFC for Metalink v4 (RFC5854)</a>
  * and the <a href="http://www.metalinker.org/">Official website</a>.
  * <p>
  * <b>Example:</b>
  * <pre>
- * SimpleDateFormat sdf = new SimpleDateFormat(MetalinkBuilder.DATE_TIME_FORMAT);
+ * SimpleDateFormat sdf = new SimpleDateFormat(
+ * MetalinkBuilder.DATE_TIME_FORMAT);
  * sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
  * 
  * MetalinkBuilder mb = new MetalinkBuilder();
  * mb.setGenerator("DHuS/3.8.1")
  *   .setOrigin("http://dhus.gael.fr:8080/", true)
  *   .setPublished(sdf.format(new Date()))
- *   .addFile("S1A_S3_SLC__1ASV_20140507T105003_20140507T105033_000490_0005F3_A57E.zip")
+ *   .addFile(
+ *   "S1A_S3_SLC__1ASV_20140507T105003_20140507T105033_000490_0005F3_A57E.zip")
  *     .setHash("MD5", "324sdf65468G4EQ34H68QS4FGH3QS847H")
  *     .setPublisher("European Space Agency (ESA)", "http://esa.int/")
  *     .setSize(5000000)
- *     .addUrl("http://dhus.gael.fr:8080/odata/v1/Products('148539fa-18b6-11e4-a1de-b2227cce2b54')/$value", null, 0)
+ *     .addUrl("http://dhus.gael.fr:8080/odata/v1/
+ *     Products('148539fa-18b6-11e4-a1de-b2227cce2b54')/$value", null, 0)
  * Document meta4 = mb.build();
  * 
  * Transformer transformer = TransformerFactory.newInstance().newTransformer();
  * transformer.setOutputProperty(OutputKeys.INDENT, "yes");
- * transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+ * transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount",
+ * "2");
  * transformer.transform(new DOMSource(meta4), new StreamResult(System.out));
  * </pre>
- * @author Jonathan Bayle
  */
 public class MetalinkBuilder
 {
@@ -77,7 +84,9 @@ public class MetalinkBuilder
    /** The file extension for a Metalink v4 document is ".meta4" */
    public static final String FILE_EXTENSION = ".meta4";
    
-   /** The "date_time" date format defined in the <a href="http://tools.ietf.org/html/rfc3339">RFC3339</a>. */
+   /** The "date_time" date format defined in the
+    * <a href="http://tools.ietf.org/html/rfc3339">RFC3339</a>.
+    */
    public static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
    
    private String generator = null;
@@ -91,13 +100,16 @@ public class MetalinkBuilder
    /** Contains a date_time */
    private String updated = null;
    
-   private final ArrayList<MetalinkFileBuilder> files = new ArrayList<MetalinkFileBuilder> ();
+   private final ArrayList<MetalinkFileBuilder> files =
+         new ArrayList<MetalinkFileBuilder> ();
    
    /**
     * Builds the XML document.
     * @return A non-null instance of Document containing the whole XML tree.
-    * @throws ParserConfigurationException The underlying XML implementation may throw this exception.
-    * @throws IllegalStateException if there is not file and/or no url in a file.
+    * @throws ParserConfigurationException The underlying XML implementation
+    * may throw this exception.
+    * @throws IllegalStateException if there is not file and/or no url in a
+    * file.
     */
    public Document build () throws ParserConfigurationException
    {
@@ -144,7 +156,8 @@ public class MetalinkBuilder
     * @param name The name of the new element.
     * @param value The text value of the new element.
     */
-   private static void appendTextElement (Document doc, Node parent, String name, String value)
+   private static void appendTextElement (Document doc, Node parent,
+         String name, String value)
    {
       Element e = doc.createElement(name);
       e.appendChild (doc.createTextNode (value));
@@ -152,7 +165,8 @@ public class MetalinkBuilder
    }
 
    /**
-    * The `generator` element identifies the generating agent name and version used to generate a Metalink Document.
+    * The `generator` element identifies the generating agent name and version
+    * used to generate a Metalink Document.
     * @param generator "AgentName/AgentVersion" eg: "DHuS/3.8.1"
     * @return this.
     */
@@ -163,20 +177,24 @@ public class MetalinkBuilder
    }
 
    /**
-    * The `origin` element is an IRI where the Metalink Document was originally published.
-    * @param origin An Internationalized Resource Identifiers which can be an URI.
-    * @param dynamic If true, then updated versions of the Metalink can be found at this IRI.
+    * The `origin` element is an IRI where the Metalink Document was
+    * originally published.
+    * @param origin An Internationalized Resource Identifiers which can
+    *               be an URI.
+    * @param dynamic If true, then updated versions of the Metalink can
+    *                be found at this IRI.
     * @return this.
     */
    public MetalinkBuilder setOrigin (String origin, boolean dynamic)
    {
       this.origin = new BasicElement ("origin", origin);
-      this.origin.addAttribute ("dynamic", new Boolean (dynamic));
+      this.origin.addAttribute ("dynamic", dynamic);
       return this;
    }
 
    /**
-    * The `published` element is a Date indicating the initial creation or first availability of the resource.
+    * The `published` element is a Date indicating the initial creation or
+    * first availability of the resource.
     * @param published A date_time, see {@link #DATE_TIME_FORMAT}.
     * @return this.
     */
@@ -187,7 +205,8 @@ public class MetalinkBuilder
    }
 
    /**
-    * The `updated` element is a Date indicating the most recent instant in time when a Metalink was modified.
+    * The `updated` element is a Date indicating the most recent instant
+    * in time when a Metalink was modified.
     * @param updated A date_time, see {@link #DATE_TIME_FORMAT}.
     * @return this.
     */
@@ -200,7 +219,8 @@ public class MetalinkBuilder
    /**
     * Adds a file to this metalink document.
     * You MUST add at least one file.
-    * @param name The local file name to which the downloaded file will be written. 
+    * @param name The local file name to which the downloaded file
+    *             will be written.
     * @return A new builder for the new file element.
     * @see MetalinkFileBuilder
     */
@@ -214,7 +234,8 @@ public class MetalinkBuilder
    /**
     * File element.<br>
     * You MUST add at least one url.<br>
-    * See the <a href="http://tools.ietf.org/html/rfc5854#section-4.1.2">RFC</a>.
+    * See the <a href="http://tools.ietf.org/html/rfc5854#section-4.1.2">
+    *    RFC</a>.
     */
    public class MetalinkFileBuilder
    {
@@ -226,7 +247,8 @@ public class MetalinkBuilder
       private String description = null;
       
       /** Contains a String and has a `type` attribute. */
-      private final HashMap<String, String> hash = new HashMap<String, String> ();
+      private final HashMap<String, String> hash =
+            new HashMap<String, String> ();
       
       private String identity = null;
       
@@ -237,7 +259,8 @@ public class MetalinkBuilder
       private String logo = null;
       
       /** Contains an IRI and has two String and one Int attributes. */
-      private final ArrayList<BasicElement> metaUrls = new ArrayList<BasicElement> ();
+      private final ArrayList<BasicElement> metaUrls =
+            new ArrayList<BasicElement> ();
       
       /** Contains a String. */
       private final ArrayList<String> os = new ArrayList<String> ();
@@ -252,11 +275,13 @@ public class MetalinkBuilder
       private long size = -1;
       
       /** Contains a String and has one String and one Int attributes. */
-      private final ArrayList<BasicElement> url = new ArrayList<BasicElement> ();
+      private final ArrayList<BasicElement> url =
+            new ArrayList<BasicElement> ();
       
       private String version = null;
       
-      private final HashSet<MetalinkFilePiecesBuilder> pieces = new HashSet<MetalinkFilePiecesBuilder>();
+      private final HashSet<MetalinkFilePiecesBuilder> pieces =
+            new HashSet<MetalinkFilePiecesBuilder>();
       
       /** @see MetalinkBuilder#addFile(String) */
       private MetalinkFileBuilder (String name)
@@ -324,7 +349,8 @@ public class MetalinkBuilder
       }
       
       /**
-       * The `copyright` element is a Text that conveys the copyright for this file.
+       * The `copyright` element is a Text that conveys the copyright
+       * for this file.
        * @return this.
        */
       public MetalinkFileBuilder setCopyright (String copyright)
@@ -344,7 +370,8 @@ public class MetalinkBuilder
       }
 
       /**
-       * The `hash` element is a Text that conveys a cryptographic hash for this file.
+       * The `hash` element is a Text that conveys a cryptographic hash
+       * for this file.
        * @param type The type of hash. eg: "SHA-1", "MD5", "SHA-256".
        * @param hash The hash for this file.
        * @return this.
@@ -356,7 +383,8 @@ public class MetalinkBuilder
       }
 
       /**
-       * The `identity` element is a Text that conveys an identity for this file.
+       * The `identity` element is a Text that conveys an identity
+       * for this file.
        * @param identity eg: "EO Product".
        * @return this.
        */
@@ -367,19 +395,23 @@ public class MetalinkBuilder
       }
 
       /**
-       * The `language` element is a Text that conveys a code for the language of this file.
-       * The String parameter MUST conform to the <a href="http://tools.ietf.org/html/rfc5646">RFC5646</a>.
+       * The `language` element is a Text that conveys a code for the
+       * language of this file.
+       * The String parameter MUST conform to the
+       * <a href="http://tools.ietf.org/html/rfc5646">RFC5646</a>.
        * @param language A non-null language code. eg: "en-GB".
        * @return this.
        */
       public MetalinkFileBuilder addLanguage (String language)
       {
-         if (language != null && !language.isEmpty ()) this.language.add (language);
+         if (language != null && !language.isEmpty ()) this.language.add (
+               language);
          return this;
       }
 
       /**
-       * The `logo` element's content is an IRI to an image that provides visual identification for a file.
+       * The `logo` element's content is an IRI to an image that provides
+       * visual identification for a file.
        * @return this.
        */
       public MetalinkFileBuilder setLogo (String logo)
@@ -389,27 +421,36 @@ public class MetalinkBuilder
       }
 
       /**
-       * The `metaurl` element contains the IRI of a metadata file (aka a metainfo file), about a resource to download.
-       * This could be the IRI of a BitTorrent .torrent file, a Metalink Document, or other type of metadata file.
+       * The `metaurl` element contains the IRI of a metadata file
+       * (aka a metainfo file), about a resource to download.
+       * This could be the IRI of a BitTorrent .torrent file, a
+       * Metalink Document, or other type of metadata file.
        * @param url A non-null URL to the metadata file.
-       * @param mediatype A non-null type for the referenced document. eg: "torrent".
-       * @param name The name of the file in the referenced document (can be null). 
-       * @param priority A number between 1 and 999999 (inclusive). Lower values indicate a higher priority.
+       * @param mediatype A non-null type for the referenced document.
+       *                  eg: "torrent".
+       * @param name The name of the file in the referenced document
+       *             (can be null).
+       * @param priority A number between 1 and 999999 (inclusive).
+       *                 Lower values indicate a higher priority.
        * @return this.
        */
-      public MetalinkFileBuilder addMetaUrl (String url, String mediatype, String name, int priority)
+      public MetalinkFileBuilder addMetaUrl (String url, String mediatype,
+            String name, int priority)
       {
          BasicElement metaUrl = new BasicElement ("metaurl", url);
          metaUrl.addAttribute ("mediatype", mediatype);
          if (name != null) metaUrl.addAttribute ("mediatype", mediatype);
-         if (priority > 1 && priority < 1000000) metaUrl.addAttribute ("priority", priority);
+         if (priority > 1 && priority < 1000000) metaUrl.addAttribute (
+               "priority", priority);
          this.metaUrls.add (metaUrl);
          return this;
       }
 
       /**
-       * The `os` element is a Text that conveys an Operating System that this file is suitable for.
-       * @param os A non-null IANA "Operating System Name" eg: "WIN32", "LINUX", "OSX".
+       * The `os` element is a Text that conveys an Operating System that
+       * this file is suitable for.
+       * @param os A non-null IANA "Operating System Name" eg: "WIN32",
+       *           "LINUX", "OSX".
        * @return this.
        */
       public MetalinkFileBuilder addOs (String os)
@@ -419,7 +460,8 @@ public class MetalinkBuilder
       }
 
       /**
-       * The `publisher` element contains the name of entity that has published the file described in the
+       * The `publisher` element contains the name of entity that has
+       * published the file described in the
        * Metalink Document and an IRI for more information.
        * @param name A non-null name of the publisher.
        * @param url An URL to the site of the publisher (can be null).
@@ -434,12 +476,15 @@ public class MetalinkBuilder
       }
 
       /**
-       * The `signature` element is a Text that conveys a digital signature for this file.
+       * The `signature` element is a Text that conveys a digital signature
+       * for this file.
        * @param signature The signature of this file.
-       * @param mediatype The type of the signature. eg: "application/pgp-signature".
+       * @param mediatype The type of the signature.
+       *                  eg: "application/pgp-signature".
        * @return this.
        */
-      public MetalinkFileBuilder setSignature (String signature, String mediatype)
+      public MetalinkFileBuilder setSignature (String signature,
+            String mediatype)
       {
          this.signature = new BasicElement ("signature", signature);
          this.signature.addAttribute ("mediatype", mediatype);
@@ -460,15 +505,20 @@ public class MetalinkBuilder
       /**
        * The `url` element contains a file IRI.
        * @param url An url to this file.
-       * @param location An [ISO3166-1] 2 letters country code, eg: "gb", "us" (Can be null).
-       * @param priority A number between 1 and 999999 (inclusive). Lower values indicate a higher priority.
+       * @param location An [ISO3166-1] 2 letters country code, eg: "gb",
+       *                 "us" (Can be null).
+       * @param priority A number between 1 and 999999 (inclusive).
+       *                 Lower values indicate a higher priority.
        * @return this.
        */
-      public MetalinkFileBuilder addUrl (String url, String location, int priority)
+      public MetalinkFileBuilder addUrl (String url, String location,
+            int priority)
       {
          BasicElement be = new BasicElement ("url", url);
-         if (location != null && location.length () == 2) be.addAttribute ("location", location);
-         if (priority > 0 && priority < 1000000) be.addAttribute ("priority", priority);
+         if (location != null && location.length () == 2) be.addAttribute (
+               "location", location);
+         if (priority > 0 && priority < 1000000) be.addAttribute (
+               "priority", priority);
          this.url.add (be);
          return this;
       }
@@ -485,7 +535,8 @@ public class MetalinkBuilder
       }
       
       /**
-       * A container for a list of cryptographic hashes of contiguous, non-overlapping pieces of this file.
+       * A container for a list of cryptographic hashes of contiguous,
+       * non-overlapping pieces of this file.
        * @param type The type of hash. eg: "SHA-1", "MD5", "SHA-256".
        * @param length The length of a piece of the file.
        * @return A new builder for the new pieces element.
@@ -493,14 +544,16 @@ public class MetalinkBuilder
        */
       public MetalinkFilePiecesBuilder setPieces (String type, long length)
       {
-         MetalinkFilePiecesBuilder pieces = new MetalinkFilePiecesBuilder (type, length);
+         MetalinkFilePiecesBuilder pieces = new MetalinkFilePiecesBuilder (
+               type, length);
          this.pieces.add (pieces);
          return pieces;
       }
       
       /**
        * Pieces element.
-       * A container for a list of cryptographic hashes of contiguous, non-overlapping pieces of a file.
+       * A container for a list of cryptographic hashes of contiguous,
+       * non-overlapping pieces of a file.
        */
       public class MetalinkFilePiecesBuilder
       {
@@ -514,7 +567,8 @@ public class MetalinkBuilder
          private MetalinkFilePiecesBuilder (String type, long length)
          {
             if (type.isEmpty () || length < 1)
-               throw new IllegalArgumentException ("Bad param for MetalinkFilePiecesBuilder");
+               throw new IllegalArgumentException (
+                     "Bad param for MetalinkFilePiecesBuilder");
             this.type = type;
             this.length = length;
          }
@@ -536,8 +590,10 @@ public class MetalinkBuilder
          }
          
          /**
-          * The `hash` element is a Text that conveys a cryptographic hash for a piece of this file.
-          * Hashes MUST be added in the same order as the corresponding pieces appear in the file.
+          * The `hash` element is a Text that conveys a cryptographic hash
+          * for a piece of this file.
+          * Hashes MUST be added in the same order as the corresponding
+          * pieces appear in the file.
           * @return this.
           */
          public MetalinkFilePiecesBuilder addHash (String hash)
@@ -548,7 +604,8 @@ public class MetalinkBuilder
             return this;
          }
          
-         // Overrides equals and hashCode because instances of this class are stored in a HashSet.
+         // Overrides equals and hashCode because instances of this
+         // class are stored in a HashSet.
          @Override
          public int hashCode ()
          {
@@ -575,8 +632,10 @@ public class MetalinkBuilder
    private class BasicElement
    {
       private final String name;
-      private final ArrayList<String> attributesNames  = new ArrayList<String> ();
-      private final ArrayList<Object> attributesValues = new ArrayList<Object> ();
+      private final ArrayList<String> attributesNames  =
+            new ArrayList<String> ();
+      private final ArrayList<Object> attributesValues =
+            new ArrayList<Object> ();
       private final String value;
       
       /** 
@@ -597,7 +656,8 @@ public class MetalinkBuilder
       /**
        * Add an attribute.
        * @param name The name of the attribute.
-       * @param value The value of the attribute (its toString method will be used to write the document).
+       * @param value The value of the attribute (its toString method will be
+       *              used to write the document).
        * @throws NullPointerException if name or value is null.
        * @throws IllegalArgumentException if name is empty.
        */
@@ -621,10 +681,12 @@ public class MetalinkBuilder
       {
          Element e = doc.createElement (name);
          
-         if (value != null && !value.isEmpty ()) e.appendChild (doc.createTextNode (value));
+         if (value != null && !value.isEmpty ()) e.appendChild (
+               doc.createTextNode (value));
          
          for (int i=0; i<attributesNames.size (); i++)
-            e.setAttribute (attributesNames.get (i), attributesValues.get (i).toString ());
+            e.setAttribute (attributesNames.get (i),
+                  attributesValues.get (i).toString ());
          
          parent.appendChild (e);
       }

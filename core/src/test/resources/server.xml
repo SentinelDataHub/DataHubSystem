@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Server port="8005" shutdown="SHUTDOWN">
+
+	<Service name="DHuS-Service">
+		<Connector port="8080" 
+			protocol="org.apache.coyote.http11.Http11NioProtocol" 
+			maxConnections="1000" maxThreads="200" URIEncoding="ISO-8859-1"
+			compression="on" compressionMinSize="1024"
+			compressableMimeType="application/json,application/javascript,application/xhtml+xml,application/xml,text/html,text/xml,text/plain,text/javascript,text/css" />
+
+		<Engine name="DHuS-Engine" defaultHost="localhost">
+			<Host name="localhost" appBase="webapps" deployOnStartup="true">
+				<Valve className="org.apache.catalina.valves.AccessLogValve"
+			         prefix="access_log-" suffix=".txt" directory="logs"
+			         pattern="%h %l %u %t %r %s %b %I %D"/>
+			</Host>
+		</Engine>
+
+	</Service>
+</Server>

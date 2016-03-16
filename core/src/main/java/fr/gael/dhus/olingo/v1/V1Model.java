@@ -25,6 +25,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import fr.gael.dhus.olingo.v1.entityset.RestrictionEntitySet;
+import fr.gael.dhus.olingo.v1.entityset.SystemRoleEntitySet;
 import org.apache.olingo.odata2.api.edm.EdmSimpleTypeKind;
 import org.apache.olingo.odata2.api.edm.FullQualifiedName;
 import org.apache.olingo.odata2.api.edm.provider.Association;
@@ -40,12 +42,19 @@ import org.apache.olingo.odata2.api.edm.provider.Schema;
 import org.apache.olingo.odata2.api.edm.provider.SimpleProperty;
 import org.apache.olingo.odata2.api.exception.ODataException;
 
-import fr.gael.dhus.olingo.v1.entitySet.AttributeEntitySet;
-import fr.gael.dhus.olingo.v1.entitySet.CollectionEntitySet;
-import fr.gael.dhus.olingo.v1.entitySet.ItemEntitySet;
-import fr.gael.dhus.olingo.v1.entitySet.NodeEntitySet;
-import fr.gael.dhus.olingo.v1.entitySet.ProductEntitySet;
-import fr.gael.dhus.olingo.v1.entitySet.V1EntitySet;
+import fr.gael.dhus.olingo.v1.entityset.AttributeEntitySet;
+import fr.gael.dhus.olingo.v1.entityset.ClassEntitySet;
+import fr.gael.dhus.olingo.v1.entityset.CollectionEntitySet;
+import fr.gael.dhus.olingo.v1.entityset.ConnectionEntitySet;
+import fr.gael.dhus.olingo.v1.entityset.ItemEntitySet;
+import fr.gael.dhus.olingo.v1.entityset.NetworkEntitySet;
+import fr.gael.dhus.olingo.v1.entityset.NetworkStatisticEntitySet;
+import fr.gael.dhus.olingo.v1.entityset.NodeEntitySet;
+import fr.gael.dhus.olingo.v1.entityset.ProductEntitySet;
+import fr.gael.dhus.olingo.v1.entityset.SynchronizerEntitySet;
+import fr.gael.dhus.olingo.v1.entityset.UserEntitySet;
+import fr.gael.dhus.olingo.v1.entityset.UserSynchronizerEntitySet;
+import fr.gael.dhus.olingo.v1.entityset.V1EntitySet;
 
 /**
  * Builds an Entity Data Model (schema).
@@ -58,65 +67,71 @@ public class V1Model extends EdmProvider
    /** An entity container contains EntitySets and AssociationSets */
    public static final String ENTITY_CONTAINER = "DHuSData";
 
-   private static final Map<String, EntityType> entities;
-   private static final Map<String, EntitySet> entitySets;
-   private static final Map<String, AssociationSet> associationSets;
-   private static final Map<String, Association> associations;
-   private static final Map<String, ComplexType> complexTypes;
-   private static final Map<String, V1EntitySet<?>> v1entitieSets;
-
-   public static AttributeEntitySet ATTRIBUTE = new AttributeEntitySet ();
-   public static CollectionEntitySet COLLECTION = new CollectionEntitySet ();
-   public static ItemEntitySet ITEM = new ItemEntitySet ();
-   public static NodeEntitySet NODE = new NodeEntitySet ();
-   public static ProductEntitySet PRODUCT = new ProductEntitySet ();
+   public static final AttributeEntitySet ATTRIBUTE = new AttributeEntitySet ();
+   public static final CollectionEntitySet COLLECTION =
+      new CollectionEntitySet ();
+   public static final ItemEntitySet ITEM = new ItemEntitySet ();
+   public static final NodeEntitySet NODE = new NodeEntitySet ();
+   public static final ProductEntitySet PRODUCT = new ProductEntitySet ();
+   public static final ClassEntitySet CLASS = new ClassEntitySet ();
+   public static final SynchronizerEntitySet SYNCHRONIZER =
+      new SynchronizerEntitySet ();
+   public static final UserEntitySet USER = new UserEntitySet ();
+   public static final ConnectionEntitySet CONNECTION = new ConnectionEntitySet ();
+   public static final NetworkEntitySet NETWORK = new NetworkEntitySet ();
+   public static final NetworkStatisticEntitySet NETWORKSTATISTIC = 
+      new NetworkStatisticEntitySet ();
+   public static final RestrictionEntitySet RESTRICTION =
+         new RestrictionEntitySet ();
+   public static final SystemRoleEntitySet SYSTEM_ROLE =
+         new SystemRoleEntitySet ();
+   public static final UserSynchronizerEntitySet USER_SYNCHRONIZER =
+         new UserSynchronizerEntitySet();
 
    public static final FullQualifiedName TIME_RANGE = new FullQualifiedName (
       V1Model.NAMESPACE, "TimeRange");
-   public static String TIME_RANGE_START = "Start";
-   public static String TIME_RANGE_END = "End";
+   public static final String TIME_RANGE_START = "Start";
+   public static final String TIME_RANGE_END = "End";
 
    public static final FullQualifiedName CHECKSUM = new FullQualifiedName (
       V1Model.NAMESPACE, "Checksum");
-   public static String ALGORITHM = "Algorithm";
-   public static String VALUE = "Value";
+   public static final String ALGORITHM = "Algorithm";
+   public static final String VALUE = "Value";
+
+   private static final Map<String, V1EntitySet<?>> ENTITYSETS;
+   private static final Map<String, ComplexType> COMPLEX_TYPES;
 
    static
    {
-      entities = new HashMap<String, EntityType> ();
-      entitySets = new HashMap<String, EntitySet> ();
-      associationSets = new HashMap<String, AssociationSet> ();
-      associations = new HashMap<String, Association> ();
-      complexTypes = new HashMap<String, ComplexType> ();
-      v1entitieSets = new HashMap<String, V1EntitySet<?>> ();
+      COMPLEX_TYPES = new HashMap<> ();
+      ENTITYSETS = new HashMap<> ();
       addEntitySet (ATTRIBUTE);
       addEntitySet (COLLECTION);
       addEntitySet (NODE);
       addEntitySet (PRODUCT);
+      addEntitySet (CLASS);
+      addEntitySet (SYNCHRONIZER);
+      addEntitySet (USER);
+      addEntitySet (CONNECTION);
+      addEntitySet (NETWORK);
+      addEntitySet (NETWORKSTATISTIC);
+      addEntitySet (RESTRICTION);
+      addEntitySet (SYSTEM_ROLE);
+      addEntitySet(USER_SYNCHRONIZER);
       for (ComplexType ctype : getComplexTypes ())
       {
-         complexTypes.put (ctype.getName (), ctype);
+         COMPLEX_TYPES.put (ctype.getName (), ctype);
       }
    }
 
-   private static void addEntitySet (V1EntitySet<?> entitySet)
+   private static void addEntitySet (V1EntitySet<?> entity_set)
    {
-      entities.put (entitySet.getEntityName (), entitySet.getEntityType ());
-      entitySets.put (entitySet.getName (), entitySet.getEntitySet ());
-      v1entitieSets.put (entitySet.getName (), entitySet);
-      for (AssociationSet assoc : entitySet.getAssociationSets ())
-      {
-         associationSets.put (assoc.getName (), assoc);
-      }
-      for (Association assoc : entitySet.getAssociations ())
-      {
-         associations.put (assoc.getName (), assoc);
-      }
+      ENTITYSETS.put (entity_set.getName (), entity_set);
    }
 
    public static V1EntitySet<?> getEntitySet (String name)
    {
-      return v1entitieSets.get (name);
+      return ENTITYSETS.get (name);
    }
 
    private static List<ComplexType> getComplexTypes ()
@@ -154,19 +169,36 @@ public class V1Model extends EdmProvider
       Schema schema = new Schema ();
       schema.setNamespace (NAMESPACE);
 
-      schema.setEntityTypes (new ArrayList<EntityType> (entities.values ()));
-      schema.setComplexTypes (new ArrayList<ComplexType> (complexTypes
+      fr.gael.dhus.database.object.User u = V1Util.getCurrentUser ();
+
+      ArrayList<EntityType> entities = new ArrayList<> ();
+      ArrayList<EntitySet> entitysets = new ArrayList<> ();
+      ArrayList<Association> associations = new ArrayList<> ();
+      ArrayList<AssociationSet> association_sets = new ArrayList<> ();
+
+      for (V1EntitySet<?> entitySet : ENTITYSETS.values ())
+      {
+         if (entitySet.isAuthorized (u))
+         {
+            entities.add(entitySet.getEntityType ());
+            entitysets.add(entitySet.getEntitySet ());
+            associations.addAll(entitySet.getAssociations ());
+            association_sets.addAll (entitySet.getAssociationSets ());
+         }
+      }
+
+      schema.setEntityTypes (entities);
+      schema.setComplexTypes (new ArrayList<ComplexType> (COMPLEX_TYPES
          .values ()));
-      schema.setAssociations (new ArrayList<Association> (associations
-         .values ()));
+      schema.setAssociations (new ArrayList<Association> (associations));
 
       EntityContainer entityContainer = new EntityContainer ();
       entityContainer.setName (ENTITY_CONTAINER).setDefaultEntityContainer (
          true);
-      entityContainer.setEntitySets (new ArrayList<EntitySet> (entitySets
-         .values ()));
+
+      entityContainer.setEntitySets (entitysets);
       entityContainer.setAssociationSets (new ArrayList<AssociationSet> (
-         associationSets.values ()));
+         association_sets));
 
       schema.setEntityContainers (Collections.singletonList (entityContainer));
 
@@ -182,12 +214,13 @@ public class V1Model extends EdmProvider
     * of its key property (or properties).
     */
    @Override
-   public EntityType getEntityType (FullQualifiedName edmFQName)
+   public EntityType getEntityType (FullQualifiedName edm_fq_name)
       throws ODataException
    {
-      if (edmFQName != null && edmFQName.getNamespace ().equals (NAMESPACE))
+      if (edm_fq_name != null && edm_fq_name.getNamespace ().equals (NAMESPACE))
       {
-         return entities.get (edmFQName.getName ());
+         return ENTITYSETS.get (V1EntitySet
+            .generateEntitySetName (edm_fq_name.getName ())).getEntityType ();
       }
       return null;
    }
@@ -196,12 +229,12 @@ public class V1Model extends EdmProvider
     * Returns the description of a Complex Type.
     */
    @Override
-   public ComplexType getComplexType (FullQualifiedName edmFQName)
+   public ComplexType getComplexType (FullQualifiedName edm_fq_name)
       throws ODataException
    {
-      if (edmFQName != null && edmFQName.getNamespace ().equals (NAMESPACE))
+      if (edm_fq_name != null && edm_fq_name.getNamespace ().equals (NAMESPACE))
       {
-         return complexTypes.get (edmFQName.getName ());
+         return COMPLEX_TYPES.get (edm_fq_name.getName ());
       }
       return null;
    }
@@ -210,12 +243,21 @@ public class V1Model extends EdmProvider
     * Returns the description of an Association.
     */
    @Override
-   public Association getAssociation (FullQualifiedName edmFQName)
+   public Association getAssociation (FullQualifiedName edm_fq_name)
       throws ODataException
    {
-      if (edmFQName != null && edmFQName.getNamespace ().equals (NAMESPACE))
+      if (edm_fq_name != null && edm_fq_name.getNamespace ().equals (NAMESPACE))
       {
-         return associations.get (edmFQName.getName ());
+         String assocName = edm_fq_name.getName ();
+         String entity = assocName.substring (0, assocName.indexOf ("_"));
+         for (Association assoc : ENTITYSETS.get (
+            V1EntitySet.generateEntitySetName (entity)).getAssociations ())
+         {
+            if (assoc.getName ().equals (edm_fq_name.getName ()))
+            {
+               return assoc;
+            }
+         }
       }
       return null;
    }
@@ -239,13 +281,14 @@ public class V1Model extends EdmProvider
     * Returns the description of an EntitySet.
     */
    @Override
-   public EntitySet getEntitySet (String entityContainer, String name)
+   public EntitySet getEntitySet (String entity_container, String name)
       throws ODataException
    {
       if (name == null) return null;
-      if (entityContainer == null || entityContainer.equals (ENTITY_CONTAINER))
+      if (entity_container == null ||
+         entity_container.equals (ENTITY_CONTAINER))
       {
-         return entitySets.get (name);
+         return ENTITYSETS.get (name).getEntitySet ();
       }
       return null;
    }
@@ -254,14 +297,22 @@ public class V1Model extends EdmProvider
     * Returns the description of an AssociationSet.
     */
    @Override
-   public AssociationSet getAssociationSet (String entityContainer,
-      FullQualifiedName association, String sourceEntitySetName,
-      String sourceEntitySetRole) throws ODataException
+   public AssociationSet getAssociationSet (String entity_container,
+      FullQualifiedName association, String source_entity_set_name,
+      String source_entity_set_role) throws ODataException
    {
       if (association == null || association.getName () == null) return null;
-      if (entityContainer == null || entityContainer.equals (ENTITY_CONTAINER))
+      if (entity_container == null ||
+         entity_container.equals (ENTITY_CONTAINER))
       {
-         return associationSets.get (association.getName ());
+         for (AssociationSet assoc : ENTITYSETS.get (
+            source_entity_set_name).getAssociationSets ())
+         {
+            if (assoc.getName ().equals (association.getName ()))
+            {
+               return assoc;
+            }
+         }
       }
       return null;
    }

@@ -41,10 +41,6 @@
 		<security:custom-filter position="BASIC_AUTH_FILTER"
 			ref="basicAuthFilter" />
 
-		<security:logout invalidate-session="true"
-			success-handler-ref="logoutSuccessHandler" />
-
-		<security:intercept-url pattern="/user/validation/*" access="permitAll"/>
 		<security:intercept-url pattern="/**" access="isAuthenticated()" />
 	</security:http>
 	
@@ -56,16 +52,12 @@
 		<security:custom-filter position="BASIC_AUTH_FILTER"
 			ref="basicAuthFilter" />
 
-		<security:logout invalidate-session="true"
-			success-handler-ref="logoutSuccessHandler" />
-
-		<security:intercept-url pattern="/user/validation/*" access="permitAll"/>
 		<security:intercept-url pattern="/**" access="isAuthenticated()" />
 	</security:http>
-	 	 	
+	
 	<security:http use-expressions="true" disable-url-rewriting="true" auto-config="false"
 		create-session="ifRequired">
-
+				 
 		<security:custom-filter ref="preAuthFilter"
 			position="PRE_AUTH_FILTER" />
 
@@ -76,8 +68,8 @@
 			authentication-details-source-ref="proxyWebAuthenticationDetailsSource"
 			login-page="/" />
 
-		<security:logout success-handler-ref="logoutSuccessHandler"
-			invalidate-session="true" logout-url="/logout" />
+		<security:logout success-handler-ref="logoutSuccessHandler" delete-cookies="dhusAuth,dhusValidity,dhusIntegrity"
+			invalidate-session="false" logout-url="/logout" />
 
 	</security:http>
 </beans>

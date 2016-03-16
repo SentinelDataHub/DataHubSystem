@@ -1,11 +1,16 @@
 package fr.gael.dhus.database.dao;
 
-import fr.gael.dhus.database.dao.interfaces.HibernateDao;
-import fr.gael.dhus.database.object.*;
-import fr.gael.dhus.database.object.Collection;
-import fr.gael.dhus.database.object.Product.Download;
-import fr.gael.dhus.util.CheckIterator;
-import fr.gael.dhus.util.TestContextLoader;
+import java.math.BigInteger;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.hibernate.HibernateException;
 import org.hibernate.Query;
@@ -20,11 +25,15 @@ import org.testng.annotations.Test;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
-import java.math.BigInteger;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.sql.SQLException;
-import java.util.*;
+import fr.gael.dhus.database.dao.interfaces.HibernateDao;
+import fr.gael.dhus.database.object.Collection;
+import fr.gael.dhus.database.object.MetadataIndex;
+import fr.gael.dhus.database.object.Product;
+import fr.gael.dhus.database.object.Product.Download;
+import fr.gael.dhus.database.object.Role;
+import fr.gael.dhus.database.object.User;
+import fr.gael.dhus.util.CheckIterator;
+import fr.gael.dhus.util.TestContextLoader;
 
 @ContextConfiguration (
       locations = "classpath:fr/gael/dhus/spring/context-test.xml",
@@ -48,7 +57,7 @@ public class TestProductDao extends TestAbstractHibernateDao<Product, Long>
    @Override
    protected int howMany ()
    {
-      return 7;
+      return 8;
    }
 
    @Override
@@ -103,24 +112,25 @@ public class TestProductDao extends TestAbstractHibernateDao<Product, Long>
    @Override
    public void update ()
    {
-      String indexName = "testable";
-      String productIdentifier = "test-prod-6";
-      Long pid = Long.valueOf (6);
+      String productIdentifier = "test-prod-7";
+      String indexName = "updatable";
+      Long pid = Long.valueOf (7);
 
       Product product = dao.read (pid);
-      product.setIdentifier (productIdentifier);
       List<MetadataIndex> indexes = product.getIndexes ();
-      Assert.assertFalse (indexes.isEmpty ());
+      product.setIdentifier (productIdentifier);
       for (MetadataIndex mi : indexes)
       {
          mi.setName (indexName);
       }
+      dao.setIndexes (pid, indexes);
       dao.update (product);
 
       product = dao.read (pid);
+      indexes = product.getIndexes ();
       Assert.assertNotNull (product);
       Assert.assertEquals (product.getIdentifier (), productIdentifier);
-      for (MetadataIndex mi : product.getIndexes ())
+      for (MetadataIndex mi : indexes)
       {
          Assert.assertEquals (mi.getName (), indexName);
       }
@@ -145,17 +155,23 @@ public class TestProductDao extends TestAbstractHibernateDao<Product, Long>
    }
 
    @Override
-   public void delete ()
+  public void delete ()
    {
-      Long pid = Long.valueOf (6);
+      cancelListeners (getHibernateDao ());
+      
+      Long pid = Long.valueOf (6L);
       Product product = dao.read (pid);
       Assert.assertNotNull (product);
       Set<User> authorizedUsers = product.getAuthorizedUsers ();
-
-      Assert.assertFalse (product.getIndexes ().isEmpty ());
+      
+      List<MetadataIndex> indexes = product.getIndexes ();
+      Assert.assertNotNull (indexes);
+      Assert.assertFalse (indexes.isEmpty ());
       Assert.assertFalse (authorizedUsers.isEmpty ());
 
       dao.delete (product);
+      getHibernateDao ().getSessionFactory ().getCurrentSession ().flush ();
+      
       Assert.assertNull (dao.read (pid));
       Assert.assertEquals (countElements ("METADATA_INDEXES", pid), 0);
       Assert.assertEquals (countElements ("CHECKSUMS", pid), 0);
@@ -171,7 +187,7 @@ public class TestProductDao extends TestAbstractHibernateDao<Product, Long>
    {
       String hql = "WHERE processed IS TRUE";
       Iterator<Product> it = dao.scroll (hql, -1, -1).iterator ();
-      Assert.assertTrue (CheckIterator.checkElementNumber (it, 3));
+      Assert.assertTrue (CheckIterator.checkElementNumber (it, 4));
    }
 
    @Override
@@ -214,35 +230,10 @@ public class TestProductDao extends TestAbstractHibernateDao<Product, Long>
       List<Long> products;
 
       uid = 0;
-      expected = Arrays.asList (0L, 5L, 6L); // product 1 is in processing
+      expected = Arrays.asList (0L, 5L, 6L, 7L);
       products = dao.getAuthorizedProducts (uid);
       Assert.assertEquals (products.size (), expected.size ());
       Assert.assertTrue (products.containsAll (expected));
-
-      uid = 3;
-      expected = Arrays.asList (0L, 5L); // product 3 is in processing
-      products = dao.getAuthorizedProducts (uid);
-      Assert.assertEquals (products.size (), expected.size ());
-      Assert.assertTrue (products.containsAll (expected));
-   }
-
-   @Test
-   public void getAuthorizedUsers ()
-   {
-      long pid;
-      Product product = new Product ();
-      List<User> expected;
-      List<User> users;
-
-      pid = 5;
-      expected =
-            Arrays.asList (emulateUser (0, "koko"), emulateUser (2, "toto"),
-                  emulateUser (3, "babar"));
-      product.setId (pid);
-      users = dao.getAuthorizedUsers (product);
-
-      Assert.assertEquals (users.size (), expected.size ());
-      Assert.assertTrue (users.containsAll (expected));
    }
 
    private User emulateUser (long uid, String username)
@@ -257,25 +248,34 @@ public class TestProductDao extends TestAbstractHibernateDao<Product, Long>
    public void getNoCollectionProducts ()
    {
       long uid = 0;
-      long expectedPid = 6;
+      long expectedPid1 = 6;
+      long expectedPid2 = 7;
 
       List<Product> products =
             dao.getNoCollectionProducts (emulateUser (uid, "koko"));
-      Assert.assertEquals (products.size (), 1);
-      Assert.assertEquals (products.get (0).getId ().intValue (), expectedPid);
+      Assert.assertEquals (products.size (), 2);
+      Assert.assertEquals (products.get (0).getId ().intValue (), expectedPid1);
+      Assert.assertEquals (products.get (1).getId ().intValue (), expectedPid2);
    }
 
    @Test
    public void getOwerOfProduct ()
    {
       User expectedUser = new User ();
-      expectedUser.setId (0L);
       expectedUser.setUsername ("koko");
+      
       Product product = dao.read (0L);
-
+      Assert.assertNotNull (product);
+      
       User user = dao.getOwnerOfProduct (product);
+      // To be sure that both are equals...
+      expectedUser.setId (user.getId ());
+
       Assert.assertNotNull (user);
-      Assert.assertTrue (user.equals (expectedUser));
+      Assert.assertTrue (user.equals (expectedUser), 
+         "User " + user.getUsername () + "#" + user.getId() + 
+         " not expected (" + expectedUser.getUsername () + "#" + 
+         expectedUser.getId () + ").");
 
       product = dao.read (6L);
       user = dao.getOwnerOfProduct (product);
@@ -297,19 +297,19 @@ public class TestProductDao extends TestAbstractHibernateDao<Product, Long>
       invalidCollection.setId (4L);
       invalidCollection.setName ("China");
 
-      product = dao.getProductByDownloadableFilename ("prod0", validCollection);
-      Assert.assertNotNull (product);
-      Assert.assertEquals (product.getId ().intValue (), 0);
+      product = dao.getProductByDownloadableFilename("prod0",validCollection);
+      Assert.assertNotNull(product);
+      Assert.assertEquals(product.getId ().intValue(), 0);
 
-      product = dao.getProductByDownloadableFilename ("prod6", validCollection);
+      product = dao.getProductByDownloadableFilename("prod6",validCollection);
+      Assert.assertNull(product);
+
+      product = dao.getProductByDownloadableFilename("prod0",invalidCollection);
       Assert.assertNull (product);
 
-      product = dao.getProductByDownloadableFilename ("prod0", invalidCollection);
-      Assert.assertNull (product);
-
-      product = dao.getProductByDownloadableFilename ("prod6", null);
-      Assert.assertNotNull (product);
-      Assert.assertEquals (product.getId ().intValue (), 6);
+      product = dao.getProductByDownloadableFilename("prod6",null);
+      Assert.assertNotNull(product);
+      Assert.assertEquals(product.getId ().intValue (), 6);
 
       product = dao.getProductByDownloadableFilename (null, null);
       Assert.assertNull (product);
@@ -367,8 +367,6 @@ public class TestProductDao extends TestAbstractHibernateDao<Product, Long>
       Product product = dao.getProductByUuid (valid, user);
       Assert.assertNotNull (product);
       Assert.assertEquals (product.getId ().intValue (), 6);
-      Assert.assertTrue (user.getRoles ().contains (Role.DATA_MANAGER) ||
-            dao.getAuthorizedUsers (product).contains (user));
 
       product = dao.getProductByUuid (invalid, user);
       Assert.assertNull (product);
@@ -385,14 +383,43 @@ public class TestProductDao extends TestAbstractHibernateDao<Product, Long>
    public void getProductByIngestionDate ()
    {
       Date date = new Date ();
-      List<Product> products = dao.getProductsByIngestionDate (date, 0, 5);
-      Assert.assertEquals (products.size (), 3);
+      Iterator<Product> products = dao.getProductsByIngestionDate (date);
+      Assert.assertEquals (getIteratorSize (products), 4);
 
       Calendar calendar =  Calendar.getInstance ();
       calendar.set (2014, Calendar.JUNE, 07, 0, 0, 0);
       date = calendar.getTime ();
-      products = dao.getProductsByIngestionDate (date, 0, 5);
-      Assert.assertEquals (products.size (), 1);
+      products = dao.getProductsByIngestionDate (date);
+      Assert.assertEquals (getIteratorSize (products), 1);
+   }
+
+   private int getIteratorSize (Iterator iterator)
+   {
+      int count = 0;
+      while (iterator.hasNext ())
+      {
+         iterator.next ();
+         count++;
+      }
+      return count;
+   }
+   
+   @Test
+   public void isAuthorized ()
+   {
+      Assert.assertTrue (dao.isAuthorized (0, 0));
+      Assert.assertTrue (dao.isAuthorized (1, 0));
+      Assert.assertTrue (dao.isAuthorized (2, 0));
+      Assert.assertTrue (dao.isAuthorized (3, 0));
+      
+      Assert.assertTrue (dao.isAuthorized (0, 1));
+      Assert.assertTrue (dao.isAuthorized (2, 1));
+      Assert.assertTrue (dao.isAuthorized (3, 1));
+      
+      // Unknown user
+      Assert.assertFalse (dao.isAuthorized (1000, 1));
+      // Unknown product
+      Assert.assertFalse (dao.isAuthorized (1, 1000));
    }
 
    // TODO merge others test
@@ -461,6 +488,7 @@ public class TestProductDao extends TestAbstractHibernateDao<Product, Long>
       /**
        * Remove residuals for this test
        */
+      cancelListeners (getHibernateDao ());
       dao.delete (product);
       
    }

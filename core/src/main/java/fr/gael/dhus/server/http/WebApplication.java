@@ -19,6 +19,9 @@
  */
 package fr.gael.dhus.server.http;
 
+import com.google.common.io.Files;
+import org.apache.commons.io.IOUtils;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -31,15 +34,8 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
 
-import org.apache.commons.io.IOUtils;
-
-import com.google.common.io.Files;
-
 /**
  * Abstract class defining WebApplication
- *
- * @author Nicolas Valette
- * @author Julien Lambert
  */
 public abstract class WebApplication
 {
@@ -50,18 +46,20 @@ public abstract class WebApplication
       annotation = this.getClass ().getAnnotation (WebApp.class);
       if (annotation == null)
       {
-         throw new IllegalArgumentException ("WebApp annotation is missing on "+this.getClass ());
+         throw new IllegalArgumentException (
+               "WebApp annotation is missing on " + this.getClass ());
       }
    }
 
-   public abstract void configure (String destFolder) throws IOException;
+   public abstract void configure (String dest_folder) throws IOException;
 
    public abstract boolean hasWarStream ();
 
    public abstract InputStream getWarStream ();
    
    /**
-    * Throws an Exception if something is wrong with the web application installation
+    * Throws an Exception if something is wrong with the web
+    * application installation
     * @throws Exception
     */
    public abstract void checkInstallation () throws Exception;
@@ -82,11 +80,11 @@ public abstract class WebApplication
       }
    }
 
-   protected void extractJarFolder (URL url, String configurationFolder,
-      String destFolder) throws IOException
+   protected void extractJarFolder (URL url, String configuration_folder,
+         String dest_folder) throws IOException
    {
       final JarURLConnection connection
-         = (JarURLConnection) url.openConnection ();
+            = (JarURLConnection) url.openConnection ();
       if (connection != null)
       {
          Enumeration<JarEntry> entries = connection.getJarFile ().entries ();
@@ -94,13 +92,14 @@ public abstract class WebApplication
          {
             JarEntry entry = (JarEntry) entries.nextElement ();
             if (!entry.isDirectory () && entry.getName ().startsWith (
-               configurationFolder))
+                  configuration_folder))
             {
                InputStream in = connection.getJarFile ().getInputStream (entry);
                try
                {
-                  File file = new File (destFolder, entry.getName ().substring (
-                     configurationFolder.length ()));
+                  File file =
+                        new File (dest_folder, entry.getName ().substring (
+                              configuration_folder.length ()));
                   if (!file.getParentFile ().exists ())
                   {
                      file.getParentFile ().mkdirs ();
@@ -109,11 +108,13 @@ public abstract class WebApplication
                   try
                   {
                      IOUtils.copy (in, out);
-                  } finally
+                  }
+                  finally
                   {
                      out.close ();
                   }
-               } finally
+               }
+               finally
                {
                   in.close ();
                }
@@ -134,22 +135,30 @@ public abstract class WebApplication
 
    public String getAllow ()
    {
-      return (annotation.allowIps ().trim ().isEmpty ()) ? null : annotation.allowIps ();
+      return (annotation.allowIps ().trim ().isEmpty ()) ?
+            null : annotation.allowIps ();
    }
 
    public String getDeny ()
    {
-      return (annotation.denyIps ().trim ().isEmpty ()) ? null : annotation.denyIps (); 
+      return (annotation.denyIps ().trim ().isEmpty ()) ?
+            null : annotation.denyIps ();
    }
 
    @Override
    public String toString ()
    {
       StringBuilder sb = new StringBuilder ();
-      sb.append (getClass ().getSimpleName ()).append ("{name:").append (annotation.name ());
-      sb.append ("; welcome:").append (Arrays.asList (annotation.welcomeFiles ()));
-      sb.append ("; allow:").append ((annotation.allowIps ().trim ().isEmpty ()) ? null : annotation.allowIps ());
-      sb.append ("; deny:").append ((annotation.denyIps ().trim ().isEmpty ()) ? null : annotation.denyIps ());
+      sb.append (getClass ().getSimpleName ()).append ("{name:")
+            .append (annotation.name ());
+      sb.append ("; welcome:").append (
+            Arrays.asList (annotation.welcomeFiles ()));
+      sb.append ("; allow:").append (
+            (annotation.allowIps ().trim ().isEmpty ()) ?
+                  null : annotation.allowIps ());
+      sb.append ("; deny:").append (
+            (annotation.denyIps ().trim ().isEmpty ()) ?
+                  null : annotation.denyIps ());
       sb.append ('}');
       return sb.toString ();
    }   

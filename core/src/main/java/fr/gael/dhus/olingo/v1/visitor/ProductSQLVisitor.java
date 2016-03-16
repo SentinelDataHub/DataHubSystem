@@ -24,9 +24,9 @@ import org.apache.olingo.odata2.api.uri.expression.PropertyExpression;
 
 import fr.gael.dhus.olingo.OlingoSQLVisitor;
 import fr.gael.dhus.olingo.v1.V1Model;
-import fr.gael.dhus.olingo.v1.entitySet.ItemEntitySet;
-import fr.gael.dhus.olingo.v1.entitySet.NodeEntitySet;
-import fr.gael.dhus.olingo.v1.entitySet.ProductEntitySet;
+import fr.gael.dhus.olingo.v1.entityset.ItemEntitySet;
+import fr.gael.dhus.olingo.v1.entityset.NodeEntitySet;
+import fr.gael.dhus.olingo.v1.entityset.ProductEntitySet;
 
 public class ProductSQLVisitor extends OlingoSQLVisitor
 {
@@ -38,50 +38,50 @@ public class ProductSQLVisitor extends OlingoSQLVisitor
    }
 
    @Override
-   public Object visitProperty (PropertyExpression propertyExpression,
-      String uriLiteral, EdmTyped edmProperty)
+   public Object visitProperty (PropertyExpression property_expression,
+      String uri_literal, EdmTyped edm_property)
    {
-      if (edmProperty == null)
+      if (edm_property == null)
          throw new IllegalArgumentException ("Property not found: " +
-            uriLiteral);
+               uri_literal);
 
-      if (uriLiteral.equals (ItemEntitySet.ID)) return prefix + ".uuid";
+      if (uri_literal.equals (ItemEntitySet.ID)) return prefix + ".uuid";
 
-      if (uriLiteral.equals (ItemEntitySet.NAME))
+      if (uri_literal.equals (ItemEntitySet.NAME))
          return prefix + ".identifier";
 
-      if (uriLiteral.equals (ItemEntitySet.CONTENT_LENGTH))
+      if (uri_literal.equals (ItemEntitySet.CONTENT_LENGTH))
          return prefix + ".download.size";
 
-      if (uriLiteral.equals (ProductEntitySet.CREATION_DATE))
+      if (uri_literal.equals (ProductEntitySet.CREATION_DATE))
          return prefix + ".created";
 
-      if (uriLiteral.equals (ProductEntitySet.INGESTION_DATE))
+      if (uri_literal.equals (ProductEntitySet.INGESTION_DATE))
          return prefix + ".ingestionDate";
 
-      if (uriLiteral.equals (ProductEntitySet.CONTENT_GEOMETRY))
+      if (uri_literal.equals (ProductEntitySet.CONTENT_GEOMETRY))
          return prefix + ".footPrint";
 
       // Case of complex property ContentDate
       // Not used really, but needed to be here.
-      if (uriLiteral.equals (ProductEntitySet.CONTENT_DATE)) return "";
-      if (uriLiteral.equals (V1Model.TIME_RANGE_START))
+      if (uri_literal.equals (ProductEntitySet.CONTENT_DATE)) return "";
+      if (uri_literal.equals (V1Model.TIME_RANGE_START))
          return prefix + ".contentStart";
-      if (uriLiteral.equals (V1Model.TIME_RANGE_END))
+      if (uri_literal.equals (V1Model.TIME_RANGE_END))
          return prefix + ".contentEnd";
 
-      if (uriLiteral.equals (ProductEntitySet.EVICTION_DATE) ||
-         uriLiteral.equals (ProductEntitySet.METALINK))
-         throw new IllegalArgumentException ("Property \"" + uriLiteral +
+      if (uri_literal.equals (ProductEntitySet.EVICTION_DATE) ||
+         uri_literal.equals (ProductEntitySet.METALINK))
+         throw new IllegalArgumentException ("Property \"" + uri_literal +
             "\" is a dynamic data and is not filterable.");
 
-      if (uriLiteral.equals (ItemEntitySet.CONTENT_TYPE) ||
-         uriLiteral.equals (NodeEntitySet.VALUE) ||
-         uriLiteral.equals (NodeEntitySet.CHILDREN_NUMBER))
-         throw new IllegalArgumentException ("Property \"" + uriLiteral +
+      if (uri_literal.equals (ItemEntitySet.CONTENT_TYPE) ||
+         uri_literal.equals (NodeEntitySet.VALUE) ||
+         uri_literal.equals (NodeEntitySet.CHILDREN_NUMBER))
+         throw new IllegalArgumentException ("Property \"" + uri_literal +
             "\" is not filterable.");
 
       throw new IllegalArgumentException ("Property not supported: " +
-         uriLiteral);
+            uri_literal);
    }
 }

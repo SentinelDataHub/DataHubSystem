@@ -1,0 +1,206 @@
+/* 
+ * Data HUb Service (DHuS) - For Space data distribution.
+ * Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+ * Copyright (C) 2013,2014,2015,2016 GAEL Systems
+ * Copyright (C) 2013,2014,2015,2016 Serco Spa
+ * 
+ * This file is part of DHuS software sources.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+/**
+ *********************************** BOOTSTRAP DHUS CUSTOM THEME **************************************************
+ */
+
+
+html, body{
+    width:100%;
+    height:100%;
+    font-family: 'Source Sans Pro', sans-serif;
+}
+body {
+	background-color: white;
+  overflow: hidden;
+
+}
+
+/** ------------------------------ FORM ELEMENTS --------------------------------- */
+.form-control, .form-control.focus, .form-control:focus {
+    background-image: linear-gradient(#FFFFFF,#FFFFFF),linear-gradient(#FFFFFF,#FFFFFF);
+    background-size: 0 2px,100% 1px;
+}
+
+::-webkit-input-placeholder {
+    color:    white;
+}
+:-moz-placeholder {
+   color:    white;
+   opacity:  1;
+}
+::-moz-placeholder {
+   color:    white;
+   opacity:  1;
+}
+:-ms-input-placeholder {
+   color:    white;
+}
+
+input{
+    background-image: linear-gradient(rgb(255, 255, 255), rgb(255, 255, 255)), linear-gradient(rgb(255, 255, 255), rgb(255, 255, 255));
+
+    outline: none
+}
+
+textarea:focus, input:focus{
+    outline: none
+}
+
+.form-control, .form-control.focus, .form-control:focus {
+    background-image: linear-gradient(#FFF, #FFF), linear-gradient(#FFF, #FFF) !important;
+    background-size: 0px 2px, 100% 1px !important;
+}
+
+.form-control, .form-control.focus, .form-control:focus {
+    background-image: linear-gradient(#373B50,#373B50),linear-gradient(#d2d2d2,#d2d2d2);
+    background-size: 0 2px,100% 1px;
+}
+/* ------------------------------- NAVBAR ---------------------------------------*/
+.navbar {
+  background-color: rgb(55, 59, 80);
+}
+
+.toolbar{
+    margin-bottom:0px;
+    border-radius: 0px;
+}
+
+.navbar-default.navbar, .navbar.navbar {
+    background-color: rgb(55, 59, 80);
+    color: rgba(255,255,255,.84);
+}
+
+/* ------------------------------- FOOTER---------------------------------------*/
+footer{
+    position:relative;
+    bottom:10px;
+    right:0px;
+    height: 30px;
+    width:100%;
+}
+
+svg:hover{
+    cursor: pointer;
+}
+
+
+/**
+ *********************************** MODAL **************************************************
+ */
+
+.modal-backdrop {
+    z-index:10;
+}
+
+
+.modal-content{
+    border-radius: 0px; 
+}
+
+
+/* **** test **** */
+.tooltip .tooltip-inner {
+  max-width: 900px;
+  overflow:visible !important;
+  z-index:99999999999999999999999999999999999999999999999999999999999;
+}
+
+
+.form-inline  .form-control {
+      vertical-align: inherit;
+}
+
+.dhus-botton:active {
+  background-color: #21232F;
+}
+
+.dhus-botton:hover {
+  background-color: #3F4356;
+}
+
+.panel-default {
+  border-color: white;
+}
+
+.panel-default >.panel-heading{
+  color: #333;
+  background-color: white;
+  border-color: #DFDFE2;
+}
+
+.panel-title {
+  text-align: left;
+  border-color: #DFDFE2;
+}
+
+.pseudo-link {
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+}
+/***** global elements *******/
+
+.dhus-button:active{
+      background-color: #21232F;
+}
+
+.dhus-button:hover{
+      background-color: #3F4356;
+}
+
+
+.panel-default{
+       border-color: white; 
+}
+
+.panel-default>.panel-heading {
+    color: #333;
+    background-color: white; 
+    border-color: #DFDFE2; 
+}
+
+.panel-title{
+
+      text-align: left;
+}
+
+.badge-triangle{
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 10px 10px 10px;
+  border-color: transparent transparent #fff transparent;
+  position:absolute;
+  margin-left: calc(50% - 20px);
+  bottom: -15px;
+  display: inline;
+}
+
+.right-bottom{
+  bottom: 50px !important;
+  -webkit-transform: rotate(180deg) !important;
+  -moz-transform: rotate(180deg) !important;
+  -o-transform: rotate(180deg) !important;
+  -ms-transform: rotate(180deg) !important;
+  transform: rotate(180deg) !important;
+}

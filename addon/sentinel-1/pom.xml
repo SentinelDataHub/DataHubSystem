@@ -11,7 +11,7 @@
    <groupId>fr.gael.dhus</groupId>
    <artifactId>dhus-addon-sentinel-1</artifactId>
    <packaging>jar</packaging>
-   <version>1.0.1-1</version>
+   <version>1.0.4</version>
 
    <name>DHuS - Sentinel-1 Addon</name>
 
@@ -117,7 +117,7 @@
          <id>osf-releases</id>
          <name>OSF Releases Repository</name>
          <url>
-             https://copernicus.serco.eu/repository/nexus/content/repositories/releases/
+             https://copernicus.serco.eu/repository/nexus/content/repositories/releases/ 
          </url>
          <layout>default</layout>
       </repository>

@@ -23,7 +23,7 @@ import java.util.Map;
 
 import org.apache.olingo.odata2.api.exception.ODataException;
 
-import fr.gael.dhus.olingo.v1.entitySet.AttributeEntitySet;
+import fr.gael.dhus.olingo.v1.entityset.AttributeEntitySet;
 
 /**
  * Attribute Bean.
@@ -63,19 +63,28 @@ public class Attribute extends Item
       return "text/plain";
    }
 
+   /**
+    * Attributes has no class.
+    */
    @Override
-   public Map<String, Object> toEntityResponse (String rootUrl)
+   public Class getItemClass()
    {
-      Map<String, Object> res = super.toEntityResponse (rootUrl);
+      return null;
+   }
+
+   @Override
+   public Map<String, Object> toEntityResponse (String root_url)
+   {
+      Map<String, Object> res = super.toEntityResponse (root_url);
       res.put (AttributeEntitySet.VALUE, getValue ());
       return res;
    }
 
    @Override
-   public Object getProperty (String propName) throws ODataException
+   public Object getProperty (String prop_name) throws ODataException
    {
-      if (propName.equals (AttributeEntitySet.VALUE)) return getValue ();
+      if (prop_name.equals (AttributeEntitySet.VALUE)) return getValue ();
 
-      return super.getProperty (propName);
+      return super.getProperty (prop_name);
    }
 }

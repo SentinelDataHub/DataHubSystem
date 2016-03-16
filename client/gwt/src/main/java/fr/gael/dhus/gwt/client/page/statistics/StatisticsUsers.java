@@ -31,12 +31,12 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.SimpleRadioButton;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.datepicker.client.CalendarUtil;
 
+import fr.gael.dhus.gwt.client.AccessDeniedRedirectionCallback;
 import fr.gael.dhus.gwt.client.GWTClient;
 import fr.gael.dhus.gwt.client.page.AbstractPage;
 import fr.gael.dhus.gwt.services.StatisticsServiceAsync;
@@ -164,7 +164,7 @@ public class StatisticsUsers extends AbstractPage
       restrictedUsersLabel.getElement ().setInnerText ("unknown");
       deletedUsers.getElement ().setInnerText ("unknown");
       
-      statisticsService.getTotalUsers (new AsyncCallback<Integer>()
+      statisticsService.getTotalUsers (new AccessDeniedRedirectionCallback<Integer>()
       {         
          @Override
          public void onSuccess (Integer result)
@@ -173,12 +173,12 @@ public class StatisticsUsers extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
          }
       });      
       
-      statisticsService.getTotalDeletedUsers (new AsyncCallback<Integer>()
+      statisticsService.getTotalDeletedUsers (new AccessDeniedRedirectionCallback<Integer>()
       {         
          @Override
          public void onSuccess (Integer result)
@@ -187,12 +187,12 @@ public class StatisticsUsers extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
          }
       });    
       
-      statisticsService.getTotalRestrictedUsers (new AsyncCallback<Integer>()
+      statisticsService.getTotalRestrictedUsers (new AccessDeniedRedirectionCallback<Integer>()
       {         
          @Override
          public void onSuccess (Integer result)
@@ -202,7 +202,7 @@ public class StatisticsUsers extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
          }
       });     
@@ -251,7 +251,7 @@ public class StatisticsUsers extends AbstractPage
       final Date start = dtf.parse (startDate.getValue()+" 00:00:00"); // for db request, to select all start day
       Date end = dtf.parse (endDate.getValue()+" 23:59:59"); // for db request, to select all end day
       
-      statisticsService.getActiveUsersPerDomain (start, end, hourOption.getValue (), new AsyncCallback<String[][]>()
+      statisticsService.getActiveUsersPerDomain (start, end, hourOption.getValue (), new AccessDeniedRedirectionCallback<String[][]>()
       {         
          @Override
          public void onSuccess (String[][] result)
@@ -260,7 +260,7 @@ public class StatisticsUsers extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
          }
       });
@@ -272,7 +272,7 @@ public class StatisticsUsers extends AbstractPage
       final Date start = dtf.parse (startDate.getValue()+" 00:00:00"); // for db request, to select all start day
       Date end = dtf.parse (endDate.getValue()+" 23:59:59"); // for db request, to select all end day
       
-      statisticsService.getActiveUsersPerUsage (start, end, hourOption.getValue (), new AsyncCallback<String[][]>()
+      statisticsService.getActiveUsersPerUsage (start, end, hourOption.getValue (), new AccessDeniedRedirectionCallback<String[][]>()
       {         
          @Override
          public void onSuccess (String[][] result)
@@ -281,7 +281,7 @@ public class StatisticsUsers extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
          }
       });
@@ -289,7 +289,7 @@ public class StatisticsUsers extends AbstractPage
       
    private static void restrictedUsersRefresh()
    {
-      statisticsService.getRestrictedUsers (new AsyncCallback<String[][]>()
+      statisticsService.getRestrictedUsers (new AccessDeniedRedirectionCallback<String[][]>()
       {         
          @Override
          public void onSuccess (String[][] result)
@@ -298,7 +298,7 @@ public class StatisticsUsers extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
          }
       });
@@ -306,7 +306,7 @@ public class StatisticsUsers extends AbstractPage
    
    private static void usersPerDomainRefresh()
    {
-      statisticsService.getUsersPerDomain (new AsyncCallback<String[][]>()
+      statisticsService.getUsersPerDomain (new AccessDeniedRedirectionCallback<String[][]>()
       {         
          @Override
          public void onSuccess (String[][] result)
@@ -315,7 +315,7 @@ public class StatisticsUsers extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
          }
       });
@@ -323,7 +323,7 @@ public class StatisticsUsers extends AbstractPage
       
    private static void usersPerUsageRefresh()
    {
-      statisticsService.getUsersPerUsage (new AsyncCallback<String[][]>()
+      statisticsService.getUsersPerUsage (new AccessDeniedRedirectionCallback<String[][]>()
       {         
          @Override
          public void onSuccess (String[][] result)
@@ -332,7 +332,7 @@ public class StatisticsUsers extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
          }
       });
@@ -529,11 +529,11 @@ public class StatisticsUsers extends AbstractPage
       
       GWTClient.callback (function, JsonUtils.safeEval ("{\"aaData\": [],\"iTotalRecords\" : 0, \"iTotalDisplayRecords\" : 0}"));
       
-      userService.countAll (search, new AsyncCallback<Integer> ()
+      userService.countAll (search, new AccessDeniedRedirectionCallback<Integer> ()
       {
 
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             DOM.setStyleAttribute (RootPanel.getBodyElement (), "cursor",
                "default");
@@ -544,10 +544,10 @@ public class StatisticsUsers extends AbstractPage
          public void onSuccess (final Integer total)
          {
             userService.getAllUsers (start, length, search,
-               new AsyncCallback<List<UserData>> ()
+               new AccessDeniedRedirectionCallback<List<UserData>> ()
                {
                   @Override
-                  public void onFailure (Throwable caught)
+                  public void _onFailure (Throwable caught)
                   {
                      DOM.setStyleAttribute (RootPanel.getBodyElement (),
                         "cursor", "default");

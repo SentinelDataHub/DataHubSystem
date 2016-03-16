@@ -1,0 +1,121 @@
+<div>
+<!-- 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+-->
+<div>
+  <style>
+  .panel-default >.panel-heading{
+    border-bottom: 1px solid #DFDFE2;        
+  }
+
+  .panel-title {
+    cursor: pointer;
+    text-transform: capitalize;
+    font-weight: bold;
+    color: #373B50;
+  }
+  .attr{ font-weight: bold; }
+
+  .panel-body {
+    padding: 5px 15px;
+  }
+
+  .panel-group .details{
+    margin-bottom: 15px !important;    
+  }        
+
+  .collapse.in {
+    overflow-x: auto;
+  }
+
+  .panel-heading .accordion-toggle {
+    padding-left: 5px;
+  }
+
+  .panel-heading .accordion-toggle:before {
+    font-family: 'Glyphicons Halflings';
+    content: '\e113';
+    float: left;
+    color: grey;    
+  }
+
+  .panel-heading .accordion-toggle.collapsed:before {    
+    content: "\e114";    
+  }
+
+  .panel-attributes {
+    font-size: 13px;
+  }
+
+  .panel-attributes-title {
+    font-size: 15px;
+  }
+  
+  
+  </style>    
+  <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+    <div ng-repeat="section in model.indexes">
+      <div ng-if="section.name.length > 0 &&  section.name == 'summary'">
+        <div class="panel panel-default details">
+          <div class="panel-heading" role="tab" >
+            <h4 class="panel-title panel-attributes-title">
+              <a class="accordion-toggle" role="button" data-toggle="collapse"  data-parent="#accordion" aria-expanded="true" data-target="#section_{{section.name}}" aria-controls="section_{{section.name}}">                
+                {{section.name}}
+              </a>
+            </h4>
+          </div>
+          <div id="section_{{section.name}}" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="section_{{section.name}}">
+            <div ng-repeat="attrs in section.children">
+              <div class="panel-body panel-attributes">
+              <span class="attr">{{attrs.name}}:</span>
+                  <span class="value">{{attrs.value }}</span>
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div ng-repeat="section in model.indexes">
+      <div ng-if="section.name.length > 0 &&  section.name != 'summary'">
+        <div class="panel panel-default details">
+          <div class="panel-heading" role="tab" >
+            <h4 class="panel-title panel-attributes-title">
+              <a class="accordion-toggle collapsed" role="button" data-toggle="collapse"  data-parent="#accordion" aria-expanded="false" data-target="#section_{{section.name}}" aria-controls="section_{{section.name}}">
+                {{section.name}}
+              </a>
+            </h4>
+          </div>
+          <div id="section_{{section.name}}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="section_{{section.name}}">
+            <div ng-repeat="attrs in section.children">
+              <div class="panel-body panel-attributes">
+              <span class="attr">{{attrs.name}}:</span>
+                  <span ng-if="(attrs.value.indexOf('<a')==0)" class="value"><a target="_blank" href="{{attrs.value | checkHTML}}">{{attrs.value | checkHTML}}</a></span>
+                  <span ng-if="!(attrs.value.indexOf('<a')==0)" class="value">{{attrs.value}}</span>
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>  
+</div>
+</div>

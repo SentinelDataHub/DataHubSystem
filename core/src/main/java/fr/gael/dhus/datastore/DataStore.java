@@ -24,7 +24,7 @@ import java.util.List;
 
 import fr.gael.dhus.database.object.Collection;
 import fr.gael.dhus.database.object.User;
-import fr.gael.dhus.datastore.processing.ProcessingListener;
+import fr.gael.dhus.datastore.scanner.FileScannerWrapper;
 import fr.gael.dhus.datastore.scanner.Scanner;
 
 /**
@@ -35,8 +35,9 @@ import fr.gael.dhus.datastore.scanner.Scanner;
  */
 public interface DataStore
 {
-   public void addProduct (URL path, User owner, List<Collection>collections, 
-      String origin, Scanner scanner, ProcessingListener listener);
+   public void addProduct (URL path, User owner,
+      List<Collection>collections, String origin, Scanner scanner,
+      FileScannerWrapper wrapper);
    
-   public void removeProduct (Long pId);
+   public void removeProduct (Long p_id);
 }

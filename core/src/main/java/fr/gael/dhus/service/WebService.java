@@ -21,8 +21,6 @@ package fr.gael.dhus.service;
 
 /**
  * Abstract class used in ApplicationContextProvider to identify WebServices.
- * 
- * @author valette
  */
 public abstract class WebService
 {

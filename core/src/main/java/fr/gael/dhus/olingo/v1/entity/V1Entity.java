@@ -19,28 +19,73 @@
  */
 package fr.gael.dhus.olingo.v1.entity;
 
-import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.olingo.odata2.api.ep.entry.ODataEntry;
 import org.apache.olingo.odata2.api.exception.ODataException;
 import org.apache.olingo.odata2.api.processor.ODataResponse;
 import org.apache.olingo.odata2.api.processor.ODataSingleProcessor;
 
+/**
+ * Nutshell for entities. An entity must at least contain a few properties and
+ * be readable. Methods related to writing data, complex types and media default
+ * to the raise of an @{link ODataException}.
+ */
 public abstract class V1Entity
 {
-   public abstract Map<String, Object> toEntityResponse (String rootUrl);
+   /**
+    * Makes a {@code Map<Property_name, Property_value>}.
+    * 
+    * @param root_url the absolute url to address this entity.
+    * @return Properties and their values for this entity.
+    */
+   public abstract Map<String, Object> toEntityResponse (String root_url);
 
-   public abstract Object getProperty (String propName) throws ODataException;
+   /**
+    * Returns the property value for the given property name.
+    * 
+    * @param prop_name Property name.
+    * @return Property value.
+    * @throws ODataException if no property has the given name.
+    */
+   public abstract Object getProperty (String prop_name) throws ODataException;
 
-   public Map<String, Object> getComplexProperty (String propName)
-      throws ODataException
+   /**
+    * Updates this entity with the given entry.
+    * 
+    * @param entry contains the properties/complex types/medias to update.
+    * @throws ODataException if this entity is not updatable or the entry data
+    *            is not valid.
+    */
+   public void updateFromEntry (ODataEntry entry) throws ODataException
    {
-      return new HashMap<String, Object> ();
+      throw new ODataException ("Entity not updatable");
    }
 
+   /**
+    * Returns a complex type.
+    * 
+    * @param prop_name Complex type property name.
+    * @return Properties and their values for the required complex type.
+    * @throws ODataException if no complex types or no complex type with the
+    *            given name.
+    */
+   public Map<String, Object> getComplexProperty (String prop_name)
+      throws ODataException
+   {
+      throw new ODataException ("Entity has no complex type");
+   }
+
+   /**
+    * Returns the EntityMedia for this entity ({@code /$value}).
+    * 
+    * @param processor to create the {@link ODataResponse}.
+    * @return the response.
+    * @throws ODataException if this entity has no media.
+    */
    public ODataResponse getEntityMedia (ODataSingleProcessor processor)
       throws ODataException
    {
-      return null;
+      throw new ODataException ("Entity has no media");
    }
 }

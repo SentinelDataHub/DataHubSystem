@@ -90,9 +90,9 @@ public class Eviction implements Serializable
       return maxDiskUsage;
    }
 
-   public void setMaxDiskUsage (int maxDiskUsage)
+   public void setMaxDiskUsage (int max_disk_usage)
    {
-      this.maxDiskUsage = maxDiskUsage;
+      this.maxDiskUsage = max_disk_usage;
    }
 
    public int getKeepPeriod ()
@@ -100,9 +100,9 @@ public class Eviction implements Serializable
       return keepPeriod;
    }
 
-   public void setKeepPeriod (int keepPeriod)
+   public void setKeepPeriod (int keep_period)
    {
-      this.keepPeriod = keepPeriod;
+      this.keepPeriod = keep_period;
    }
 
    public int getMaxProductNumber ()
@@ -110,9 +110,9 @@ public class Eviction implements Serializable
       return maxProductNumber;
    }
 
-   public void setMaxProductNumber (int maxProductNumber)
+   public void setMaxProductNumber (int max_product_number)
    {
-      this.maxProductNumber = maxProductNumber;
+      this.maxProductNumber = max_product_number;
    }
 
    public Set<Product> getProducts ()

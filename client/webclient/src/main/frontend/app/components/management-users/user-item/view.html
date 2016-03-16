@@ -1,0 +1,143 @@
+<div>
+<!-- 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+-->
+<div >
+	
+    
+    <style>
+        .user-item{
+        	/*height: 100px;*/
+        	width: 100%;
+        	position: relative;
+      		background-color: inherit;
+        	border-top: 1px solid #bdc3c7; 
+   			color: #34495e;
+   			height: 60px;
+   			padding-top: 4px;
+   			cursor: default;
+        }
+        
+        /* **** */
+        .header {
+		    display:table; 
+		    width:100%;
+		    margin-top: 10px;
+		}
+		.logo,
+		.attributes {
+		    display:table-cell; 
+		    vertical-align:top;
+		    
+		}
+		#user-item .attributes{			
+			    font-size: 13px;
+    			font-style: italic;
+    			
+		}
+		.logo{
+			width:60px;
+			height:60px;
+			opacity: 1;
+		}
+		#user-item .user-item-title{
+			font-size: 13px;
+		    font-weight: bold;
+		    line-height: 20px;
+
+		    
+		}
+
+		.item-title {
+			overflow-x: hidden;
+			text-overflow:ellipsis;
+		}
+		
+		.tooltip{
+			background-color: red;
+			position:fixed;
+			z-index:99999999;
+		}
+
+		#user-item .item-buttons{
+			position:absolute;
+			bottom:30px;
+			right: 20px;
+	
+		}
+
+		.item-button{
+			margin-left: 15px;
+			cursor: pointer;
+		}
+        
+
+		.listrow {
+			margin-top: -5px;
+		}
+
+		.list-attribute-value {
+			color: black;
+		}
+    </style>
+    
+    <div 
+    	id = "user-item"
+    	class="user-item "    	
+    	ng-mouseover="hoverIn()"
+    	ng-mouseleave="hoverOut()"
+    	>
+
+    	<div class="row">
+    		<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+		    	<!-- title -->
+		    	<div class="row item-title" >
+		    		<div style="overflow: hidden;text-overflow: ellipsis;white-space: nowrap;">   		
+		    		<span  class="user-item-title"
+		    			title="{{user.username}}">{{user.username}}
+		    			
+		    		</span>
+		    		</div>
+		    	</div>
+		    	<!-- content -->
+		    	<div class="row listrow" style="overflow:hidden;text-overflow:ellipsis;">		    		
+		    		<div class="header" style="overflow:hidden;text-overflow:ellipsis;">
+					    
+					    <div class="attributes" style="overflow:hidden;text-overflow:ellipsis;">
+					        
+					      	<div  style="overflow:hidden;text-overflow:ellipsis; white-space: nowrap;">E-mail: <span class="list-attribute-value">{{user.email}}</span>; Firstname: <span class="list-attribute-value">{{user.firstname}}</span>; Lastname: <span class="list-attribute-value">{{user.lastname}}</span>; Country: <span class="list-attribute-value">{{user.country}}</span>; isLocked: <span class="list-attribute-value">{{user.lockedReason ? true : false}}</span></div>		        
+					    </div>    
+					</div>
+
+		    	</div>
+		    </div>
+	    </div>
+	    <!-- buttons -->
+		<div class="item-buttons" ng-show="visibleItemButton">
+			<div class="glyphicon glyphicon-pencil item-button" ng-click="showUserDetails()" title="Edit User"></div>
+			<div class="glyphicon glyphicon-remove item-button" ng-click="removeUser()" title="Delete User"></div>			
+			</div>
+		</div>
+    </div>
+
+</div>
+</div>

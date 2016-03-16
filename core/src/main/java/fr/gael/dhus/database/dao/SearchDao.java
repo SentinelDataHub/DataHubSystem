@@ -77,4 +77,22 @@ public class SearchDao extends HibernateDao<Search, Long>
       });
       super.delete (search);
    }
+
+   /**
+    * Inactive all saved search notifications of users.
+    */
+   public void disableAllSearchNotifications ()
+   {
+      getHibernateTemplate ().execute (new HibernateCallback<Void> ()
+      {
+         @Override
+         public Void doInHibernate (Session session) throws HibernateException,
+               SQLException
+         {
+            String query = "UPDATE SEARCHES SET NOTIFY = false";
+            session.createSQLQuery (query).executeUpdate ();
+            return null;
+         }
+      });
+   }
 }

@@ -1,0 +1,72 @@
+<link rel="import" href="../../libs/core-selector/core-selector.html">
+<link rel="import" href="../../libs/core-dropdown/core-dropdown.html">
+<link rel="import" href="../../libs/core-collapse/core-collapse.html">
+<link rel="import" href="../../libs/core-collapse/core-collapse.html">
+<link rel="import" href="../main-screen/routes.html">
+
+<polymer-element name="user-searches" attributes="attr pagesize offset productscount textQuery">
+	<template id="app" usersearch="{{usersearch}}">
+		
+	 	<link rel="stylesheet" type="text/css" href="style.css">
+		 	<div vertical layout class="usersearchcontainer">
+			 	<div flex one class="core-header">
+				 	<template if="{{!data || data.length == 0 }}">	 		
+				 			No saved searches.	    	
+					</template>
+					<template if="{{data.length > 0 }}">
+				 		Display {{usersearch.firstInPage}} to {{usersearch.lastInPage}} of {{usersearch.totalcount}} saved searches.	    	
+					</template>
+				</div>
+				<div class="usersearchlist" flex ten>				
+			 	<core-selector id="usersearch" class="usersearch" flex selected="0">
+				    <form id="usersearchForm" class="usersearchForm">
+				    	<template class="usersearchTemplate" repeat = "{{model in data}}">	
+			             
+					      <div id="item-{{model.id}}" class="item" layout horizontal center>				
+							  <span flex id ="from" class="from">{{model.title}}</span>		  	  							  
+							  			  	
+							  <paper-icon-button  icon="search" title="Execute Saved Search" data-object="{{model.id}}" url="{{urlFor('search')}}" on-click="{{executeSavedSearch}}"></paper-icon-button>				
+							  <paper-icon-button  icon="mail" class="{{model.notifyicon}}" title="{{model.notifyTitle}}" data-object="{{model.id}}" on-click="{{updateNotificationStatus}}"></paper-icon-button>
+							  <paper-icon-button  icon="delete" disabled="{{model.disabled}}" title="Delete Search" data-object="{{model.id}}" on-click="{{removeSavedSearch}}"></paper-icon-button>
+										
+							                                 										
+							                                                    
+		                  </div>
+						  		                  			  			  		          		       	            
+			    		</template>
+						</form>
+				  </core-selector>		  				  		  	
+			    </div>
+			    <div  horizontal layout class="core-bar" flex one>
+			    	<span class="selectpage">
+				    	Page size: 
+				    	<select id="pagination" on-change="{{updatePage}}">	
+				    		<!--<option value="3">3</option>	        			        -->		   	
+				    		<option value="25">25</option>
+	             		 	<option value="50">50</option>		             		 	
+	             		 	<option value="100">100</option>			           					
+				      	</select>			     
+			      	</span> 				    
+			    	<span class="selectpage">
+			    		<paper-icon-button icon="serco:chevron-double-left" class="chevron" disabled?="{{usersearch.currentPage <=1}}" data-object="0" on-click="{{goToPage}}"></paper-icon-button>
+			    	</span>
+			    	<span class="selectpage">
+			    		<paper-icon-button  icon="serco:chevron-left" class="chevron" disabled?="{{usersearch.currentPage <=1}}" data-object="{{(usersearch.currentPage -2)}}" on-click="{{goToPage}}"></paper-icon-button>
+			    	</span>
+			    	<span id="currentUserSearchPage" class="selectpage" hidden?="{{!data || data.length == 0}}"data-object="{{usersearch.currentPage-1}}">{{usersearch.currentPage}}</span>
+			    	<span class="selectpage">
+			    		<paper-icon-button  icon="serco:chevron-right" class="chevron" disabled?="{{usersearch.currentPage ==usersearch.numpages}}" data-object="{{(usersearch.currentPage)}}" on-click="{{goToPage}}"></paper-icon-button>
+			    	</span>
+			    	<span class="selectpage">
+			    		<paper-icon-button icon="serco:chevron-double-right" class="chevron" disabled?="{{usersearch.currentPage ==usersearch.numpages}}" data-object="{{usersearch.numpages - 1}}" on-click="{{goToPage}}"></paper-icon-button>
+			    	</span>
+			    	<div flex></div>			    				    
+				    <span class="spanbutton">
+				    	<paper-button raised class="listbutton" on-click="{{clearSearches}}" disabled?="{{!data || data.length == 0}}">Clear Saved Searches</paper-button>
+				    </span>	 	
+				</div>
+		</div>
+	</template>	
+
+  	<script src="script.js"></script>
+</polymer-element>

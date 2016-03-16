@@ -19,6 +19,7 @@
  */
 package fr.gael.dhus.olingo.v1.entity;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -29,12 +30,22 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import fr.gael.dhus.olingo.v1.V1Util;
+import fr.gael.dhus.util.DownloadStreamCloserListener;
+import org.apache.commons.net.io.CopyStreamAdapter;
+import org.apache.commons.net.io.CopyStreamListener;
+import org.apache.log4j.Logger;
 import org.apache.olingo.odata2.api.exception.ODataException;
 import org.apache.olingo.odata2.api.processor.ODataResponse;
 import org.apache.olingo.odata2.api.processor.ODataSingleProcessor;
 
-import fr.gael.dhus.olingo.v1.entitySet.NodeEntitySet;
+import fr.gael.dhus.database.object.User;
+import fr.gael.dhus.datastore.processing.ProcessingUtils;
+import fr.gael.dhus.network.RegulatedInputStream;
+import fr.gael.dhus.network.TrafficDirection;
+import fr.gael.dhus.olingo.v1.entityset.NodeEntitySet;
 import fr.gael.dhus.olingo.v1.map.impl.NodesMap;
+import fr.gael.dhus.util.DownloadActionRecordListener;
 import fr.gael.drb.DrbAttribute;
 import fr.gael.drb.DrbAttributeList;
 import fr.gael.drb.DrbFactory;
@@ -45,14 +56,19 @@ import fr.gael.drb.value.Value;
 import fr.gael.drbx.cortex.DrbCortexModel;
 
 /**
- * Node Bean.
+ * The OData representation of a DRB Node.
  */
 public class Node extends Item
 {
+   private static Logger logger = Logger.getLogger (Node.class);
+
+   private final long ONE_YEAR_MS = (long)365.25*24*60*60*1000;
+
    private DrbNode drbNode;
    private String path;
    private String contentType;
    private Long contentLength;
+   private fr.gael.dhus.olingo.v1.entity.Class itemClass;
 
    private Map<String, Node> nodes;
    private Object value;
@@ -87,6 +103,7 @@ public class Node extends Item
             throw new NullPointerException ("Node path cannot be null.");
          }
          this.drbNode = DrbFactory.openURI (path);
+         logger.debug("Initialized node : " + path);
       }
       if (this.drbNode==null)
          throw new NullPointerException ("Node cannot be null");
@@ -231,7 +248,36 @@ public class Node extends Item
       }
       return attributes;
    }
-
+   
+   /**
+    * Retrieve the Class from this Node entity.
+    * @return the Class entity.
+    * @throws UnsupportedOperationException if the model cannot be computed.
+    * @throws NullPointerException if this product does not related any class.
+    */
+   @Override
+   public fr.gael.dhus.olingo.v1.entity.Class getItemClass()
+   {
+      initNode ();
+      if(this.itemClass==null)
+      {
+         try
+         {
+            itemClass = new fr.gael.dhus.olingo.v1.entity.Class(
+               ProcessingUtils.getItemClassUri(
+                  ProcessingUtils.getClassFromNode(drbNode)));
+         }
+         catch(Exception e)
+         {
+            //throw new UnsupportedOperationException("Cannot find Drb model.",e);
+            // Item class not found: use drb root item URI.
+            itemClass = new fr.gael.dhus.olingo.v1.entity.Class(
+               "http://www.gael.fr/drb#item");
+         }
+      }
+      return this.itemClass;
+   }
+   
    /**
     * Calls the superclass entity response not aggregated to this response.
     * @param root_url
@@ -255,44 +301,70 @@ public class Node extends Item
       return res;
    }
 
-
    @Override
-   public Object getProperty (String propName) throws ODataException
+   public Object getProperty (String prop_name) throws ODataException
    {
       initNode ();
-      if (propName.equals (NodeEntitySet.CHILDREN_NUMBER))
+      if (prop_name.equals (NodeEntitySet.CHILDREN_NUMBER))
          return getChildrenNumber ();
 
-      if (propName.equals (NodeEntitySet.VALUE)) return getValue ();
+      if (prop_name.equals (NodeEntitySet.VALUE)) return getValue ();
 
-      return super.getProperty (propName);
+      return super.getProperty (prop_name);
    }
 
    @Override
    public ODataResponse getEntityMedia (ODataSingleProcessor processor)
-      throws ODataException
+         throws ODataException
    {
       initNode ();
-      ODataResponse rsp = null;
       if (hasStream ())
       {
-         rsp = ODataResponse.entity (getStream ())
-            .header ("Content-Type", getContentType ())
-            .header ("Content-Length", "" +  getContentLength())
-            .header ("Content-Disposition", "inline; filename=" + getName ())
-            .build ();
+         try
+         {
+            User u = V1Util.getCurrentUser ();
+            String user_name = (u == null ? null : u.getUsername ());
+            
+            InputStream is = new BufferedInputStream(getStream());
+            
+            RegulatedInputStream.Builder builder = 
+               new RegulatedInputStream.Builder (is, TrafficDirection.OUTBOUND);
+            builder.userName (user_name);
+
+            CopyStreamAdapter adapter = new CopyStreamAdapter ();
+            CopyStreamListener recorder = new DownloadActionRecordListener (
+                  this.getId (), this.getName (), u);
+            CopyStreamListener closer = new DownloadStreamCloserListener (is);
+            adapter.addCopyStreamListener (recorder);
+            adapter.addCopyStreamListener (closer);
+            builder.copyStreamListener (adapter);
+            is = builder.build();
+
+            String etag = getName () + "-" + getContentLength ();
+
+            // A priori Node never change, so the lastModified should be as
+            // far as possible than today.
+            long last_modified =  System.currentTimeMillis () - ONE_YEAR_MS;
+
+            // If node is not a data file, it cannot be downloaded and set to -1
+            // As a stream exists, this control is probably obsolete.
+            long content_length = getContentLength ()==0?-1:getContentLength ();
+
+            return V1Util.prepareMediaResponse (etag, getName (),
+               getContentType (), last_modified, content_length,
+               processor.getContext (), is);
+         }
+         catch (Exception e)
+         {
+            throw new ODataException (
+               "An exception occured while creating the stream for node " + 
+               getName(), e);
+         }
       }
       else
       {
          throw new ODataException ("No stream for node " + getName ());
-         // rsp = ODataResponse.entity (n.toXML ())
-         // .header ("Content-Type", n.getContentType ())
-         // .header ("Content-Length", ""+ n.getContentLength ())
-         // .header ("Content-Disposition", "inline; filename=" +
-         // n.getName ()+".xml")
-         // .build ();
       }
-      return rsp;
    }
 
    public boolean hasStream ()

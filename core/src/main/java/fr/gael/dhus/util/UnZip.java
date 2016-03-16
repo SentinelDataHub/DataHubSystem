@@ -19,13 +19,6 @@
  */
 package fr.gael.dhus.util;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.List;
-
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -35,80 +28,93 @@ import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.List;
 
 public class UnZip
 {
-    List<String> fileList;
- 
-    public static void unCompress (String zipFile, String outputFolder) 
-          throws IOException, CompressorException, ArchiveException
-    {
-       ArchiveInputStream ais = null;
-       ArchiveStreamFactory asf = new ArchiveStreamFactory();
-       
-       FileInputStream fis = new FileInputStream(new File(zipFile));
-          
-       if (zipFile.toLowerCase ().endsWith (".tar"))
-       {
-          ais = asf.createArchiveInputStream(
-             ArchiveStreamFactory.TAR, fis);
-       }
-       else
-       if (zipFile.toLowerCase ().endsWith (".zip"))
-       {
-          ais = asf.createArchiveInputStream(
-             ArchiveStreamFactory.ZIP, fis);
-       }
-       else
-       if (zipFile.toLowerCase ().endsWith (".tgz") ||
-           zipFile.toLowerCase ().endsWith (".tar.gz"))
-       {
-          CompressorInputStream cis = new CompressorStreamFactory ().
-             createCompressorInputStream (CompressorStreamFactory.GZIP, fis);
-          ais = asf.createArchiveInputStream (new BufferedInputStream (cis));
-       }
-       else
-       {
-          try
-          {
-             fis.close ();
-          } catch (Exception e) {}
-          throw new IllegalArgumentException (
-             "Format not supported: " + zipFile);
-       }
-          
-       File output_file = new File(outputFolder);
-       if (!output_file.exists ()) output_file.mkdirs ();
-       
-       // copy the existing entries    
-       ArchiveEntry nextEntry;
-       while ((nextEntry = ais.getNextEntry()) != null)
-       {
-          File ftemp = new File(outputFolder, nextEntry.getName());
-          if (nextEntry.isDirectory ())
-          {
-             ftemp.mkdir ();
-          }
-          else
-          {
-             FileOutputStream fos = FileUtils.openOutputStream (ftemp);
-             IOUtils.copy(ais, fos);
-             fos.close ();
-          }
-       }
-       ais.close();
-       fis.close ();
-    }
+   private static final Logger LOGGER = LogManager.getLogger ();
 
-    public static boolean supported (String file)
-    {
-       boolean is_supported = 
-          file.toLowerCase ().endsWith (".zip")/* ||
+   List<String> fileList;
+
+   public static void unCompress (String zip_file, String output_folder)
+         throws IOException, CompressorException, ArchiveException
+   {
+      ArchiveInputStream ais = null;
+      ArchiveStreamFactory asf = new ArchiveStreamFactory ();
+
+      FileInputStream fis = new FileInputStream (new File (zip_file));
+
+      if (zip_file.toLowerCase ().endsWith (".tar"))
+      {
+         ais = asf.createArchiveInputStream (
+               ArchiveStreamFactory.TAR, fis);
+      }
+      else if (zip_file.toLowerCase ().endsWith (".zip"))
+      {
+         ais = asf.createArchiveInputStream (
+               ArchiveStreamFactory.ZIP, fis);
+      }
+      else if (zip_file.toLowerCase ().endsWith (".tgz") ||
+            zip_file.toLowerCase ().endsWith (".tar.gz"))
+      {
+         CompressorInputStream cis = new CompressorStreamFactory ().
+               createCompressorInputStream (CompressorStreamFactory.GZIP, fis);
+         ais = asf.createArchiveInputStream (new BufferedInputStream (cis));
+      }
+      else
+      {
+         try
+         {
+            fis.close ();
+         }
+         catch (IOException e)
+         {
+            LOGGER.warn ("Cannot close FileInputStream:", e);
+         }
+         throw new IllegalArgumentException (
+               "Format not supported: " + zip_file);
+      }
+
+      File output_file = new File (output_folder);
+      if (!output_file.exists ()) output_file.mkdirs ();
+
+      // copy the existing entries
+      ArchiveEntry nextEntry;
+      while ((nextEntry = ais.getNextEntry ()) != null)
+      {
+         File ftemp = new File (output_folder, nextEntry.getName ());
+         if (nextEntry.isDirectory ())
+         {
+            ftemp.mkdir ();
+         }
+         else
+         {
+            FileOutputStream fos = FileUtils.openOutputStream (ftemp);
+            IOUtils.copy (ais, fos);
+            fos.close ();
+         }
+      }
+      ais.close ();
+      fis.close ();
+   }
+
+   public static boolean supported (String file)
+   {
+      boolean is_supported =
+            file.toLowerCase ().endsWith (".zip")/* ||
           file.toLowerCase ().endsWith (".tar") ||
           file.toLowerCase ().endsWith (".tgz") ||
           file.toLowerCase ().endsWith (".tar.gz")*/;
-       File _file = new File (file);
-       is_supported &= _file.exists () && _file.isFile ();
-       return is_supported;
-    }
+      File fileObject = new File (file);
+      is_supported &= fileObject.exists () && fileObject.isFile ();
+      return is_supported;
+   }
 }

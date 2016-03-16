@@ -1,32 +1,35 @@
 <?xml version="1.0"?>
 <!--
-   Data Hub Service (DHuS) - For Space data distribution.
-   Copyright (C) 2013,2014,2015 GAEL Systems
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
 
-   This file is part of DHuS software sources.
+  This file is part of DHuS software sources.
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU Affero General Public License as
-   published by the Free Software Foundation, either version 3 of the
-   License, or (at your option) any later version.
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-   GNU Affero General Public License for more details.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
 
-   You should have received a copy of the GNU Affero General Public License
-   along with this program. If not, see <http://www.gnu.org/licenses/>.
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 -->
 <!DOCTYPE rdf:RDF [
-  <!ENTITY rdf  "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#">
-  <!ENTITY owl  "http://www.w3.org/2002/07/owl#">
-  <!ENTITY s2   "http://www.esa.int/s2#">
-  <!ENTITY drb  "http://www.gael.fr/drb#">
-  <!ENTITY dhus "http://www.gael.fr/dhus#">
-  <!ENTITY img  "http://www.gael.fr/drb/image#">
-]>
+   <!ENTITY rdf  "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#">
+   <!ENTITY owl  "http://www.w3.org/2002/07/owl#">
+   <!ENTITY s2   "http://www.esa.int/s2#">
+   <!ENTITY drb  "http://www.gael.fr/drb#">
+   <!ENTITY dhus "http://www.gael.fr/dhus#">
+   <!ENTITY img  "http://www.gael.fr/drb/image#">
+   ]>
 
 <rdf:RDF xmlns:owl ="&owl;"
          xmlns:rdf ="&rdf;"
@@ -39,511 +42,1335 @@
 
    <owl:Ontology rdf:about="&s2;"/>
 
-   <!-- ***********************************************************************
-   ****************************************************************************
-   *                                                                          *
-   *                                                                          *
-   *                           METADATA EXTRACTION                            *
-   *                                                                          *
-   *                                                                          *
-   ****************************************************************************
-   ************************************************************************ -->
-   <rdf:Description rdf:about="&s2;pdi">
+   <!-- PDI L1B GRANULE -->
+   <rdf:Description rdf:about="&s2;pdi_level_1b_granule">
+      <dhus:metadataTypes rdf:parseType="Literal">
+
+         <metadataType id="generationTime"
+                       name="Generation time"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+         <metadataType id="format"
+                       name="Format"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="format"
+                       type="string"
+                       required="true"/>
+         </metadataType>
+
+         <metadataType id="beginPosition"
+                       name="Sensing start"
+                       contentType="text/date+iso8601"
+                       category="product">
+            <solrField name="beginposition"
+                       type="tdate"/>
+         </metadataType>
+
+         <metadataType id="endPosition"
+                       name="Sensing stop"
+                       contentType="text/date+iso8601"
+                       category="product">
+            <solrField name="endposition"
+                       type="tdate"/>
+         </metadataType>
+
+         <metadataType id="processingbaseline"
+                       name="Processing baseline"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="processingbaseline"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="platformName"
+                       name="Satellite name"
+                       contentType="text/plain"
+                       category="platform">
+            <solrField name="platformname"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="platformNumber"
+                       name="Satellite number"
+                       contentType="text/plain"
+                       category="platform">
+         </metadataType>
+
+         <metadataType id="filename"
+                       name="Filename"
+                       contentType="text/plain"
+                       category="">
+            <solrField name="filename"
+                       type="string"
+                       required="true"/>
+         </metadataType>
+
+         <metadataType id="instrumentName"
+                       name="Instrument name"
+                       contentType="text/plain"
+                       category="instrument">
+            <solrField name="instrumentname"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="instrumentShortName"
+                       name="Instrument abbreviation"
+                       contentType="text/plain"
+                       category="instrument">
+            <solrField name="instrumentshortname"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="instrument"
+                       name="Instrument"
+                       contentType="text/plain"
+                       category="summary">
+         </metadataType>
+
+         <metadataType id="date"
+                       name="Date"
+                       contentType="text/date+iso8601"
+                       category="summary">
+         </metadataType>
+
+         <metadataType id="satellite"
+                       name="Satellite"
+                       contentType="text/plain"
+                       category="summary">
+         </metadataType>
+
+         <metadataType id="size"
+                       name="Size"
+                       contentType="text/plain"
+                       category="summary">
+            <solrField name="size"
+                       type="string"/>
+         </metadataType>
+
+         <metadataType id="sensorOperationalMode"
+                       name="Instrument mode"
+                       contentType="text/plain"
+                       category="instrument">
+            <solrField name="sensoroperationalmode"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="cloudCoverPercentage"
+                       name="Cloud cover percentage"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="cloudcoverpercentage"
+                       type="double"/>
+         </metadataType>
+
+         <metadataType id="dataTakeId"
+                       name="Mission datatake id"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="s2datatakeid"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="orbitNumber"
+                       name="Orbit number (start)"
+                       contentType="text/integer"
+                       category="product">
+            <solrField name="orbitnumber"
+                       type="int"/>
+         </metadataType>
+
+         <metadataType id="productType"
+                       name="Product type"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="producttype"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="GMLfootprint"
+                       name="Footprint"
+                       contentType="application/gml+xml"
+                       category="product">
+            <solrField name="gmlfootprint"
+                       type="string"/>
+         </metadataType>
+
+         <metadataType id="footprint"
+                       name="JTS footprint"
+                       contentType="application/jts"
+                       category="product">
+            <solrField name="footprint"
+                       type="location_rpt"/>
+         </metadataType>
+
+      </dhus:metadataTypes>
+   </rdf:Description>
+
+   <rdf:Description rdf:about="&s2;pdi_level_1b_granule">
+      <dhus:support/>
       <dhus:metadataExtractor  rdf:parseType="Literal">
       <![CDATA[
+         <!-- XQuery methods -->
+
+         declare namespace
+            utils="java:fr.gael.drb.cortex.topic.sentinel2.Sentinel2Utils";
+
+         declare function local:footprint() as xs:string*
+         {
+            fn:data(*[matches (name(), "\w{8}_MTD_L1[ABC]_.*\.xml")]/
+               *[matches(name(), ".*_Granule_ID")]/Geometric_Info/
+               Granule_Footprint/Granule_Footprint/Footprint/EXT_POS_LIST)
+         };
+
+         declare function local:beginPosition() as xs:string*
+         {
+            fn:data(*[matches (name(), "\w{8}_MTD_L1[ABC]_.*\.xml")]/
+               *[matches(name(), ".*_Granule_ID")]/General_Info/SENSING_TIME)
+         };
+
+         declare function local:generationTime() as xs:string*
+         {
+            drb:Iso8601DateFormatter(fn:substring (name(),26, 15 ),
+               "yyyyMMdd'T'HHmmss", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+         };
+
+         declare function local:computeSizes ($path, $base as item()*) as item()*
+         {
+           for $child in $path/*
+           return
+              if ($child/@directory)
+              then
+                 local:computeSizes ($child, base)
+              else
+                  data($child/@size), $base
+         };
+
+         <!-- Indexed metadata -->
+
+         <!-- GENERATION TIME -->
          <metadata
-            queryable="platformName"
-            category="platform" name="Satellite name" type="text/plain">
-            Sentinel-2
+             category="product"
+             name="Generation time"
+             type="text/plain">
+             {
+                local:generationTime()
+             }
          </metadata>,
 
-         <metadata category="platform" name="Satellite number" type="text/plain">
-            123456
-         </metadata>,
-
-         <metadata queryable="platformIdentifier" 
-            category="platform"
-            name="NSSDC identifier"
-            type="text/plain">
-            123456
-         </metadata>,
-
-         <metadata category="platform" name="Operator" type="text/plain">
-            European Space Agency
-         </metadata>,
-
-         <metadata category="platform" name="Mission type" type="text/plain">
-            Earth observation
-         </metadata>,
-
-         <metadata category="platform" name="Carrier rocket" type="text/plain">
-            Soyuz
-         </metadata>,
-
-         <metadata category="platform" name="Launch date" type="text/plain">
-            April 3rd, 2014
-         </metadata>,
-
-		 <metadata category="platform" name="Satellite description" type="text/html">
-		 	&lt;a target=&quot;_blank&quot; href=&quot;https://sentinel.esa.int/web/sentinel/missions/sentinel-1&quot;&gt;https://sentinel.esa.int/web/sentinel/missions/sentinel-1&lt;/a&gt;
-         </metadata>,
-         <metadata queryable="instrumentName"
-            category="instrument" 
-            name="Instrument name" 
-            type="text/plain">
-            Synthetic Aperture Radar (C-band)
-         </metadata>,
-
-         <metadata queryable="instrumentShortName"
-            category="instrument" 
-            name="Instrument abbreviation" 
-            type="text/plain">
-            SAR-C SAR
-         </metadata>,
-         
+         <!-- FORMAT -->
          <metadata
-            category="summary" 
-            name="Instrument" 
-            type="text/plain">
-            SAR-C
+             queryable="format"
+             category="product"
+             name="Format"
+             type="text/plain">
+             SAFE
          </metadata>,
 
-		 <metadata category="instrument" name="Instrument description" type="text/html">
-		 	&lt;a target=&quot;_blank&quot; href=&quot;https://sentinel.esa.int/web/sentinel/missions/sentinel-1&quot;&gt;https://sentinel.esa.int/web/sentinel/missions/sentinel-1&lt;/a&gt;
-         </metadata>,
-         
-         <metadata category="" name="Instrument description text" type="text/plain">
-            The SAR Antenna Subsystem (SAS) is developed and build by Astrium
-            GmbH. It is a large foldable planar phased array antenna, which is
-            formed by a centre panel and two antenna side wings. In deployed
-            configuration the antenna has an overall aperture of 12.3 x 0.84 m.
-            The antenna provides a fast electronic scanning capability in
-            azimuth and elevation and is based on low loss and highly stable
-            waveguide radiators build in carbon fibre technology, which are
-            already successfully used by the TerraSAR-X radar imaging mission.
-            The SAR Electronic Subsystem (SES) is developed and build by
-            Astrium Ltd. It provides all radar control, IF/ RF signal
-            generation and receive data handling functions for the SAR
-            Instrument. The fully redundant SES is based on a channelised
-            architecture with one transmit and two receive chains, providing a
-            modular approach to the generation and reception of wide-band
-            signals and the handling of multi-polarisation modes. One key
-            feature is the implementation of the Flexible Dynamic Block
-            Adaptive Quantisation (FD-BAQ) data compression concept, which
-            allows an efficient use of on-board storage resources and minimises
-            downlink times.
-         </metadata>,
-         
-         <!-- name too long: removed category to not stitch the view window -->
-         <metadata queryable="filename"
-            category=""  
-            name="Filename" 
-            type="text/plain">
-               S2A_OPER_MSI_L1A_GR_MPS__20140926T120000_S20130707T171927_D02_N01.01
-         </metadata>,
-         
-         <metadata queryable="resolutionDetail"
-            category="product" 
-            name="Resolution" 
-            type="text/plain">
-            Full
-         </metadata>,
-         
-          <metadata queryable="format"
-            category="product" 
-            name="Format" 
-            type="text/plain">
-            tar
-         </metadata>,
-         
-         
-         <metadata queryable="missionDataTakeId"
-            category="product" 
-            name="Mission datatake id" 
-            type="text/integer">
-               123456
-         </metadata>,
-         
-         <metadata queryable="sliceNumber"
-            category="product" 
-            name="Slice number" 
-            type="text/integer">
-               123456
-         </metadata>,
-         
-         <metadata queryable="productClass"
-            category="product" 
-            name="Product class" 
-            type="text/plain">
-               123456
-         </metadata>,
-         
+         <!-- SENSING START -->
          <metadata
-            category="product" 
-            name="Product class description" 
-            type="text/plain">
-               123456
-         </metadata>,
-         
-         <metadata
-            category="product" 
-            name="Product composition" 
-            type="text/plain">
-               123456
-         </metadata>,
-         
-         <metadata queryable="beginPosition" 
-            category="product" 
-            name="Sensing start" 
+            queryable="beginposition"
+            category="product"
+            name="Sensing start"
             type="text/date+iso8601">
-            2002-02-02T00:00:00.123456
-            
+            {
+               local:beginPosition()
+            }
          </metadata>,
 
-         <metadata queryable="endPosition" 
-            category="product" 
-            name="Sensing stop" 
+         <!-- SENSING STOP -->
+         <metadata
+            queryable="endposition"
+            category="product"
+            name="Sensing stop"
             type="text/date+iso8601">
-            2002-02-02T00:05:00.123456
+            {
+               utils:getEndPositionByStart(local:beginPosition())
+            }
          </metadata>,
 
-         <metadata queryable="orbitNumber" 
-            category="product"
-            name="Orbit number (start)"
-            type="text/integer">
-            123456
-         </metadata>,
-         
-         <metadata queryable="lastOrbitNumber"
-            category="product" 
-            name="Orbit number (stop)" 
-            type="text/integer">
-            123456
-         </metadata>,
-
-         <metadata queryable="relativeOrbitNumber" 
-            category="product"
-            name="Relative orbit (start)"
-            type="text/integer">
-            123456
-         </metadata>,
-         
-         <metadata queryable="lastRelativeOrbitNumber" 
-            category="product"
-            name="Relative orbit (stop)"
-            type="text/integer">
-            123456
-         </metadata>,
-
-         <metadata category="product" name="Start relative orbit number" type="text/plain">
-            123456
-         </metadata>,
-
-         <metadata category="product" name="Stop relative orbit number" type="text/plain">
-            123456
-         </metadata>,
-         
-         <metadata category="product" name="Cycle number" type="text/plain">
-            123456
-         </metadata>,
-
-         <metadata category="product" name="Phase identifier" type="text/plain">
-            123456
-         </metadata>,
-         
+         <!-- PROCESSING BASELINE -->
          <metadata
-            queryable="polarisationMode"
-            category="product" 
-            name="Polarisation" 
-            type="text/plain">
-            123456
-         </metadata>,
-         
-         <metadata
-            queryable="acquisitionType"
-            category="product" 
-            name="Acquisition Type" 
-            type="text/plain">NOMINAL</metadata>,
-            
+             queryable="processingbaseline"
+             category="product"
+             name="Processing baseline"
+             type="text/plain">
+             {
+                fn:substring (name(), 64,5)
+             }
+           </metadata>,
+
+         <!-- SATELLITE  -->
           <metadata
-            queryable="status"
-            category="product" 
-            name="Status" 
-            type="text/plain">ARCHIVED</metadata>,
-         
-         <metadata category="summary" name="Satellite" type="text/plain">Sentinel-2</metadata>,
-         <metadata queryable="size" 
-            category="summary" name="Size" type="text/plain">
-         123456 GB
+              queryable="platformName"
+              category="platform"
+              name="Satellite name"
+              type="text/plain">Sentinel-2
+          </metadata>,
+          <metadata
+            category="platform"
+            name="Satellite number"
+            type="text/plain">
+            {
+               fn:substring(utils:getSatelliteByProductName(name()),3,1)
+            }
+          </metadata>,
+
+         <!-- FILENAME -->
+         <metadata
+            queryable="filename"
+            category=""
+            name="Filename"
+            type="text/plain">
+            {
+               name()
+            }
          </metadata>,
+
+         <!-- INSTRUMENT -->
+         <metadata
+            queryable="instrumentName"
+            category="instrument"
+            name="Instrument name"
+            type="text/plain">
+            Multi-Spectral Instrument
+         </metadata>,
+
+         <metadata
+            queryable="instrumentShortName"
+            category="instrument"
+            name="Instrument abbreviation"
+            type="text/plain">
+            MSI
+         </metadata>,
+
+         <metadata
+            category="summary"
+            name="Instrument"
+            type="text/plain">
+            MSI
+         </metadata>,
+
          <metadata category="summary" 
             name="Date" 
             type="text/date+iso8601">
-            2002-02-02T00:05:00.123456
-         </metadata>
-      ]]>
-      </dhus:metadataExtractor>
-   </rdf:Description>
+            {
+                 local:beginPosition()
+            }
+         </metadata>,
 
-   <rdf:Description rdf:about="&s2;manifestFootPrintProduct">
-      <dhus:metadataExtractor  rdf:parseType="Literal">
-      <![CDATA[
-         declare function local:trim ($arg as xs:string) as xs:string
+         <metadata category="summary"
+            name="Satellite"
+            type="text/plain">
+            Sentinel-2
+         </metadata>,
+
+         <metadata queryable="size"
+            category="summary"
+            name="Size"
+            type="text/plain">
          {
-            replace(replace(replace($arg,'\s+$',''),'^\s+',''), '\s+', ' ')
-         };
-         declare function local:revert ($coords as xs:string) as xs:string
-         {
-            let $tcoords := fn:tokenize ($coords, ",")
+            let $size := xs:double(fn:sum(local:computeSizes(., ())))
             return
-               concat ($tcoords[2], ",", $tcoords[1])
-         };
-         
-         declare function local:formatCoordinates ($coords as xs:string, 
-            $revert_flag as xs:boolean) as xs:string
-         {
-            let $tcoords := fn:tokenize (local:trim($coords), " ")
-            let $reverted := 
-               (
-                  for $c in $tcoords
-                  return
-                     if ($revert_flag) then local:revert ($c)
-                     else $c
-                  ,
-                  if ($revert_flag) then local:revert ($tcoords[1])
-                  else $tcoords[1]
-               )
-            return
-               fn:string-join ($reverted, " ")
-         };
-         
-         declare function local:checkSrsName ($srs as xs:string) as xs:string
-         {
-            fn:replace($srs, "(?i)([a-z]*:)/*(.*)", "$1//$2")
-         };
+               if ($size < 1024)
+               then 
+                  concat ($size, " bytes")
+               else
+                  if (($size div 1024) < 1024)
+                  then
+                     concat (utils:formatNumber($size div 1024), " KB")
+                  else
+                     if (($size div (1024*1024)) < 1024)
+                        then concat (utils:formatNumber($size div (1024*1024)), " MB")
+                     else
+                        if (($size div (1024*1024*1024)) < 1024)
+                        then
+                           concat (utils:formatNumber($size div (1024*1024*1024)), " GB")
+                        else 
+                           concat (utils:formatNumber($size div (1024*1024*1024*1024)), " TB")
+         }
+         </metadata>,
 
-         declare function local:points() as xs:string
-         {
-            data(manifest.safe/XFDU/metadataSection/
-                 metadataObject[fn:matches(@ID,".+FrameSet")]/
-                 metadataWrap/xmlData/frameSet/frame[1]/
-                 footPrint/coordinates)
-         };
-         
-         declare function local:srsName() as xs:string
-         {
-            data(manifest.safe/XFDU/metadataSection/
-                 metadataObject[fn:matches(@ID,".+FrameSet")]/
-                 metadataWrap/xmlData/frameSet/frame[1]/footPrint/@srsName)
-         };
-         
-         let $points_count:=fn:count(fn:tokenize(local:trim(local:points())," "))
-         return
-         if ($points_count<4)
-         then
-            trace ((), 
-               concat ("XQUERY WARN: Not enough coordinates in footprint (", $points_count, ")"))
-         else
-         (
-            <metadata 
-               queryable="GMLfootprint"
-               category="product" 
-               name="Footprint" 
-               type="application/gml+xml">
-            <gml:Polygon srsName="{local:checkSrsName(local:srsName())}"
-                 
-               xmlns:gml="http://www.opengis.net/gml">
-                  <gml:outerBoundaryIs>
-                     <gml:LinearRing>
-                        <gml:coordinates>
-                        {
-                           local:formatCoordinates(local:points(), fn:false())
-                        }
-                        </gml:coordinates>
-                     </gml:LinearRing>
-                  </gml:outerBoundaryIs>
-               </gml:Polygon>
-            </metadata>,
-            <metadata 
-               queryable="footprint"
-               category="product" 
-               name="JTS footprint" 
-               type="application/jts">
-               {
-               concat ("POLYGON ((",
-                  fn:replace ( 
-                  fn:replace (
-                  fn:replace (
-                     local:formatCoordinates(local:points(), fn:true()), 
-                        " +", "@"), "@*,@*", " "), "@", ","), "))")
-                   (: switch " " with "," :)
-                }
-            </metadata>
-         )
-      ]]>
-      </dhus:metadataExtractor>
-   </rdf:Description>
-
-
-   <rdf:Description rdf:about="&s2;level0product">
-      <dhus:metadataExtractor  rdf:parseType="Literal">
-      <![CDATA[
-      
-         <metadata category="product" name="Product level" type="text/plain">L0</metadata>,
-         
+         <!-- SENSOR MODE -->
          <metadata
             queryable="sensorOperationalMode"
-            category="instrument" name="Instrument mode" type="text/plain">
-            123456
-         </metadata>,
-         
-         <metadata category="summary" name="Mode" type="text/plain">
-            123456
-         </metadata>,
-         
-         <metadata queryable="orbitDirection"
-            category="product" 
-            name="Pass direction" 
+            category="instrument"
+            name="Instrument mode"
             type="text/plain">
-            123456
-         </metadata>,
-         
-         <metadata
-            category="product" 
-            name="Echo Compression Type" 
-            type="text/plain">
-            123456
-         </metadata>,
-         
-         <metadata
-            category="product" 
-            name="Noise Compression Type" 
-            type="text/plain">
-            123456
-         </metadata>,
-         
-         <metadata
-            category="product" 
-            name="Circulation flag" 
-            type="text/plain">
-            123456
-         </metadata>,
-         
-         <metadata
-            queryable="productConsolidation"
-            category="product" 
-            name="Product consolidation" 
-            type="text/plain">
-            123456
+            {
+                fn:data(Inventory_Metadata.xml/Inventory_Metadata/Sensor_Mode)
+            }
          </metadata>,
 
+         <!-- CLOUD COVER PERCENTAGE -->
          <metadata
-            category="product" 
-            name="Cal Compression Type" 
-            type="text/plain">
-            123456
+             queryable="cloudcoverpercentage"
+             category="product"
+             name="Cloud cover percentage"
+             type="text/plain">
+             {
+                fn:data(Inventory_Metadata.xml/Inventory_Metadata/
+                   CloudPercentage)
+             }
          </metadata>,
-         
+
+         <!-- MISSION DATATAKE ID -->
          <metadata
-            category="product" 
-            name="Byte Order" 
+            querable="s2datatakeid"
+            category="product"
+            name="Mission datatake id"
             type="text/plain">
-            123456
+            {
+                fn:data(Inventory_Metadata.xml/Inventory_Metadata/Group_ID)
+            }
+         </metadata>,
+
+         <!-- ABSOLUTE ORBIT -->
+         <metadata
+           queryable="orbitnumber"
+           category="product"
+           name="Orbit number (start)"
+           type="text/integer">
+           {
+               utils:filterUselessZeros(fn:data(Inventory_Metadata.xml/
+                  Inventory_Metadata/Start_Orbit_Number))
+           }
+         </metadata>,
+
+         <!-- PRODUCT TYPE -->
+         <metadata
+            queryable="producttype"
+            category="product"
+            name="Product type"
+            type="text/plain">
+            {
+                fn:data(Inventory_Metadata.xml/Inventory_Metadata/File_Type)
+            }
+         </metadata>,
+
+         <!-- GML FOOTPRINT -->
+         <metadata
+            queryable="gmlfootprint"
+            category="product"
+            name="Footprint"
+            type="application/gml+xml">
+
+            <gml:Polygon xmlns:gml="http://www.opengis.net/gml"
+                         srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">
+               <gml:outerBoundaryIs>
+                  <gml:LinearRing>
+                     <gml:coordinates>
+                     {
+                        utils:xYZpoints2GML(local:footprint())
+                     }
+                     </gml:coordinates>
+                  </gml:LinearRing>
+               </gml:outerBoundaryIs>
+            </gml:Polygon>
+         </metadata>,
+
+         <!-- JTS FOOTPRINT -->
+         <metadata
+            queryable="footprint"
+            category="product"
+            name="JTS footprint"
+            type="application/jts">
+            {
+               concat("POLYGON ((",
+                  utils:xYZpoints2JTS(local:footprint()),"))")
+            }
          </metadata>
-         
-      ]]>
-      </dhus:metadataExtractor>
-   </rdf:Description>
-   
-   <rdf:Description rdf:about="&s2;level1product">
-      <dhus:metadataExtractor  rdf:parseType="Literal">
-      <![CDATA[
-         <metadata category="product" name="Product level" type="text/plain">L1</metadata>,
-         
-         <metadata
-            queryable="sensorOperationalMode"
-            category="instrument" name="Instrument mode" type="text/plain">
-            123456
-         </metadata>,
-         
-         <metadata category="summary" name="Mode" type="text/plain">
-            123456
-         </metadata>,
-         
-         <metadata  queryable="swathIdentifier" 
-            category="instrument" name="Instrument swath" type="text/plain">
-            123456
-         </metadata>,
-         
-         <metadata queryable="orbitDirection"
-            category="product" 
-            name="Pass direction"
-            type="text/plain">
-           123456
-         </metadata>,
-         
-         <metadata queryable="productType"
-            category="product" name="Product type" type="text/plain">
-            123456
-         </metadata>,
-         
-          <metadata
-            category="product" 
-            name="Timeliness Category" 
-            type="text/plain">
-            123456
-         </metadata>
-         
-         
-         
-      ]]>
-      </dhus:metadataExtractor>
-   </rdf:Description>
-   
-   <rdf:Description rdf:about="&s2;level2product">
-      <dhus:metadataExtractor  rdf:parseType="Literal">
-      <![CDATA[
-         <metadata category="product" name="Product level" type="text/plain">L2</metadata>
+
+
       ]]>
       </dhus:metadataExtractor>
    </rdf:Description>
 
+   <!-- USER PRODUCT  -->
+   <rdf:Description rdf:about="&s2;userProduct">
+      <dhus:metadataTypes rdf:parseType="Literal">
 
+         <metadataType id="generationTime"
+                       name="Generation time"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
 
+         <metadataType id="format"
+                       name="Format"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="format"
+                       type="string"
+                       required="true"/>
+         </metadataType>
 
-   <rdf:Description rdf:about="&s2;pdi">
-      <rdfs:subClassOf rdf:resource="&s2;manifestFootPrintProduct"/>
+         <metadataType id="beginPosition"
+                       name="Sensing start"
+                       contentType="text/date+iso8601"
+                       category="product">
+            <solrField name="beginposition"
+                       type="tdate"/>
+         </metadataType>
+
+         <metadataType id="endPosition"
+                       name="Sensing stop"
+                       contentType="text/date+iso8601"
+                       category="product">
+            <solrField name="endposition"
+                       type="tdate"/>
+         </metadataType>
+
+         <metadataType id="processingbaseline"
+                       name="Processing baseline"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="processingbaseline"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="platformName"
+                       name="Satellite name"
+                       contentType="text/plain"
+                       category="platform">
+            <solrField name="platformname"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="platformNumber"
+                       name="Satellite number"
+                       contentType="text/plain"
+                       category="platform">
+         </metadataType>
+
+         <metadataType id="filename"
+                       name="Filename"
+                       contentType="text/plain"
+                       category="">
+            <solrField name="filename"
+                       type="string"
+                       required="true"/>
+         </metadataType>
+
+         <metadataType id="instrumentName"
+                       name="Instrument name"
+                       contentType="text/plain"
+                       category="instrument">
+            <solrField name="instrumentname"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="instrumentShortName"
+                       name="Instrument abbreviation"
+                       contentType="text/plain"
+                       category="instrument">
+            <solrField name="instrumentshortname"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="instrument"
+                       name="Instrument"
+                       contentType="text/plain"
+                       category="summary">
+         </metadataType>
+
+         <metadataType id="date"
+                       name="Date"
+                       contentType="text/date+iso8601"
+                       category="summary">
+         </metadataType>
+
+         <metadataType id="satellite"
+                       name="Satellite"
+                       contentType="text/plain"
+                       category="summary">
+         </metadataType>
+
+         <metadataType id="size"
+                       name="Size"
+                       contentType="text/plain"
+                       category="summary">
+            <solrField name="size"
+                       type="string"/>
+         </metadataType>
+
+         <metadataType id="cloudCoverPercentage"
+                       name="Cloud cover percentage"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="cloudcoverpercentage"
+                       type="double"/>
+         </metadataType>
+
+         <metadataType id="dataTakeId"
+                       name="Mission datatake id"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="s2datatakeid"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="orbitNumber"
+                       name="Orbit number (start)"
+                       contentType="text/integer"
+                       category="product">
+            <solrField name="orbitnumber"
+                       type="int"/>
+         </metadataType>
+
+         <metadataType id="relativeOrbitNumber"
+                       name="Relative orbit (start)"
+                       contentType="text/integer"
+                       category="product">
+            <solrField name="relativeorbitnumber"
+                       type="int"/>
+         </metadataType>
+
+         <metadataType id="productType"
+                       name="Product type"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="producttype"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="sensorOperationalMode"
+                       name="Instrument mode"
+                       contentType="text/plain"
+                       category="instrument">
+            <solrField name="sensoroperationalmode"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="GMLfootprint"
+                       name="Footprint"
+                       contentType="application/gml+xml"
+                       category="product">
+            <solrField name="gmlfootprint"
+                       type="string"/>
+         </metadataType>
+
+         <metadataType id="footprint"
+                       name="JTS footprint"
+                       contentType="application/jts"
+                       category="product">
+            <solrField name="footprint"
+                       type="location_rpt"/>
+         </metadataType>
+
+         <metadataType id="platformidentifier"
+                       name="NSSDC identifier"
+                       contentType="text/plain"
+                       category="platform">
+            <solrField name="platformidentifier"
+                       type="text_general"/>
+         </metadataType>
+ 
+         <metadataType id="orbitDirection"
+                       name="Pass direction"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="orbitdirection"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="platformSerialIdentifier"
+                       name="Platform serial identifier"
+                       contentType="text/plain"
+                       category="">
+            <solrField name="platformserialidentifier"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="processingLevel"
+                       name="Processing level"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="processinglevel"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="degradedAncDataPercentage"
+                       name="Degraded ancillary data percentage"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+         <metadataType id="degradedMsiDataPercentage"
+                       name="Degraded MSI data percentage"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+         <metadataType id="sensorQualityFlag"
+                       name="Sensor quality"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+         <metadataType id="geometryQualityFlag"
+                       name="Geometric quality"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+         <metadataType id="generalQualityFlag"
+                       name="General quality"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+         <metadataType id="formatCorrectnessFlag"
+                       name="Format correctness"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+         <metadataType id="radiometricQualityFlag"
+                       name="Radiometric quality"
+                       contentType="text/plain"
+                       category="product">
+         </metadataType>
+
+      </dhus:metadataTypes>
+   </rdf:Description>
+
+   <rdf:Description rdf:about="&s2;userProduct">
+      <dhus:support/>
       <dhus:identifier rdf:parseType="Literal">
       <![CDATA[
          fn:tokenize(name (.), '\.')[1]
       ]]>
       </dhus:identifier>
-      
-      <img:descriptor rdf:parseType="Literal" xmlns:img="&img;">
-         <img:collection xmlns:img="&img;">
-            <img:raster name="preview">
-               <img:source>preview/quick-look.png</img:source>
-            </img:raster>
-            
-         </img:collection>
+
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         <!-- XQuery methods -->
+         declare namespace
+            utils="java:fr.gael.drb.cortex.topic.sentinel2.Sentinel2Utils";
+
+         declare variable $datatake_id := fn:data(*[matches (name(),
+            "\w{8}_MTD_SAFL1[ABC]_.*\.xml")]/*[matches(name(),
+            ".*_User_Product")]/General_Info/Product_Info/
+            Datatake/@datatakeIdentifier);
+
+         declare function local:beginPosition() as xs:string*
+         {
+            drb:Iso8601DateFormatter(fn:substring (name(),48, 15 ),
+               "yyyyMMdd'T'HHmmss", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+         };
+
+         declare function local:endPosition() as xs:string*
+         {
+            drb:Iso8601DateFormatter(fn:substring (name(),64, 15),
+               "yyyyMMdd'T'HHmmss", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+         };
+
+         declare function local:cloudcoveragesequence() as xs:double*
+         {
+            fn:data(GRANULE/*[matches (name(), "\w{8}_MSI_L1[ABC]_.*")]/*[
+               matches (name(), "\w{8}_MTD_L1[ABC]_.*\.xml")]/*[
+               matches (name(), "Level-.*")]/Quality_Indicators_Info/
+               Image_Content_QI/CLOUDY_PIXEL_PERCENTAGE)
+         };
+
+         declare function local:computeSizes ($path, $base as item()*) as item()*
+         {
+            for $child in $path/*
+            return
+               if ($child/@directory)
+               then
+                  local:computeSizes ($child, base)
+               else
+                  data($child/@size), $base
+         };
+
+         <!-- Indexed metadata -->
+
+         <!-- GENERATION TIME -->
+         <metadata
+            category="product"
+            name="Generation time"
+            type="text/plain">
+            {
+               fn:data(*[matches (name(), "\w{8}_MTD_SAFL1[ABC]_.*\.xml")]/*[
+                  matches(name(), ".*_User_Product")]/General_Info/
+                  Product_Info/GENERATION_TIME)
+            }
+         </metadata>,
+
+         <!-- FORMAT -->
+         <metadata
+            queryable="format"
+            category="product"
+            name="Format"
+            type="text/plain">
+            SAFE
+         </metadata>,
+
+         <!-- SENSING START -->
+         <metadata
+            queryable="beginposition"
+            category="product"
+            name="Sensing start"
+            type="text/date+iso8601">
+            {
+               local:beginPosition()
+            }
+         </metadata>,
+
+         <!-- SENSING STOP -->
+         <metadata
+            queryable="endposition"
+            category="product"
+            name="Sensing stop"
+            type="text/date+iso8601">
+            {
+               local:endPosition()
+            }
+         </metadata>,
+
+         <!-- PROCESSING BASELINE -->
+         <metadata
+            queryable="processingbaseline"
+            category="product"
+            name="Processing baseline"
+            type="text/plain">
+            {
+               fn:data(*[matches (name(), "\w{8}_MTD_SAFL1[ABC]_.*\.xml")]/*[
+                  matches(name(), ".*_User_Product")]/General_Info/
+                  Product_Info/PROCESSING_BASELINE)
+            }
+         </metadata>,
+
+         <!-- SATELLITE  -->
+         <metadata
+            queryable="platformname"
+            category="platform"
+            name="Satellite name"
+            type="text/plain">Sentinel-2
+         </metadata>,
+         <metadata
+            category="platform"
+            name="Satellite number"
+            type="text/plain">
+             {
+                fn:substring(utils:getSatelliteByProductName(name()),3,1)
+             }
+         </metadata>,
+
+         <!-- FILENAME -->
+         <metadata
+            queryable="filename"
+            category=""
+            name="Filename"
+            type="text/plain">
+            {
+                name()
+            }
+         </metadata>,
+
+         <!-- INSTRUMENT -->
+         <metadata
+            queryable="instrumentname"
+            category="instrument"
+            name="Instrument name"
+            type="text/plain">
+                Multi-Spectral Instrument
+         </metadata>,
+
+         <metadata
+            queryable="instrumentshortname"
+            category="instrument"
+            name="Instrument abbreviation"
+            type="text/plain">
+              MSI
+         </metadata>,
+
+         <metadata
+            category="summary"
+            name="Instrument"
+            type="text/plain">
+               MSI
+         </metadata>,
+
+         <metadata category="summary" 
+            name="Date"
+            type="text/date+iso8601">
+            {
+               local:beginPosition()
+            }
+         </metadata>,
+
+         <metadata category="summary"
+            name="Satellite"
+            type="text/plain">
+            Sentinel-2
+         </metadata>,
+
+         <metadata queryable="size" 
+            category="summary" name="Size" type="text/plain">
+         {
+            let $size := xs:double(fn:sum(local:computeSizes(., ())))
+            return
+               if ($size < 1024)
+               then 
+                  concat ($size, " bytes")
+               else
+                  if (($size div 1024) < 1024)
+                  then
+                     concat (utils:formatNumber($size div 1024), " KB")
+                  else
+                     if (($size div (1024*1024)) < 1024)
+                        then concat (utils:formatNumber($size div (1024*1024)), " MB")
+                     else
+                        if (($size div (1024*1024*1024)) < 1024)
+                        then
+                           concat (utils:formatNumber($size div (1024*1024*1024)), " GB")
+                        else 
+                           concat (utils:formatNumber($size div (1024*1024*1024*1024)), " TB")
+         }
+         </metadata>,  
+
+         <!-- CLOUD COVER PERCENTAGE -->
+         <metadata queryable="cloudcoverpercentage"
+            category="product"
+            name="Cloud cover percentage"
+            type="text/plain">
+            {
+               fn:avg(local:cloudcoveragesequence())
+            }
+         </metadata>,
+
+         <!-- MISSION DATATAKE ID -->
+         <metadata
+            queryable="s2datatakeid"
+            category="product"
+            name="Mission datatake id"
+            type="text/plain">
+            {
+               $datatake_id
+            }
+         </metadata>,
+
+         <!-- ABSOLUTE ORBIT -->
+         <metadata
+            queryable="orbitnumber"
+            category="product"
+            name="Orbit number (start)"
+            type="text/integer">
+            {
+               utils:getAbsoluteOrbitFromDatatakeFilename($datatake_id)
+            }
+         </metadata>,
+
+         <!-- RELATIVE ORBIT -->
+         <metadata
+            queryable="relativeorbitnumber"
+            category="product"
+            name="Relative orbit (start)"
+            type="text/integer">
+            {
+               utils:filterUselessZeros(fn:data(*[matches (name(),
+                  "\w{8}_MTD_SAFL1[ABC]_.*\.xml")]/*[matches(name(),
+                  ".*_User_Product")]/General_Info/Product_Info/Datatake/
+                  SENSING_ORBIT_NUMBER))
+            }
+         </metadata>,
+
+         <!-- PRODUCT TYPE -->
+         <metadata
+            queryable="producttype"
+            category="product"
+            name="Product type"
+            type="text/plain">
+            {
+               fn:data(*[matches (name(), "\w{8}_MTD_SAFL1[ABC]_.*\.xml")]/
+                  *[matches(name(), ".*_User_Product")]/General_Info/
+                  Product_Info/PRODUCT_TYPE)
+            }
+         </metadata>,
+
+         <!-- NSSDC IDENTIFIER -->
+         <metadata
+            queryable="platformidentifier"
+            category="platform"
+            name="NSSDC identifier"
+            type="text/plain">
+            {
+               fn:data(manifest.safe/
+                  XFDU/metadataSection/
+                  metadataObject/metadataWrap/
+                  xmlData/platform/
+                  nssdcIdentifier
+                  )
+            }
+         </metadata>,
+
+         <!-- PASS DIRECTION -->
+         <metadata
+            queryable="orbitdirection"
+            category="product"
+            name="Pass direction"
+            type="text/plain">
+            {
+               fn:data(*[matches (name(),"\w{8}_MTD_SAFL1[ABC]_.*\.xml")]/
+                *[matches(name(), ".*_User_Product")]/General_Info/Product_Info/Datatake/
+                SENSING_ORBIT_DIRECTION
+               )
+            }
+         </metadata>,
+
+         <!-- PLATFORM SERIAL IDENTIFIER -->
+         <metadata
+              category=""
+              name="Platform serial identifier"
+              queryable="platformserialidentifier"
+              type="text/plain">
+              {
+                 fn:data(*[matches (name(),"\w{8}_MTD_SAFL1[ABC]_.*\.xml")]/
+                     *[matches(name(), ".*_User_Product")]/General_Info/Product_Info/Datatake/
+                     SPACECRAFT_NAME
+                    )
+              }
+         </metadata>,
+
+         <!-- PROCESSING LEVEL  -->
+         <metadata
+            queryable="processinglevel"
+            category="product"
+            name="Processing level"
+            type="text/plain">
+            {
+               fn:data(*[matches (name(),"\w{8}_MTD_SAFL1[ABC]_.*\.xml")]/
+                 *[matches(name(), ".*_User_Product")]/General_Info/Product_Info/PROCESSING_LEVEL
+               )
+            }
+         </metadata>,
+
+         <!--  DEGRADED ANCILLARY DATA PERCENTAGE -->
+         <metadata
+            category="product"
+            name="Degraded ancillary data percentage"
+            type="text/plain">
+            {
+              fn:data(*[matches (name(),"\w{8}_MTD_SAFL1[ABC]_.*\.xml")]/
+                *[matches(name(), ".*_User_Product")]/Quality_Indicators_Info/
+                Technical_Quality_Assessment/DEGRADED_ANC_DATA_PERCENTAGE
+              )
+            }
+         </metadata>,
+
+         <!--  DEGRADED MSI DATA PERCENTAGE -->
+         <metadata
+            category="product"
+            name="Degraded MSI data percentage"
+            type="text/plain">
+            {
+               fn:data(*[matches (name(),"\w{8}_MTD_SAFL1[ABC]_.*\.xml")]/
+                    *[matches(name(), ".*_User_Product")]/Quality_Indicators_Info/
+                    Technical_Quality_Assessment/DEGRADED_MSI_DATA_PERCENTAGE
+               )
+            }
+         </metadata>,
+
+         <!-- SENSOR QUALITY -->
+          <metadata
+             category="product"
+             name="Sensor quality"
+             type="text/plain">
+             {
+                fn:data(*[matches (name(),"\w{8}_MTD_SAFL1[ABC]_.*\.xml")]/
+                    *[matches(name(), ".*_User_Product")]/Quality_Indicators_Info/Quality_Control_Checks/
+                    Quality_Inspections/SENSOR_QUALITY_FLAG
+                )
+             }
+          </metadata>,
+
+         <!-- GEOMETRIC QUALITY -->
+           <metadata
+             category="product"
+             name="Geometric quality"
+             type="text/plain">
+             {
+                fn:data(*[matches (name(),"\w{8}_MTD_SAFL1[ABC]_.*\.xml")]/
+                *[matches(name(), ".*_User_Product")]/Quality_Indicators_Info/Quality_Control_Checks/
+                Quality_Inspections/GEOMETRIC_QUALITY_FLAG
+                )
+             }
+          </metadata>,
+
+         <!-- GENERAL QUALITY -->
+         <metadata
+             category="product"
+             name="General quality"
+             type="text/plain">
+             {
+                fn:data(*[matches (name(),"\w{8}_MTD_SAFL1[ABC]_.*\.xml")]/
+                *[matches(name(), ".*_User_Product")]/Quality_Indicators_Info/
+                Quality_Control_Checks/Quality_Inspections/GENERAL_QUALITY_FLAG
+                )
+             }
+          </metadata>,
+
+         <!-- FORMAT CORRECTNESS -->
+           <metadata
+             category="product"
+             name="Format correctness"
+             type="text/plain">
+             {
+                fn:data(*[matches (name(),"\w{8}_MTD_SAFL1[ABC]_.*\.xml")]/
+                *[matches(name(), ".*_User_Product")]/Quality_Indicators_Info/Quality_Control_Checks/
+                Quality_Inspections/FORMAT_CORRECTNESS_FLAG
+                )
+             }
+          </metadata>,
+
+         <!-- RADIOMETRIC QUALITY	-->
+         <metadata
+             category="product"
+             name="Radiometric quality"
+             type="text/plain">
+             {
+                fn:data(*[matches (name(),"\w{8}_MTD_SAFL1[ABC]_.*\.xml")]/
+                *[matches(name(), ".*_User_Product")]/Quality_Indicators_Info/Quality_Control_Checks/
+                Quality_Inspections/RADIOMETRIC_QUALITY_FLAG
+                )
+             }
+         </metadata>
+
+
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+
+   <!-- USER PRODUCT L1C -->
+   <rdf:Description rdf:about="&s2;userLevel1CProduct">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+         declare namespace
+            utils="java:fr.gael.drb.cortex.topic.sentinel2.Sentinel2Utils";
+
+         declare variable $footprintL1C := fn:data(*[matches (name(),
+            "\w{8}_MTD_SAFL1[ABC]_.*\.xml")]/Level-1C_User_Product/
+            Geometric_Info/Product_Footprint/Product_Footprint/
+            Global_Footprint/EXT_POS_LIST);
+
+         <!-- SENSOR MODE -->
+         <metadata
+            queryable="sensoroperationalmode"
+            category="instrument"
+            name="Instrument mode"
+            type="text/plain">
+            {
+               fn:data(*[matches (name(), "\w{8}_MTD_SAFL1[ABC]_.*\.xml")]/
+                  Level-1C_User_Product/General_Info/Product_Info/
+                  Datatake/DATATAKE_TYPE)
+            }
+         </metadata>,
+
+         <!-- GML FOOTPRINT -->
+         <metadata
+           queryable="gmlfootprint"
+           category="product"
+           name="Footprint"
+           type="application/gml+xml">
+
+            <gml:Polygon
+               xmlns:gml="http://www.opengis.net/gml"
+               srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">
+               <gml:outerBoundaryIs>
+                  <gml:LinearRing>
+                     <gml:coordinates>
+                     {
+                        utils:xYPoints2GML($footprintL1C)
+                     }
+                     </gml:coordinates>
+                  </gml:LinearRing>
+               </gml:outerBoundaryIs>
+            </gml:Polygon>
+         </metadata>,
+
+         <!-- JTS FOOTPRINT -->
+         <metadata
+            queryable="footprint"
+            category="product"
+            name="JTS footprint"
+            type="application/jts">
+            {
+               concat("POLYGON ((",utils:xYPoints2JTS($footprintL1C ),"))")
+            }
+         </metadata>
+
+      ]]>
+      </dhus:metadataExtractor>
+
+      <img:descriptor rdf:parseType="Literal">
+         <img:query>
+         <![CDATA[
+            declare function local:checkPath($path as xs:string?) as xs:string
+            {
+               let $nodes :=
+               (
+                  for $node in fn:tokenize ($path, '/')
+                  return
+                     concat('*[name()="', $node, '"]')
+               )
+               return
+                  concat ('/',fn:string-join ($nodes, '/'))
+            };
+            declare function local:listdata()
+            {
+               for $node in GRANULE/*/QI_DATA/*[fn:matches(fn:name(), ".*\.jp2")]
+               return
+                  local:checkPath(drb:path($node))
+            };
+            declare function local:createCollection ()
+            {
+               <img:collection xmlns:img="http://www.gael.fr/drb/image#">
+               {
+                  for $data in local:listdata()
+                  return
+                     (: look at all BrowseImage files :)
+                     <img:raster name="previews">
+                        <img:source>
+                           {$data}
+                        </img:source>
+                     </img:raster>
+               }
+               </img:collection>
+            };
+            local:createCollection()
+         ]]>
+         </img:query>
       </img:descriptor>
 
-      <img:rendering rdf:parseType="Literal" xmlns:img="&img;">
-         <img:operator name="pass-flip">
+      <!-- GENERATE MOSAIC -->
+      <img:rendering rdf:parseType="Literal">
+         <img:operator name="natural-colors" xmlns:img="&img;">
             <img:script language="beanshell" version="1.0">
-               ParameterBlock transpose_pb = new ParameterBlock();
-               transpose_pb.addSource(source);
-               
-               if (fr.gael.drb.cortex.topic.sentinel1.Sentinel1Utils.isAscending (source))
-                  transpose_pb.add(javax.media.jai.operator.TransposeDescriptor.FLIP_VERTICAL);
-               else
-                  transpose_pb.add(javax.media.jai.operator.TransposeDescriptor.FLIP_HORIZONTAL);
-                  
-               return JAI.create("transpose",transpose_pb);
+               return fr.gael.drb.cortex.topic.sentinel2.Sentinel2Image.process1CImage (source,1, 10, 10);
             </img:script>
          </img:operator>
       </img:rendering>
-      
+
+
+
+   </rdf:Description>
+
+   <!-- USER PRODUCT L1B -->
+   <rdf:Description rdf:about="&s2;userLevel1BProduct">
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+      <![CDATA[
+
+         declare namespace
+            utils="java:fr.gael.drb.cortex.topic.sentinel2.Sentinel2Utils";
+
+         declare variable $footprintL1B := fn:data(*[matches (name(),
+            "\w{8}_MTD_SAFL1B_.*\.xml")]/Level-1B_User_Product/Geometric_Info/
+            Product_Footprint/Product_Footprint/Global_Footprint/EXT_POS_LIST);
+
+         <!-- SENSOR MODE -->
+         <metadata
+            queryable="sensoroperationalmode"
+            category="instrument"
+            name="Instrument mode"
+            type="text/plain">
+            {
+               fn:data(*[matches (name(), "\w{8}_MTD_SAFL1[ABC]_.*\.xml")]/
+                  Level-1B_User_Product/General_Info/Product_Info/Datatake/
+                  DATATAKE_TYPE)
+            }
+         </metadata>,
+
+         <!-- GML FOOTPRINT -->
+         <metadata
+            queryable="gmlfootprint"
+            category="product"
+            name="Footprint"
+            type="application/gml+xml">
+
+            <gml:Polygon
+               xmlns:gml="http://www.opengis.net/gml"
+               srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">
+               <gml:outerBoundaryIs>
+                  <gml:LinearRing>
+                     <gml:coordinates>
+                     {
+                        utils:xYPoints2GML($footprintL1B)
+                     }
+                     </gml:coordinates>
+                  </gml:LinearRing>
+               </gml:outerBoundaryIs>
+            </gml:Polygon>
+         </metadata>,
+
+         <!-- JTS FOOTPRINT -->
+         <metadata
+            queryable="footprint"
+            category="product"
+            name="JTS footprint"
+            type="application/jts">
+            {
+               concat("POLYGON ((",utils:xYPoints2JTS($footprintL1B),"))")
+            }
+         </metadata>
+
+      ]]>
+      </dhus:metadataExtractor>
+
+      <img:descriptor rdf:parseType="Literal">
+         <img:query>
+         <![CDATA[
+            declare function local:checkPath($path as xs:string?) as xs:string
+            {
+               let $nodes :=
+               (
+                  for $node in fn:tokenize ($path, '/')
+                  return
+                     concat('*[name()="', $node, '"]')
+               )
+               return
+                  concat ('/',fn:string-join ($nodes, '/'))
+            };
+            declare function local:listdata()
+            {
+               for $node in GRANULE/*/IMG_DATA/*[fn:matches(fn:name(),".*B(01|09|10)\.jp2")]
+               return
+                  local:checkPath(drb:path($node))
+            };
+            declare function local:createCollection ()
+            {
+               <img:collection xmlns:img="http://www.gael.fr/drb/image#">
+               {
+                  for $data in local:listdata()
+                  return
+                     (: look at all BrowseImage files :)
+                     <img:raster name="previews">
+                        <img:source>
+                           {$data}
+                        </img:source>
+                     </img:raster>
+               }
+               </img:collection>
+            };
+         
+            local:createCollection()
+         ]]>
+         </img:query>
+      </img:descriptor>
+
+      <!-- GENERATE MOSAIC -->
+      <!-- <img:rendering rdf:parseType="Literal">
+         <img:operator name="natural-colors" xmlns:img="&img;">
+            <img:script language="beanshell" version="1.0">
+               return fr.gael.drb.cortex.topic.sentinel2.Sentinel2Image.process1BImage (source,3, 10,10);
+            </img:script>
+         </img:operator>
+      </img:rendering> -->
+
    </rdf:Description>
 
 </rdf:RDF>

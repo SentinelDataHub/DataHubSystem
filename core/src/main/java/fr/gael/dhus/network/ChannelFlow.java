@@ -47,7 +47,8 @@ public class ChannelFlow extends AbstractChannel
       if (parameters == null)
       {
          throw new IllegalArgumentException(
-               "Cannot build a channel flow from a null " + "set of parameters.");
+               "Cannot build a channel flow from a null " +
+                     "set of parameters.");
       }
 
       // Store parameters

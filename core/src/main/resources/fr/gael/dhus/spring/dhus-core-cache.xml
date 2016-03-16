@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+   xmlns:cache="http://www.springframework.org/schema/cache"
+   xsi:schemaLocation="
+      http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+       http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd">
+
+   <bean id="cacheManager"
+      class="org.springframework.cache.guava.GuavaCacheManager">
+      <property name="cacheBuilder" ref="cacheBuilder" />
+   </bean>
+   
+   <!--  Cache builder settings can be injected by PropertyPlaceholderConfigurer -->
+   <bean id="cacheBuilder" class="com.google.common.cache.CacheBuilder"
+      factory-method="from">
+      <constructor-arg 
+         value="maximumSize=100000, expireAfterAccess=5h, expireAfterWrite=10h" />
+   </bean>
+   
+   <cache:annotation-driven/>
+   
+</beans>

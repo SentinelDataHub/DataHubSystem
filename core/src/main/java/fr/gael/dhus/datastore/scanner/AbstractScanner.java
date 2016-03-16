@@ -55,13 +55,7 @@ public abstract class AbstractScanner implements Scanner
    
    private AsynchronousLinkedList<URLExt> currentFiles=
       new AsynchronousLinkedList<URLExt> ();
-   
-   @Override
-   public AsynchronousLinkedList<URLExt> getScanList ()
-   {
-      return this.currentFiles;
-   }
-   
+
    /**
     * Build a {@link Scanner} to scan inside the passed uri. Scanned 
     * results can be store and retrieve into a list if the storeScanList
@@ -69,12 +63,18 @@ public abstract class AbstractScanner implements Scanner
     * saved, Results list can be retrieved on the fly via the listener while 
     * performing scan.
     * @param uri the uri to be scanned.
-    * @param storeScanList don't store scanned list in order to to preserve 
+    * @param store_scan_list don't store scanned list in order to to preserve
     *    memory (default=true) 
     */
-   public AbstractScanner (boolean storeScanList)
+   public AbstractScanner (boolean store_scan_list)
    {
-      getScanList ().simulate (!storeScanList);
+      getScanList ().simulate (!store_scan_list);
+   }
+
+   @Override
+   public AsynchronousLinkedList<URLExt> getScanList ()
+   {
+      return this.currentFiles;
    }
    
    /**
@@ -142,15 +142,16 @@ public abstract class AbstractScanner implements Scanner
          {
             if (cl.includes (item, false))
             {
-               logger.debug (item.getName() + " Match \"" + cl.getLabel() + "\".");
+               logger.debug (item.getName() + " Match \"" + cl.getLabel() +
+                     "\".");
                return true;
             }
          }
          catch (Exception e)
          {
             logger.warn ("Cannot match the item \"" + 
-               ((DrbNode)item).getName () + "\" with class \"" + cl.getLabel () + 
-               "\": continuing...", e);
+               ((DrbNode)item).getName () + "\" with class \"" +
+                  cl.getLabel () + "\": continuing...", e);
          }
       }
       logger.debug ("No match for " + ((DrbNode)item).getPath ());
@@ -163,7 +164,8 @@ public abstract class AbstractScanner implements Scanner
     * 
     * <pre>
     * List<DrbCortexItemClass>supported = new ArrayList<DrbCortexItemClass> ();
-    * supported.add (DrbCortexItemClass.getCortexItemClassByName ("http://www.esa.int/envisat#product"));
+    * supported.add (DrbCortexItemClass.getCortexItemClassByName
+    * ("http://www.esa.int/envisat#product"));
     * scanner.setSupportedClasses (supported);
     * </pre>   
     * 
@@ -178,11 +180,11 @@ public abstract class AbstractScanner implements Scanner
    /**
     * Set the list of supported Cortex classes.
     * @see AbstractScanner#getSupportedClasses()
-    * @param supportedClasses the supportedClasses to set
+    * @param supported_classes the supportedClasses to set
     */
-   public void setSupportedClasses (List<DrbCortexItemClass> supportedClasses)
+   public void setSupportedClasses (List<DrbCortexItemClass> supported_classes)
    {
-      this.supportedClasses = supportedClasses;
+      this.supportedClasses = supported_classes;
    }
    
    @Override
@@ -195,11 +197,11 @@ public abstract class AbstractScanner implements Scanner
    }   
 
    /**
-    * @param forceNavigate the forceNavigate to set
+    * @param force_navigate the forceNavigate to set
     */
-   public void setForceNavigate (boolean forceNavigate)
+   public void setForceNavigate (boolean force_navigate)
    {
-      this.forceNavigate = forceNavigate;
+      this.forceNavigate = force_navigate;
    }
 
    /**

@@ -1,0 +1,388 @@
+<div>
+<!-- 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+-->
+<style type="text/css">
+.user-button {
+    background-color: rgb(55, 59, 80)!important;
+    vertical-align: middle;
+    margin-top: 12px;
+    line-height: 20px;
+    font-size: 14px;
+    margin-left: 20px;
+    position: relative;
+    float: right;
+    padding: 10px;
+    cursor: pointer;
+    color:white;
+    text-decoration: none;
+
+}
+.user-button:hover{
+    color:white;
+    text-decoration: none;
+}
+.user-button:visited{
+    color:white;
+    text-decoration: none;
+}
+
+h3{
+  text-align: center;
+}
+hr{
+  width: 80%;
+  border: 0px;
+}
+
+.group            { 
+  position:relative; 
+  margin-bottom:35px; 
+}
+input               {
+  font-size:13px;
+  padding:10px 10px 10px 5px;
+  display:block;
+  width:100%;
+  border:none;
+  border-bottom:1px solid #757575;
+}
+input:focus         { outline:none; }
+
+/* LABEL ======================================= */
+label                {
+  color:#999; 
+  font-size:13px;
+  font-weight:normal;
+  position:absolute;
+  pointer-events:none;  
+  top:-15px;
+  display: none;
+  transition:0.2s ease all; 
+  -moz-transition:0.2s ease all; 
+  -webkit-transition:0.2s ease all;
+}
+
+/* active state */
+
+/**input:focus ~ label{
+  top:-15px;
+  font-size:13px;
+  color: rgb(55, 59, 80);
+}**/
+
+input:invalid ~ .invalid-field{
+    display: inline-block !important;
+}
+
+.invalid-field {
+  display:none;
+  color: rgb(255,110,64);
+  top: 45px;
+  font-size: 9px;
+}
+
+.select-label {
+  display:none;  
+  top: -20px;
+  color: rgb(55, 59, 80);
+  font-size: 13px;
+}
+
+/* BOTTOM BARS ================================= */
+.bar    { position:relative; display:block; width:100%; }
+.bar:before, .bar:after     {
+  content:'';
+  height:2px; 
+  width:0;
+  bottom:1px; 
+  position:absolute;
+  background:rgb(55, 59, 80); 
+  transition:0.2s ease all; 
+  -moz-transition:0.2s ease all; 
+  -webkit-transition:0.2s ease all;
+}
+.bar:before {
+  left:50%;
+}
+.bar:after {
+  right:50%; 
+}
+
+/* active state */
+input:focus ~ .bar:before, input:focus ~ .bar:after {
+  width:50%;
+}
+
+/* HIGHLIGHTER ================================== */
+.highlight {
+  position:absolute;
+  height:60%; 
+  width:100px; 
+  top:25%; 
+  left:0;
+  pointer-events:none;
+  opacity:0.5;
+}
+
+/* active state */
+input:focus ~ .highlight {
+  -webkit-animation:inputHighlighter 0.3s ease;
+  -moz-animation:inputHighlighter 0.3s ease;
+  animation:inputHighlighter 0.3s ease;
+}
+
+/* Style Select Field */
+select {
+  font-family: inherit;
+  background-color: transparent;
+  width: 100%;
+  padding: 8px 0;
+  font-size: 13px;  
+  border: none;
+  border-bottom: 1px solid rgb(0,0,0);
+}
+
+/* Remove focus */
+select:focus {
+  outline: none;
+}
+
+/* Hide label */
+.mdl-selectfield label {display:none;}
+/* Use custom arrow */
+
+.mdl-selectfield {
+  font-family: 'Roboto','Helvetica','Arial',sans-serif;
+  position: relative;    
+}
+
+.mdl-selectfield::after {  
+        position: absolute;
+        top: 0.75em;
+        right: 0.5em;
+        /* Styling the down arrow */
+        width: 0;
+        height: 0;
+        padding: 0;
+        content: '';
+        border-left: .25em solid transparent;
+        border-right: .25em solid transparent;
+        border-top: .375em solid rgba(0,0,0, 1);
+        pointer-events: none;   
+        color: black;     
+  
+}
+
+.mdl-selectfield select {-webkit-appearance: none;
+                         -moz-appearance: none;}
+
+.mdl-selectfield select::-ms-expand {display: none;}                         
+
+/* ANIMATIONS ================ */
+@-webkit-keyframes inputHighlighter {
+    from { background:rgb(55, 59, 80); }
+  to    { width:0; background:transparent; }
+}
+@-moz-keyframes inputHighlighter {
+    from { background:rgb(55, 59, 80); }
+  to    { width:0; background:transparent; }
+}
+@keyframes inputHighlighter {
+    from { background:rgb(55, 59, 80); }
+  to    { width:0; background:transparent; }
+}
+
+.terms{
+  text-align: center;
+  padding: 20px 0px;
+  font-weight: bold;
+}
+.terms > a {
+    color: #23527c;
+}
+
+.form-control {
+    border: none;            
+    border-radius: 0px !important;
+    border-bottom:1px solid #757575;
+    box-shadow: none !important;
+}
+.gotomap {
+  top: 20px;
+}
+</style>
+<div class="container">
+  <div class="row">
+    <div class="col-md-1 "></div>
+    <div class="col-md-10 col-xs-8 col-sd-8">
+      <h3>Register new account</h3>
+    </div>
+    <div class="col-md-1 col-sd-3 col-xs-3 gotomap"><gotomap-button></gotomap-button></div>
+  </div>
+  <hr></hr>
+  <div class="row">
+    <div class="col-md-12">
+      <b>Sentinel data access is free and open to all.</b><br/><br/>
+On completion of the registration form below you will receive an e-mail with a link to validate your e-mail address. Following this you can start to download the data.<br/>
+Special chars are not allowed in the username field, i.e.: + - & || ! ( ) { } [ ] ^ " ~ * ? : \ $ ' &lt;blank space&gt;.
+    </div>
+  </div>
+  <hr></hr>
+  <div class="row">
+    <div class="group col-md-6">      
+      <div > 
+        <input type="text" ng-model="user.firstname" value="user.firstname" ng-change="checkName()"class="form-control" placeholder="Firstname">
+        <span class="highlight"></span>
+        <span class="bar"></span>
+        <label id="firstnameLbl">Firstname</label>
+        <span class="invalid-field" id="checkName">Firstname empty</span>
+      </div>
+    </div>
+    <div class="group col-md-6">    
+      <div >  
+        <input type="text" ng-model="user.lastname"  value="user.lastname" ng-change="checkLastname()"  class="form-control" placeholder="Lastname">
+        <span class="highlight"></span>
+        <span class="bar"></span>
+        <label id="lastnameLbl">Lastname</label>
+        <span class="invalid-field" id="checkLastname">Lastname empty</span>
+      </div>
+    </div>
+  </div>  
+
+  <div class="row">
+    <div class="group col-md-6">      
+      <div > 
+        <input type="text" ng-model="user.username" value="user.username" ng-change="checkUsername()"  class="form-control" placeholder="Username">
+        <span class="highlight"></span>
+        <span class="bar"></span>
+        <label id="usernameLbl">Username</label>
+        <span class="invalid-field" id="checkUsername">Username empty</span>
+      </div>
+    </div>    
+  </div>  
+  
+  <div class="row">
+    <div class="group col-md-6">      
+      <input id="password" type="password" ng-model="user.password" ng-change="checkPwd()" class="form-control" placeholder="Password">
+      <span class="highlight"></span>
+      <span class="bar"></span>
+      <label id="pwdLbl">Password</label>
+      <span class="invalid-field" id="checkPasswordLength">Password too short. Minimum 8 characters.</span>
+      <span class="invalid-field" id="checkPassword">Password empty</span>
+    </div>
+    <div class="group col-md-6">      
+      <input id="confirmpassword" type="password" ng-model="user.confirmpwd" ng-change="checkConfimPwd()"  class="form-control" placeholder="Confirm Password">
+      <span class="highlight"></span>
+      <span class="bar"></span>
+      <label id="confirmPwdLbl">Confirm Password</label>
+      <span class="invalid-field" id="checkConfirmPassword" >Password doesn't match</span> 
+    </div>
+  </div>
+  
+  
+  <div class="row">
+    <div class="group col-md-6">      
+      <input  id="email" type="text" ng-model="user.email" value="user.email" ng-change="checkEmail()" class="form-control" placeholder="E-mail">
+      <span class="highlight"></span>
+      <span class="bar"></span>
+      <label id="emailLbl">E-mail</label> 
+      <span class="invalid-field" id="checkEmail">E-mail not valid</span>     
+    </div>
+    <div class="group col-md-6">      
+      <input id="confirmemail" type="text" ng-model="user.confirmemail" ng-change="checkConfimEmail()" class="form-control" placeholder="Confirm E-mail">
+      <span class="highlight"></span>
+      <span class="bar"></span>
+      <label id="confirmEmailLbl"l>Confirm E-mail</label>
+      <span class="invalid-field" id="checkConfirmEmail">E-mail doesn't match</span>      
+    </div>
+  </div>  
+
+  <div class="row">
+    <div class="group col-md-6">    
+      <div class="mdl-selectfield">  
+        <label id="domainLbl" class="select-label">Select Domain</label>   
+        <select class="browser-default" ng-model="user.domain" ng-change="checkDomain()">
+          <option value="unknown" disabled selected>Select Domain</option>
+          <option value="{{domain}}" ng-repeat="domain in domains">{{domain}}</option>
+        </select>
+      </div>
+      <span class="invalid-field" id="checkDomain">Domain empty</span>      
+    </div>
+
+    <div class="group col-md-6" id="subdomain">      
+      <input id="domainDesc" style="display:none !important" type="text" ng-model="user.subDomain" value="user.subDomain" ng-change="checkSubDomain()" class="form-control" placeholder="Domain">
+      <span class="highlight"></span>
+      <span class="bar"></span>
+      <label id="domainLabel">Domain</label>
+      <span class="invalid-field" id="checkSubDomain">Domain empty</span>
+    </div>    
+  </div>  
+  <div class="row">
+
+    <div class="group col-md-6">    
+      <div class="mdl-selectfield">  
+        <label id="usageLbl" class="select-label">Select Usage</label>   
+        <select class="browser-default" ng-model="user.usage" ng-change="checkUsage()">
+          <option value="unknown" disabled selected>Select Usage</option>
+          <option value="{{usage}}" ng-repeat="usage in usages">{{usage}}</option>
+        </select>
+      </div>
+      <span class="invalid-field" id="checkUsage">Usage empty</span>
+    </div>
+
+    <div class="group col-md-6" id="subusage">      
+      <input id="usageDesc" style="display:none !important" type="text" ng-model="user.subUsage" value="user.subUsage" ng-change="checkSubUsage()" class="form-control" placeholder="Usage">
+      <span class="highlight"></span>
+      <span class="bar"></span>
+      <label id="usageLabel">Usage</label>
+      <span class="invalid-field" id="checkSubUsage">Usage empty</span>
+    </div>      
+
+  </div>
+  <div class="row">
+
+    <div class="group col-md-6">    
+      <div class="mdl-selectfield">  
+        <label id="countryLbl" class="select-label">Select Country</label>  
+        <select id="country" class="browser-default" ng-model="user.country" ng-change="checkCountry()">
+          <option value="unknown" disabled selected >Select Country</option>
+          <option value="{{country.name}}" ng-repeat="country in countries">{{country.name}}</option>          
+        </select>
+      </div>
+      <span class="invalid-field" id="checkCountry">Country empty</span>
+    </div>
+
+  </div>
+  <div class="row">
+    <div class="col-md-12 terms">
+      By registering in this website you are deemed to have accepted the <a href="https://sentinel.esa.int/documents/247904/690755/Sentinel_Data_Terms_and_Conditions" target="_blank">T&C for Sentinel data use</a>.
+    </div>
+  </div>
+
+  <div class="row" style="text-align:right">
+     <div class="user-button" ng-click="register()">REGISTER</div>
+  </div>
+  <hr></hr>
+  
+</div>
+</div>

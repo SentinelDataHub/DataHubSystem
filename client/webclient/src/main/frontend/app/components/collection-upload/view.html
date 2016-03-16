@@ -1,0 +1,228 @@
+<div>
+<!-- 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+-->
+<div>
+  <style>
+  /** Easy Tree style */
+.collection-upload-tree {
+    min-height: 20px;
+    margin-bottom: 20px;
+    background-color: #fff;
+    color: #373b50;
+    border: none;
+    border-top: none;
+    padding-bottom: 15px;
+    font-size: 12px;    
+    font-family: 'Oxygen', sans-serif;
+    overflow-x: auto;
+    background: none !important;
+}
+
+.collection-upload-tree > ul {
+    padding-left: 15px;
+}
+
+.collection-upload-tree li {
+    list-style-type: none;
+    margin: 0;
+    padding: 10px 5px 0 5px;
+    position: relative
+}
+
+.collection-upload-tree li::before, .collection-upload-tree li::after {
+    content: '';
+    left: -30px;
+    position: absolute;
+    right: auto
+}
+
+.collection-upload-tree li::before {
+    border-left: 1px solid #eaeaea;
+    bottom: 50px;
+    height: 100%;
+    top: 0;
+    width: 1px
+}
+
+.collection-upload-tree li::after {
+    border-top: 1px solid #eaeaea;
+    height: 20px;
+    top: 25px;
+    width: 35px
+}
+
+.collection-upload-tree li > span {
+    
+    display: flex;
+    padding: 5px;
+    text-decoration: none
+}
+
+.collection_checkbox{    
+    width: 30px;
+}
+
+.collection-upload-tree li.parent_li > span {
+    cursor: pointer
+}
+
+
+.collection-upload-tree > ul > li::before, .collection-upload-tree > ul > li::after {
+    border: 0
+}
+
+.collection-upload-tree li:last-child::before {
+    height: 30px
+}
+
+
+
+.collection-upload-tree li > span:hover{
+    background: #eaeaea; 
+}
+.collection-upload-tree li.parent_li > span:hover + ul li.li_selected span {
+    background: #eaeaea;
+   
+}
+
+.collection-upload-tree li > span > a {
+    color: #373b50;
+    text-decoration: none;
+}
+
+.collection-upload-tree li:hover > span:hover > a:hover {
+   
+    background: #eaeaea;
+    text-decoration: none;
+}
+
+.collection-upload-tree li > span > span.glyphicon-folder-close, .collection-upload-tree li > span > span.glyphicon-folder-open {
+    margin-right: 5px;
+}
+
+.collection-upload-tree li.li_selected > span, .collection-upload-tree li.li_selected > span > a {
+    background: #eaeaea;
+   
+}
+
+.collection-upload-tree li.li_selected > span:hover, .collection-upload-tree li.li_selected > span:hover > a {
+    background: #eaeaea;
+   
+}
+
+.collection-upload-tree .collection-upload-tree-toolbar {
+    background-color: #fff;
+}
+
+.collection-upload-tree .collection-upload-tree-toolbar > div {
+    display: inline-block;
+}
+
+.collection-upload-tree .collection-upload-tree-toolbar > div > button {
+    border-radius: 0;
+    margin: 20px 5px;
+}
+
+.collection-upload-tree .collection-upload-tree-toolbar .create .input-group {
+    top: -15px;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.collection-upload-tree .collection-upload-tree-toolbar .create .input-group input {
+    border-radius: 0;
+}
+
+.collection-upload-tree .collection-upload-tree-toolbar .create .input-group button {
+    border-radius: 0;
+}
+
+
+#jquery-script-menu {
+position: fixed;
+height: 90px;
+width: 100%;
+top: 0;
+left: 0;
+
+background: #fff;
+z-index: 999999;
+padding: 10px 0;
+-webkit-box-sizing:content-box;
+-moz-box-sizing:content-box;
+box-sizing:content-box;
+}
+
+.jquery-script-center {
+width: 960px;
+margin: 0 auto;
+}
+.jquery-script-center ul {
+width: 212px;
+float:left;
+line-height:45px;
+margin:0;
+padding:0;
+list-style:none;
+}
+.jquery-script-center a {
+    text-decoration:none;
+}
+.jquery-script-ads {
+width: 728px;
+height:90px;
+float:right;
+}
+.jquery-script-clear {
+clear:both;
+height:0;
+}
+
+.collection-checkbox {
+    font-weight: bold;
+    font-size: 18px;
+    /*display: none;*/
+}
+
+.collection-title {
+    display: flex;
+    padding: 5px;
+    text-decoration: none;
+}
+
+.collection-title-checkbox {
+    width: 30px;
+    margin-left: 20px !important;
+}
+
+
+  </style>  
+  <div ng-if="collections.length == 0" class="row collection-checkbox">No Collections Found</div>  
+  <div ng-if="collections.length > 0" class="row collection-checkbox"> 
+  <span class="collection-title"><input type="checkbox" class="collection-title-checkbox"  ng-model="isAllSelected" ng-click="selectDeselectAll(isAllSelected)">Collections</span> 
+  </div> 
+  <!--<span class="collection-title"><input type="button" class="collection-title-checkbox"  ng-click="getSelectedCollections()">get selected</span> --> 
+  <div  id="collection-upload-tree" class="collection-upload-tree"></div> 
+  </div>  
+</div>
+</div>

@@ -33,8 +33,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.XML;
@@ -55,141 +54,145 @@ import fr.gael.dhus.system.config.ConfigurationManager;
 
 @Controller
 public class SearchController
-{   
-   private static Log logger = LogFactory.getLog (SearchController.class);
+{
+   private static final Logger LOGGER = Logger.getLogger(SearchController.class);
 
    @Autowired
-   private ActionRecordWritterDao actionRecordWritterDao;   
-   
+   private ActionRecordWritterDao actionRecordWritterDao;
+
    @Autowired
    private ConfigurationManager configurationManager;
-   
+
    @Autowired
    private SearchService searchService;
 
    @Autowired
    private SolrDao solrDao;
 
-   @PreAuthorize ("hasRole('ROLE_SEARCH')")
-   @RequestMapping (value = "/search/suggest/{query}")
-   public void suggestions (@PathVariable String query, HttpServletResponse res) throws IOException
+   @PreAuthorize("hasRole('ROLE_SEARCH')")
+   @RequestMapping(value = "/search/suggest/{query}")
+   public void suggestions(@PathVariable String query, HttpServletResponse res)
+         throws IOException
    {
-      List<String> suggestions = searchService.getSuggestions (query);
-      res.setStatus (HttpServletResponse.SC_OK);
-      res.setContentType ("text/plain");
-      ServletOutputStream outputStream = res.getOutputStream ();
-      if (suggestions != null)
+      List<String> suggestions = searchService.getSuggestions(query);
+      res.setStatus(HttpServletResponse.SC_OK);
+      res.setContentType("text/plain");
+      try (ServletOutputStream outputStream = res.getOutputStream())
       {
-          for (String suggestion : suggestions)
-          {
-             outputStream.println (suggestion);
-          }
+         if (suggestions != null)
+         {
+            for (String suggestion: suggestions)
+            {
+               outputStream.println(suggestion);
+            }
+         }
       }
-      outputStream.close ();
    }
 
-   @PreAuthorize ("hasRole('ROLE_SEARCH')")
-   @RequestMapping (value = "/search")
-   public void search(Principal principal, @RequestParam(value="q") String orginalQuery,
-      @RequestParam(value="rows", defaultValue="") String rowsStr,
-      @RequestParam(value="start", defaultValue="") String startStr,
-      @RequestParam(value="format", defaultValue="") String format,
-      HttpServletResponse res) throws IOException, JSONException
+   @PreAuthorize("hasRole('ROLE_SEARCH')")
+   @RequestMapping(value = "/search")
+   public void search(Principal principal,
+         @RequestParam(value = "q") String orginal_query,
+         @RequestParam(value = "rows", defaultValue = "") String rows_str,
+         @RequestParam(value = "start", defaultValue = "") String start_str,
+         @RequestParam(value = "format", defaultValue = "") String format,
+         HttpServletResponse res) throws IOException, JSONException
    {
-      User user = (User)((UsernamePasswordAuthenticationToken)principal).getPrincipal ();
-      ServerConfiguration dhusServer = configurationManager.getServerConfiguration ();
-      
-      String query = convertQuery(orginalQuery, user);
-      logger.info ("Rewritted Query: " + query);
-      
-      String urlStr = "&dhusLongName=" + configurationManager.getNameConfiguration ().getLongName ()
-         + "&dhusServer=" + dhusServer.getExternalUrl ();
-      urlStr += "&originalQuery=" + orginalQuery;
-      urlStr = urlStr.replace (" ", "%20");
+      User user = (User) ((UsernamePasswordAuthenticationToken) principal)
+            .getPrincipal();
+      ServerConfiguration dhusServer = configurationManager
+            .getServerConfiguration();
+
+      String query = convertQuery(orginal_query);
+      LOGGER.info("Rewritted Query: " + query);
+
+      String urlStr = "&dhusLongName="
+            + configurationManager.getNameConfiguration().getLongName()
+            + "&dhusServer=" + dhusServer.getExternalUrl();
+      urlStr += "&originalQuery=" + orginal_query;
+      urlStr = urlStr.replace(" ", "%20");
       int skip = 0;
       int rows = 10;
-      if (rowsStr != null && !rowsStr.isEmpty ())
+      if (rows_str != null && !rows_str.isEmpty())
       {
          try
          {
-            rows=Integer.parseInt (rowsStr);
-            urlStr += "&rows=" + rowsStr;
+            rows = Integer.parseInt(rows_str);
+            urlStr += "&rows=" + rows_str;
          }
          catch (NumberFormatException nfe)
          {
             /* noting to do : keep the default value */
          }
       }
-      if (startStr != null && !startStr.isEmpty ())
+      if (start_str != null && !start_str.isEmpty())
       {
          try
          {
-            skip=Integer.parseInt(startStr);
-            urlStr += "&start=" + startStr;
+            skip = Integer.parseInt(start_str);
+            urlStr += "&start=" + start_str;
          }
          catch (NumberFormatException nfe)
          {
             /* noting to do : keep the default value */
          }
       }
-      
-      URLEncoder.encode (urlStr, "UTF-8");
 
-      actionRecordWritterDao.search(orginalQuery, skip, rows, user);
-      
-      // solr is only accessible from localhost
-      String local_url = dhusServer.getProtocol () + "://localhost:" + dhusServer.getPort (); 
-      URL obj = new URL(local_url + "/solr/dhus/select?"+query+"&wt=xslt&tr=opensearch_atom.xsl"+urlStr);
-      HttpURLConnection con = (HttpURLConnection) obj.openConnection ();
-      con.setRequestMethod ("GET");
-      
-      InputStream is = con.getInputStream();
-      ServletOutputStream os = res.getOutputStream ();
-            
-      res.setStatus (HttpServletResponse.SC_OK);
-      if ("json".equalsIgnoreCase (format))
+      URLEncoder.encode(urlStr, "UTF-8");
+
+      actionRecordWritterDao.search(orginal_query, skip, rows, user);
+
+      // solr is only accessible from local server
+      String local_url = dhusServer.getUrl();
+      URL obj = new URL(local_url + "/solr/dhus/select?" + query
+            + "&wt=xslt&tr=opensearch_atom.xsl" + urlStr);
+      HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+      con.setRequestMethod("GET");
+
+      try (InputStream is = con.getInputStream())
       {
-         res.setContentType ("application/json");
-         toJSON (is, os);
+         try (ServletOutputStream os = res.getOutputStream())
+         {
+            res.setStatus(HttpServletResponse.SC_OK);
+            if ("json".equalsIgnoreCase(format))
+            {
+               res.setContentType("application/json");
+               toJSON(is, os);
+            }
+            else
+            {
+               res.setContentType(con.getContentType());
+               IOUtils.copy(is, os);
+            }
+         }
       }
-      else
-      {
-         res.setContentType (con.getContentType ());
-         IOUtils.copy (is, os);
-      }
-      
-      is.close ();
-      os.close ();
    }
-   
-   private String convertQuery (String query, User user)
+
+   private String convertQuery(String query)
    {
-      String ret=solrDao.updateQuery (query);
-      if (user != null)
-      {
-         ret = solrDao.getRestrictedQuery (ret, user);
-      }
-      ret = ret.replaceAll (" ", "%20");
-      return "q="+ret;
+      String ret = solrDao.updateQuery(query);
+      ret = ret.replaceAll(" ", "%20");
+      return "q=" + ret;
    }
-   
+
    /**
     * Converts input xml stream into output json stream.
-    * WARNING this implementation stores xml data into memory. 
-    * @param xmlStream
+    * WARNING this implementation stores xml data into memory.
+    * <p>
+    * @param xml_stream
     * @param output
-    * @throws IOException 
-    * @throws JSONException 
+    * @throws IOException
+    * @throws JSONException
     */
-   void toJSON (InputStream xmlStream, OutputStream output) 
-            throws IOException, JSONException
+   void toJSON(InputStream xml_stream, OutputStream output)
+         throws IOException, JSONException
    {
       StringWriter writer = new StringWriter();
-      IOUtils.copy(xmlStream, writer, "UTF-8");
-      
-      JSONObject xmlJSONObj = XML.toJSONObject (writer.toString ().trim ());
+      IOUtils.copy(xml_stream, writer, "UTF-8");
+
+      JSONObject xmlJSONObj = XML.toJSONObject(writer.toString().trim());
       String jsonPrettyPrintString = xmlJSONObj.toString(3);
-      
-      output.write (jsonPrettyPrintString.getBytes ());      
-   }   
+
+      output.write(jsonPrettyPrintString.getBytes());
+   }
 }

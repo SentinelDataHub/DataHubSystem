@@ -35,7 +35,7 @@ public class ForceReindex implements CustomTaskChange
    }
 
    @Override
-   public void setFileOpener (ResourceAccessor resourceAccessor)
+   public void setFileOpener (ResourceAccessor resource_accessor)
    {
    }
 

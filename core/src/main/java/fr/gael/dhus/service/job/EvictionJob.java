@@ -49,8 +49,8 @@ public class EvictionJob extends AbstractJob
    @Override
    public String getCronExpression ()
    {
-      return configurationManager.getEvictionCronConfiguration ().
-         getSchedule ();
+      return configurationManager.getEvictionCronConfiguration ()
+            .getSchedule ();
    }
 
    @Override
@@ -71,10 +71,7 @@ public class EvictionJob extends AbstractJob
          
          try
          {
-            long start = System.currentTimeMillis ();      
-            for (Product p: evictionManager.getProducts ())
-               logger.info ("   Evicted " + p.getIdentifier ());
-
+            long start = System.currentTimeMillis ();            
             evictionManager.computeNextProducts ();
             evictionManager.doEvict ();
             
@@ -88,7 +85,8 @@ public class EvictionJob extends AbstractJob
       }
       else
       {
-         logger.warn ("SCHEDULER : Previous products eviction is still running (aborted).");
+         logger.warn ("SCHEDULER : Previous products eviction " +
+               "is still running (aborted).");
       }
    }
 }

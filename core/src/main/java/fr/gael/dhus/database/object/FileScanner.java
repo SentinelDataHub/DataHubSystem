@@ -39,10 +39,10 @@ import javax.persistence.Table;
 @Table (name = "FILE_SCANNER")
 public class FileScanner
 {
-   public static String STATUS_ADDED = "added";
-   public static String STATUS_RUNNING = "running";
-   public static String STATUS_OK = "ok";
-   public static String STATUS_ERROR = "error";
+   public static final String STATUS_ADDED = "added";
+   public static final String STATUS_RUNNING = "running";
+   public static final String STATUS_OK = "ok";
+   public static final String STATUS_ERROR = "error";
 
    @Id
    @GeneratedValue (strategy = GenerationType.AUTO)
@@ -68,7 +68,8 @@ public class FileScanner
    @JoinTable(
       name="FILESCANNER_COLLECTIONS",
       joinColumns={@JoinColumn(name="FILE_SCANNER_ID", table="FILE_SCANNER")}, 
-      inverseJoinColumns={@JoinColumn(name="COLLECTIONS_ID", table="COLLECTIONS")})
+      inverseJoinColumns={@JoinColumn(name="COLLECTIONS_ID",
+                                      table="COLLECTIONS")})
    private Set<Collection> collections;
    
    @Column(name="ACTIVE", columnDefinition = "BOOLEAN", nullable = false)
@@ -173,9 +174,9 @@ public class FileScanner
    /**
     * @param active the statusMessage to set
     */
-   public void setStatusMessage (String statusMessage)
+   public void setStatusMessage (String status_message)
    {
-      this.statusMessage = statusMessage;
+      this.statusMessage = status_message;
    }
 
    /**
@@ -187,11 +188,11 @@ public class FileScanner
    }
 
    /**
-    * @param cronSchedule the cronSchedule to set
+    * @param cron_schedule the cronSchedule to set
     */
-   public void setCronSchedule (String cronSchedule)
+   public void setCronSchedule (String cron_schedule)
    {
-      this.cronSchedule = cronSchedule;
+      this.cronSchedule = cron_schedule;
    }
 
    /**

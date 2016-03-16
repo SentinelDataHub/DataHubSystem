@@ -35,7 +35,8 @@ public class DataStoreLocalArchiveNotExistingException extends Exception
       super(message);
    }
    
-   public DataStoreLocalArchiveNotExistingException (String message, Throwable e)
+   public DataStoreLocalArchiveNotExistingException (String message,
+         Throwable e)
    {
       super (message, e);
    }

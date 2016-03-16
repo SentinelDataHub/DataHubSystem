@@ -1,0 +1,7 @@
+#aboutbutton{
+	position: fixed;
+	z-index: 1;
+	bottom: 30px;
+	right: 10px;
+	background: rgb(55, 59, 80) !important;
+}

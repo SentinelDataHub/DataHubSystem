@@ -27,6 +27,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.ServiceDefTarget;
 
+import fr.gael.dhus.gwt.share.CountryData;
 import fr.gael.dhus.gwt.share.ProductData;
 import fr.gael.dhus.gwt.share.SearchData;
 import fr.gael.dhus.gwt.share.UserData;
@@ -97,6 +98,10 @@ public interface UserServiceAsync
       AsyncCallback<List<UserData>> callback);
    
    public void getPublicData(AsyncCallback<UserData> callback);
+   
+   public void getCountries (AsyncCallback<List<CountryData>> callback);
+   
+   public void getCurrentUserInformation (AsyncCallback<UserData> callback);
 
    /**
     * Utility class to get the RPC Async interface from client-side code

@@ -31,13 +31,12 @@ import fr.gael.dhus.datastore.eviction.EvictionStrategy;
 import fr.gael.dhus.gwt.services.annotation.RPCService;
 import fr.gael.dhus.gwt.share.EvictionStrategyData;
 import fr.gael.dhus.gwt.share.ProductData;
+import fr.gael.dhus.gwt.share.exceptions.AccessDeniedException;
 import fr.gael.dhus.gwt.share.exceptions.EvictionServiceException;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
 
 /**
  * Implements the business methods for the customer service
- * 
- * @author shaines
  */
 @RPCService ("evictionService")
 public class EvictionServiceImpl extends RemoteServiceServlet implements
@@ -45,7 +44,7 @@ public class EvictionServiceImpl extends RemoteServiceServlet implements
 {
    private static final long serialVersionUID = -112401776508867764L;
    
-   public int getKeepPeriod() throws EvictionServiceException
+   public int getKeepPeriod() throws EvictionServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.EvictionService evictionService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.EvictionService.class);
@@ -54,6 +53,11 @@ public class EvictionServiceImpl extends RemoteServiceServlet implements
       {
          return evictionService.getKeepPeriod ();
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -61,7 +65,7 @@ public class EvictionServiceImpl extends RemoteServiceServlet implements
       }
    }
    
-   public int getMaxDiskUsage() throws EvictionServiceException
+   public int getMaxDiskUsage() throws EvictionServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.EvictionService evictionService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.EvictionService.class);
@@ -70,6 +74,11 @@ public class EvictionServiceImpl extends RemoteServiceServlet implements
       {
          return evictionService.getMaxDiskUsage ();
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -77,7 +86,7 @@ public class EvictionServiceImpl extends RemoteServiceServlet implements
       }
    }
    
-   public String getStrategy() throws EvictionServiceException
+   public String getStrategy() throws EvictionServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.EvictionService evictionService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.EvictionService.class);
@@ -87,6 +96,11 @@ public class EvictionServiceImpl extends RemoteServiceServlet implements
          EvictionStrategy strat = evictionService.getStrategy ();
          return strat.toString ();
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -94,7 +108,7 @@ public class EvictionServiceImpl extends RemoteServiceServlet implements
       }
    }
    
-   public void save(String strategyId, int keepPeriod, int maxDiskUsage) throws EvictionServiceException
+   public void save(String strategyId, int keepPeriod, int maxDiskUsage) throws EvictionServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.EvictionService evictionService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.EvictionService.class);
@@ -103,6 +117,11 @@ public class EvictionServiceImpl extends RemoteServiceServlet implements
       {
          evictionService.save (EvictionStrategy.valueOf (strategyId), keepPeriod, maxDiskUsage);
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -110,10 +129,15 @@ public class EvictionServiceImpl extends RemoteServiceServlet implements
       }
    }
    
-   public List<ProductData> getEvictableProducts() throws EvictionServiceException
+   public List<ProductData> getEvictableProducts() throws EvictionServiceException, AccessDeniedException
    {
-      fr.gael.dhus.service.EvictionService evictionService = ApplicationContextProvider
-            .getBean (fr.gael.dhus.service.EvictionService.class);
+      fr.gael.dhus.service.EvictionService evictionService = 
+         ApplicationContextProvider.getBean (
+            fr.gael.dhus.service.EvictionService.class);
+      
+      fr.gael.dhus.service.ProductService productService = 
+         ApplicationContextProvider.getBean (
+            fr.gael.dhus.service.ProductService.class);
    
       try
       {
@@ -128,7 +152,8 @@ public class EvictionServiceImpl extends RemoteServiceServlet implements
     
             ArrayList<String> summary = new ArrayList<String> ();
             
-            for (MetadataIndex index : product.getIndexes ())
+            for (MetadataIndex index : 
+                 productService.getIndexes (product.getId()))
             {
                if ("summary".equals (index.getCategory ()))
                {
@@ -144,6 +169,11 @@ public class EvictionServiceImpl extends RemoteServiceServlet implements
          }
          return productDatas;
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -151,7 +181,7 @@ public class EvictionServiceImpl extends RemoteServiceServlet implements
       }
    }
    
-   public List<EvictionStrategyData> getAllStrategies() throws EvictionServiceException
+   public List<EvictionStrategyData> getAllStrategies()
    {
       ArrayList<EvictionStrategyData> strategies = new ArrayList<EvictionStrategyData>();
       for (EvictionStrategy strategy : EvictionStrategy.values ())
@@ -161,13 +191,18 @@ public class EvictionServiceImpl extends RemoteServiceServlet implements
       return strategies;
    }
    
-   public void doEvict() throws EvictionServiceException
+   public void doEvict() throws EvictionServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.EvictionService evictionService = ApplicationContextProvider
                   .getBean (fr.gael.dhus.service.EvictionService.class);
       try
       {
          evictionService.doEvict ();
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {

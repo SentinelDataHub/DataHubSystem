@@ -24,12 +24,13 @@ import java.util.List;
 import com.google.gwt.user.client.rpc.RemoteService;
 
 import fr.gael.dhus.gwt.share.ProductData;
+import fr.gael.dhus.gwt.share.exceptions.AccessDeniedException;
 import fr.gael.dhus.gwt.share.exceptions.SearchServiceException;
 
 public interface SearchService extends RemoteService
 {
    public List<ProductData> search (String filter, int startIndex, int numElement, Long userId)
-      throws SearchServiceException;
+      throws SearchServiceException, AccessDeniedException;
 
-   public Integer count (String query) throws SearchServiceException;
+   public Integer count (String query) throws SearchServiceException, AccessDeniedException;
 }

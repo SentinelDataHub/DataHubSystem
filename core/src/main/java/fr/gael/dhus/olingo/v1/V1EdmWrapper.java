@@ -37,7 +37,6 @@ import org.apache.olingo.odata2.api.exception.ODataException;
 
 public class V1EdmWrapper implements Edm
 {
-
    private final Edm edm;
 
    public V1EdmWrapper (Edm edm)
@@ -52,8 +51,11 @@ public class V1EdmWrapper implements Edm
 
       for (EdmEntitySet ees : edm.getEntitySets ())
       {
-         if (ees.getName ().equals (V1Model.COLLECTION.getName ()) ||
-            ees.getName ().equals (V1Model.PRODUCT.getName ()))
+         if ( !ees.getName ().equals (V1Model.ATTRIBUTE.getName ()) &&
+            !ees.getName ().equals (V1Model.NETWORKSTATISTIC.getName ()) &&
+            !ees.getName ().equals (V1Model.NODE.getName ()) &&
+            !ees.getName ().equals (V1Model.RESTRICTION.getName ()) &&
+            !ees.getName ().equals (V1Model.SYSTEM_ROLE.getName ()))
          {
             eesl.add (ees);
          }
@@ -73,17 +75,19 @@ public class V1EdmWrapper implements Edm
          {
             List<EdmEntitySetInfo> eesil = new ArrayList<EdmEntitySetInfo> ();
 
-            for (EdmEntitySetInfo eesi : edm.getServiceMetadata ()
+            for (EdmEntitySetInfo ees : edm.getServiceMetadata ()
                .getEntitySetInfos ())
             {
-               if (eesi.getEntitySetName ().equals (
-                  V1Model.COLLECTION.getName ()) ||
-                  eesi.getEntitySetName ().equals (V1Model.PRODUCT.getName ()))
+               String eesName = ees.getEntitySetName ();
+               if ( !eesName.equals (V1Model.ATTRIBUTE.getName ()) &&
+                  !eesName.equals (V1Model.NETWORKSTATISTIC.getName ()) &&
+                  !eesName.equals (V1Model.NODE.getName ()) &&
+                  !eesName.equals (V1Model.RESTRICTION.getName ()) &&
+                  !eesName.equals (V1Model.SYSTEM_ROLE.getName ()))
                {
-                  eesil.add (eesi);
+                  eesil.add (ees);
                }
             }
-
             return eesil;
          }
 
@@ -140,5 +144,4 @@ public class V1EdmWrapper implements Edm
    {
       return edm.getFunctionImports ();
    }
-
 }

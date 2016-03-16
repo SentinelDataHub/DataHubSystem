@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<databaseChangeLog
+   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+   <changeSet author="john" id="createSynchronizerConfTables">
+      <createTable tableName="SYNCHRONIZERS">
+         <column autoIncrement="true" name="ID" type="BIGINT">
+            <constraints primaryKey="true" primaryKeyName="SYNCHRONIZERS_PK" />
+         </column>
+         <column name="TYPE" type="varchar (255)">
+            <constraints nullable="false" />
+         </column>
+         <column name="LABEL" type="varchar (255)">
+            <constraints unique="true" />
+         </column>
+         <column name="CRON_EXP" type="varchar (255)">
+            <constraints nullable="false" />
+         </column>
+         <column name="ACTIVE" type="BOOLEAN" defaultValueBoolean="false">
+            <constraints nullable="false" />
+         </column>
+         <column name="CREATED" type="DATETIME">
+            <constraints nullable="false" />
+         </column>
+         <column name="MODIFIED" type="DATETIME">
+            <constraints nullable="false" />
+         </column>
+      </createTable>
+      <createTable tableName="SYNCHRONIZERS_CONFIG">
+         <column name="SYNC_ID" type="BIGINT">
+            <constraints references="SYNCHRONIZERS(ID)"
+                         foreignKeyName="SYNCHRONIZERS_FK"
+                         deleteCascade="true" />
+         </column>
+         <column name="CONFIG_KEY" type="varchar (255)">
+            <constraints nullable="false" />
+         </column>
+         <column name="CONFIG_VALUE" type="varchar (2048)">
+            <constraints nullable="false" />
+         </column>
+      </createTable>
+   </changeSet>
+
+   <changeSet author="fred" id="addUserIdIndex">
+      <createIndex
+         indexName="idx_user_id"
+         tableName="USERS"
+         unique="false">
+         <column name="ID" />
+      </createIndex>
+   </changeSet>
+
+   <changeSet author="fred" id="addProductItemClassColumn" runOnChange="true">
+      <addColumn tableName="PRODUCTS">
+         <column name="ITEM_CLASS" type="varchar(255)" />
+      </addColumn>
+   </changeSet>
+
+</databaseChangeLog>

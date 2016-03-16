@@ -42,9 +42,9 @@ public class FileScanner extends AbstractScanner
    
    private String uri;
    
-   public FileScanner (String uri, boolean storeScanList)
+   public FileScanner (String uri, boolean store_scan_list)
    {
-      super (storeScanList);
+      super (store_scan_list);
       this.uri = uri;
    }
 
@@ -109,7 +109,8 @@ public class FileScanner extends AbstractScanner
       retrievedFile = 0;
       getScanList ().clear ();
       checkList (getScanList (), getUri ());
-      logger.info ("Filesystem Scan done (" + retrievedFile + "/" + scannedFiles + ").");
+      logger.info ("Filesystem Scan done (" + retrievedFile + "/" +
+            scannedFiles + ").");
       return retrievedFile;
    }   
 }

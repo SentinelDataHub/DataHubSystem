@@ -19,14 +19,6 @@
  */
 package fr.gael.dhus.database.liquibase;
 
-import java.sql.Blob;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Statement;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import liquibase.change.custom.CustomTaskChange;
 import liquibase.database.Database;
 import liquibase.database.jvm.JdbcConnection;
@@ -34,6 +26,13 @@ import liquibase.exception.CustomChangeException;
 import liquibase.exception.SetupException;
 import liquibase.exception.ValidationErrors;
 import liquibase.resource.ResourceAccessor;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import java.sql.Blob;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 
 public class CopyProductImages implements CustomTaskChange
 {
@@ -45,7 +44,7 @@ public class CopyProductImages implements CustomTaskChange
    }
 
    @Override
-   public void setFileOpener (ResourceAccessor resourceAccessor)
+   public void setFileOpener (ResourceAccessor resource_accessor)
    {
    }
 
@@ -90,7 +89,8 @@ public class CopyProductImages implements CustomTaskChange
                   {
                      product_flags_stmt = db_connection.
                         prepareStatement (
-                        "UPDATE PRODUCTS SET THUMBNAIL_FLAG=?,QUICKLOOK_FLAG=?  WHERE ID=?");
+                        "UPDATE PRODUCTS SET THUMBNAIL_FLAG=?,QUICKLOOK_FLAG=? "
+                              + "WHERE ID=?");
                      product_flags_stmt.setBoolean (1,false);
                      product_flags_stmt.setBoolean (2,false);
                      product_flags_stmt.setLong (3, pid);
@@ -99,15 +99,21 @@ public class CopyProductImages implements CustomTaskChange
                   finally
                   {
                      if (product_flags_stmt!=null) 
-                        try { product_flags_stmt.close (); }
-                        catch (Exception e) {}
+                        try
+                        {
+                           product_flags_stmt.close ();
+                        }
+                        catch (Exception e)
+                        {
+                           logger.warn ("Cannot close Statement !");
+                        }
                   }
                   continue;
                }
 
                copy_blob_stmt = db_connection.prepareStatement (
-                  "INSERT INTO PRODUCT_IMAGES (QUICKLOOK,THUMBNAIL) VALUES (?,?)", 
-                  Statement.RETURN_GENERATED_KEYS);
+                  "INSERT INTO PRODUCT_IMAGES (QUICKLOOK,THUMBNAIL) " +
+                        "VALUES (?,?)", Statement.RETURN_GENERATED_KEYS);
                
                copy_blob_stmt.setBlob (1, ql);
                copy_blob_stmt.setBlob (2, th);
@@ -124,7 +130,8 @@ public class CopyProductImages implements CustomTaskChange
                   {
                      set_product_image_id_stmt = db_connection.
                         prepareStatement (
-                        "UPDATE PRODUCTS SET IMAGES_ID=?,THUMBNAIL_FLAG=?,QUICKLOOK_FLAG=?  WHERE ID=?");
+                        "UPDATE PRODUCTS SET IMAGES_ID=?, THUMBNAIL_FLAG=?, " +
+                              "QUICKLOOK_FLAG=?  WHERE ID=?");
                      set_product_image_id_stmt.setLong (1,iid);
                      set_product_image_id_stmt.setBoolean (2,th!=null);
                      set_product_image_id_stmt.setBoolean (3,ql!=null);
@@ -134,21 +141,42 @@ public class CopyProductImages implements CustomTaskChange
                   finally
                   {
                      if (set_product_image_id_stmt!=null) 
-                        try { set_product_image_id_stmt.close (); }
-                     catch (Exception e) {}
+                        try
+                        {
+                           set_product_image_id_stmt.close ();
+                        }
+                     catch (Exception e)
+                     {
+                        logger.warn ("Cannot close Statement !");
+                     }
                   }
                }
                else
-                  logger.error ("Cannot retrieve Image primary key for product ID #" + products_res.getLong ("ID"));
+               {
+                  logger.error ("Cannot retrieve Image primary key for " +
+                        "product ID #" + products_res.getLong ("ID"));
+               }
             }
             finally
             {
-               if (generated_key_res!=null) 
-                  try { generated_key_res.close (); } 
-               catch (Exception e) {}
-               if (copy_blob_stmt!=null)
-                  try { copy_blob_stmt.close (); }
-               catch (Exception e) {}
+               if (generated_key_res != null)
+                  try
+                  {
+                     generated_key_res.close ();
+                  }
+                  catch (Exception e)
+                  {
+                     logger.warn ("Cannot close ResultSet !");
+                  }
+               if (copy_blob_stmt != null)
+                  try
+                  {
+                     copy_blob_stmt.close ();
+                  }
+                  catch (Exception e)
+                  {
+                     logger.warn ("Cannot close Statement !");
+                  }
             }
          }
       }
@@ -158,9 +186,30 @@ public class CopyProductImages implements CustomTaskChange
       }
       finally
       {
-         if (products_res!=null) try { products_res.close (); } catch (Exception e) {}
-         if (products!=null) try { products.close (); } catch (Exception e) {}
-         //if (db_connection!=null) try { db_connection.close (); } catch (Exception e) {}
+         if (products_res!=null)
+         {
+            try
+            {
+               products_res.close ();
+            }
+            catch (Exception e)
+            {
+               logger.warn ("Cannot close ResultSet !");
+            }
+         }
+         if (products!=null)
+         {
+            try
+            {
+               products.close ();
+            }
+            catch (Exception e)
+            {
+               logger.warn ("Cannot close Statement !");
+            }
+         }
+         //if (db_connection!=null) try { db_connection.close (); }
+         // catch (Exception e) {}
       }
    }
 }

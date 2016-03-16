@@ -1,0 +1,76 @@
+<!--
+Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<!--
+
+`core-icons` is a utitliy import that includes the definition for the `core-icon` element, `core-iconset-svg` element, as well as an import for the default icon set.
+
+The `core-icons` directory also includes imports for additional icon sets that can be loaded into your project.
+
+Example loading icon set:
+
+    <link rel="import" href="../core-icons/maps-icons.html">
+
+To use an icon from one of these sets, first prefix your `core-icon` with the icon set name, followed by a colon, ":", and then the icon id.
+
+Example using the directions-bus icon from the maps icon set:
+
+    <core-icon icon="maps:directions-bus"></core-icon>
+
+
+See [core-icon](#core-icon) for more information about working with icons.
+
+See [core-iconset](#core-iconset) and [core-iconset-svg](#core-iconset-svg) for more information about how to create a custom iconset.
+
+@group Polymer Core Elements
+@homepage polymer.github.io
+-->
+<link rel="import" href="../core-icon/core-icon.html">
+<link rel="import" href="../core-iconset-svg/core-iconset-svg.html">
+<core-iconset-svg id="serco" iconSize="24">
+<svg><defs>
+<g id="serco-add-to-cart">
+   <path id="svg_3" d="m7,18c-1.1,0 -1.99,0.9 -1.99,2s0.89,2 1.99,2s2,-0.9 2,-2s-0.9,-2 -2,-2zm-6,-16v2h2l3.6,7.59l-1.35,2.45c-0.16,0.28 -0.25,0.61 -0.25,0.96c0,1.1 0.9,2 2,2h12v-2h-11.58c-0.14,0 -0.25,-0.11 -0.25,-0.25l0.03,-0.12l0.900001,-1.63h7.45c0.749999,0 1.409999,-0.41 1.749999,-1.03l3.58,-6.49c0.08,-0.14 0.120001,-0.31 0.120001,-0.48c0,-0.55 -0.450001,-1 -1,-1h-14.79l-0.94,-2h-3.27l0,0zm16,16c-1.1,0 -1.99,0.9 -1.99,2s0.889999,2 1.99,2s2,-0.9 2,-2s-0.9,-2 -2,-2z"/>
+   <path id="svg_4" d="m0.99887,102.394997l2.4,0l0,0.768005l-2.4,0l0,-0.768005z" stroke-linecap="null" stroke-linejoin="null" stroke="#ffffff" fill="black"/>
+   <path id="svg_5" d="m9.74849,8.06797l4.68751,0l0,0.47606l-4.68751,0l0,-0.47606z" stroke-linecap="null" stroke-linejoin="null" stroke="#ffffff" fill="black"/>
+   <path transform="rotate(88.72697448730469 12.097827911376953,8.402271270751953) " id="svg_6" d="m9.851802,8.164241l4.492053,0l0,0.47606l-4.492053,0l0,-0.47606z" stroke-linecap="null" stroke-linejoin="null" stroke="#ffffff" fill="black"/>
+</g> 
+<g id="serco-remove-from-cart">
+   <path d="m7,18c-1.1,0 -1.99,0.9 -1.99,2s0.89,2 1.99,2s2,-0.9 2,-2s-0.9,-2 -2,-2zm-6,-16v2h2l3.6,7.59l-1.35,2.45c-0.16,0.28 -0.25,0.61 -0.25,0.96c0,1.1 0.9,2 2,2h12v-2h-11.58c-0.14,0 -0.25,-0.11 -0.25,-0.25l0.03,-0.12l0.900001,-1.63h7.45c0.749999,0 1.409999,-0.41 1.749999,-1.03l3.58,-6.49c0.08,-0.14 0.120001,-0.31 0.120001,-0.48c0,-0.55 -0.450001,-1 -1,-1h-14.79l-0.94,-2h-3.27l0,0zm16,16c-1.1,0 -1.99,0.9 -1.99,2s0.889999,2 1.99,2s2,-0.9 2,-2s-0.9,-2 -2,-2z" id="svg_3"/>
+   <path fill="black" stroke="#ffffff" stroke-linejoin="null" stroke-linecap="null" d="m0.99887,102.394997l2.4,0l0,0.768005l-2.4,0l0,-0.768005z" id="svg_4"/>
+   <path fill="black" stroke="#ffffff" stroke-linejoin="null" stroke-linecap="null" d="m9.84849,7.76797l4.88751,0l0,0.47606l-4.88751,0l0,-0.47606z" id="svg_5"/>
+</g>
+<g id="serco-cart-add">
+<path
+     id="path4188-8"
+     style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     d="m 12.238928,11.64582 0.04022,-6.2851047 M 7,18 c -1.11,0 -2,0.89 -2,2 0,1.104569 0.8954305,2 2,2 1.1045695,0 2,-0.895431 2,-2 C 9,18.89 8.1,18 7,18 Z M 1,2 1,4 3,4 6.6,11.59 5.24,14.04 C 5.09,14.32 5,14.65 5,15 c 0,1.104569 0.8954305,2 2,2 l 12,0 0,-2 -11.58,0 C 7.2819288,15 7.17,14.888071 7.17,14.75 7.17,14.7 7.18,14.66 7.2,14.63 L 8.1,13 l 7.45,0 c 0.75,0 1.41,-0.42 1.75,-1.03 L 20.88,5.5 C 20.95,5.34 21,5.17 21,5 21,4.4477153 20.552285,4 20,4 L 5.21,4 4.27,2 Z m 16,16 c -1.11,0 -2,0.89 -2,2 0,1.104569 0.895431,2 2,2 1.104569,0 2,-0.895431 2,-2 0,-1.11 -0.9,-2 -2,-2 m -7.8835797,-9.6099797 6.2852347,0" />
+</g>
+<g id="serco-cart-remove">
+<path
+     id="path3338"
+     style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     d="m 7,18 c -1.11,0 -2,0.89 -2,2 0,1.104569 0.8954305,2 2,2 1.1045695,0 2,-0.895431 2,-2 C 9,18.89 8.1,18 7,18 Z M 1,2 1,4 3,4 6.6,11.59 5.24,14.04 C 5.09,14.32 5,14.65 5,15 c 0,1.104569 0.8954305,2 2,2 l 12,0 0,-2 -11.58,0 C 7.2819288,15 7.17,14.888071 7.17,14.75 7.17,14.7 7.18,14.66 7.2,14.63 L 8.1,13 l 7.45,0 c 0.75,0 1.41,-0.42 1.75,-1.03 L 20.88,5.5 C 20.95,5.34 21,5.17 21,5 21,4.4477153 20.552285,4 20,4 L 5.21,4 4.27,2 Z m 16,16 c -1.11,0 -2,0.89 -2,2 0,1.104569 0.895431,2 2,2 1.104569,0 2,-0.895431 2,-2 0,-1.11 -0.9,-2 -2,-2 m -7.8835797,-9.6099797 6.2852347,0" />
+</g>
+<!--<g id="double-chevron-right">
+ <path d="m3.799997,2.200004l-1.409993,1.41l4.579978,4.589983l-4.579978,4.589999l1.409993,1.410001l5.999979,-6l-5.999979,-5.999982z" id="svg_4"/>
+ <path d="m9.604984,2.200002l-1.41,1.409993l4.58,4.589979l-4.58,4.59l1.41,1.41l6,-6l-6,-5.999972z" id="svg_8"/>
+</g>
+<g id="double-chevron-left">
+ <path id="svg_9" d="m8.709974,2.810004l-1.409997,-1.41l-5.999972,5.999982l5.999972,5.999999l1.409997,-1.410002l-4.579981,-4.589997l4.579981,-4.589982z"/>
+ <path id="svg_11" d="m14.104968,2.610004l-1.41,-1.41l-5.999992,5.999983l5.999992,5.999995l1.41,-1.41l-4.58,-4.589995l4.58,-4.589983z"/>
+</g>-->
+<g id="chevron-double-left"><path d="M14.768 4.355c.193-.196.191-.515-.002-.709l-1.371-1.371c-.188-.194-.512-.194-.705.001l-5.333 5.37c-.195.195-.195.515 0 .709l5.333 5.37c.193.191.517.192.705 0l1.371-1.371c.193-.19.195-.516.002-.709l-3.258-3.29c-.193-.194-.193-.516 0-.71l3.258-3.29zM7.767 4.355c.193-.195.192-.514-.002-.709l-1.372-1.371c-.195-.194-.513-.193-.706.001l-5.334 5.37c-.194.195-.194.515 0 .709l5.334 5.37c.194.191.512.192.706 0l1.372-1.371c.194-.19.195-.516.002-.709l-3.259-3.29c-.194-.195-.194-.517 0-.711l3.259-3.289z"/></g>
+
+<g id="chevron-double-right"><path d="M1.235 4.355c-.194-.195-.193-.514.001-.709l1.371-1.371c.195-.194.513-.193.706.001l5.335 5.369c.188.195.188.515 0 .708l-5.335 5.37c-.194.192-.512.193-.706.002l-1.371-1.371c-.194-.191-.195-.517-.001-.709l3.257-3.29c.194-.195.194-.517 0-.711l-3.257-3.289zM8.236 4.355c-.193-.195-.193-.514.002-.709l1.372-1.371c.19-.194.514-.194.705.001l5.334 5.369c.19.195.19.515 0 .708l-5.334 5.37c-.191.192-.515.193-.705.002l-1.372-1.371c-.195-.191-.195-.517-.002-.709l3.258-3.29c.193-.195.193-.517 0-.711l-3.258-3.289z"/></g>
+
+<g id="chevron-left"><path d="M7.951 7.645c-.193.196-.193.516 0 .71l3.258 3.29c.193.193.191.519-.002.709l-1.371 1.371c-.193.192-.512.191-.707 0l-5.335-5.371c-.194-.194-.194-.514 0-.708l5.335-5.369c.195-.195.514-.195.707-.001l1.371 1.371c.193.194.195.513.002.709l-3.258 3.289z"/></g>
+
+<g id="chevron-right"><path d="M8.053 8.355c.193-.195.193-.517 0-.711l-3.26-3.289c-.193-.195-.192-.514.002-.709l1.371-1.371c.194-.194.512-.193.706.001l5.335 5.369c.195.195.195.515 0 .708l-5.335 5.37c-.194.192-.512.193-.706.002l-1.371-1.371c-.194-.195-.195-.514-.002-.709l3.26-3.29z"/></g>
+</defs></svg>
+</core-iconset-svg>

@@ -508,9 +508,10 @@
 				</div>
 				<div>
 					<div class="managementUser_formLabel">Country *</div>
-					<input type="text" name="managementUser_country" 
-						id="managementUser_country" class="managementUser_formField"  
-						onkeyup="user_validateCountry()"/>
+					<select name="managementUser_country" id="managementUser_country" class="managementUser_formField" 
+						onChange="user_validateCountry()">
+						<option disabled selected></option>
+					</select>
 				</div>
 				<div>
 					<div class="managementUser_formLabel">Address</div>

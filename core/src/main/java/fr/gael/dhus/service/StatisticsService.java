@@ -91,7 +91,8 @@ public class StatisticsService extends WebService
       return jobScheduler.getNextEvictionJobSchedule ();
    }
    
-   public Date getNextScheduleArchiveSynchronization () throws SchedulerException
+   public Date getNextScheduleArchiveSynchronization () throws
+         SchedulerException
    {
       if (!cfgManager.getArchiveSynchronizationCronConfiguration ().isActive ())
          return null;
@@ -120,29 +121,39 @@ public class StatisticsService extends WebService
       return actionRecordReaderDao.getTotalRestrictedUsers ();
    }
    
-   public String[][] getConnectionsPerUser (Date start, Date end, List<String> users, boolean perHour)
+   public String[][] getConnectionsPerUser (Date start, Date end,
+         List<String> users, boolean per_hour)
    {      
-      return actionRecordReaderDao.getConnectionsPerUser (start, end, users, perHour);
+      return actionRecordReaderDao.getConnectionsPerUser (start, end, users,
+            per_hour);
    }
    
-   public String[][] getConnectionsPerUsage (Date start, Date end, boolean perHour)
+   public String[][] getConnectionsPerUsage (Date start, Date end,
+         boolean per_hour)
    {      
-      return actionRecordReaderDao.getConnectionsPerUsage (start, end, perHour);
+      return actionRecordReaderDao.getConnectionsPerUsage (start, end,
+            per_hour);
    }
    
-   public String[][] getConnectionsPerDomain (Date start, Date end, boolean perHour)
+   public String[][] getConnectionsPerDomain (Date start, Date end,
+         boolean per_hour)
    {      
-      return actionRecordReaderDao.getConnectionsPerDomain (start, end, perHour);
+      return actionRecordReaderDao.getConnectionsPerDomain (start, end,
+            per_hour);
    }
    
-   public String[][] getActiveUsersPerUsage (Date start, Date end, boolean perHour)
+   public String[][] getActiveUsersPerUsage (Date start, Date end,
+         boolean per_hour)
    {      
-      return actionRecordReaderDao.getActiveUsersPerUsage (start, end, perHour);
+      return actionRecordReaderDao.getActiveUsersPerUsage (start, end,
+            per_hour);
    }
    
-   public String[][] getActiveUsersPerDomain (Date start, Date end, boolean perHour)
+   public String[][] getActiveUsersPerDomain (Date start, Date end,
+         boolean per_hour)
    {      
-      return actionRecordReaderDao.getActiveUsersPerDomain (start, end, perHour);
+      return actionRecordReaderDao.getActiveUsersPerDomain (start, end,
+            per_hour);
    }
    
    public String[][] getRestrictedUsers()
@@ -165,19 +176,23 @@ public class StatisticsService extends WebService
       return actionRecordReaderDao.getTotalSearches ();
    }
    
-   public String[][] getSearchesPerUser (Date start, Date end, List<String> users, boolean perHour)
+   public String[][] getSearchesPerUser (Date start, Date end,
+         List<String> users, boolean per_hour)
    {      
-      return actionRecordReaderDao.getSearchesPerUser (start, end, users, perHour);
+      return actionRecordReaderDao.getSearchesPerUser (start, end, users,
+            per_hour);
    }
    
-   public String[][] getSearchesPerUsage (Date start, Date end, boolean perHour)
+   public String[][] getSearchesPerUsage (Date start, Date end,
+         boolean per_hour)
    {      
-      return actionRecordReaderDao.getSearchesPerUsage (start, end, perHour);
+      return actionRecordReaderDao.getSearchesPerUsage (start, end, per_hour);
    }
    
-   public String[][] getSearchesPerDomain (Date start, Date end, boolean perHour)
+   public String[][] getSearchesPerDomain (Date start, Date end,
+         boolean per_hour)
    {      
-      return actionRecordReaderDao.getSearchesPerDomain (start, end, perHour);
+      return actionRecordReaderDao.getSearchesPerDomain (start, end, per_hour);
    }
    
    public int getTotalDownloads ()
@@ -185,33 +200,43 @@ public class StatisticsService extends WebService
       return actionRecordReaderDao.getTotalDownloads ();
    }
    
-   public String[][] getDownloadsPerUser (Date start, Date end, List<String> users, boolean perHour)
+   public String[][] getDownloadsPerUser (Date start, Date end,
+         List<String> users, boolean per_hour)
    {      
-      return actionRecordReaderDao.getDownloadsPerUser (start, end, users, perHour);
+      return actionRecordReaderDao.getDownloadsPerUser (start, end, users,
+            per_hour);
    }
    
-   public String[][] getDownloadsSizePerUser (Date start, Date end, List<String> users, boolean perHour)
+   public String[][] getDownloadsSizePerUser (Date start, Date end,
+         List<String> users, boolean per_hour)
    {      
-      return actionRecordReaderDao.getDownloadsSizePerUser (start, end, users, perHour);
+      return actionRecordReaderDao.getDownloadsSizePerUser (start, end, users,
+            per_hour);
    }
    
-   public String[][] getDownloadsPerUsage (Date start, Date end, boolean perHour)
+   public String[][] getDownloadsPerUsage (Date start, Date end,
+         boolean per_hour)
    {      
-      return actionRecordReaderDao.getDownloadsPerUsage (start, end, perHour);
+      return actionRecordReaderDao.getDownloadsPerUsage (start, end, per_hour);
    }
    
-   public String[][] getDownloadsSizePerUsage (Date start, Date end, boolean perHour)
+   public String[][] getDownloadsSizePerUsage (Date start, Date end,
+         boolean per_hour)
    {      
-      return actionRecordReaderDao.getDownloadsSizePerUsage (start, end, perHour);
+      return actionRecordReaderDao.getDownloadsSizePerUsage (start, end,
+            per_hour);
    }
    
-   public String[][] getDownloadsPerDomain (Date start, Date end, boolean perHour)
+   public String[][] getDownloadsPerDomain (Date start, Date end,
+         boolean per_hour)
    {      
-      return actionRecordReaderDao.getDownloadsPerDomain (start, end, perHour);
+      return actionRecordReaderDao.getDownloadsPerDomain (start, end, per_hour);
    }
    
-   public String[][] getDownloadsSizePerDomain (Date start, Date end, boolean perHour)
+   public String[][] getDownloadsSizePerDomain (Date start, Date end,
+         boolean per_hour)
    {      
-      return actionRecordReaderDao.getDownloadsSizePerDomain (start, end, perHour);
+      return actionRecordReaderDao.getDownloadsSizePerDomain (start, end,
+            per_hour);
    }
 }

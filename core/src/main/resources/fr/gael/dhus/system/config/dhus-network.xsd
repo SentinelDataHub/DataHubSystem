@@ -19,52 +19,45 @@
    along with this program. If not, see <http://www.gnu.org/licenses/>.
 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-	version="1.0" elementFormDefault="qualified" xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
-	jxb:version="2.1" xmlns:inheritance="http://jaxb2-commons.dev.java.net/basic/inheritance"
-	xmlns:annox="http://annox.dev.java.net" jxb:extensionBindingPrefixes="inheritance annox"
-	xmlns:dhusNetwork="fr.gael.dhus.database.object.config.network"
-	targetNamespace="fr.gael.dhus.database.object.config.network">
+           version="1.0" elementFormDefault="qualified" xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+           jxb:version="2.1" xmlns:inheritance="http://jaxb2-commons.dev.java.net/basic/inheritance"
+           xmlns:annox="http://annox.dev.java.net" jxb:extensionBindingPrefixes="inheritance annox"
+           xmlns:dhusNetwork="fr.gael.dhus.database.object.config.network"
+           targetNamespace="fr.gael.dhus.database.object.config.network">
 
-	<xs:annotation>
-		<xs:appinfo>
-			<jxb:schemaBindings>
-				<jxb:package name="fr.gael.dhus.database.object.config.network" />
-			</jxb:schemaBindings>
-		</xs:appinfo>
-	</xs:annotation>
-	
+   <xs:annotation>
+      <xs:appinfo>
+         <jxb:schemaBindings>
+            <jxb:package name="fr.gael.dhus.database.object.config.network" />
+         </jxb:schemaBindings>
+      </xs:appinfo>
+   </xs:annotation>
+
    <xs:complexType name="networkConfiguration">
-	  <xs:annotation>
-		<xs:appinfo>
-			<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
-			</inheritance:extends>
-		</xs:appinfo>
-	  </xs:annotation>
+      <xs:annotation>
+         <xs:appinfo>
+            <inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart</inheritance:extends>
+         </xs:appinfo>
+      </xs:annotation>
       <xs:sequence>
-         <xs:element name="outbound" type="dhusNetwork:TrafficShapingType"
-            minOccurs="0" />
-         <xs:element name="inbound" type="dhusNetwork:TrafficShapingType"
-            minOccurs="0" />
+         <xs:element name="outbound" type="dhusNetwork:TrafficShapingType" minOccurs="0" />
+         <xs:element name="inbound"  type="dhusNetwork:TrafficShapingType" minOccurs="0" />
       </xs:sequence>
    </xs:complexType>
 
    <xs:complexType name="TrafficShapingType">
       <xs:sequence>
-         <xs:element name="channel" type="dhusNetwork:channelType"
-            minOccurs="1" maxOccurs="unbounded" />
+         <xs:element name="channel" type="dhusNetwork:channelType" minOccurs="1" maxOccurs="unbounded" />
       </xs:sequence>
    </xs:complexType>
 
    <xs:complexType name="channelType">
       <xs:sequence>
-         <xs:element name="classifier" minOccurs="0" 
-            type="dhusNetwork:classifierType"/>
+         <xs:element name="classifier" minOccurs="0" type="dhusNetwork:classifierType"/>
 
-         <xs:element name="defaultUserQuotas" minOccurs="0"
-            type="dhusNetwork:userQuotasType" />
+         <xs:element name="defaultUserQuotas" minOccurs="0" type="dhusNetwork:userQuotasType" />
 
-         <xs:element name="channel" type="dhusNetwork:channelType"
-            minOccurs="0" maxOccurs="unbounded" />
+         <xs:element name="channel" type="dhusNetwork:channelType" minOccurs="0" maxOccurs="unbounded" />
 
       </xs:sequence>
 
@@ -73,51 +66,41 @@
 
    </xs:complexType>
 
-	<xs:complexType name="classifierType">
-		<xs:all>
-			<xs:element name="includes" minOccurs="0"
-			   type="dhusNetwork:includesType"/>
+   <xs:complexType name="classifierType">
+      <xs:all>
+         <xs:element name="includes" minOccurs="0" type="dhusNetwork:includesType"/>
 
-			<xs:element name="excludes" minOccurs="0"
-   			type="dhusNetwork:excludesType"/>
-		</xs:all>
-	</xs:complexType>
+         <xs:element name="excludes" minOccurs="0" type="dhusNetwork:excludesType"/>
+      </xs:all>
+   </xs:complexType>
 
    <xs:complexType name="includesType">
       <xs:sequence>
-         <xs:element name="include" type="dhusNetwork:classifierCriteriaType"
-            maxOccurs="unbounded" />
-         </xs:sequence>
+         <xs:element name="include" type="dhusNetwork:classifierCriteriaType" maxOccurs="unbounded" />
+      </xs:sequence>
    </xs:complexType>
 
    <xs:complexType name="excludesType">
       <xs:sequence>
-         <xs:element name="exclude" type="dhusNetwork:classifierCriteriaType"
-            maxOccurs="unbounded" />
-         </xs:sequence>
+         <xs:element name="exclude" type="dhusNetwork:classifierCriteriaType" maxOccurs="unbounded" />
+      </xs:sequence>
    </xs:complexType>
 
-	<xs:complexType name="classifierCriteriaType">
-		<xs:all minOccurs="0">
-			<xs:element type="xs:string" name="userEmailPattern"
-				minOccurs="0" />
-			<xs:element type="xs:string" name="service" minOccurs="0" />
-		</xs:all>
-	</xs:complexType>
+   <xs:complexType name="classifierCriteriaType">
+      <xs:all minOccurs="0">
+         <xs:element type="xs:string" name="userEmailPattern" minOccurs="0" />
+         <xs:element type="xs:string" name="service" minOccurs="0" />
+      </xs:all>
+   </xs:complexType>
 
    <xs:complexType name="userQuotasType">
       <xs:sequence>
 
-         <xs:element name="maxConcurrent" type="dhusNetwork:positiveInt"
-            minOccurs="0" />
-         <xs:element name="maxCount" type="dhusNetwork:periodicalPositiveInt"
-            minOccurs="0" />
-         <xs:element name="maxSize" type="dhusNetwork:positiveLong"
-            minOccurs="0" />
-         <xs:element name="maxCumulativeSize" type="dhusNetwork:periodicalPositiveLong"
-            minOccurs="0" />
-         <xs:element name="maxBandwidth" type="dhusNetwork:positiveInt"
-            minOccurs="0" />
+         <xs:element name="maxConcurrent" type="dhusNetwork:positiveInt" minOccurs="0" />
+         <xs:element name="maxCount" type="dhusNetwork:periodicalPositiveInt" minOccurs="0" />
+         <xs:element name="maxSize" type="dhusNetwork:positiveLong" minOccurs="0" />
+         <xs:element name="maxCumulativeSize" type="dhusNetwork:periodicalPositiveLong" minOccurs="0" />
+         <xs:element name="maxBandwidth" type="dhusNetwork:positiveInt" minOccurs="0" />
       </xs:sequence>
    </xs:complexType>
 
@@ -136,10 +119,8 @@
    <xs:complexType name="periodicalPositiveInt">
       <xs:simpleContent>
          <xs:extension base="dhusNetwork:positiveInt">
-            <xs:attribute type="dhusNetwork:positiveLong" name="period"
-               default="1" />
-            <xs:attribute name="periodUnit" type="dhusNetwork:periodType"
-               default="DAYS" />
+            <xs:attribute type="dhusNetwork:positiveLong" name="period" default="1" />
+            <xs:attribute name="periodUnit" type="dhusNetwork:periodType" default="DAYS" />
          </xs:extension>
       </xs:simpleContent>
    </xs:complexType>
@@ -147,10 +128,8 @@
    <xs:complexType name="periodicalPositiveLong">
       <xs:simpleContent>
          <xs:extension base="dhusNetwork:positiveLong">
-            <xs:attribute type="dhusNetwork:positiveLong" name="period"
-               default="1" />
-            <xs:attribute name="periodUnit" type="dhusNetwork:periodType"
-               default="DAYS" />
+            <xs:attribute type="dhusNetwork:positiveLong" name="period" default="1" />
+            <xs:attribute name="periodUnit" type="dhusNetwork:periodType" default="DAYS" />
          </xs:extension>
       </xs:simpleContent>
    </xs:complexType>

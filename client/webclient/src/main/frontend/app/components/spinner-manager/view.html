@@ -1,0 +1,115 @@
+<div>
+<!-- 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+-->
+<div>
+    <style>
+      /*#spinner-container{
+        
+
+        display: -webkit-box;
+        display: -moz-box;
+        display: -ms-flexbox;
+        display: -webkit-flex;
+        display: flex; 
+
+        
+
+        width: 100%;
+
+        -webkit-box-pack : center;
+        -moz-box-pack : center;
+        -ms-flex-pack : center;
+        -webkit-justify-content : center;
+        justify-content : center;
+        height: 50%; 
+        top: auto;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        position: fixed;
+        z-index: 3;
+      }*/
+
+
+      @-moz-keyframes three-quarters-loader {
+        0% {
+          -moz-transform: rotate(0deg);
+          transform: rotate(0deg);
+        }
+        100% {
+          -moz-transform: rotate(360deg);
+          transform: rotate(360deg);
+        }
+      }
+      @-webkit-keyframes three-quarters-loader {
+        0% {
+          -webkit-transform: rotate(0deg);
+          transform: rotate(0deg);
+        }
+        100% {
+          -webkit-transform: rotate(360deg);
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes three-quarters-loader {
+        0% {
+          -moz-transform: rotate(0deg);
+          -ms-transform: rotate(0deg);
+          -webkit-transform: rotate(0deg);
+          transform: rotate(0deg);
+        }
+        100% {
+          -moz-transform: rotate(360deg);
+          -ms-transform: rotate(360deg);
+          -webkit-transform: rotate(360deg);
+          transform: rotate(360deg);
+        }
+      }
+      /* :not(:required) hides this rule from IE9 and below */
+      .three-quarters-loader:not(:required) {
+        -moz-animation: three-quarters-loader 1250ms infinite linear;
+        -webkit-animation: three-quarters-loader 1250ms infinite linear;
+        animation: three-quarters-loader 1250ms infinite linear;
+        border: 4px solid #38e;
+        border-right-color: transparent;
+        border-radius: 16px;
+        box-sizing: border-box;
+        display: inline-block;
+        position: absolute;
+        overflow: hidden;
+        text-indent: -9999px;
+        width: 32px;
+        height: 32px;
+        z-index: 10000000;        
+        top: 50%;
+        left: 50%;
+        margin-top: -16px;
+        margin-left: -16px;
+      }                        
+    </style>    
+    
+      <div id="wait" style="display: none;" class="three-quarters-loader">
+          Loading…
+      </div>
+</div>
+</div>

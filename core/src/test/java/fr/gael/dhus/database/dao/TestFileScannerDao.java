@@ -7,7 +7,6 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
-import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -17,11 +16,13 @@ import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import fr.gael.dhus.database.dao.interfaces.HibernateDao;
 import fr.gael.dhus.database.object.Collection;
 import fr.gael.dhus.database.object.FileScanner;
+import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.util.CheckIterator;
 import fr.gael.dhus.util.TestContextLoader;
 
@@ -162,10 +163,29 @@ public class TestFileScannerDao extends
    @Test
    public void getScannerCollections ()
    {
-      List<BigInteger> list = dao.getScannerCollections (0L);
+      List<Long> list = dao.getScannerCollections (0L);
       assertNotNull (list);
       assertEquals (list.size (), 2);
-      assertTrue (list.contains (BigInteger.valueOf (1)));
-      assertTrue (list.contains (BigInteger.valueOf (2)));
+      assertTrue (list.contains (1L));
+      assertTrue (list.contains (2L));
+   }
+   
+   @Test
+   public void getUserFromScanner ()
+   {
+      Long fid0 = Long.valueOf (0); // scanner of koko
+      Long fid1 = Long.valueOf (1); // scanner of riko
+      
+      User u = dao.getUserFromScanner (dao.read (fid0));
+      Assert.assertNotNull (u);
+      Assert.assertEquals (u.getUsername (), "koko");
+      
+      u = dao.getUserFromScanner (dao.read (fid1));
+      Assert.assertNotNull (u);
+      Assert.assertEquals (u.getUsername (), "riko");
+      
+      u = dao.getUserFromScanner (null);
+      Assert.assertNull (u);
+
    }
 }

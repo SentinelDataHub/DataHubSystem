@@ -36,6 +36,12 @@ import fr.gael.drb.query.Query;
  */
 public class ThumbnailProduct extends Product
 {
+   // xpath_attributes is a set of xpath returning nodes (ClasscastException
+   // overwise)
+   private static String[] xpath_attributes = { "image/FormatName",
+         "image/directory/Width", "image/directory/Height",
+         "image/directory/NumBands" };
+
    /**
     * Build this Thumbnail instance.
     * 
@@ -92,7 +98,7 @@ public class ThumbnailProduct extends Product
       if (this.nodes == null)
       {
          Map<String, Node> nodes = new LinkedHashMap<String, Node> ();
-         DrbNode parent = DrbFactory.openURI (getDownloadableFileName ());
+         DrbNode parent = DrbFactory.openURI (getDownloadablePath ());
          if (parent != null) nodes.put (parent.getName (), new Node (parent));
          this.nodes = nodes;
       }
@@ -109,7 +115,7 @@ public class ThumbnailProduct extends Product
       {
          Map<String, Attribute> attributes =
             new LinkedHashMap<String, Attribute> ();
-         DrbNode node = DrbFactory.openURI (getDownloadableFileName ());
+         DrbNode node = DrbFactory.openURI (getDownloadablePath ());
          for (String xpath : xpath_attributes)
          {
             Query query = new Query (xpath);
@@ -129,7 +135,7 @@ public class ThumbnailProduct extends Product
    }
 
    @Override
-   public String getDownloadableFileName ()
+   public String getDownloadablePath ()
    {
       return product.getThumbnailPath ();
    }
@@ -147,9 +153,4 @@ public class ThumbnailProduct extends Product
       }
    }
 
-   // xpath_attributes is a set of xpath returning nodes (ClasscastException
-   // overwise)
-   private static String[] xpath_attributes = { "image/FormatName",
-      "image/directory/Width", "image/directory/Height",
-      "image/directory/NumBands" };
 }

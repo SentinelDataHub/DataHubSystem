@@ -35,9 +35,9 @@ public class NodesMap implements Map<String, Node>, SubMap<String, Node>
    private DrbNode drbNode;
    private Map<String, Node> nodes;
 
-   public NodesMap (DrbNode drbNode)
+   public NodesMap (DrbNode drb_node)
    {
-      this.drbNode = drbNode;
+      this.drbNode = drb_node;
    }
 
    public Map<String, Node> getNodes ()

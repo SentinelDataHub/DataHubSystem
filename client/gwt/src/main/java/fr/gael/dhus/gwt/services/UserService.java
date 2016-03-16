@@ -25,9 +25,11 @@ import java.util.List;
 
 import com.google.gwt.user.client.rpc.RemoteService;
 
+import fr.gael.dhus.gwt.share.CountryData;
 import fr.gael.dhus.gwt.share.ProductData;
 import fr.gael.dhus.gwt.share.SearchData;
 import fr.gael.dhus.gwt.share.UserData;
+import fr.gael.dhus.gwt.share.exceptions.AccessDeniedException;
 import fr.gael.dhus.gwt.share.exceptions.UserServiceException;
 import fr.gael.dhus.gwt.share.exceptions.UserServiceMailingException;
 import fr.gael.dhus.gwt.share.exceptions.UserServiceNotExistingException;
@@ -35,74 +37,78 @@ import fr.gael.dhus.gwt.share.exceptions.UserServiceNotExistingException;
 public interface UserService extends RemoteService
 {
    public List<UserData> getUsers (int start, int count, String filter)
-      throws UserServiceException;
+      throws UserServiceException, AccessDeniedException;
 
-   public Integer count (String filter) throws UserServiceException;
+   public Integer count (String filter) throws UserServiceException, AccessDeniedException;
 
    public void createUser (UserData userData) throws UserServiceException,
-      UserServiceMailingException;
+      UserServiceMailingException, AccessDeniedException;
 
    public void createTmpUser (UserData userData) throws UserServiceException,
-      UserServiceMailingException;
+      UserServiceMailingException, AccessDeniedException;
 
    public void updateUser (UserData userData) throws UserServiceException,
-      UserServiceMailingException;
+      UserServiceMailingException, AccessDeniedException;
 
    public void deleteUser (Long id) throws UserServiceException,
-      UserServiceMailingException;
+      UserServiceMailingException, AccessDeniedException;
 
-   public UserData getUser (Long id) throws UserServiceException;
+   public UserData getUser (Long id) throws UserServiceException, AccessDeniedException;
 
-   public UserData getUserWithDataAccess (Long id) throws UserServiceException;
+   public UserData getUserWithDataAccess (Long id) throws UserServiceException, AccessDeniedException;
 
-   public void updateDataAccess(UserData userData) throws UserServiceException;
+   public void updateDataAccess(UserData userData) throws UserServiceException, AccessDeniedException;
    
    public void forgotPassword(UserData userData) throws UserServiceException,
-      UserServiceMailingException, UserServiceNotExistingException;
+      UserServiceMailingException, UserServiceNotExistingException, AccessDeniedException;
    
    public void selfUpdateUser (UserData userData) throws UserServiceException,
-      UserServiceMailingException;
+      UserServiceMailingException, AccessDeniedException;
    
    public void selfChangePassword(Long id, String oldPassword, String newPassword) throws UserServiceException,
-      UserServiceMailingException;
+      UserServiceMailingException, AccessDeniedException;
    
-   public void storeUserSearch (Long id, String search, String footprint, HashMap<String, String> advanced, String complete) throws UserServiceException;
+   public void storeUserSearch (Long id, String search, String footprint, HashMap<String, String> advanced, String complete) throws UserServiceException, AccessDeniedException;
    
-   public void removeUserSearch (Long uId, Long sId) throws UserServiceException;
+   public void removeUserSearch (Long uId, Long sId) throws UserServiceException, AccessDeniedException;
    
-   public List<SearchData> getAllUserSearches (Long uId) throws UserServiceException;
+   public List<SearchData> getAllUserSearches (Long uId) throws UserServiceException, AccessDeniedException;
    
-   public int countUserSearches (Long uId) throws UserServiceException;
+   public int countUserSearches (Long uId) throws UserServiceException, AccessDeniedException;
    
    public List<SearchData> scrollSearchesOfUser (int start, int count, Long uId)
-            throws UserServiceException;
+            throws UserServiceException, AccessDeniedException;
    
-   public void clearSavedSearches (Long uId) throws UserServiceException;
+   public void clearSavedSearches (Long uId) throws UserServiceException, AccessDeniedException;
    
-   public List<ProductData> getUploadedProducts(int start, int count, Long uId) throws UserServiceException;
-   public List<String> getUploadedProductsIdentifiers(int start, int count, Long uId) throws UserServiceException;
-   public int countUploadedProducts (Long uId) throws UserServiceException;
+   public List<ProductData> getUploadedProducts(int start, int count, Long uId) throws UserServiceException, AccessDeniedException;
+   public List<String> getUploadedProductsIdentifiers(int start, int count, Long uId) throws UserServiceException, AccessDeniedException;
+   public int countUploadedProducts (Long uId) throws UserServiceException, AccessDeniedException;
    
-   public void activateUserSearchNotification (Long sId, boolean notify) throws UserServiceException;
+   public void activateUserSearchNotification (Long sId, boolean notify) throws UserServiceException, AccessDeniedException;
    
-   public Date getNextScheduleSearch() throws UserServiceException;
+   public Date getNextScheduleSearch() throws UserServiceException, AccessDeniedException;
 
    public List<UserData> getAllUsers (int start, int count, String filter)
-      throws UserServiceException;
+      throws UserServiceException, AccessDeniedException;
 
-   public Integer countAll (String filter) throws UserServiceException;
+   public Integer countAll (String filter) throws UserServiceException, AccessDeniedException;
    
-   public Boolean checkUserCodeForPasswordReset(String code) throws UserServiceException;
+   public Boolean checkUserCodeForPasswordReset(String code) throws UserServiceException, AccessDeniedException;
    
    public void resetPassword(String code, String newPassword) throws UserServiceException,
-   UserServiceMailingException;
+   UserServiceMailingException, AccessDeniedException;
    
-   public boolean isDataPublic() throws UserServiceException;
+   public boolean isDataPublic() throws UserServiceException, AccessDeniedException;
 
    public List<UserData> getUsersForDataRight (int start, int count, String filter)
-      throws UserServiceException;
+      throws UserServiceException, AccessDeniedException;
 
-   public Integer countForDataRight (String filter) throws UserServiceException;
+   public Integer countForDataRight (String filter) throws UserServiceException, AccessDeniedException;
 
-   public UserData getPublicData() throws UserServiceException;
+   public UserData getPublicData() throws UserServiceException, AccessDeniedException;
+   
+   public List<CountryData> getCountries () throws UserServiceException, AccessDeniedException;
+   
+   public UserData getCurrentUserInformation () throws UserServiceException, AccessDeniedException;
 }

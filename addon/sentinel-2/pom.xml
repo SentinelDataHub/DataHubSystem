@@ -1,46 +1,49 @@
 <?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+            http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
    <modelVersion>4.0.0</modelVersion>
 
-   <groupId>fr.gael.dhus</groupId>
+   <properties>
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+   </properties>
+
+   <groupId>eu.serco.xmf.drb</groupId>
    <artifactId>dhus-addon-sentinel-2</artifactId>
    <packaging>jar</packaging>
-   <version>1.0.0</version>
+   <version>1.0.6</version>
 
-   <name>DHuS - Sentinel-1 addon</name>
+   <name>DHuS - Sentinel-2 addon</name>
 
    <dependencies>
       <dependency>
-         <groupId>fr.gael.drb</groupId>
-         <artifactId>drbx-cortex-topic-sentinel-2</artifactId>
-         <version>1.4.3</version>
-         <exclusions>
-            <exclusion>
-               <artifactId>drbx-impl-netcdf</artifactId>
-               <groupId>fr.gael.drb</groupId>
-            </exclusion>
-         </exclusions>
+         <groupId>org.testng</groupId>
+         <artifactId>testng</artifactId>
+         <version>6.8.8</version>
+         <scope>test</scope>
       </dependency>
       <dependency>
          <groupId>fr.gael.drb</groupId>
          <artifactId>drbx-image</artifactId>
-         <version>1.2</version>
+         <version>1.7</version>
       </dependency>
+      <dependency>
+         <groupId>eu.serco.xmf.drb</groupId>
+         <artifactId>drbx-cortex-topic-sentinel-2</artifactId>
+         <version>2.0.3</version>
+      </dependency>
+      <dependency>
+         <groupId>fr.gael.drb</groupId>
+         <artifactId>drbx-impl-jp2k</artifactId>
+         <version>1.0.1</version>
+      </dependency>
+      
+      <!-- Geotools -->
+      
    </dependencies>
-
-   <repositories>
-      <repository>
-         <id>osf-public</id>
-         <name>OSF Public Repository</name>
-         <url>
-            https://copernicus.serco.eu/repository/nexus/content/groups/public/
-         </url>
-         <layout>default</layout>
-      </repository>
-
-   </repositories>
 
    <build>
       <plugins>
@@ -57,23 +60,45 @@
                </execution>
             </executions>
          </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.15</version>
+            <configuration>
+               <suiteXmlFiles>
+                  <suiteXmlFile>src/test/resources/xml/testng.xml</suiteXmlFile>
+               </suiteXmlFiles>
+            </configuration>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-report-plugin</artifactId>
+            <version>2.15</version>
+         </plugin>
       </plugins>
    </build>
-   
+
+
    <distributionManagement>
       <repository>
          <uniqueVersion>true</uniqueVersion>
          <id>osf-releases</id>
-         <name>OSF Releases Repository</name>
+         <name>OSF Main Repository</name>
          <url>
-             https://copernicus.serco.eu/repository/nexus/content/repositories/releases/
+           https://copernicus.serco.eu/repository/nexus/content/repositories/releases/
          </url>
          <layout>default</layout>
       </repository>
-      <site>
-         <id>gael-site</id>
-         <url>${site.baseUrl}/</url>
-      </site>
    </distributionManagement>
    
+   <repositories>
+      <repository>
+         <id>osf-public</id>
+         <name>OSF Public Repository</name>
+         <url>
+            https://copernicus.serco.eu/repository/nexus/content/groups/public/
+         </url>
+         <layout>default</layout>
+      </repository>
+   </repositories>
 </project>

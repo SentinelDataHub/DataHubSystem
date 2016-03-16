@@ -21,6 +21,57 @@
    <owl:Ontology rdf:about="&test;"/>
    
    <owl:Class rdf:about="&test;product1">
+      <dhus:metadataTypes rdf:parseType="Literal">
+         <metadataType id="platformNumber"
+                       name="Satellite number"
+                       contentType="text/plain"
+                       category="platform">
+         </metadataType>
+         <metadataType id="platformName"
+                       name="Satellite name"
+                       contentType="text/plain"
+                       category="platform">
+            <solrField name="platformname"
+                       type="text_general"/>
+         </metadataType>
+         <metadataType id="format"
+                       name="Format"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="format"
+                       type="string"
+                       required="true"/>
+         </metadataType>
+         <metadataType id="missionDataTakeId"
+                       name="Mission datatake id"
+                       contentType="text/integer"
+                       category="product">
+            <solrField name="missiondatatakeid"
+                       type="int"/>
+         </metadataType>
+         <metadataType id="beginPosition"
+                       name="Sensing start"
+                       contentType="text/date+iso8601"
+                       category="product">
+            <solrField name="beginposition"
+                       type="tdate"/>
+         </metadataType>
+         <metadataType id="beginPosition"
+                       name="Sensing start"
+                       contentType="text/date+iso8601"
+                       category="product">
+            <solrField name="beginposition"
+                       type="tdate"/>
+         </metadataType>
+                  <metadataType id="beginPosition"
+                       name="Sensing start"
+                       contentType="text/date+iso8601"
+                       category="product">
+            <solrField name="beginposition"
+                       type="tdate"/>
+         </metadataType>
+      </dhus:metadataTypes>
+      
       <rdfs:subClassOf rdf:resource="&drb;item" />
       <rdfs:label>My product1</rdfs:label>
        <drb:signature rdf:parseType="Resource">
@@ -45,18 +96,20 @@
    </owl:Class>
 
    <rdf:Description rdf:about="&test;product1">
+      <dhus:support/>
       <dhus:metadataExtractor  rdf:parseType="Literal">
       <![CDATA[
          <metadata
             queryable="test"
             category="test" name="Test Name" type="text/plain">
             Test P1
-         </metadata>,
+         </metadata>
       ]]>
       </dhus:metadataExtractor>
    </rdf:Description>
 
    <rdf:Description rdf:about="&test;product2">
+      <dhus:support/>
       <dhus:metadataExtractor  rdf:parseType="Literal">
       <![CDATA[
          <metadata category="test" name="Test2" type="text/plain">Test P2</metadata>

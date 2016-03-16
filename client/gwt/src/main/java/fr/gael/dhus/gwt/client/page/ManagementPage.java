@@ -23,9 +23,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.google.gwt.core.client.JavaScriptObject;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 
-import fr.gael.dhus.gwt.share.RoleData;
+import fr.gael.dhus.gwt.client.AccessDeniedRedirectionCallback;
 import fr.gael.dhus.gwt.client.GWTClient;
 import fr.gael.dhus.gwt.client.page.management.ManagementCollectionsPage;
 import fr.gael.dhus.gwt.client.page.management.ManagementDataRightPage;
@@ -33,21 +32,21 @@ import fr.gael.dhus.gwt.client.page.management.ManagementEvictionPage;
 import fr.gael.dhus.gwt.client.page.management.ManagementSystemPage;
 import fr.gael.dhus.gwt.client.page.management.ManagementUsersPage;
 import fr.gael.dhus.gwt.services.UserServiceAsync;
+import fr.gael.dhus.gwt.share.RoleData;
 import fr.gael.dhus.gwt.share.UserData;
 
 public class ManagementPage extends AbstractPage
 {
    private static ManagementTab currentTab;
 
-   private static enum ManagementTab
+   private enum ManagementTab
    {
       MANAGEMENT_USERS(new ManagementUsersPage()),
       MANAGEMENT_COLLECTIONS(new ManagementCollectionsPage()),
-      MANAGEMENT_DATARIGHT(new ManagementDataRightPage()),
       MANAGEMENT_SYSTEM(new ManagementSystemPage()),
       MANAGEMENT_EVICTION(new ManagementEvictionPage());
       
-      private ManagementTab(AbstractPage page)
+      ManagementTab(AbstractPage page)
       {
          this.page = page;
       }
@@ -131,7 +130,7 @@ public class ManagementPage extends AbstractPage
    private static void init()
    {
       UserServiceAsync userService = UserServiceAsync.Util.getInstance ();
-      userService.isDataPublic (new AsyncCallback<Boolean>()
+      userService.isDataPublic (new AccessDeniedRedirectionCallback<Boolean>()
       {
          
          @Override
@@ -141,7 +140,7 @@ public class ManagementPage extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             displayMenu(false);
          }
@@ -172,17 +171,7 @@ public class ManagementPage extends AbstractPage
                currentTab = ManagementTab.MANAGEMENT_COLLECTIONS;
             }
             firstAdded = true;
-         } 
-         if (!dataPublic && displayPageForUser(ManagementTab.MANAGEMENT_DATARIGHT.getPage().getRoles(), user.getRoles ()))
-         {
-            AbstractPage page = ManagementTab.MANAGEMENT_DATARIGHT.getPage ();
-            addManagementTab(page.getName (), page.getJSInitFunction (), page.getJSRefreshFunction (), !firstAdded, "Data Right Access");
-            if (!firstAdded)
-            {
-               currentTab = ManagementTab.MANAGEMENT_DATARIGHT;
-            }
-            firstAdded = true;
-         } 
+         }
          if (displayPageForUser(ManagementTab.MANAGEMENT_SYSTEM.getPage().getRoles(), user.getRoles ()))
          {
             addManagementTab(ManagementTab.MANAGEMENT_SYSTEM.getPage (), !firstAdded);

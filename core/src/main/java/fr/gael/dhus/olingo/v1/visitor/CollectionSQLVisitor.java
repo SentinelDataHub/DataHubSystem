@@ -23,7 +23,7 @@ import org.apache.olingo.odata2.api.edm.EdmTyped;
 import org.apache.olingo.odata2.api.uri.expression.PropertyExpression;
 
 import fr.gael.dhus.olingo.OlingoSQLVisitor;
-import fr.gael.dhus.olingo.v1.entitySet.CollectionEntitySet;
+import fr.gael.dhus.olingo.v1.entityset.CollectionEntitySet;
 
 public class CollectionSQLVisitor extends OlingoSQLVisitor
 {
@@ -35,20 +35,20 @@ public class CollectionSQLVisitor extends OlingoSQLVisitor
    }
 
    @Override
-   public Object visitProperty (PropertyExpression propertyExpression,
-      String uriLiteral, EdmTyped edmProperty)
+   public Object visitProperty (PropertyExpression property_expression,
+      String uri_literal, EdmTyped edm_property)
    {
-      if (edmProperty == null)
+      if (edm_property == null)
          throw new IllegalArgumentException ("Property not found: " +
-            uriLiteral);
+               uri_literal);
 
-      if (uriLiteral.equals (CollectionEntitySet.NAME))
+      if (uri_literal.equals (CollectionEntitySet.NAME))
          return prefix + ".name";
 
-      if (uriLiteral.equals (CollectionEntitySet.DESCRIPTION))
+      if (uri_literal.equals (CollectionEntitySet.DESCRIPTION))
          return prefix + ".description";
 
       throw new IllegalArgumentException ("Property not supported: " +
-         uriLiteral);
+            uri_literal);
    }
 }

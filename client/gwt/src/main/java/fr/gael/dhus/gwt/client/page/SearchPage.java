@@ -40,18 +40,18 @@ import com.google.gwt.event.dom.client.KeyUpEvent;
 import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
 
-import fr.gael.dhus.gwt.share.RoleData;
+import fr.gael.dhus.gwt.client.AccessDeniedRedirectionCallback;
 import fr.gael.dhus.gwt.client.GWTClient;
 import fr.gael.dhus.gwt.services.ProductCartServiceAsync;
 import fr.gael.dhus.gwt.services.ProductServiceAsync;
 import fr.gael.dhus.gwt.services.SearchServiceAsync;
 import fr.gael.dhus.gwt.services.UserServiceAsync;
 import fr.gael.dhus.gwt.share.ProductData;
+import fr.gael.dhus.gwt.share.RoleData;
 import fr.gael.dhus.gwt.share.SearchData;
 import fr.gael.dhus.gwt.share.UserData;
 
@@ -78,10 +78,10 @@ public class SearchPage extends AbstractPage
    
    private static HashMap<Long, SearchData> displayedSearches = new HashMap<Long, SearchData> ();
    
-   private static String ADVANCED_COLLECTION = "productType";
-   private static String ADVANCED_INSTRUMENT = "sensorMode";
+   private static String ADVANCED_PRODUCTTYPE = "productType";
+   private static String ADVANCED_SENSORMODE = "sensorMode";
    private static String ADVANCED_RESOLUTION = "resolution";
-   private static String ADVANCED_PLATFORM = "polarisation";
+   private static String ADVANCED_POLARISATION = "polarisation";
    private static String ADVANCED_SENSINGDATE = "sensingDate";
    private static String ADVANCED_SENSINGDATEEND = "sensingDateEnd";
    private static String ADVANCED_INGESTIONDATE = "ingestionDate";
@@ -227,35 +227,35 @@ public class SearchPage extends AbstractPage
             for (String key : givenSearch.getAdvanced ().keySet ())
             {
                String value = givenSearch.getAdvanced ().get (key);
-               if (key == ADVANCED_COLLECTION)
+               if (key.equals (ADVANCED_PRODUCTTYPE))
                {
                   advancedProductType.setValue (value);
                }
-               else if (key == ADVANCED_INSTRUMENT)
+               else if (key.equals (ADVANCED_SENSORMODE))
                {
                   advancedSensorMode.setValue (value);
                }
-               else if (key == ADVANCED_PLATFORM)
+               else if (key.equals (ADVANCED_POLARISATION))
                {
                   advancedPolarisation.setValue (value);
                }
-               else if (key == ADVANCED_RESOLUTION)
+               else if (key.equals (ADVANCED_RESOLUTION))
                {
                   advancedSwath.setValue (value);
                }
-               else if (key == ADVANCED_SENSINGDATE)
+               else if (key.equals (ADVANCED_SENSINGDATE))
                {
                   advancedSensingDate.setValue (value);
                }
-               else if (key == ADVANCED_SENSINGDATEEND)
+               else if (key.equals (ADVANCED_SENSINGDATEEND))
                {
                   advancedSensingDateEnd.setValue (value);
                }
-               else if (key == ADVANCED_INGESTIONDATE)
+               else if (key.equals (ADVANCED_INGESTIONDATE))
                {
                   advancedIngestionDate.setValue (value);
                }
-               else if (key == ADVANCED_INGESTIONDATEEND)
+               else if (key.equals (ADVANCED_INGESTIONDATEEND))
                {
                   advancedIngestionDateEnd.setValue (value);
                }
@@ -264,11 +264,11 @@ public class SearchPage extends AbstractPage
          else
          {
             displayAdvancedSearch(false);
-         }        
+         }
          if (givenSearch.getFootprint () != null)
          {
-            Double[][]pts = givenSearch.getFootprint ();
-            JavaScriptObject footPrintJS=ProductData.getJsFootprintLayer (pts);
+            Double[][][]pts = givenSearch.getFootprint ();
+            JavaScriptObject footPrintJS=ProductData.getJsFootprintLayer (pts, true);
             setSearchedFootprint (footPrintJS);
          }
          else
@@ -294,12 +294,12 @@ public class SearchPage extends AbstractPage
    
    private static void reloadSavedSearches()
    {
-      userService.getAllUserSearches (GWTClient.getCurrentUser ().getId (), new AsyncCallback<List<SearchData>>()
+      userService.getAllUserSearches (GWTClient.getCurrentUser ().getId (), new AccessDeniedRedirectionCallback<List<SearchData>>()
          {
 
             @Override
-            public void onFailure (Throwable caught)
-            {
+            public void _onFailure (Throwable caught)
+            {               
                Window.alert("There was an error while getting your saved searches.");
             }
 
@@ -345,7 +345,7 @@ public class SearchPage extends AbstractPage
                      advancedText += ")</i>";
                   }
                   displayedSearches.put (search.getId (), search);
-                  searches += "{\"id\":"+search.getId ()+",\"value\":\""+search.getValue().replace ("\"", "\\\"")+advancedText+"\"},";
+                  searches += "{\"id\":"+search.getId ()+",\"value\":\""+search.getComplete().replace ("\"", "\\\"")+"\"},";
                }
                if (result.size () > 0)
                {
@@ -426,19 +426,19 @@ public class SearchPage extends AbstractPage
                String ingestionDateEnd = advancedIngestionDateEnd.getValue ();
                if (productType != null && !productType.isEmpty ())
                {
-                  advancedSearchMap.put (ADVANCED_COLLECTION, productType);
+                  advancedSearchMap.put (ADVANCED_PRODUCTTYPE, productType);
                   advancedSearch += " productType:\""+productType+"\" ";
                   first = false;
                }
                if (polarisation != null && !polarisation.isEmpty ())
                {
-                  advancedSearchMap.put (ADVANCED_PLATFORM, polarisation);
+                  advancedSearchMap.put (ADVANCED_POLARISATION, polarisation);
                   advancedSearch += (!first?" AND ":"")+" polarisationMode:\""+polarisation+"\" ";
                   first = false;
                }
                if (sensorMode != null && !sensorMode.isEmpty ())
                {
-                  advancedSearchMap.put (ADVANCED_INSTRUMENT, sensorMode);
+                  advancedSearchMap.put (ADVANCED_SENSORMODE, sensorMode);
                   advancedSearch += (!first?" AND ":"")+" sensorOperationalMode:\""+sensorMode+"\" ";
                   first = false;
                }
@@ -493,11 +493,11 @@ public class SearchPage extends AbstractPage
             search = search.isEmpty () ? "*" : search.trim ();
             
             userService.storeUserSearch (GWTClient.getCurrentUser ().getId (), 
-               search, footprint, advancedSearchMap, completeSearch.trim(), new AsyncCallback<Void>()
+               search, footprint, advancedSearchMap, completeSearch.trim(), new AccessDeniedRedirectionCallback<Void>()
             {
       
                @Override
-               public void onFailure (Throwable caught)
+               public void _onFailure (Throwable caught)
                {
                   Window.alert("There was an error while saving your search.");
                }
@@ -505,6 +505,7 @@ public class SearchPage extends AbstractPage
                @Override
                public void onSuccess (Void result)
                {
+                  Window.alert("Your search was successfully saved.");
                   reloadSavedSearches();
                }
             });
@@ -590,11 +591,11 @@ public class SearchPage extends AbstractPage
       DOM.setStyleAttribute (RootPanel.getBodyElement (), "cursor",
          "wait");
       productCartService.getProductsIdOfCart (GWTClient.getCurrentUser ()
-         .getId (), new AsyncCallback<List<Long>> ()
+         .getId (), new AccessDeniedRedirectionCallback<List<Long>> ()
       {
 
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             DOM.setStyleAttribute (RootPanel.getBodyElement (), "cursor",
                "default");
@@ -605,11 +606,11 @@ public class SearchPage extends AbstractPage
          public void onSuccess (final List<Long> result)
          {
             cart = result;
-            searchService.count (search, new AsyncCallback<Integer> ()
+            searchService.count (search, new AccessDeniedRedirectionCallback<Integer> ()
             {
 
                @Override
-               public void onFailure (Throwable caught)
+               public void _onFailure (Throwable caught)
                {
                   DOM.setStyleAttribute (RootPanel.getBodyElement (), "cursor",
                      "default");
@@ -623,10 +624,10 @@ public class SearchPage extends AbstractPage
                {
                   searchService.search (search, start, length, GWTClient
                      .getCurrentUser ().getId (),
-                     new AsyncCallback<List<ProductData>> ()
+                     new AccessDeniedRedirectionCallback<List<ProductData>> ()
                      {
                         @Override
-                        public void onFailure (Throwable caught)
+                        public void _onFailure (Throwable caught)
                         {
                            DOM.setStyleAttribute (RootPanel.getBodyElement (),
                               "cursor", "default");
@@ -645,11 +646,11 @@ public class SearchPage extends AbstractPage
                            for (ProductData product : products)
                            {
                               JavaScriptObject js = ProductData.
-                                 getJsFootprintLayer (product.getFootprint ());
+                                 getJsFootprintLayer (product.getFootprint (), false);
                               if (js != null)
                                  addFeatureToAllFootprintLayer (js);
                            }
-
+                           
                            if (JsonUtils.safeToEval (json))
                               GWTClient.callback (function,
                                  JsonUtils.safeEval (json));
@@ -682,11 +683,11 @@ public class SearchPage extends AbstractPage
          return;
       }
       productService.deleteProduct (
-         new Long(id), new AsyncCallback<Void>()
+         new Long(id), new AccessDeniedRedirectionCallback<Void>()
          {
    
             @Override
-            public void onFailure (Throwable caught)
+            public void _onFailure (Throwable caught)
             {
                Window.alert("There was an error while deleting product.\n "+caught.getMessage ());
             }
@@ -705,11 +706,11 @@ public class SearchPage extends AbstractPage
       if (inUserCart)
       {
          productCartService.removeProductFromCart (GWTClient.getCurrentUser ().getId (),
-            new Long(id), new AsyncCallback<Void>()
+            new Long(id), new AccessDeniedRedirectionCallback<Void>()
             {
       
                @Override
-               public void onFailure (Throwable caught)
+               public void _onFailure (Throwable caught)
                {
                   Window.alert("There was an error while adding product to your cart.");
                }
@@ -724,11 +725,11 @@ public class SearchPage extends AbstractPage
       }
       // else
       productCartService.addProductToCart (GWTClient.getCurrentUser ().getId (),
-         new Long(id), new AsyncCallback<Void>()
+         new Long(id), new AccessDeniedRedirectionCallback<Void>()
          {
    
             @Override
-            public void onFailure (Throwable caught)
+            public void _onFailure (Throwable caught)
             {
                Window.alert("There was an error while adding product to your cart.");
             }
@@ -785,11 +786,22 @@ public class SearchPage extends AbstractPage
       else quicklook = "\"" + quicklook + "\"";
       
       String footprintString = "[";
-      Double[][] footprint = product.getFootprint ();
+      Double[][][] footprint = product.getFootprint ();
       if (footprint != null && footprint.length > 0)
       {                           
-         for (Double[] d : footprint)
-            footprintString += d[0]+","+d[1]+",";
+         for (Double[][] dd : footprint)
+         {
+            footprintString += "[";
+            for (Double[] d : dd)
+            {
+               footprintString += d[0]+","+d[1]+",";
+            }
+            if (dd != null && dd.length >= 1)
+            {
+               footprintString = footprintString.substring (0, footprintString.length ()-1);
+            }
+            footprintString += "],";
+         }
       }
       if (footprint != null && footprint.length >= 1)
       {

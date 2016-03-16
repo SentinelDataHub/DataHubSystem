@@ -36,7 +36,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication
+      .UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -62,12 +63,14 @@ public class UploadController
    @SuppressWarnings ("unchecked")
    @PreAuthorize ("hasRole('ROLE_UPLOAD')")
    @RequestMapping (value = "/upload", method = {RequestMethod.POST})
-   public void upload(Principal principal, HttpServletRequest req, HttpServletResponse res) throws IOException
+   public void upload(Principal principal, HttpServletRequest req,
+         HttpServletResponse res) throws IOException
    {
       // process only multipart requests
       if (ServletFileUpload.isMultipartContent (req))
       {
-         User user = (User)((UsernamePasswordAuthenticationToken)principal).getPrincipal ();
+         User user = (User)((UsernamePasswordAuthenticationToken)principal)
+               .getPrincipal ();
          // Create a factory for disk-based file items
          FileItemFactory factory = new DiskFileItemFactory ();
          // Create a new file upload handler
@@ -76,7 +79,7 @@ public class UploadController
          // Parse the request
          try
          {
-            ArrayList<Long> collectionIds = new ArrayList<Long> ();
+            ArrayList<Long> collectionIds = new ArrayList<> ();
             FileItem product = null;
 
             List<FileItem> items = upload.parseRequest (req);
@@ -105,8 +108,7 @@ public class UploadController
                         "Your request is missing a product file to upload.");
                return;
             }
-            productUploadService.upload (user.getId (), product, collectionIds);   
-
+            productUploadService.upload (user.getId (), product, collectionIds);
             res.setStatus (HttpServletResponse.SC_CREATED);
             res.getWriter ().print ("The file was created successfully.");
             res.flushBuffer ();
@@ -127,13 +129,15 @@ public class UploadController
          {
             logger.error ("An error occurred while uploading the product.", e);
             res.sendError (HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-               "An error occurred while uploading the product : " + e.getMessage ());
+               "An error occurred while uploading the product : " +
+                     e.getMessage ());
          }
          catch (RootNotModifiableException e)
          {
             logger.error ("An error occurred while uploading the product.", e);
             res.sendError (HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-               "An error occurred while uploading the product : " + e.getMessage ());
+               "An error occurred while uploading the product : " +
+                     e.getMessage ());
          }
          catch (ProductNotAddedException e)
          {

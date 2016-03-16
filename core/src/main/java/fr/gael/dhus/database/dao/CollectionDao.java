@@ -19,19 +19,24 @@
  */
 package fr.gael.dhus.database.dao;
 
-import java.math.BigInteger;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
-import org.hibernate.*;
+import org.hibernate.Hibernate;
+import org.hibernate.HibernateException;
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.stereotype.Repository;
+
+import com.google.common.collect.ImmutableList;
 
 import fr.gael.dhus.database.dao.interfaces.CollectionProductListener;
 import fr.gael.dhus.database.dao.interfaces.DaoEvent;
@@ -65,7 +70,7 @@ public class CollectionDao extends HibernateDao<Collection, Long>
 
    @Autowired
    private ConfigurationManager cfgManager;
-   
+
    public int count (User user)
    {
       String userString = "";
@@ -85,7 +90,7 @@ public class CollectionDao extends HibernateDao<Collection, Long>
 
    /**
     * Retrieves the root collection of all the collections.
-    * 
+    *
     * @return the root collection or new instance of the root collection if not
     *         already existing.
     */
@@ -110,7 +115,7 @@ public class CollectionDao extends HibernateDao<Collection, Long>
 
    /**
     * retrieve the parent of the passed collection.
-    * 
+    *
     * @param c the collection to retrieve the parent.
     * @return the parent collection, or null if passed collection is the root
     *         one.
@@ -142,6 +147,7 @@ public class CollectionDao extends HibernateDao<Collection, Long>
          collection.getName ().equals (COLLECTION_ROOT_NAME);
    }
 
+   @SuppressWarnings ("unchecked")
    public List<Collection> getSubCollections (final Long id, User user)
    {
       String userString = "";
@@ -152,7 +158,7 @@ public class CollectionDao extends HibernateDao<Collection, Long>
       {
          userString =
             "(" + user.getId () + " in elements(sub.authorizedUsers) or " +
-                  userDao.getPublicData ().getId () +
+                     userDao.getPublicData ().getId () +
                      " in elements(sub.authorizedUsers)) and ";
       }
       final String userRestriction = userString;
@@ -166,22 +172,18 @@ public class CollectionDao extends HibernateDao<Collection, Long>
       hql.append ("LIKE '").append (HIDDEN_PREFIX).append ("%' ");
       hql.append ("ORDER BY sub.name");
 
-      return (List<Collection>) getHibernateTemplate ().find (hql.toString (), id);
+      return (List<Collection>) getHibernateTemplate ().find (hql.toString (),
+            id);
    }
 
    /**
     * Checks if the colletion identified by the id has children collections.
-    * 
+    *
     * @param id
     * @return
     */
    public boolean hasChildrenCollection (final Long id, User user)
    {
-      class ReturnValue
-      {
-         Long value;
-      }
-
       String userString = "";
       // Bypass for Data Right Managers. They can see all products and
       // collections.
@@ -194,7 +196,6 @@ public class CollectionDao extends HibernateDao<Collection, Long>
                      " in elements(sub.authorizedUsers)) and ";
       }
       final String userRestriction = userString;
-      final ReturnValue rv = new ReturnValue ();
 
       StringBuilder hql = new StringBuilder ();
       hql.append ("SELECT count(*) ");
@@ -266,12 +267,11 @@ public class CollectionDao extends HibernateDao<Collection, Long>
       {
          users.add (user);
       }
-      if ( (parent != null) && !isRoot (collection) &&
-         !isRoot (parent))
+      if (parent != null && !isRoot (collection) && !isRoot (parent))
       {
          for (User u : getAuthorizedUsers (parent))
          {
-            if (u.getId () != user.getId ())
+            if (!u.getId ().equals (user.getId ()))
             {
                users.add (u);
             }
@@ -283,68 +283,46 @@ public class CollectionDao extends HibernateDao<Collection, Long>
 
    /**
     * Checks if the collection contains the passed product.
-    * 
+    *
     * @param collection the collection to check.
-    * @param product the product to retrive in collection.
+    * @param product the product to retrieve in collection.
     * @return true if the product is included in the collection, false
     *         otherwise.
     */
-   // Not filtered by user
    public boolean contains (final Long cid, final Long pid)
    {
-      StringBuilder sql = new StringBuilder ();
-      sql.append ("SELECT count(*) ");
-      sql.append ("FROM COLLECTION_PRODUCT ");
-      sql.append ("WHERE COLLECTIONS_ID = ? AND PRODUCTS_ID = ?");
-
-      boolean newSession = false;
-      Session session;
-      try
-      {
-         session = getSessionFactory ().getCurrentSession ();
-      }
-      catch (HibernateException e)
-      {
-         session = getSessionFactory ().openSession ();
-         newSession = true;
-      }
-
-      SQLQuery query = session.createSQLQuery (sql.toString ());
-      query.setLong (0, cid);
-      query.setLong (1, pid);
-      BigInteger result = (BigInteger) query.uniqueResult ();
-
-      if (newSession)
-         session.disconnect ();
-      return result.intValue () == 1;
+      Collection collection = read(cid);
+      Hibernate.initialize (collection.getProducts());
+      return collection.getProducts().contains(productDao.read(pid));
    }
 
    /**
     * Remove a product from a collection. The product should stay in the
     * database.
-    * 
+    *
     * @param cid
     * @param pid
     */
    public void removeProduct (final Long cid, final Long pid, User user)
    {
-      getHibernateTemplate ().execute (new HibernateCallback<Void> ()
+      Collection collection = read(cid);
+      if (collection == null)
       {
-         public Void doInHibernate (Session session) throws HibernateException,
-               SQLException
-         {
-            String sql = "delete from COLLECTION_PRODUCT " +
-                  " where COLLECTIONS_ID = :cid and PRODUCTS_ID = :pid";
-            SQLQuery query = session.createSQLQuery (sql);
-            query.setParameter ("cid", cid);
-            query.setParameter ("pid", pid);
-            query.executeUpdate ();
-            return null;
-         }
-      });
+         logger.warn ("Unknown collection #" + cid);
+         return;
+      }
+      Product product = productDao.read(pid);
+      if (product == null)
+      {
+         logger.warn ("Unknown product #" + pid);
+         return;
+      }
       
-      fireProductRemoved (new DaoEvent<Collection> (read (cid)),
-         productDao.read (pid));
+      Hibernate.initialize (collection.getProducts());
+      collection.getProducts().remove(product);
+      update(collection);
+
+      fireProductRemoved (new DaoEvent<Collection> (collection), product);
       List<Collection> subCol = getSubCollections (cid, user);
       for (Collection c : subCol)
       {
@@ -358,109 +336,41 @@ public class CollectionDao extends HibernateDao<Collection, Long>
          removeProduct (cid, pid, user);
    }
 
-   /**
-    * Adds a product into a collection
-    * 
-    * @param cid
-    * @param pid
-    */
-   public void addProduct (final Long cid, final Long pid)
-   {
-      // Case of product already in the collection
-      if (contains (cid, pid))
-      {
-         logger.warn ("Product id #" + pid + " already in the collection #" +
-               cid);
-         return;
-      }
-
-      getHibernateTemplate ().execute (new HibernateCallback<Void> ()
-      {
-         public Void doInHibernate (Session session) throws HibernateException,
-               SQLException
-         {
-            String sql = "INSERT INTO " +
-                  "COLLECTION_PRODUCT(COLLECTIONS_ID, PRODUCTS_ID) " +
-                  "VALUES(:cid, :pid)";
-            SQLQuery query = session.createSQLQuery (sql);
-            query.setLong ("cid", cid);
-            query.setLong ("pid", pid);
-            query.executeUpdate ();
-            return null;
-         }
-      });
-
-      Collection c = read (cid);
-      Product product = productDao.read (pid);
-      if (c != null)
-      {
-         for (User u : getAuthorizedUsers (c))
-         {
-            userDao.addAccessToProduct (u, product.getId ());
-         }
-      }
-
-      fireProductAdded (new DaoEvent<Collection> (read (cid)),
-         productDao.read (pid));
-      Collection parent = getParent (c);
-      if (parent != null && parent.getId () != getRootCollection ().getId ())
-      {
-         addProduct (parent.getId (), pid);
-      }
-   }
-
-   public void addProducts (final Long cid, final Long[] pids)
-   {
-      for (Long pid : pids)
-         addProduct (cid, pid);
-   }
-
    // Not filtered by user, only called by ProductDao.delete, which must delete
    // all product references
-   public List<Collection> getCollectionsOfProduct (final Long productId)
+   @SuppressWarnings ("unchecked")
+   public List<Collection> getCollectionsOfProduct (final Long product_id)
    {
-      StringBuilder hql = new StringBuilder ();
-      hql.append ("SELECT c ");
-      hql.append ("FROM ").append (entityClass.getName ()).append (" c ");
-      hql.append ("LEFT OUTER JOIN c.products p ");
-      hql.append ("WHERE p.id = ? ORDER BY c.name");
-
-      return (List<Collection>) getHibernateTemplate ()
-            .find (hql.toString (), productId);
+      return (List<Collection>) getHibernateTemplate ().find (
+         "select c " +
+         "from Collection c left outer join c.products p " +
+         "where p.id = ? ORDER BY c.name", product_id);
    }
 
-   public List<Long> getProductIds (final Long collectionId, User user)
+   /**
+    * THIS METHOD IS NOT SAFE: IT MUST BE REMOVED.
+    * TODO: manage access by page.
+    * @param collection_id
+    * @param user
+    * @return
+    */
+   @SuppressWarnings ("unchecked")
+   public List<Long> getProductIds (final Long collection_id, User user)
    {
-      Collection collection = read (collectionId);
+      // TODO re-check method
+      Collection collection = read (collection_id);
       if (collection != null && isRoot (collection))
       {
-         if (user == null)
-            return productDao.getAuthorizedProducts (userDao.getRootUser ()
-               .getId ());
          return productDao.getAuthorizedProducts (user.getId ());
       }
 
-      String userString = "";
-      // Bypass for Data Right Managers. They can see all products and
-      // collections.
-      if ( !cfgManager.isDataPublic () && user != null &&
-         !user.getRoles ().contains (Role.DATA_MANAGER))
-      {
-         userString =
-            "(" + user.getId () + " in elements(p.authorizedUsers) or " +
-                  userDao.getPublicData ().getId () +
-                     "in elements(p.authorizedUsers)) and ";
-      }
-      final String userRestriction = userString;
       StringBuilder hql = new StringBuilder ();
       hql.append ("SELECT p.id ");
       hql.append ("FROM ").append (entityClass.getName ()).append (" c ");
       hql.append ("LEFT OUTER JOIN c.products p ");
-      hql.append ("WHERE ").append (userRestriction);
-      hql.append ("c.id = ?");
+      hql.append ("WHERE ").append ("c.id = ").append (collection_id);
 
-      return (List<Long>) getHibernateTemplate ()
-            .find (hql.toString (), collectionId);
+      return (List<Long>) getHibernateTemplate ().find (hql.toString ());
    }
 
    void fireProductAdded (DaoEvent<Collection> e, Product p)
@@ -486,11 +396,12 @@ public class CollectionDao extends HibernateDao<Collection, Long>
    }
 
    @SuppressWarnings ("unchecked")
-   public List<Long> getAuthorizedCollections (Long userId)
+   public List<Long> getAuthorizedCollections (Long user_id)
    {
       String restiction_query =
-         " c WHERE (" + userId + " in elements(c.authorizedUsers) OR " +
-               userDao.getPublicData ().getId () + " in elements(c.authorizedUsers))";
+            " c WHERE (" + user_id + " in elements(c.authorizedUsers) OR " +
+                  userDao.getPublicData ().getId () +
+                  " in elements(c.authorizedUsers))";
 
       if (cfgManager.isDataPublic ()) restiction_query = "";
 
@@ -530,25 +441,7 @@ public class CollectionDao extends HibernateDao<Collection, Long>
 
    public List<Collection> getAllSubCollection (final Collection c)
    {
-      final String hql =
-         "SELECT sub FROM Collection c LEFT OUTER JOIN c.subCollections sub "
-            + "WHERE c.id in ?";
-      return getHibernateTemplate ().execute (
-         new HibernateCallback<List<Collection>> ()
-         {
-
-            @Override
-            @SuppressWarnings ("unchecked")
-            public List<Collection> doInHibernate (Session session)
-               throws HibernateException, SQLException
-            {
-               Query query = session.createQuery (hql);
-               query.setLong (0, c.getId ());
-               List<Collection> result = query.list ();
-               result.remove (null);
-               return result;
-            }
-         });
+      return ImmutableList.copyOf(c.getSubCollections());
    }
 
    public int countAuthorizedSubCollections (User user, Collection collection)
@@ -582,7 +475,7 @@ public class CollectionDao extends HibernateDao<Collection, Long>
          !user.getRoles ().contains (Role.DATA_MANAGER))
       {
          qBuilder.append (DaoUtils.userRestriction (user, subCollectionPrefix +
-            "."));
+               "."));
          qBuilder.append (" AND ");
       }
 
@@ -652,29 +545,23 @@ public class CollectionDao extends HibernateDao<Collection, Long>
          qBuilder.append (" ORDER BY ");
          qBuilder.append (order);
       }
+      
+      final String hql = qBuilder.toString ();
 
-      boolean newSession = false;
-      String hql = qBuilder.toString ();
-      Session session;
-      try
-      {
-         session = getSessionFactory ().getCurrentSession ();
-      }
-      catch (HibernateException e)
-      {
-         session = getSessionFactory ().openSession ();
-         newSession = true;
-      }
+      return getHibernateTemplate().execute(
+         new HibernateCallback<List<Collection>> ()
+         {
+            @Override
+            public List<Collection> doInHibernate (Session session)
+               throws HibernateException, SQLException
+            {
+               Query query = session.createQuery (hql);
+               if (top >= 0) query.setMaxResults (top);
+               if (skip > 0) query.setFirstResult (skip);
 
-      Query query = session.createQuery (hql);
-      if (top >= 0) query.setMaxResults (top);
-      if (skip > 0) query.setFirstResult (skip);
-
-      List<Collection> result = query.list ();
-
-      if (newSession)
-         session.disconnect ();
-      return result;
+               return query.list ();
+            }
+         });
    }
 
    public List<Product> getAuthorizedProducts (User user, Collection collection)
@@ -684,9 +571,13 @@ public class CollectionDao extends HibernateDao<Collection, Long>
 
    @SuppressWarnings ("unchecked")
    public List<Product> getAuthorizedProducts (User user,
-      Collection collection, String filter, String orderBy, final int skip,
-      final int top)
+      Collection collection, String filter, String order_by, final int skip,
+      int top)
    {
+      ProductDao.checkProductNumber(top);
+      if (top<0) top=ProductDao.getMaxPageSize();
+      final int final_top = top;
+      
       // TODO Security on filter & orderBy string
       StringBuilder qBuilder = new StringBuilder ();
       String productPrefix = "p";
@@ -702,18 +593,9 @@ public class CollectionDao extends HibernateDao<Collection, Long>
 
       // Builds the WHERE clause.
       qBuilder.append ("WHERE ");
-      
+
       // not retrieve unprocessed products
       qBuilder.append ("p.processed = true");
-      
-      // Bypass for Data Right Managers. They can see all products and
-      // collections.
-      if (user != null && !user.getRoles ().contains (Role.DATA_MANAGER) &&
-         !cfgManager.isDataPublic ())
-      {
-         qBuilder.append (" AND ");
-         qBuilder.append (DaoUtils.userRestriction (user, productPrefix + "."));
-      }
 
       if (collection != null)
       {
@@ -727,36 +609,30 @@ public class CollectionDao extends HibernateDao<Collection, Long>
          qBuilder.append (" AND ");
          qBuilder.append (filter);
       }
-      
+
       // Builds the ORDER BY clause.
-      if (orderBy != null && !orderBy.isEmpty ())
+      if (order_by != null && !order_by.isEmpty ())
       {
          qBuilder.append (" ORDER BY ");
-         qBuilder.append (orderBy);
+         qBuilder.append (order_by);
       }
 
       final String hql = qBuilder.toString ();
 
-      Session session;
-      boolean newSession = false;
-      try
-      {
-         session = getSessionFactory ().getCurrentSession ();
-      }
-      catch (HibernateException e)
-      {
-         session = getSessionFactory ().openSession ();
-         newSession = true;
-      }
-      Query query = session.createQuery (hql);
-      if (top >= 0) query.setMaxResults (top);
-      if (skip > 0) query.setFirstResult (skip);
-      query.setReadOnly (true);
-      List<Product> result = query.list ();
-
-      if (newSession)
-         session.disconnect ();
-      return result;
+      return getHibernateTemplate().execute(
+         new HibernateCallback<List<Product>> ()
+         {
+            @Override
+            public List<Product> doInHibernate (Session session)
+               throws HibernateException, SQLException
+            {
+               Query query = session.createQuery (hql);
+               if (final_top >= 0) query.setMaxResults (final_top);
+               if (skip > 0) query.setFirstResult (skip);
+               query.setReadOnly (true);
+               return query.list();
+            }
+         });
    }
 
    public int countAuthorizedProducts (User user, Collection collection)
@@ -783,37 +659,28 @@ public class CollectionDao extends HibernateDao<Collection, Long>
 
       // Builds the WHERE clause.
       qBuilder.append ("WHERE ");
-      // Bypass for Data Right Managers. They can see all products and
-      // collections.
-      if (user != null && !user.getRoles ().contains (Role.DATA_MANAGER) &&
-         !cfgManager.isDataPublic ())
-      {
-         qBuilder.append (DaoUtils.userRestriction (user, productPrefix + "."));
-         qBuilder.append (" AND ");
-      }
+
+      // not retrieve unprocessed products
+      qBuilder.append ("p.processed = true");
 
       if (collection != null)
       {
+         qBuilder.append (" AND ");
          qBuilder.append (collectionPrefix + ".id = ");
          qBuilder.append (collection.getId ());
-         qBuilder.append (" AND ");
       }
 
       if (filter != null && !filter.isEmpty ())
       {
-         qBuilder.append (filter);
          qBuilder.append (" AND ");
+         qBuilder.append (filter);
       }
-
-      // Cleanup.
-      int remIndex = qBuilder.lastIndexOf (" AND ");
-      if (remIndex == -1) remIndex = qBuilder.lastIndexOf ("WHERE ");
-      qBuilder.delete (remIndex, remIndex + 5);
-
+      
       return ((Long) getHibernateTemplate ().find (qBuilder.toString ())
          .get (0)).intValue ();
    }
 
+   @SuppressWarnings ("unchecked")
    public List<Collection> getHigherCollections (final User user,
          final String filter, final String order, final int skip, final int top)
    {
@@ -848,35 +715,30 @@ public class CollectionDao extends HibernateDao<Collection, Long>
          hql.append (" ORDER BY ").append (order);
       }
 
-      boolean newSession = false;
-      Session session;
+      final String script = hql.toString ();
+      
+      return getHibernateTemplate().execute(
+         new HibernateCallback<List<Collection>> ()
+         {
+            @Override
+            public List<Collection> doInHibernate (Session session)
+               throws HibernateException, SQLException
+            {
+               Query query = session.createQuery (script);
+               query.setEntity (0, user);
+               query.setEntity (1, user);
+               query.setEntity (2, userDao.getPublicData ());
+               query.setEntity (3, userDao.getPublicData ());
 
-      try
-      {
-         session = getSessionFactory ().getCurrentSession ();
-      }
-      catch (HibernateException e)
-      {
-         session = getSessionFactory ().openSession ();
-         newSession = true;
-      }
+               if (top >= 0) query.setMaxResults (top);
+               if (skip > 0) query.setFirstResult (skip);
 
-      Query query = session.createQuery (hql.toString ());
-      query.setEntity (0, user);
-      query.setEntity (1, user);
-      query.setEntity (2, userDao.getPublicData ());
-      query.setEntity (3, userDao.getPublicData ());
-
-      if (top >= 0) query.setMaxResults (top);
-      if (skip > 0) query.setFirstResult (skip);
-
-      List<Collection> result = query.list ();
-
-      if (newSession)
-         session.disconnect ();
-      return result;
+               return query.list ();
+            }
+         });
    }
 
+   @SuppressWarnings ("unchecked")
    public List<User> getAuthorizedUsers (final Collection collection)
    {
       String hql =
@@ -886,10 +748,11 @@ public class CollectionDao extends HibernateDao<Collection, Long>
             collection.getId ());
    }
 
-   public Long getCollectionByName (final String collectionName)
+   public Long getCollectionByName (final String collection_name)
    {
-      String hql = "SELECT id FROM " + entityClass.getName () + " WHERE name = ?";
-      List<?> result = getHibernateTemplate ().find (hql, collectionName);
+      String hql =
+            "SELECT id FROM " + entityClass.getName () + " WHERE name = ?";
+      List<?> result = getHibernateTemplate ().find (hql, collection_name);
 
       if (result.isEmpty ())
          return null;
@@ -904,39 +767,19 @@ public class CollectionDao extends HibernateDao<Collection, Long>
 
       Collection collection = read (cid);
       User user = userDao.read (uid);
+      
       if (collection == null || user == null)
          return false;
 
       if (user.getRoles ().contains (Role.DATA_MANAGER))
          return true;
+      
+      return collection.getAuthorizedUsers().contains(user);
+   }
 
-      StringBuilder sql = new StringBuilder ();
-      sql.append ("SELECT count(*) FROM COLLECTION_USER_AUTH ");
-      sql.append ("WHERE (COLLECTIONS_ID = ? AND USERS_ID = ?) OR ");
-      sql.append ("(COLLECTIONS_ID = ? AND USERS_ID = ?)");
-
-      boolean newSession = false;
-      Session session;
-
-      try
-      {
-         session = getSessionFactory ().getCurrentSession ();
-      }
-      catch (HibernateException e)
-      {
-         session = getSessionFactory ().openSession ();
-         newSession = true;
-      }
-
-      SQLQuery query = session.createSQLQuery (sql.toString ());
-      query.setLong (0, cid);
-      query.setLong (1, uid);
-      query.setLong (2, userDao.getPublicData ().getId ());
-      query.setReadOnly (true);
-      int result = ((BigInteger) query.uniqueResult ()).intValue ();
-
-      if (newSession)
-         session.disconnect ();
-      return result > 0;
+   public Iterator<Collection> getAllCollectons ()
+   {
+      String query = "FROM " + entityClass.getName ();
+      return new PagedIterator<> (this, query);
    }
 }

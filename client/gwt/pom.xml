@@ -7,37 +7,14 @@
    <parent>
       <groupId>fr.gael.dhus</groupId>
       <artifactId>dhus-parent</artifactId>
-      <version>0.4.3-5-2</version>
-      <relativePath>../../parent</relativePath>
+          <version>0.9.0-2</version>
+        <relativePath></relativePath>
    </parent>
 
    <artifactId>dhus-gwt-client</artifactId>
    <packaging>jar</packaging>
 
    <name>DHuS - GWT Client</name>
-
-   <profiles>
-      <profile>
-         <id>sources</id>
-         <build>
-            <plugins>
-               <plugin>
-                  <groupId>org.apache.maven.plugins</groupId>
-                  <artifactId>maven-source-plugin</artifactId>
-                  <version>2.1.2</version>
-                  <executions>
-                     <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                           <goal>jar-no-fork</goal>
-                        </goals>
-                     </execution>
-                  </executions>
-               </plugin> 
-            </plugins>
-         </build>
-      </profile>
-   </profiles>
 
    <dependencies>
       <!-- GWT -->
@@ -98,6 +75,8 @@
             <version>2.5.0</version>
             <executions>
                <execution>
+                  <id>gwt-compile</id>
+                  <phase>compile</phase>
                   <goals>
                      <goal>compile</goal>
                   </goals>
@@ -110,10 +89,11 @@
             <version>2.3</version>
             <executions>
                <execution>
+                  <id>gwt-war-generator</id>
+                  <phase>prepare-package</phase>
                   <goals>
                      <goal>war</goal>
                   </goals>
-                  <phase>prepare-package</phase>
                </execution>
             </executions>
             <configuration>
@@ -129,7 +109,7 @@
                   <resource>
                      <directory>src/main/resources/web</directory>
                      <includes>
-                     	<include>dhus-api-servlet.xml</include>
+                        <include>dhus-api-servlet.xml</include>
                         <include>spring.xml</include>
                         <include>web.xml</include>
                      </includes>

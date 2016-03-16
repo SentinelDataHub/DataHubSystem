@@ -19,7 +19,6 @@
  */
 package fr.gael.dhus.gwt.services;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -35,6 +34,7 @@ import fr.gael.dhus.database.object.Collection;
 import fr.gael.dhus.database.object.FileScanner;
 import fr.gael.dhus.gwt.services.annotation.RPCService;
 import fr.gael.dhus.gwt.share.FileScannerData;
+import fr.gael.dhus.gwt.share.exceptions.AccessDeniedException;
 import fr.gael.dhus.gwt.share.exceptions.UploadServiceException;
 import fr.gael.dhus.service.CollectionService;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
@@ -50,7 +50,7 @@ public class UploadServiceImpl extends RemoteServiceServlet implements
 {
    private static final long serialVersionUID = 4981049293450245170L;
 
-   public void processScan (Long scanId) throws UploadServiceException
+   public void processScan (Long scanId) throws UploadServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UploadService uploadService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UploadService.class);
@@ -59,6 +59,11 @@ public class UploadServiceImpl extends RemoteServiceServlet implements
       {
          uploadService.processScan (scanId);
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -66,7 +71,7 @@ public class UploadServiceImpl extends RemoteServiceServlet implements
       }
    }
 
-   public void stopScan (Long scanId) throws UploadServiceException
+   public void stopScan (Long scanId) throws UploadServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UploadService uploadService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UploadService.class);
@@ -75,6 +80,11 @@ public class UploadServiceImpl extends RemoteServiceServlet implements
       {
          uploadService.stopScan (scanId);
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -82,7 +92,7 @@ public class UploadServiceImpl extends RemoteServiceServlet implements
       }
    }
    
-   public List<FileScannerData> getFileScanners () throws UploadServiceException
+   public List<FileScannerData> getFileScanners () throws UploadServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UploadService uploadService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UploadService.class);
@@ -98,12 +108,8 @@ public class UploadServiceImpl extends RemoteServiceServlet implements
             if (scanner != null)
             {
                // BigInteger values. Need to be transformed in real Long
-               List<BigInteger> scanCol = uploadService.getFileScannerCollections (scanner.getId());
-               List<Long> collections = new ArrayList<Long> ();
-               for (BigInteger l : scanCol)
-               {
-                  collections.add (new Long(l.longValue ()));
-               }
+               List<Long> collections = uploadService.
+                  getFileScannerCollections (scanner.getId());
                
                FileScannerData sData = new FileScannerData(scanner.getId (), scanner.getUrl (), 
                   scanner.getUsername (), scanner.getPassword (), scanner.getPattern (),
@@ -122,6 +128,11 @@ public class UploadServiceImpl extends RemoteServiceServlet implements
          });
          return scanners;
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -129,13 +140,18 @@ public class UploadServiceImpl extends RemoteServiceServlet implements
       }
    }
    
-   public int countFileScanners () throws UploadServiceException
+   public int countFileScanners () throws UploadServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UploadService uploadService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UploadService.class);
       try
       {
          return uploadService.countFileScanners ();
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -145,7 +161,7 @@ public class UploadServiceImpl extends RemoteServiceServlet implements
    }
    
    public long addFileScanner (String url, String username, String password, String pattern,
-      List<Long> collectionDatas) throws UploadServiceException
+      List<Long> collectionDatas) throws UploadServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UploadService uploadService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UploadService.class);
@@ -162,6 +178,11 @@ public class UploadServiceImpl extends RemoteServiceServlet implements
          FileScanner fs = uploadService.addFileScanner (url, username, password, pattern, collections);
          return fs.getId ();
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -169,13 +190,18 @@ public class UploadServiceImpl extends RemoteServiceServlet implements
       }
    }
    
-   public void removeFileScanner (Long id) throws UploadServiceException
+   public void removeFileScanner (Long id) throws UploadServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UploadService uploadService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UploadService.class);
       try
       {
          uploadService.removeFileScanner (id);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -185,7 +211,7 @@ public class UploadServiceImpl extends RemoteServiceServlet implements
    }
 
    public void updateFileScanner (Long id, String url, String username, String password, String pattern,
-      List<Long> collectionDatas) throws UploadServiceException
+      List<Long> collectionDatas) throws UploadServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UploadService uploadService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UploadService.class);
@@ -202,6 +228,11 @@ public class UploadServiceImpl extends RemoteServiceServlet implements
          }
          uploadService.updateFileScanner (id, url, username, password, pattern, collections);
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -209,7 +240,7 @@ public class UploadServiceImpl extends RemoteServiceServlet implements
       }
    }
    
-   public void setFileScannerActive (Long id, boolean active) throws UploadServiceException
+   public void setFileScannerActive (Long id, boolean active) throws UploadServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UploadService uploadService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UploadService.class);
@@ -218,6 +249,11 @@ public class UploadServiceImpl extends RemoteServiceServlet implements
       {
          uploadService.setFileScannerActive (id, active);
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -225,7 +261,7 @@ public class UploadServiceImpl extends RemoteServiceServlet implements
       }
    }
    
-   public Date getNextScheduleFileScanner() throws UploadServiceException
+   public Date getNextScheduleFileScanner() throws UploadServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.UploadService uploadService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.UploadService.class);
@@ -233,6 +269,11 @@ public class UploadServiceImpl extends RemoteServiceServlet implements
       try
       {
          return uploadService.getNextScheduleFileScanner ();
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {

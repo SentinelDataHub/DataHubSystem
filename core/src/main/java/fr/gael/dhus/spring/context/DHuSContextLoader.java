@@ -30,7 +30,8 @@ public class DHuSContextLoader implements BeanFactoryPostProcessor
    public void postProcessBeanFactory (ConfigurableListableBeanFactory bf)
       throws BeansException
    {
-      bf.setParentBeanFactory ( ((AbstractApplicationContext) ApplicationContextProvider
+      bf.setParentBeanFactory (
+            ((AbstractApplicationContext) ApplicationContextProvider
          .getApplicationContext ()).getBeanFactory ());
    }
 }

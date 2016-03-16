@@ -31,17 +31,17 @@ import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.SimpleRadioButton;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.datepicker.client.CalendarUtil;
 
-import fr.gael.dhus.gwt.share.RoleData;
+import fr.gael.dhus.gwt.client.AccessDeniedRedirectionCallback;
 import fr.gael.dhus.gwt.client.GWTClient;
 import fr.gael.dhus.gwt.client.page.AbstractPage;
 import fr.gael.dhus.gwt.services.StatisticsServiceAsync;
 import fr.gael.dhus.gwt.services.UserServiceAsync;
+import fr.gael.dhus.gwt.share.RoleData;
 import fr.gael.dhus.gwt.share.UserData;
 
 public class StatisticsSearches extends AbstractPage
@@ -147,7 +147,7 @@ public class StatisticsSearches extends AbstractPage
       refreshUsersTable ();     
       totalSearches.getElement ().setInnerText ("unknown");
       
-      statisticsService.getTotalSearches (new AsyncCallback<Integer>()
+      statisticsService.getTotalSearches (new AccessDeniedRedirectionCallback<Integer>()
       {         
          @Override
          public void onSuccess (Integer result)
@@ -156,7 +156,7 @@ public class StatisticsSearches extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
          }
       });     
@@ -199,7 +199,7 @@ public class StatisticsSearches extends AbstractPage
       final Date start = dtf.parse (startDate.getValue()+" 00:00:00"); // for db request, to select all start day
       Date end = dtf.parse (endDate.getValue()+" 23:59:59"); // for db request, to select all end day
       
-      statisticsService.getSearchesPerUser (start, end, selectedUsers, hourOption.getValue (), new AsyncCallback<String[][]>()
+      statisticsService.getSearchesPerUser (start, end, selectedUsers, hourOption.getValue (), new AccessDeniedRedirectionCallback<String[][]>()
       {         
          @Override
          public void onSuccess (String[][] result)
@@ -208,7 +208,7 @@ public class StatisticsSearches extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
          }
       });
@@ -220,7 +220,7 @@ public class StatisticsSearches extends AbstractPage
       final Date start = dtf.parse (startDate.getValue()+" 00:00:00"); // for db request, to select all start day
       Date end = dtf.parse (endDate.getValue()+" 23:59:59"); // for db request, to select all end day
       
-      statisticsService.getSearchesPerDomain (start, end, hourOption.getValue (), new AsyncCallback<String[][]>()
+      statisticsService.getSearchesPerDomain (start, end, hourOption.getValue (), new AccessDeniedRedirectionCallback<String[][]>()
       {         
          @Override
          public void onSuccess (String[][] result)
@@ -229,7 +229,7 @@ public class StatisticsSearches extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
          }
       });
@@ -241,7 +241,7 @@ public class StatisticsSearches extends AbstractPage
       final Date start = dtf.parse (startDate.getValue()+" 00:00:00"); // for db request, to select all start day
       Date end = dtf.parse (endDate.getValue()+" 23:59:59"); // for db request, to select all end day
       
-      statisticsService.getSearchesPerUsage (start, end, hourOption.getValue (), new AsyncCallback<String[][]>()
+      statisticsService.getSearchesPerUsage (start, end, hourOption.getValue (), new AccessDeniedRedirectionCallback<String[][]>()
       {         
          @Override
          public void onSuccess (String[][] result)
@@ -250,7 +250,7 @@ public class StatisticsSearches extends AbstractPage
          }
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
          }
       });
@@ -415,11 +415,11 @@ public class StatisticsSearches extends AbstractPage
       
       GWTClient.callback (function, JsonUtils.safeEval ("{\"aaData\": [],\"iTotalRecords\" : 0, \"iTotalDisplayRecords\" : 0}"));
       
-      userService.countAll (search, new AsyncCallback<Integer> ()
+      userService.countAll (search, new AccessDeniedRedirectionCallback<Integer> ()
       {
 
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             DOM.setStyleAttribute (RootPanel.getBodyElement (), "cursor",
                "default");
@@ -430,10 +430,10 @@ public class StatisticsSearches extends AbstractPage
          public void onSuccess (final Integer total)
          {
             userService.getAllUsers (start, length, search,
-               new AsyncCallback<List<UserData>> ()
+               new AccessDeniedRedirectionCallback<List<UserData>> ()
                {
                   @Override
-                  public void onFailure (Throwable caught)
+                  public void _onFailure (Throwable caught)
                   {
                      DOM.setStyleAttribute (RootPanel.getBodyElement (),
                         "cursor", "default");

@@ -19,9 +19,37 @@
  */
 package fr.gael.dhus.spring.security;
 
+import javax.servlet.http.Cookie;
+
 public class CookieKey
 {
    public static final String AUTHENTICATION_COOKIE_NAME = "dhusAuth";
    public static final String VALIDITY_COOKIE_NAME = "dhusValidity";
    public static final String INTEGRITY_COOKIE_NAME = "dhusIntegrity";
+
+   /**
+    * Hide utility class constructor
+    */
+   private CookieKey ()
+   {
+
+   }
+   
+   /**
+    * Retrieve DHuS integrity cookie from a list of cookies.
+    * @param cookies a list of cookies
+    * @return the dhus integrity cookie or null if not found.
+    */
+   public static Cookie getIntegrityCookie (Cookie[] cookies)
+   {
+      if (cookies!=null)
+      {
+         for (Cookie cookie : cookies)
+         {
+            if (CookieKey.INTEGRITY_COOKIE_NAME.equals(cookie.getName ()))
+               return cookie;
+         }
+      }
+      return null;
+   }
 }

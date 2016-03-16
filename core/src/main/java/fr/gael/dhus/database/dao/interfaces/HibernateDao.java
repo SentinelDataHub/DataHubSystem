@@ -29,25 +29,26 @@ import javax.swing.event.EventListenerList;
 
 import org.hibernate.HibernateException;
 import org.hibernate.Query;
+import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate3.HibernateCallback;
-import org.springframework.orm.hibernate3.HibernateTemplate;
 import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
 
 /**
  * Hibernate DAO Implementation, containing minimal CRUD operations.
  * 
- * @author valette
  * @param <T> Object concerned by this DAO
  * @param <PK> Primary Key of this Object.
  */
 public class HibernateDao<T, PK extends Serializable> extends
-   HibernateDaoSupport implements GenericDao<T, PK>
+   HibernateDaoSupport implements GenericDao<T, PK>, Pageable<T>
 {
    protected Class<T> entityClass;
+   private final EventListenerList listeners = new EventListenerList ();
 
    @SuppressWarnings ("unchecked")
    public HibernateDao ()
@@ -80,7 +81,8 @@ public class HibernateDao<T, PK extends Serializable> extends
       long start = new Date ().getTime ();
       T ret = getHibernateTemplate ().get (entityClass, id);
       long end = new Date ().getTime ();
-      logger.debug ("Read " + entityClass.getSimpleName () + "(" + id + ") spent " + (end-start) + "ms" );
+      logger.debug ("Read " + entityClass.getSimpleName ()
+            + "(" + id + ") spent " + (end-start) + "ms" );
       return ret;
    }
 
@@ -90,7 +92,8 @@ public class HibernateDao<T, PK extends Serializable> extends
       long start = new Date ().getTime ();
       getHibernateTemplate ().update (t);
       long end = new Date ().getTime ();
-      logger.info ("Update " + entityClass.getSimpleName () + " spent " + (end-start) + "ms" );
+      logger.info ("Update " + entityClass.getSimpleName () + " spent "
+            + (end-start) + "ms" );
 
       fireUpdatedEvent (new DaoEvent<T> (t));
    }
@@ -101,7 +104,8 @@ public class HibernateDao<T, PK extends Serializable> extends
       long start = new Date ().getTime ();
       getHibernateTemplate ().delete (t);
       long end = new Date ().getTime ();
-      logger.info ("Delete " + entityClass.getSimpleName () + " spent " + (end-start) + "ms" );
+      logger.info ("Delete " + entityClass.getSimpleName () + " spent "
+            + (end-start) + "ms" );
 
       fireDeletedEvent (new DaoEvent<T> (t));
    }
@@ -132,6 +136,7 @@ public class HibernateDao<T, PK extends Serializable> extends
     * @param n  number of entities max returned.
     * @return a list of <b>T</b> entities.
     */
+   @SuppressWarnings ("unchecked")
    public List<T> scroll (final String clauses, final int skip, final int n)
    {
       StringBuilder hql = new StringBuilder ();
@@ -152,12 +157,19 @@ public class HibernateDao<T, PK extends Serializable> extends
       }
 
       Query query = session.createQuery (hql.toString ());
-      if (skip > 0)
-         query.setFirstResult (skip);
-      if (n > 0)
+      if (skip > 0) query.setFirstResult (skip);
+      if (n > 0) 
+      {
          query.setMaxResults (n);
+         query.setFetchSize (n);
+      }
+      
+      logger.info ("Execution of HQL: " + hql.toString ());
+      long start = System.currentTimeMillis ();
 
       List<T> result = (List<T>) query.list ();
+      logger.info ("HQL executed in " + 
+         (System.currentTimeMillis() -start) + "ms.");
 
       if (newSession)
       {
@@ -170,13 +182,13 @@ public class HibernateDao<T, PK extends Serializable> extends
    /**
     * Retrieve the first element of the results.
     * 
-    * @param queryString
+    * @param query_string
     * @return
     */
-   public T first (String queryString)
+   public T first (String query_string)
    {
       @SuppressWarnings ("unchecked")
-      List<T> result = (List<T>) getHibernateTemplate ().find (queryString);
+      List<T> result = (List<T>) getHibernateTemplate ().find (query_string);
       return (result.isEmpty ()) ? null : result.get (0);
    }
 
@@ -208,20 +220,17 @@ public class HibernateDao<T, PK extends Serializable> extends
    }
    
    @SuppressWarnings ("rawtypes")
-   public List find(String queryString) throws DataAccessException 
+   public List find(String query_string) throws DataAccessException
    {
       long start = new Date ().getTime ();
-      List ret= getHibernateTemplate ().find (queryString);
+      List ret= getHibernateTemplate ().find (query_string);
       
       long end = new Date ().getTime ();
       logger.debug ("Query \"" + 
-         queryString.replaceAll("(\\r|\\n)", " ").trim () + 
+         query_string.replaceAll("(\\r|\\n)", " ").trim () +
          "\" spent " + (end-start) + "ms" );
       return ret;
    }
-   
-   // DAO listeners
-   private final EventListenerList listeners = new EventListenerList ();
 
    public void addListener (DaoListener<T> listener)
    {
@@ -264,8 +273,102 @@ public class HibernateDao<T, PK extends Serializable> extends
    }
    
    @Autowired
-   public void init (SessionFactory sessionFactory)
+   public void init (SessionFactory session_factory)
    {
-      setSessionFactory (sessionFactory);
+      setSessionFactory (session_factory);
+   }
+   
+   public void printCurrentSessions ()
+   {
+      int num_session = countOpenSessions ();
+      logger.info(countOpenSessions () + " open sessions:");
+      int index = 0;
+      while (index<num_session)
+      {
+         logger.info(
+            "   SESSION_ID       "+ getSystemByName("SESSION_ID", index));
+         logger.info(
+            "   CONNECTED        "+ getSystemByName("CONNECTED", index));
+         logger.info(
+            "   SCHEMA           "+ getSystemByName("SCHEMA", index));
+         //logger.info(
+         //   "TRANSACTION      "+ getSystemByName("TRANSACTION", index));
+         logger.info(
+            "   WAITING_FOR_THIS "+ getSystemByName("WAITING_FOR_THIS", index));
+         logger.info(
+            "   THIS_WAITING_FOR "+ getSystemByName("THIS_WAITING_FOR", index));
+         logger.info(
+            "   LATCH_COUNT      "+ getSystemByName("LATCH_COUNT", index));
+         logger.info(
+            "   STATEMENT        "+ getSystemByName("CURRENT_STATEMENT",index));
+         logger.info("");
+         index++;
+      }
+   }
+   
+   @SuppressWarnings ("rawtypes")
+   private int countOpenSessions ()
+   {
+      return DataAccessUtils.intResult (getHibernateTemplate ().execute (
+         new HibernateCallback<List>()
+         {
+            @Override
+            public List doInHibernate(Session session) 
+               throws HibernateException, SQLException
+            {
+               String sql = 
+                  "SELECT count (*) FROM INFORMATION_SCHEMA.SYSTEM_SESSIONS";
+               SQLQuery query = session.createSQLQuery (sql);
+               return query.list ();
+            }
+         }));
+   }
+   
+   @SuppressWarnings ({ "unchecked", "rawtypes" })
+   private String getSystemByName (final String name, final int index)
+   {
+      return DataAccessUtils.uniqueResult (getHibernateTemplate ().execute (
+         new HibernateCallback<List>()
+         {
+            @Override
+            public List doInHibernate(Session session) 
+               throws HibernateException, SQLException
+            {
+               String sql = 
+                  "SELECT " + name +
+                  " FROM INFORMATION_SCHEMA.SYSTEM_SESSIONS" +
+                  " LIMIT  1 OFFSET " + index;
+               SQLQuery query = session.createSQLQuery (sql);
+               return query.list ();
+            }
+         })).toString ();
+   }
+
+   /**
+    * Returns a paged list of database entities.
+    * 
+    * @param query the passed query to retrieve the list.
+    * @param skip the number of elements to skip in the list (0=no skip).
+    * @param top number of element to be retained in the list.
+    * @throws ClassCastException if query does not returns entity list of type T.
+    * @see org.hibernate.Query
+    */
+   @Override
+   public List<T> getPage (final String query, final int skip, final int top)
+   {
+      return getHibernateTemplate ().execute (new HibernateCallback<List<T>> ()
+      {
+         // List must be instance of List<T> otherwise ClassCast
+         @SuppressWarnings ("unchecked")
+         @Override
+         public List<T> doInHibernate (Session session) throws
+               HibernateException, SQLException
+         {
+            Query hql_query = session.createQuery (query);
+            hql_query.setFirstResult (skip);
+            hql_query.setMaxResults (top);
+            return hql_query.list ();
+         }
+      });
    }
 }

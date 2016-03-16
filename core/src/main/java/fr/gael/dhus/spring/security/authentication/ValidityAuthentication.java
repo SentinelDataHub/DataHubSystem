@@ -21,7 +21,8 @@ package fr.gael.dhus.spring.security.authentication;
 
 import java.util.Collection;
 
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication
+      .UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 
 public class ValidityAuthentication extends UsernamePasswordAuthenticationToken

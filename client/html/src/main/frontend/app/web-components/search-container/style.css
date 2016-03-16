@@ -1,0 +1,58 @@
+
+.product-list{	
+  	max-width: 345px;	          
+}
+
+#product-list{	
+  	max-width: 345px;	          
+}
+
+.list-button{
+  position: absolute;
+  top: 43px;
+  left: 15px;  
+  z-index: 9000;
+  color: #385f96;
+}
+
+.selectpage {  
+  vertical-align: middle !important;
+  padding-left: 5px !important;
+  padding-right: 2px !important; 
+  margin-top: 5px !important; 
+  height: 20px;
+  color: #373b50 !important; 
+}
+
+paper-icon-button.chevron {
+  vertical-align: middle !important;
+  /* This border-radius is neccessary for any button which may later gain the .hover class to prevent visual glitching */
+  border-radius: 50% !important;  
+  color: #373b50 !important;  
+  padding: 1px !important;
+  
+
+}
+
+paper-icon-button.chevron /deep/ host{  
+  padding: 1px !important;
+
+}
+
+paper-icon-button.chevron:hover {
+  background: #eee !important;
+  border-radius: 50% !important;
+}
+
+serco-paper-dialog /deep/ .listtitle {
+  color: #373b50 !important;   
+  font-weight: bold !important;
+  margin-left: 5px !important;
+}
+
+.listtitle {
+  color: #373b50 !important; 
+  font-weight: bold !important;
+  margin-left: 5px !important;
+}
+

@@ -1,0 +1,232 @@
+<div>
+<!-- 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+-->
+<div >
+    <style>
+     .list-container{
+        background-color: white;
+        /*min-width: 40%;*/
+        width: 40%;
+        height: 100px;
+        z-index: 99;
+        position: fixed;
+        left: 20px;   
+        /*padding:50 20 50 20;   */
+        min-height: 150px;
+        opacity: 0.9;
+        box-shadow: 3px 5px 19px 0 rgba(49,50,50,.62);
+     }
+
+     .list-footer {
+        font-size: 14px;
+     }
+
+     @media screen and (min-width: 993px) and (max-width: 1200px) { 
+        /*.list-container {
+          min-width: 50%  !important;
+        }*/
+        .list-footer {
+           font-size: 14px;
+        }
+      } 
+
+      @media screen and (min-width: 769px) and(max-width: 992px) { 
+        /*.list-container {
+          min-width: 100% !important;
+        }*/
+        .list-footer {
+           font-size: 13px;
+        }
+      } 
+
+      @media screen and (max-width: 768px) { 
+        /*.list-container {
+          min-width: 100% !important;
+        }*/
+        .list-footer {
+           font-size: 13px;
+        }
+      }   
+
+     #show-list-button{
+            height: 56px;
+            width: 56px;
+            z-index: 998;
+            position: fixed;
+            left: 25px;
+            margin-top: 5px;
+            cursor: pointer;
+            font-size: 22px;
+            padding: 16px;
+            display: none;                
+     }
+
+     .products-list-container{
+        padding: 0px 0px 0px 0px;
+        position: relative;
+        height: 100%;
+        width: 100%;    
+     }
+
+     .products-list{
+        position: relative;
+        height: calc(100% - 85px);
+        width: 100%;
+        background-color: white;
+        overflow-y: auto;
+        overflow-x: hidden; 
+     }
+
+     .list-toolbar{
+        position: relative;        
+        width: 100%;
+        background-color: white;
+        padding: 10px;
+        background-color: #FAFAFA;
+        height: 50px;
+     }
+
+     .list-header{
+        position: relative;
+        height: 35px;
+        background-color: white;
+        top: 0px;
+        padding: 7px;
+        background-color: #FAFAFA;
+     }
+
+     .disabled-button{
+        opacity:0.4;
+        cursor: default;
+     }
+
+     .select-page-button{
+        cursor: pointer;
+     }
+
+     .page-selector-input{
+        width: 40px !important;
+        cursor: pointer;
+        margin: 0px;
+        padding: 7px;
+        height: 30px;
+        border: 1px solid #9A9A9A !important;
+        display: inline;
+     }
+     
+     .pagination-button{
+        margin-right: 2.5px;
+        margin-left: 2.5px;
+        display:inline;
+     }
+     .expanded-button-list{
+        background-color: red;
+     }
+     .not-expanded-button-list{
+        background-color: green;  
+     }
+     .request-done{
+        position: relative;
+        min-height: 35px;
+        max-height: 75px;
+        top: 0px;
+        padding: 7px;
+        background-color: #FAFAFA;
+        overflow-y: auto;
+        border-top: 1px solid #bdc3c7;
+     }
+
+     .add-all-to-cart{
+        font-size: 20px;
+     }
+
+     .add-all-to-cart:hover{
+        color:gray;
+     }
+
+    </style>
+    <div ng-show="visibleList" id="list-container" class="list-container">
+        <div ng-show="visibleList" class="products-list-container">
+            <div  ng-show="visibleList" class="list-header">
+                <div ng-show="productCount" class="listtitle" style="color: #373b50; font-weight: bold; margin-left:5px;font-size: 14px;">
+                Display {{visualizedProductsFrom}} to {{visualizedProductsTo}} of {{productCount}} products.</div><div ng-show="showtoggle" ng-click="toggleExpandList()" style="width: 10px;height: 10px;position: absolute;float: right;top: 10px;right: 15px;" ng-class="toggleButtonClass" title="{{toggleExpandListTitle}}"></div><div class="listtitle" style="color: #373b50; font-weight: bold; margin-left:5px;" ng-hide="productCount">No products found.</div>
+            </div>
+            <request-done ng-show="visibleList" ></request-done>
+            <div  ng-show="visibleList"id="product-list" class="products-list">
+                <product-list ></product-list>
+            </div>
+            <div  ng-show="visibleList" class="list-toolbar">                
+                    <div ng-show="visibleList " style="height:20px;">
+                        <span ng-show="visibleList && productCount" id="product-per-page-label" class="list-footer">Products per page:</span>
+                              <select  ng-show="visibleList && productCount"                                
+                             title="Products per page"
+                             ng-model="productsPerPage" 
+                             ng-change="updateValue()"
+                             id="pagination" >                                
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="75">75</option>
+                                <option value="100">100</option>
+                                <option value="125">125</option>
+                                <option value="150">150</option>
+                            </select>                                                              
+                        <span ng-show="visibleList && productCount" class="pagination-button" ng-class="{'disabled-button': (productCount == 0 || currentPage == 1)}" class="select-page-button" ng-click="gotoFirstPage()" class="pagination-button">
+                            &lt;&lt;
+                        </span>
+                        <span ng-show="visibleList && productCount" class="pagination-button" ng-class="{'disabled-button': (productCount == 0 ||  currentPage == 1)}" class="select-page-button"   ng-click="gotoPreviousPage()">
+                            &lt;
+                        </span>   
+
+                        <span ng-show="visibleList && productCount" class="list-footer" >page:</span> 
+
+                        <input ng-show="visibleList && productCount" 
+                            id="page-selector"
+                            ng-click="selectPageDidClicked(this)" 
+                            type="text" 
+                            class="page-selector-input" 
+                            ng-model="currentPage"
+                            title="Enter page number"
+                            
+                            >
+                        <span ng-show="visibleList && productCount" class="list-footer">of {{pageCount}}</span>
+
+                        <span ng-show="visibleList && productCount" class="pagination-button" ng-class="{'disabled-button': (productCount == 0 || currentPage == pageCount || pageCount == 1 || pageCount == 0 ) }" class="select-page-button" ng-click="gotoNextPage()" >
+                            &gt;
+                        </span>
+                        <span ng-show="visibleList && productCount"  class="pagination-button" ng-class="{'disabled-button': ( productCount == 0 || currentPage == pageCount || pageCount == 1 || pageCount == 0 )}" class="select-page-button" ng-click="gotoLastPage()" >
+                            &gt;&gt;
+                        </span> 
+                        <span  ng-show="visibleList" ng-click="hideList()" class="list-footer" style="float: right; padding-right: 10px; line-height:30px;" >CLOSE</span>
+
+                        <span ng-show="visibleList"  style="float: right; padding-right: 10px; line-height:30px;"  class="glyphicon glyphicon-shopping-cart add-all-to-cart" ng-click="addAllToCart()" title="Add selected products to cart"></span>
+                        
+                        
+                    </div>
+            </div>
+        </div> 
+    </div>
+    <div   id="show-list-button" style="display:none;" class="fab-map pan glyphicon glyphicon-list-alt dhus-button" ng-click="showList()"  title="Show product list">
+
+    </div>
+</div>
+</div>

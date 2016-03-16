@@ -1,0 +1,159 @@
+<div>
+<!-- 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+-->
+<div>
+    <style>
+              
+    
+    .user-badge {
+      color: #373B50;
+      margin-right: 3px;
+      font-size: 14px;
+    }
+    .badge-button{
+      background-color: #373B50 !important;
+      color: #fff !important;
+      float: right;
+      border-radius: 0px;
+      -moz-border-radius: 0px;
+      -webkit-border-radius: 0px;
+      cursor:pointer;
+    }
+
+    .badge-footer{
+      margin-top: 10px !important;
+      display: flex;
+    }
+
+    .user-h4 {
+      font-size: 20px;
+      text-align: left;
+    }
+
+    .user-h5 {
+      font-size: 0.83em;
+      text-align: left;
+    }
+    #userBadge hr{
+      border: 0px;
+      border-bottom: 1px solid;
+      color: #ADADAD;
+      margin-top: 5px !important;
+    }
+    .callout {
+      position: relative;
+      margin-top: 0px;
+      margin-right: 10px;
+      float: right;
+      padding: 10px 10px;
+      background-color: white;
+      /* easy rounded corners for modern browsers */
+      -moz-border-radius: 0px;
+      -webkit-border-radius: 0px;
+      border-radius: 0px;
+      display:none;
+      z-index:  10;    
+      box-shadow: 3px 5px 19px 0 rgba(49,50,50,.62);  
+    }
+    .callout .notch {
+      position: absolute;
+      top: -10px;
+      right: 58px;
+      margin: 0;
+      border-top: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-bottom: 10px solid #fff;
+      padding: 0;
+      width: 0;
+      height: 0;
+      /* ie6 height fix */
+      font-size: 0;
+      line-height: 0;
+       /* ie6 transparent fix */
+      _border-right-color: white;
+      _border-left-color: white;
+      _filter: chroma(color=white);
+      display:none;
+      z-index:  10;
+    }
+
+    #roles{  padding: 10px 0px; }
+    #roles .glyphicon{
+      height: 20px !important;
+    }
+    border-callout { border: 1px solid #fff; padding: 17px 19px; }
+    .border-callout .border-notch { border-bottom-color: #fff; top: -11px; }
+    </style>    
+    <div id="userBadge" class="callout border-callout" >
+      <div class="row">
+        <h4 class="user-h4">{{user.username}}</h4>
+        <h5 class="user-h5">{{user.email}}</h5>
+        <div id="roles">
+            <div class="user-badge">Allowed functions</div>
+            <div class="user-badge glyphicon glyphicon-search" title="Search" style="display:none;"  id="role_SEARCH"></div>
+            <div class="user-badge glyphicon glyphicon-save" title="Download" style="display:none;" id="role_DOWNLOAD"></div>
+            <div class="user-badge glyphicon glyphicon-open" title="Upload" style="display:none;"  id="role_UPLOAD"></div>
+            <div class="user-badge glyphicon glyphicon-user" title="User Manager" style="display:none;"  id="role_USER_MANAGER"></div>
+            <div class="user-badge glyphicon glyphicon-folder-open" title="Archive Manager" style="display:none;"  id="role_ARCHIVE_MANAGER"></div>
+            <div class="user-badge glyphicon glyphicon-folder-open" title="Data Manager" style="display:none;"  id="role_DATA_MANAGER"></div>
+            <div class="user-badge glyphicon glyphicon-hdd" title="System Manager" style="display:none;"  id="role_SYSTEM_MANAGER"></div>
+            <div class="user-badge glyphicon glyphicon-stats" title="Statistics" style="display:none;"  id="role_STATISTICS"></div>
+
+        </div>
+      </div>
+      <hr/>
+      <div ng-show="showcart" class="row user-badge">  
+        <div title="Cart" class="col-md-2 glyphicon glyphicon-shopping-cart" ng-click="loadCart()"></div>            
+        <div class="col-md-10" ng-click="loadCart()">Cart</div>              
+      </div>
+      <div class="row user-badge">              
+        <div title="Saved Searches" class="col-md-2 glyphicon glyphicon-floppy-disk" ng-click="loadSearches()"></div> 
+        <div class="col-md-10" ng-click="loadSearches()">Saved Searches</div>           
+      </div>
+      <div ng-if="isUploadUser" class="row user-badge">  
+        <div title="Uploaded Products" class="col-md-2 glyphicon glyphicon-open-file" ng-click="loadUploadedProducts()"></div>            
+        <div class="col-md-10" ng-click="loadUploadedProducts()">Uploaded Products</div>              
+      </div>
+      <hr/>
+      <div ng-if="isManagement" class="row user-badge">  
+        <div title="Management" class="col-md-2 glyphicon glyphicon-user" ng-click="loadManagement()"></div>            
+        <div class="col-md-10" ng-click="loadManagement()">Management</div>              
+      </div>
+      <div ng-if="isSynchroUser" class="row user-badge">  
+        <div title="Management" class="col-md-2 glyphicon glyphicon-refresh" ng-click="loadManagement()"></div>            
+        <div class="col-md-10" ng-click="loadSynchronizers()">OData Synchronizers</div>              
+      </div>
+      <div ng-if="isUploadUser" class="row user-badge">  
+        <div title="Upload" class="col-md-2 glyphicon glyphicon-open" ng-click="loadUpload()"></div>            
+        <div class="col-md-10" ng-click="loadUpload()">Upload</div>              
+      </div>
+      <div class="row badge-footer">
+        <button ng-show="editprofile" class="btn btn-default badge-button"  ng-click="editProfile()">EDIT PROFILE</button>
+        <button class="btn btn-default badge-button"  ng-click="logout()">LOGOUT</button>
+      </div>
+      <b class="border-notch notch"></b>
+      <b class="notch"></b>
+    </div>    
+</div>
+</div>

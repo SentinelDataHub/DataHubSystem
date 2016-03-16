@@ -29,7 +29,6 @@ import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.event.shared.UmbrellaException;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 
 import fr.gael.dhus.gwt.client.module.FooterModule;
 import fr.gael.dhus.gwt.client.module.LoginModule;
@@ -93,7 +92,7 @@ public class GWTClient implements EntryPoint
             {
             final UserServiceAsync userService = UserServiceAsync.Util.getInstance ();           
 
-            userService.checkUserCodeForPasswordReset (code, new AsyncCallback<Boolean>()
+            userService.checkUserCodeForPasswordReset (code, new AccessDeniedRedirectionCallback<Boolean>()
             {
                
                @Override
@@ -110,7 +109,7 @@ public class GWTClient implements EntryPoint
                }
                
                @Override
-               public void onFailure (Throwable caught)
+               public void _onFailure (Throwable caught)
                {
                   startApplication ();
                }

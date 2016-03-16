@@ -1,0 +1,94 @@
+
+<link rel="import" href="../../libs/core-collapse/core-collapse.html">
+<link rel="import" href="../../libs/paper-tabs/paper-tabs.html">
+<link rel="import" href="../../libs/core-toolbar/core-toolbar.html">
+<link rel="import" href="../../libs/core-pages/core-pages.html">
+<link rel="import" href="../../libs/core-icons/core-icons.html">
+<link rel="import" href="../../libs/paper-fab/paper-fab.html">
+<link rel="import" href="../../libs/core-header-panel/core-header-panel.html">
+
+<link rel="import" href="../../libs/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../libs/paper-dialog/paper-dialog-transition.html">
+
+<!--  STYLE OUTSIDE FOR BOOTSTRAP USAGE -->
+<script src="libs-bootstrap/js/bootstrap.min.js">
+</script>
+
+
+<link rel="stylesheet" href="libs-bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="style.css">
+<polymer-element name="product-details" attributes="attr" >
+  <link rel="import" href="../product-metadata/product-metadata.html">
+  <link rel="import" href="../product-quicklook/product-quicklook.html">
+  <link rel="import" href="../product-attributes/product-attributes.html">
+  <link rel="import" href="../product-details-map/product-details-map.html">
+
+  <template id="app">
+    <div class="modal fade" id="productView" tabindex="-1" role="dialog" aria-labelledby="productTitle" aria-hidden="true">
+    <!-- <paper-dialog id="productView" backdrop="" autoclosedisabled="false" layered="true" role="dialog" layout="" vertical=""> -->
+      <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">
+      <link rel="stylesheet" type="text/css" href="style.css">
+      <div class="modal-dialog">
+        <div class="modal-header">{{product.title}}</div>
+        <!--<div class="modal-header">
+          <div class="row">
+            <div class="col-md-12">
+            {{product.title}}
+            </div>
+            <div class="col-md-12">
+            <a class="prodlink" href="{{product.link}}">{{product.link}}</a>
+            </div>
+          </div>
+        </div>-->
+        <div class="modal-body">
+          <div class="row" style="margin-bottom: 15px;">
+            <div class="col-md-6">
+              <div class="col-md-12 title">
+                Footprint
+              </div>
+              <product-details-map model="{{attr}}"></product-details-map> 
+            </div>
+            <div class="col-md-6">
+              <div class="col-md-12 title">
+                Quicklook
+              </div>
+              <product-quicklook productuuid="{{product.id}}" hasQuicklook="{{product.hasQuicklook}}"></product-quicklook>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="col-md-12 title">
+                Attributes
+              </div>
+              <div class="col-md-12">
+                <product-attributes modellone="{{attr}}" productuuid="{{product.id}}"></product-attributes> 
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="col-md-12 title">
+                  Inspector
+              </div>
+              <div class="col-md-12">
+                <product-metadata attr="{{attr}}"></product-metadata>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div class="left col-md-6">
+            <paper-fab id="prevbutton" class="left-button" mini icon="arrow-back" title="Previous Product"></paper-fab>
+            <paper-fab id="nextbutton" class="right-button" mini icon="arrow-forward" title="Next Product"></paper-fab>
+          </div>
+          <div class="right col-md-6">
+            <paper-fab id="downloadbutton" mini icon="file-download" prodlink="{{product.link}}" title="Dowbload product"></paper-fab>  
+            <paper-fab mini icon="close" data-dismiss="modal" title="Close"></paper-fab>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- <paper-dialog> -->
+
+  </template>
+  <script src="script.js"></script>
+  
+</polymer-element>

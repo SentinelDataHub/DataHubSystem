@@ -112,6 +112,16 @@
 					</xs:appinfo>
 				</xs:annotation>
 			</xs:element>
+                        <xs:element minOccurs="0" name="executor"
+				type="dhusSystem:executorConfiguration">
+				<xs:annotation>
+					<xs:appinfo>
+						<jxb:property name="executorConfiguration" />
+						<annox:annotate target="field">@javax.persistence.Transient
+						</annox:annotate>
+					</xs:appinfo>
+				</xs:annotation>
+			</xs:element>
 		</xs:all>
 	</xs:complexType>
 
@@ -180,8 +190,6 @@
 		</xs:annotation>
 		<xs:all />
 		<xs:attribute name="corePoolSize" type="xs:int" />
-		<xs:attribute name="maxPoolSize" type="xs:int" />
-		<xs:attribute name="queueCapacity" type="xs:int" />
 	</xs:complexType>
 
 	<xs:complexType name="supportConfiguration">
@@ -206,6 +214,15 @@
 			<xs:annotation>
 				<xs:appinfo>
 					<annox:annotate target="field">@javax.persistence.Column(name="SYSTEM_SUPPORTNAME",
+						nullable=false)
+					</annox:annotate>
+				</xs:appinfo>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="registrationMail" type="xs:string">
+			<xs:annotation>
+				<xs:appinfo>
+					<annox:annotate target="field">@javax.persistence.Column(name="SYSTEM_REGISTRATIONMAIL",
 						nullable=false)
 					</annox:annotate>
 				</xs:appinfo>
@@ -275,6 +292,18 @@
 		<xs:all />
 		<xs:attribute name="maxFileNo" type="xs:int" />
 		<xs:attribute name="path" type="xs:string" />
+	</xs:complexType>
+
+	<xs:complexType name="executorConfiguration">
+		<xs:annotation>
+			<xs:appinfo>
+				<inheritance:extends>fr.gael.dhus.database.object.config.ConfigurationPart
+				</inheritance:extends>
+			</xs:appinfo>
+		</xs:annotation>
+		<xs:all />
+		<xs:attribute name="enabled" type="xs:boolean" />
+		<xs:attribute name="batchModeEnabled" type="xs:boolean" />
 	</xs:complexType>
 
 </xs:schema>

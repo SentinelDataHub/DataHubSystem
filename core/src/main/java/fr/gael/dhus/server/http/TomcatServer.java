@@ -24,25 +24,29 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
 import java.util.logging.LogManager;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 
+import org.apache.catalina.Container;
 import org.apache.catalina.Context;
-import org.apache.catalina.LifecycleException;
 import org.apache.catalina.Wrapper;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.core.StandardContext;
+import org.apache.catalina.core.StandardEngine;
+import org.apache.catalina.startup.Catalina;
 import org.apache.catalina.startup.Constants;
 import org.apache.catalina.startup.ContextConfig;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.startup.Tomcat.DefaultWebXmlListener;
-import org.apache.catalina.valves.AccessLogValve;
 import org.apache.catalina.valves.RemoteAddrValve;
 import org.apache.catalina.valves.RemoteIpValve;
 import org.apache.commons.io.FileUtils;
@@ -52,6 +56,8 @@ import org.apache.juli.ClassLoaderLogManager;
 import org.apache.tomcat.util.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.google.common.io.Files;
 
 import fr.gael.dhus.server.http.web.WebApplication;
 import fr.gael.dhus.server.http.web.WebServlet;
@@ -66,8 +72,8 @@ public class TomcatServer
    private ConfigurationManager configurationManager;
 
    private String tomcatpath;
-   
-   private TomcatWithGlobalWeb tomcat = null;
+
+   private Catalina cat;
 
    private ArrayList<StandardContext> contexts =
       new ArrayList<StandardContext> ();
@@ -75,9 +81,8 @@ public class TomcatServer
    /**
     * Initialize Tomcat inner datasets.
     */
-   public  void init () throws TomcatException
+   public void init () throws TomcatException
    {
-      int httpPort = configurationManager.getServerConfiguration ().getPort ();
       tomcatpath = configurationManager.getTomcatConfiguration ().getPath ();
       final String extractDirectory = tomcatpath;
 
@@ -89,6 +94,9 @@ public class TomcatServer
          extract (extractDirectoryFile, extractDirectory);
          // create tomcat various paths
          new File (extractDirectory, "conf").mkdirs ();
+         File cfg =
+            new File (ClassLoader.getSystemResource ("server.xml").toURI ());
+         Files.copy (cfg, new File (extractDirectory, "conf/server.xml"));
          new File (extractDirectory, "logs").mkdirs ();
          new File (extractDirectory, "webapps").mkdirs ();
          new File (extractDirectory, "work").mkdirs ();
@@ -101,80 +109,23 @@ public class TomcatServer
          System.setProperty ("catalina.home",
             extractDirectoryFile.getAbsolutePath ());
 
-         tomcat = new TomcatWithGlobalWeb ();
-         tomcat.setBaseDir (extractDirectory);
-
-         /*
-          * tomcat.getHost ().setAppBase ( new File (extractDirectory,
-          * "webapps").getAbsolutePath ());
-          */
-
-         
-         String connectorHttpProtocol = "HTTP/1.1";
-         // Use Nio connector as default
-         if (Boolean.parseBoolean (System.getProperty ("tomcat.nio", "true")))
-         {
-            connectorHttpProtocol="org.apache.coyote.http11.Http11NioProtocol";
-         }
-         int max_connections=Integer.getInteger("tomcat.max_connections", 1000);
-         int max_threads=Integer.getInteger ("tomcat.max_threads", 200);
-
-         if (httpPort > 0)
-         {
-            Connector connector = new Connector (connectorHttpProtocol);
-            
-            connector.setPort (httpPort);
-            connector.setURIEncoding ("ISO-8859-1");
-            connector.setAttribute ("compression", "on");
-            connector.setAttribute ("compressionMinSize", "1024");
-            connector.setAttribute ("compressableMimeType",
-               "application/json," +
-               "application/javascript," +
-               "application/xhtml+xml," +
-               "application/xml" +
-               "text/html," +
-               "text/xml," +
-               "text/plain," +
-               "text/javascript," +
-               "text/css");
-            
-            connector.setAttribute ("maxConnections", max_connections);
-            connector.setAttribute ("maxThreads", max_threads);
-            
-            tomcat.getService ().addConnector (connector);
-            tomcat.setConnector (connector);
-         }
-
-         // add a default access log valve
-         AccessLogValve alv = new AccessLogValve ();
-         alv.setDirectory (new File (extractDirectory, "logs")
-            .getAbsolutePath ());
-         alv.setPattern ("%h %l %u %t %r %s %b %I %D");
-         tomcat.getHost ().getPipeline ().addValve (alv);
+         cat = new Catalina ();
       }
       catch (Exception e)
       {
-         throw new TomcatException (
-            "Cannot initalize Tomcat environment.", e);
+         throw new TomcatException ("Cannot initalize Tomcat environment.", e);
       }
 
       Runtime.getRuntime ().addShutdownHook (new TomcatShutdownHook ());
    }
-   
+
    /**
     * This method Starts the Tomcat server.
     */
    public void start () throws TomcatException
    {
-      if (tomcat == null) init ();
-      try
-      {
-         tomcat.start ();
-      }
-      catch (LifecycleException e)
-      {
-         throw new TomcatException ("Cannot start Tomcat.", e);
-      }
+      if (cat == null) init ();
+      cat.start ();
    }
 
    /**
@@ -183,20 +134,13 @@ public class TomcatServer
    public void stop () throws TomcatException
    {
       // Stop the embedded server
-      try
-      {
-         tomcat.stop ();
-         tomcat = null;
-      }
-      catch (LifecycleException e)
-      {
-         throw new TomcatException ("Cannot stop Tomcat.", e);
-      }
+      cat.stop ();
+      cat = null;
    }
 
    public boolean isRunning ()
    {
-      return tomcat != null;
+      return cat != null;
    }
 
    protected class TomcatShutdownHook extends Thread
@@ -229,53 +173,53 @@ public class TomcatServer
       }
    }
 
-   protected void extract (File extractDirectoryFile, String extractDirectory)
+   protected void extract (File extract_directory_file, String extract_directory)
       throws Exception
    {
-      if (extractDirectoryFile.exists ())
+      if (extract_directory_file.exists ())
       {
          logger.debug ("Clean extractDirectory");
-         FileUtils.deleteDirectory (extractDirectoryFile);
+         FileUtils.deleteDirectory (extract_directory_file);
       }
 
-      if ( !extractDirectoryFile.exists ())
+      if ( !extract_directory_file.exists ())
       {
-         boolean created = extractDirectoryFile.mkdirs ();
+         boolean created = extract_directory_file.mkdirs ();
          if ( !created)
          {
             throw new Exception ("FATAL: impossible to create directory:" +
-               extractDirectoryFile.getPath ());
+               extract_directory_file.getPath ());
          }
       }
 
       // ensure webapp dir is here
-      boolean created = new File (extractDirectory, "webapps").mkdirs ();
+      boolean created = new File (extract_directory, "webapps").mkdirs ();
       if ( !created)
       {
          throw new Exception ("FATAL: impossible to create directory:" +
-            extractDirectoryFile.getPath () + "/webapps");
+            extract_directory_file.getPath () + "/webapps");
 
       }
-      expandConfigurationFile ("web.xml", extractDirectoryFile);
+      expandConfigurationFile ("web.xml", extract_directory_file);
    }
 
-   private static void expandConfigurationFile (String fileName,
-      File extractDirectory) throws Exception
+   private static void expandConfigurationFile (String file_name,
+      File extract_directory) throws Exception
    {
       InputStream inputStream = null;
       try
       {
          inputStream =
             Thread.currentThread ().getContextClassLoader ()
-               .getResourceAsStream ("conf/" + fileName);
+               .getResourceAsStream ("conf/" + file_name);
          if (inputStream != null)
          {
-            File confDirectory = new File (extractDirectory, "conf");
+            File confDirectory = new File (extract_directory, "conf");
             if ( !confDirectory.exists ())
             {
                confDirectory.mkdirs ();
             }
-            expand (inputStream, new File (confDirectory, fileName));
+            expand (inputStream, new File (confDirectory, file_name));
          }
       }
       finally
@@ -321,20 +265,21 @@ public class TomcatServer
       }
    }
 
-   public void install (WebApplication webApplication) throws TomcatException
+   public void install (WebApplication web_application) throws TomcatException
    {
       try
       {
          String folder =
-            webApplication.getName () == "" ? "ROOT" : webApplication
+            web_application.getName () == "" ? "ROOT" : web_application
                .getName ();
-         if (webApplication.hasWarStream ())
+         if (web_application.hasWarStream ())
          {
-            InputStream stream = webApplication.getWarStream ();
+            InputStream stream = web_application.getWarStream ();
             if (stream == null)
             {
-               throw new TomcatException (
-                  "Cannot install WebApplication "+webApplication.getName ()+". The referenced war file does not exist.");
+               throw new TomcatException ("Cannot install WebApplication " +
+                  web_application.getName () + ". The referenced war " +
+                  "file does not exist.");
             }
             JarInputStream jis = new JarInputStream (stream);
             File destDir = new File (tomcatpath, "webapps/" + folder);
@@ -366,15 +311,36 @@ public class TomcatServer
             }
             jis.close ();
          }
-         webApplication.configure (new File(tomcatpath, "webapps/"+folder).getPath ());
-         
-         StandardContext ctx = (StandardContext) tomcat.addWebapp (
-            (webApplication.getName () == "" ? "" : "/") + 
-               webApplication.getName (), new File(tomcatpath, "webapps/"+folder).getPath ());
-         
+         web_application.configure (new File (tomcatpath, "webapps/" + folder)
+            .getPath ());
+
+         StandardEngine engine =
+            (StandardEngine) cat.getServer ().findServices ()[0]
+               .getContainer ();
+         Container container = engine.findChild (engine.getDefaultHost ());
+
+         StandardContext ctx = new StandardContext ();
+         String url =
+            (web_application.getName () == "" ? "" : "/") +
+               web_application.getName ();
+         ctx.setName (url);
+         ctx.setPath (url);
+         ctx.setDocBase (new File (tomcatpath, "webapps/" + folder).getPath ());
+
+         ctx.addLifecycleListener (new DefaultWebXmlListener ());
+         ctx.setConfigFile (getWebappConfigFile (new File (tomcatpath,
+            "webapps/" + folder).getPath (), url));
+
+         ContextConfig ctxCfg = new ContextConfig ();
+         ctx.addLifecycleListener (ctxCfg);
+
+         ctxCfg.setDefaultWebXml("fr/gael/dhus/server/http/global-web.xml");
+
+         container.addChild (ctx);
+
          contexts.add (ctx);
 
-         List<WebServlet> servlets = webApplication.getServlets ();
+         List<WebServlet> servlets = web_application.getServlets ();
 
          for (WebServlet servlet : servlets)
          {
@@ -383,15 +349,15 @@ public class TomcatServer
                servlet.isLoadOnStartup ());
          }
 
-         List<String> welcomeFiles = webApplication.getWelcomeFiles ();
+         List<String> welcomeFiles = web_application.getWelcomeFiles ();
 
          for (String welcomeFile : welcomeFiles)
          {
             ctx.addWelcomeFile (welcomeFile);
          }
 
-         if (webApplication.getAllow () != null ||
-            webApplication.getDeny () != null)
+         if (web_application.getAllow () != null ||
+            web_application.getDeny () != null)
          {
             RemoteIpValve valve = new RemoteIpValve ();
             valve.setRemoteIpHeader ("x-forwarded-for");
@@ -400,26 +366,22 @@ public class TomcatServer
             ctx.addValve (valve);
 
             RemoteAddrValve valve_addr = new RemoteAddrValve ();
-            valve_addr.setAllow (webApplication.getAllow ());
-            valve_addr.setDeny (webApplication.getDeny ());
+            valve_addr.setAllow (web_application.getAllow ());
+            valve_addr.setDeny (web_application.getDeny ());
             ctx.addValve (valve_addr);
          }
-         
-         AccessLogValve alv= new AccessLogValve ();
-         ctx.addValve (alv);
       }
       catch (Exception e)
       {
-         throw new TomcatException (
-            "Cannot install service", e);
+         throw new TomcatException ("Cannot install service", e);
       }
    }
    
-   public void install (fr.gael.dhus.server.http.WebApplication webApplication)
+   public void install (fr.gael.dhus.server.http.WebApplication web_application)
       throws TomcatException
    {
-      logger.info ("Installing webapp " + webApplication);
-      String appName = webApplication.getName ();
+      logger.info ("Installing webapp " + web_application);
+      String appName = web_application.getName ();
       String folder;
 
       if (appName.trim ().isEmpty ())
@@ -433,13 +395,13 @@ public class TomcatServer
 
       try
       {
-         if (webApplication.hasWarStream ())
+         if (web_application.hasWarStream ())
          {
-            InputStream stream = webApplication.getWarStream ();
+            InputStream stream = web_application.getWarStream ();
             if (stream == null)
             {
                throw new TomcatException ("Cannot install webApplication " +
-                  webApplication.getName () +
+                  web_application.getName () +
                   ". The referenced war file does not exist.");
             }
             JarInputStream jis = new JarInputStream (stream);
@@ -472,62 +434,78 @@ public class TomcatServer
             }
             jis.close ();
          }
-         webApplication.configure (new File (tomcatpath, "webapps/" + folder)
+         web_application.configure (new File (tomcatpath, "webapps/" + folder)
             .getPath ());
 
-         StandardContext ctx = (StandardContext) tomcat.addWebapp (
-            (webApplication.getName () == "" ? "" : "/") + 
-               webApplication.getName (), new File(tomcatpath, "webapps/"+folder).getPath ());
-         
-         
-         List<String> welcomeFiles = webApplication.getWelcomeFiles ();
+         StandardEngine engine =
+            (StandardEngine) cat.getServer ().findServices ()[0]
+               .getContainer ();
+         Container container = engine.findChild (engine.getDefaultHost ());
+
+         StandardContext ctx = new StandardContext ();
+         String url =
+            (web_application.getName () == "" ? "" : "/") +
+               web_application.getName ();
+         ctx.setName (url);
+         ctx.setPath (url);
+         ctx.setDocBase (new File (tomcatpath, "webapps/" + folder).getPath ());
+
+         ctx.addLifecycleListener (new DefaultWebXmlListener ());
+         ctx.setConfigFile (getWebappConfigFile (new File (tomcatpath,
+            "webapps/" + folder).getPath (), url));
+
+         ContextConfig ctxCfg = new ContextConfig ();
+         ctx.addLifecycleListener (ctxCfg);
+
+         ctxCfg.setDefaultWebXml("fr/gael/dhus/server/http/global-web.xml");
+
+         container.addChild (ctx);
+
+         List<String> welcomeFiles = web_application.getWelcomeFiles ();
 
          for (String welcomeFile : welcomeFiles)
          {
             ctx.addWelcomeFile (welcomeFile);
          }
 
-         if (webApplication.getAllow () != null ||
-            webApplication.getDeny () != null)
+         if (web_application.getAllow () != null ||
+            web_application.getDeny () != null)
          {
             RemoteIpValve valve = new RemoteIpValve ();
             valve.setRemoteIpHeader ("x-forwarded-for");
             valve.setProxiesHeader ("x-forwarded-by");
             valve.setProtocolHeader ("x-forwarded-proto");
             ctx.addValve (valve);
-            
+
             RemoteAddrValve valve_addr = new RemoteAddrValve ();
-            valve_addr.setAllow (webApplication.getAllow ());
-            valve_addr.setDeny (webApplication.getDeny ());
+            valve_addr.setAllow (web_application.getAllow ());
+            valve_addr.setDeny (web_application.getDeny ());
             ctx.addValve (valve_addr);
          }
-         
-         AccessLogValve alv= new AccessLogValve ();
-         ctx.addValve (alv);
-         
-         webApplication.checkInstallation ();
+
+         web_application.checkInstallation ();
       }
       catch (Exception e)
       {
          throw new TomcatException ("Cannot install webApplication " +
-            webApplication.getName (), e);
+            web_application.getName (), e);
       }
    }
-   
-   public void install (WebServlet webServlet)
+
+   public void install (WebServlet web_servlet)
    {
-      Context ctx = findContext (webServlet.getUrlBase ());
-      addServlet (ctx, webServlet.getServletName (),
-         webServlet.getUrlPattern (), webServlet.getServlet (),
-         webServlet.isLoadOnStartup ());
+      Context ctx = findContext (web_servlet.getUrlBase ());
+      addServlet (ctx, web_servlet.getServletName (),
+         web_servlet.getUrlPattern (), web_servlet.getServlet (),
+         web_servlet.isLoadOnStartup ());
    }
 
-   private Wrapper addServlet (Context ctx, String servletName,
-      String urlMapping, Servlet servlet, boolean loadOnStartup)
+   private Wrapper addServlet (Context ctx, String servlet_name,
+      String url_mapping, Servlet servlet, boolean load_on_startup)
    {
-      Wrapper wrapper = Tomcat.addServlet (ctx, servletName, servlet);
-      ctx.addServletMapping (urlMapping, servletName);
-      if (loadOnStartup)
+      Wrapper wrapper = Tomcat.addServlet (ctx, servlet_name, servlet);
+      ctx.addServletMapping (url_mapping, servlet_name);
+      if (load_on_startup)
       {
          try
          {
@@ -543,21 +521,24 @@ public class TomcatServer
 
    public void await ()
    {
-      tomcat.getServer ().await ();
+      cat.getServer ().await ();
    }
 
-   private Context findContext (String contextName)
+   private Context findContext (String context_name)
    {
+      StandardEngine engine =
+         (StandardEngine) cat.getServer ().findServices ()[0].getContainer ();
+      Container container = engine.findChild (engine.getDefaultHost ());
       StandardContext context =
-         (StandardContext) (tomcat.getHost ().findChild (contextName));
+         (StandardContext) (container.findChild (context_name));
 
       if (context != null)
       {
          return context;
       }
       context = new StandardContext ();
-      context.setName (contextName);
-      context.setPath (contextName);
+      context.setName (context_name);
+      context.setPath (context_name);
       context.setDocBase ("");
 
       context.addLifecycleListener (new DefaultWebXmlListener ());
@@ -568,18 +549,90 @@ public class TomcatServer
       // prevent it from looking ( if it finds one - it'll have dup error )
       ctxCfg.setDefaultWebXml (Constants.NoDefaultWebXml);
 
-      tomcat.getHost ().addChild (context);
+      container.addChild (context);
       contexts.add (context);
       return context;
    }
-   
-   public Integer getPort ()
+
+   public int getPort ()
    {
-      return configurationManager.getServerConfiguration ().getPort ();
+      Connector connector =
+         cat.getServer ().findServices ()[0].findConnectors ()[0];
+      return connector.getPort ();
    }
 
    public String getPath ()
    {
       return this.tomcatpath;
-   }   
+   }
+
+   protected URL getWebappConfigFile (String path, String url)
+   {
+      File docBase = new File (path);
+      if (docBase.isDirectory ())
+      {
+         return getWebappConfigFileFromDirectory (docBase, url);
+      }
+      else
+      {
+         return getWebappConfigFileFromJar (docBase, url);
+      }
+   }
+
+   private URL getWebappConfigFileFromDirectory (File docBase, String url)
+   {
+      URL result = null;
+      File webAppContextXml =
+         new File (docBase, Constants.ApplicationContextXml);
+      if (webAppContextXml.exists ())
+      {
+         try
+         {
+            result = webAppContextXml.toURI ().toURL ();
+         }
+         catch (MalformedURLException e)
+         {
+            logger.warn (
+               "Unable to determine web application context.xml " + docBase, e);
+         }
+      }
+      return result;
+   }
+
+   private URL getWebappConfigFileFromJar (File docBase, String url)
+   {
+      URL result = null;
+      JarFile jar = null;
+      try
+      {
+         jar = new JarFile (docBase);
+         JarEntry entry = jar.getJarEntry (Constants.ApplicationContextXml);
+         if (entry != null)
+         {
+            result =
+               new URL ("jar:" + docBase.toURI ().toString () + "!/" +
+                  Constants.ApplicationContextXml);
+         }
+      }
+      catch (IOException e)
+      {
+         logger.warn (
+            "Unable to determine web application context.xml " + docBase, e);
+      }
+      finally
+      {
+         if (jar != null)
+         {
+            try
+            {
+               jar.close ();
+            }
+            catch (IOException e)
+            {
+               // ignore
+            }
+         }
+      }
+      return result;
+   }
 }

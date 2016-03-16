@@ -31,11 +31,10 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.SimpleCheckBox;
 
-import fr.gael.dhus.gwt.share.RoleData;
+import fr.gael.dhus.gwt.client.AccessDeniedRedirectionCallback;
 import fr.gael.dhus.gwt.client.GWTClient;
 import fr.gael.dhus.gwt.client.page.AbstractPage;
 import fr.gael.dhus.gwt.services.CollectionServiceAsync;
@@ -43,6 +42,7 @@ import fr.gael.dhus.gwt.services.ProductServiceAsync;
 import fr.gael.dhus.gwt.services.UserServiceAsync;
 import fr.gael.dhus.gwt.share.CollectionData;
 import fr.gael.dhus.gwt.share.ProductData;
+import fr.gael.dhus.gwt.share.RoleData;
 import fr.gael.dhus.gwt.share.UserData;
 import fr.gael.dhus.gwt.share.exceptions.UserServiceMailingException;
 
@@ -266,10 +266,10 @@ public class ManagementDataRightPage extends AbstractPage
    private static void edit(int userId)
    {
       DOM.setStyleAttribute (RootPanel.getBodyElement (), "cursor", "wait");
-      userService.getUserWithDataAccess (new Long(userId), new AsyncCallback<UserData> ()
+      userService.getUserWithDataAccess (new Long(userId), new AccessDeniedRedirectionCallback<UserData> ()
       {
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             DOM.setStyleAttribute (RootPanel.getBodyElement (),
                "cursor", "default");            
@@ -279,11 +279,11 @@ public class ManagementDataRightPage extends AbstractPage
          @Override
          public void onSuccess (final UserData user)
          {
-            userService.getPublicData (new AsyncCallback<UserData>()
+            userService.getPublicData (new AccessDeniedRedirectionCallback<UserData>()
             {
 
                @Override
-               public void onFailure (Throwable caught)
+               public void _onFailure (Throwable caught)
                {
                   DOM.setStyleAttribute (RootPanel.getBodyElement (),
                      "cursor", "default");            
@@ -316,10 +316,10 @@ public class ManagementDataRightPage extends AbstractPage
    {               
       disableAll ();
 
-      AsyncCallback<Void> callback = new AsyncCallback<Void> ()
+      AccessDeniedRedirectionCallback<Void> callback = new AccessDeniedRedirectionCallback<Void> ()
       {
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             if (caught instanceof UserServiceMailingException)
             {
@@ -398,11 +398,11 @@ public class ManagementDataRightPage extends AbstractPage
       
       GWTClient.callback (function, JsonUtils.safeEval ("{\"aaData\": [],\"iTotalRecords\" : 0, \"iTotalDisplayRecords\" : 0}"));
       
-      userService.countForDataRight (search, new AsyncCallback<Integer> ()
+      userService.countForDataRight (search, new AccessDeniedRedirectionCallback<Integer> ()
       {
 
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             DOM.setStyleAttribute (RootPanel.getBodyElement (), "cursor",
                "default");
@@ -413,10 +413,10 @@ public class ManagementDataRightPage extends AbstractPage
          public void onSuccess (final Integer total)
          {
             userService.getUsersForDataRight (start, length, search,
-               new AsyncCallback<List<UserData>> ()
+               new AccessDeniedRedirectionCallback<List<UserData>> ()
                {
                   @Override
-                  public void onFailure (Throwable caught)
+                  public void _onFailure (Throwable caught)
                   {
                      DOM.setStyleAttribute (RootPanel.getBodyElement (),
                         "cursor", "default");
@@ -459,6 +459,17 @@ public class ManagementDataRightPage extends AbstractPage
           selectedUser.containsCollection (collectionId))
       {
          selectedUser.removeCollection (collectionId);
+         List<Long> productIds = displayedCollections.get (collectionId).getProductIds ();
+         if (productIds != null && !productIds.isEmpty ())
+         {
+            for (Long pId : productIds)
+            {
+               if (publicData.getId ()==selectedUser.getId () || !publicData.containsProduct (pId))
+               {
+                  publicData.removeProductFromPublicCollection (pId);
+               }
+            }
+         }
       }
       else
       {
@@ -471,11 +482,12 @@ public class ManagementDataRightPage extends AbstractPage
                if (publicData.getId ()==selectedUser.getId () || !publicData.containsProduct (pId))
                {
                   selectedUser.addProduct (pId);
+                  publicData.addProductFromPublicCollection (pId);
                }
             }
          }
       }
-                 
+
       saveCollectionsScrollPosition ();
       saveProductsScrollPosition ();
       refreshCollections (); 
@@ -560,10 +572,10 @@ public class ManagementDataRightPage extends AbstractPage
       
       GWTClient.callback (function, JsonUtils.safeEval ("{\"aaData\": [],\"iTotalRecords\" : 0, \"iTotalDisplayRecords\" : 0}"));
       
-      productService.count (search, null, new AsyncCallback<Integer> ()
+      productService.count (search, null, new AccessDeniedRedirectionCallback<Integer> ()
       {
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             DOM.setStyleAttribute (RootPanel.getBodyElement (), "cursor",
                "default");
@@ -574,10 +586,10 @@ public class ManagementDataRightPage extends AbstractPage
          public void onSuccess (final Integer total)
          {
             productService.getProducts (start, length, search, null, 
-               new AsyncCallback<List<ProductData>> ()
+               new AccessDeniedRedirectionCallback<List<ProductData>> ()
                {
                   @Override
-                  public void onFailure (Throwable caught)
+                  public void _onFailure (Throwable caught)
                   {
                      DOM.setStyleAttribute (RootPanel.getBodyElement (),
                         "cursor", "default");
@@ -598,7 +610,8 @@ public class ManagementDataRightPage extends AbstractPage
                         boolean checked = (selectedUser != null && 
                                  selectedUser.containsProduct (product.getId ()));                        
                         allChecked = allChecked && checked;
-                        boolean publicProduct = (publicData != null && publicData.getId ()!=selectedUser.getId () && publicData.containsProduct(product.getId ()));
+                        boolean publicProduct = (publicData != null && publicData.getId ()!=selectedUser.getId () && publicData.containsProduct(product.getId ())) || 
+                                 (publicData != null && publicData.getId ()==selectedUser.getId () && publicData.fromPublicCollection (product.getId ()));
                         allPublic = allPublic && publicProduct;
                         json += "[{\"checked\":"+checked+", \"publicData\":"+publicProduct+", \"id\":\""+product.getId()+"\" }, \"" + product.getIdentifier () + "\"],";
                      }
@@ -649,10 +662,10 @@ public class ManagementDataRightPage extends AbstractPage
          }
       }
       displayedCollections.clear ();
-      requestCollections(root, new AsyncCallback<Void>()
+      requestCollections(root, new AccessDeniedRedirectionCallback<Void>()
          {
             @Override
-            public void onFailure (Throwable caught) 
+            public void _onFailure (Throwable caught) 
             {
                Window.alert("There was an error while requesting collections.\n"+caught.getMessage ());
                DOM.setStyleAttribute (RootPanel.getBodyElement (),
@@ -706,10 +719,10 @@ public class ManagementDataRightPage extends AbstractPage
       else
       {
          DOM.setStyleAttribute (RootPanel.getBodyElement (), "cursor", "wait");
-         requestCollections(parent, new AsyncCallback<Void>()
+         requestCollections(parent, new AccessDeniedRedirectionCallback<Void>()
          {
             @Override
-            public void onFailure (Throwable caught) {
+            public void _onFailure (Throwable caught) {
                DOM.setStyleAttribute (RootPanel.getBodyElement (),
                   "cursor", "default");
             }
@@ -726,13 +739,13 @@ public class ManagementDataRightPage extends AbstractPage
       }
    }
    
-   private static void requestCollections(final CollectionData parent, final AsyncCallback<Void> callback)
+   private static void requestCollections(final CollectionData parent, final AccessDeniedRedirectionCallback<Void> callback)
    {
       collectionService.getSubCollectionsWithProductsIds (parent,
-         new AsyncCallback<List<CollectionData>> ()
+         new AccessDeniedRedirectionCallback<List<CollectionData>> ()
          {
             @Override
-            public void onFailure (Throwable caught)
+            public void _onFailure (Throwable caught)
             {
                callback.onFailure (caught);
             }
@@ -755,7 +768,7 @@ public class ManagementDataRightPage extends AbstractPage
          });
    }
    
-   private static void refreshEnded(CollectionData refreshed, AsyncCallback<Void> callback)
+   private static void refreshEnded(CollectionData refreshed, AccessDeniedRedirectionCallback<Void> callback)
    {      
       toRefresh.remove (refreshed.getId ());
       if (toRefresh.size () == 0)

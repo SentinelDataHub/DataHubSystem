@@ -1,0 +1,29 @@
+
+<polymer-element name="search-bar" attributes="attr geoselection pagesize offset productscount textQuery filter">
+<link rel="import" href="../../libs/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../libs/core-icon-button/core-icon-button.html">   
+<link rel="import" href="../../libs/paper-input/paper-input.html"> 
+<link rel="import" href="../main-screen/routes.html">
+<link rel="import" href="../advanced-search/advanced-search.html">
+	<template id="app" > 	
+
+
+	<link rel="stylesheet" type="text/css" href="style.css">	
+
+    <div horizontal layout id="core_toolbar"> 
+    	<div flex nine class="ui-widget"> 
+        <paper-input flex id="query" on-keypress="{{keypressHandler}}" on-keyup="{{getSuggestions}}"  class="custom" label="Insert search criteria..." ></paper-input>
+      </div>
+      <div flex one class="buttonflex">
+      <paper-icon-button icon="search" title="Search" on-click="{{ searchData }}" data-object="{{urlFor('search')}}"></paper-icon-button>
+      </div>
+      <core-a11y-keys keys="enter" on-keys-pressed="{{ searchData }}" data-object="{{urlFor('search')}}"></core-a11y-keys>
+      <div flex one class="buttonflex">
+      <paper-icon-button icon="save" title="Save Search" on-click="{{ saveSearch }}"></paper-icon-button>
+      </div>      
+      <advanced-search flex one attr="{{attr}}" geoselection="{{geoselection}}" pagesize="{{pagesize}}" offset="{{offset}}" productscount="{{productscount}}" textQuery="{{textQuery}}" filter="{{filter}}"></advanced-search>
+    </div>
+	</template>
+	<script src="script.js"></script>
+</polymer-element>
+          

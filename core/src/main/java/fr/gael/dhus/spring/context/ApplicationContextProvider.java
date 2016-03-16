@@ -26,8 +26,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * Utils to access to DHuS Beans.
- * 
- * @author valette
  */
 @Component
 public class ApplicationContextProvider implements ApplicationContextAware

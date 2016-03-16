@@ -28,8 +28,6 @@ import org.springframework.beans.factory.InitializingBean;
 
 /**
  * Abstract class defining WebApplication and install all of them in Server.
- * 
- * @author valette
  */
 public abstract class WebPostProcess implements InitializingBean
 {

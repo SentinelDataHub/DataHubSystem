@@ -30,7 +30,6 @@ import fr.gael.dhus.database.dao.interfaces.UserListener;
 import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.service.exception.EmailNotSentException;
 import fr.gael.dhus.system.config.ConfigurationManager;
-
 /**
  * Manage user changes events coming from web services.
  *
@@ -39,7 +38,7 @@ import fr.gael.dhus.system.config.ConfigurationManager;
 public class EmailToUserListener implements UserListener
 {
    private static Log logger = LogFactory.getLog (EmailToUserListener.class);
-   
+
    @Autowired
    private ConfigurationManager cfgManager;
    
@@ -60,11 +59,12 @@ public class EmailToUserListener implements UserListener
       if (cfgManager.getMailConfiguration ().isOnUserCreate ())
       {
          // Do not send mail to system admin
-         if (cfgManager.getAdministratorConfiguration ().getName ().equals (u.getUsername ()))
+         if (cfgManager.getAdministratorConfiguration ().getName ().equals (
+               u.getUsername ()))
             return;
          
          // Same for virtual user "public data"
-         if (userDao.getPublicDataName ().equals (u.getUsername ()))
+         if (userDao.getPublicData ().equals (u.getUsername ()))
             return;
          
          logger.debug ("Sending email to " + u.getEmail ());
@@ -79,21 +79,27 @@ public class EmailToUserListener implements UserListener
          {
             message = "Dear " + getUserWelcome (u)+",\n\n"+
                "Please follow this link to finalize your registration in " +
-               "the "+ cfgManager.getNameConfiguration ().getShortName () +" system:\n" + cfgManager.getServerConfiguration ().getExternalUrl () + "api/user/validation/" + 
-                  userDao.computeUserCode (u) + "\n\n"  +
-                  "For help requests please write to: "+ cfgManager.getSupportConfiguration ().getMail () + "\n\n"+
-                  "Thanks for your registration,\n" + cfgManager.getSupportConfiguration ().getName () + ".";
+               "the "+ cfgManager.getNameConfiguration ().getShortName () +
+               " system:\n" +
+               cfgManager.getServerConfiguration ().getExternalUrl () +
+               "api/user/validation/" + userDao.computeUserCode (u) + "\n\n"  +
+               "For help requests please write to: " +
+               cfgManager.getSupportConfiguration ().getMail () + "\n\n" +
+               "Thanks for your registration,\n" +
+               cfgManager.getSupportConfiguration ().getName () + ".";
             subject = "User account creation";
          }
          else
          {
             message = new String (
-               "Dear " + getUserWelcome (u) + ",\n\n" +
-               "Your account on "+cfgManager.getNameConfiguration ().getShortName () +" has been successfully created:\n" +
-               u.toString () + "\n" +
-               "For help requests please write to: "+cfgManager.getSupportConfiguration ().getMail () + "\n\n"+
-               "Thanks for your registration,\n"
-              + cfgManager.getSupportConfiguration ().getName () + ".\n" + cfgManager.getServerConfiguration ().getExternalUrl ());
+               "Dear " + getUserWelcome (u) + ",\n\nYour account on " +
+               cfgManager.getNameConfiguration ().getShortName () +
+               " has been successfully created:\n" + u.toString () + "\n" +
+               "For help requests please write to: " +
+               cfgManager.getSupportConfiguration ().getMail () + "\n\n"+
+               "Thanks for your registration,\n" +
+               cfgManager.getSupportConfiguration ().getName () + ".\n" +
+               cfgManager.getServerConfiguration ().getExternalUrl ());
          
             subject = new String ("New account for " + u.getUsername ());
          }
@@ -129,7 +135,8 @@ public class EmailToUserListener implements UserListener
       if (cfgManager.getMailConfiguration ().isOnUserDelete ())
       {
          // Do not send mail to system admin
-         if (cfgManager.getAdministratorConfiguration ().getName ().equals (u.getUsername ()))
+         if (cfgManager.getAdministratorConfiguration ().getName ().equals (
+               u.getUsername ()))
             return;
          
          logger.debug ("Sending email to " + u.getEmail ());
@@ -140,11 +147,13 @@ public class EmailToUserListener implements UserListener
 
          
          String message = new String (
-            "Dear " + getUserWelcome (u) + ",\n\n" +
-            "Your account on "+cfgManager.getNameConfiguration ().getShortName () +" has been removed.\n" +
-            "For help requests please write to: "+cfgManager.getSupportConfiguration ().getMail () + "\n\n"+
-            "Kind regards,\n"
-            + cfgManager.getSupportConfiguration ().getName () + ".\n" + cfgManager.getServerConfiguration ().getExternalUrl ());
+            "Dear " + getUserWelcome (u) + ",\n\nYour account on " +
+            cfgManager.getNameConfiguration ().getShortName () +
+            " has been removed.\n" + "For help requests please write to: " +
+            cfgManager.getSupportConfiguration ().getMail () + "\n\n" +
+            "Kind regards,\n" +
+            cfgManager.getSupportConfiguration ().getName () +
+            ".\n" + cfgManager.getServerConfiguration ().getExternalUrl ());
          
          String subject = new String ("Account " + u.getUsername () +
             " removed");
@@ -177,20 +186,27 @@ public class EmailToUserListener implements UserListener
          "Its settings are: \n" +
          u.toString () + "\n" +
          "Currently only default roles are set for this user.\n" +
-         "Please use administrative panel at " +  cfgManager.getServerConfiguration ().getExternalUrl () + 
-            " to setup its roles into "+cfgManager.getNameConfiguration ().getShortName () +" system.\n\n" + 
-         "Kind regards,\n"+cfgManager.getNameConfiguration ().getShortName () +" registration system.\n");
+         "Please use administrative panel at " +
+         cfgManager.getServerConfiguration ().getExternalUrl () +
+         " to setup its roles into " +
+         cfgManager.getNameConfiguration ().getShortName () +" system.\n\n" +
+         "Kind regards,\n" +
+         cfgManager.getNameConfiguration ().getShortName () +
+         " registration system.\n");
          
-      String subject = new String ("New registered account for " + u.getUsername ());
+      String subject = new String ("New registered account for " +
+            u.getUsername ());
             
       try
       {
-         mailer.send  (support_mail, null, null, subject, message);
+         mailer.send  (cfgManager.getSupportConfiguration ().
+            getRegistrationMail () , null, null, subject, message);
       }
       catch (Exception e)
       {
          throw new EmailNotSentException (
-            "Cannot send registration notification email to " + support_mail, e);
+            "Cannot send registration notification email to " +
+                  support_mail, e);
       }
       logger.debug ("email sent.");
    }

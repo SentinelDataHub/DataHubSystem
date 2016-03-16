@@ -20,12 +20,18 @@
 package fr.gael.dhus.service.job;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
+import java.util.zip.Deflater;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.mail.EmailAttachment;
 import org.apache.commons.mail.EmailException;
@@ -108,21 +114,80 @@ public class SendLogsJob extends AbstractJob
          throw new MailException ("Log file not defined");
       }
       
-      File logs = new File (logPath);      
+      File logs = new File (logPath);
       if(!logs.exists ())
       {
          throw new MailException ("Log file not present : " + logs.getPath ());
       }
 
-      EmailAttachment attachment = new EmailAttachment ();
       Date now = new Date ();
-      SimpleDateFormat df = new SimpleDateFormat ("yyyy-MM-dd'@'HH:mm:ss"); 
+      SimpleDateFormat df = new SimpleDateFormat ("yyyy-MM-dd'@'HH:mm:ss");
       df.setTimeZone(TimeZone.getTimeZone("GMT"));
+      String docFilename = configurationManager.getNameConfiguration ().
+            getShortName ().toLowerCase ()+"-"+df.format (now);
+
+      File zipLogs;
+      try
+      {
+         zipLogs = File.createTempFile (docFilename, ".zip");
+      }
+      catch (IOException e)
+      {
+         throw new MailException ("Cannot create temporary zip log file.", e);
+      }
+
+      // compress logs file to zip format
+      FileOutputStream fos;
+      ZipOutputStream zos = null;
+      FileInputStream fis = null;
+      try
+      {
+         int length;
+         byte[] buffer = new byte[1024];
+         ZipEntry entry = new ZipEntry (docFilename + ".txt");
+
+         fos = new FileOutputStream (zipLogs);
+         zos = new ZipOutputStream (fos);
+         fis = new FileInputStream (logs);
+
+         zos.setLevel (Deflater.BEST_COMPRESSION);
+         zos.putNextEntry (entry);
+         while ((length = fis.read (buffer)) > 0)
+         {
+            zos.write (buffer, 0, length);
+         }
+      }
+      catch (IOException e)
+      {
+         throw new MailException ("An error occurred during compression " +
+                                  "logs file, cannot send logs !", e);
+      }
+      finally
+      {
+         try
+         {
+            if (fis != null)
+            {
+               fis.close ();
+            }
+            if (zos != null)
+            {
+               zos.closeEntry ();
+               zos.close ();
+            }
+         }
+         catch (IOException e)
+         {
+            throw new MailException ("An error occurred during compression " +
+                                     "logs file, cannot send logs !", e);
+         }
+      }
+
+      EmailAttachment attachment = new EmailAttachment ();
       attachment.setDescription (configurationManager.getNameConfiguration ().
          getShortName ()+" Logs " + now.toString ());
-      attachment.setPath (logs.getPath ());
-      attachment.setName (configurationManager.getNameConfiguration ().
-         getShortName ().toLowerCase ()+"-"+df.format (now)+ ".txt");
+      attachment.setPath (zipLogs.getPath ());
+      attachment.setName (zipLogs.getName ());
       
       // Prepare the addresses
       List<String>ads = new ArrayList<String> ();
@@ -160,6 +225,13 @@ public class SendLogsJob extends AbstractJob
             throw new MailException ("Cannot send logs to " + email, e);
          }
       }
+
+      if (!zipLogs.delete ())
+      {
+         logger.warn (
+               "Cannot remove mail attachment: " + zipLogs.getAbsolutePath ());
+      }
+
       logger.info ("SCHEDULER : Send Administrative logs done - " + 
          (System.currentTimeMillis ()-start) + "ms");
    }

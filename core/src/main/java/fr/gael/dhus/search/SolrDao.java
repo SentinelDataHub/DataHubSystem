@@ -19,715 +19,250 @@
  */
 package fr.gael.dhus.search;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
-import fr.gael.dhus.database.dao.UserDao;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.solr.client.solrj.SolrServer;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
-import org.apache.solr.client.solrj.impl.HttpSolrServer.RemoteSolrException;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.client.solrj.response.SpellCheckResponse;
-import org.apache.solr.client.solrj.response.SpellCheckResponse.Suggestion;
-import org.apache.solr.client.solrj.util.ClientUtils;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.SolrException.ErrorCode;
-import org.apache.solr.common.SolrInputDocument;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-
-import fr.gael.dhus.database.dao.ProductDao;
-import fr.gael.dhus.database.object.MetadataIndex;
-import fr.gael.dhus.database.object.Product;
-import fr.gael.dhus.database.object.Role;
-import fr.gael.dhus.database.object.User;
-import fr.gael.dhus.search.geocoder.AbstractGeocoder;
+import fr.gael.dhus.database.object.config.search.GeocoderConfiguration;
+import fr.gael.dhus.search.geocoder.CachedGeocoder;
 import fr.gael.dhus.search.geocoder.Geocoder;
-import fr.gael.dhus.search.geocoder.GeocoderFactory;
-import fr.gael.dhus.service.SecurityService;
+import fr.gael.dhus.search.geocoder.impl.NominatimGeocoder;
 import fr.gael.dhus.system.config.ConfigurationManager;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+
+import org.apache.log4j.Logger;
+
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrRequest;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.SuggesterResponse;
+import org.apache.solr.client.solrj.response.UpdateResponse;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrInputDocument;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
 /**
- * DAO other Solr Interface.
- *
+ * Low level Solr interface.
  */
-@Component
 public class SolrDao
 {
-   private static Log logger = LogFactory.getLog (SolrDao.class);
+   /** Logger. */
+   private static final Logger LOGGER = Logger.getLogger(SolrDao.class);
 
+   /** URL path to solr service. */
+   private static final String SOLR_SVC = "/solr/dhus";
+
+   /** Special chars to replacements table. */
+   private final Map<String, String> specialChars = new HashMap<>();
+
+   /** SolrJ client. */
+   private final HttpSolrClient solrClient;
+
+   /** Default Geocoder. */
+   private final Geocoder geocoder;
+
+   /** Dependency injection. */
    @Autowired
-   private ProductDao productDao;
-   
-   @Autowired
-   private SecurityService securityService;
-   
-   @Autowired
-   private ConfigurationManager cfgManager;
-
-   @Autowired
-   private UserDao userDao;
+   private ConfigurationManager configurationManager;
 
    /**
-    * Default Geocoder
+    * DO NOT CALL! use Spring instead.
+    * @param geocoder_conf geocoder's configuration object.
     */
-   private Geocoder geocoder;
+   public SolrDao(GeocoderConfiguration geocoder_conf)
+   {
+       specialChars.put(":", "<colon>");
+       specialChars.put("$", "<dollar>");
+       specialChars.put("(", "<lpar>");
+       specialChars.put(")", "<rpar>");
 
-   private static SolrServer solrServer=null;
-   
-   private static LoadingCache<String, SearchResult> cache=null;
-   
-   public Geocoder getGeocoder ()
-   {
-      if (this.geocoder == null)
-         geocoder = GeocoderFactory.getDefault(cfgManager.getGeocoderConfiguration ().getUrl ());
-      return geocoder;
-   }
-
-   private LoadingCache<String, SearchResult> getResultsCache ()
-   {
-      if (SolrDao.cache == null)
-      {
-         SolrDao.cache = CacheBuilder.newBuilder()
-           .concurrencyLevel(4)
-           .maximumSize(1000)
-           .expireAfterWrite(10, TimeUnit.MINUTES)
-           .expireAfterAccess(10, TimeUnit.MINUTES)
-           .build
-           (
-               new CacheLoader<String, SearchResult>() 
-               {
-                  public SearchResult load(String key) 
-                  {
-                     String converted = key;
-                     logger.info("Executing Query \"" +
-                        ("" + converted).substring(0,
-                           Math.min(("" + converted).length(), 512)) +
-                           " (...)\"");
-                     return new SearchResult (getSolrServer (), converted);
-                  }
-               }
-            );
-         }
-      return SolrDao.cache;
-   }
-   
-   public static void resetQueryCache()
-   {
-      if (SolrDao.cache != null)
-      {
-         SolrDao.cache.cleanUp ();
-         SolrDao.cache.invalidateAll ();
-      }
+       geocoder = new CachedGeocoder(new NominatimGeocoder(geocoder_conf));
+       solrClient = new HttpSolrClient("");
    }
 
    /**
-    * Retrive the online solr Server. The dhus solr server is expected at
-    *    http://localhost:port/solr/dhus
-    * @return the solr server instance.
+    * Initialises this DAO when the Tomcat server is started.
+    * (because getUrl() calls getPort() which delegates to TomcatServer).
     */
-   private SolrServer getSolrServer ()
+   public void initServerStarted()
    {
-      if (solrServer == null)
-      {
-         int port = cfgManager.getServerConfiguration ().getPort ();
-      
-         String url = new String ("http://localhost:" + port + "/solr/dhus");
-         SolrServer s = new HttpSolrServer (url);
-         solrServer = s;
-      }
-      return solrServer;
+      String dhus_url = configurationManager.getServerConfiguration().getUrl();
+      solrClient.setBaseURL(dhus_url + SOLR_SVC);
    }
-   
+
    /**
-    * Saves index in solr service
-    * @param productPath
-    * @param indexes
+    * System search.
+    * @param query a complete and well configured query.
+    * @return Solr response to given query.
+    * @throws SolrServerException a solr error occured.
+    * @throws IOException in case of network error.
     */
-   public void saveIndex(Product product, List<MetadataIndex>indexes) 
-   {      
-      String productPath = ProductDao.getPathFromProduct (product);
-      SolrServer server = getSolrServer ();
-      // Prepare the document
-      SolrDocument ro_doc=null;
-      SolrInputDocument doc = null;
-      
-      if ((ro_doc=getDocumentByPath (productPath)) != null)
-      {
-         logger.info ("Adding or updating fields in solr path '" + productPath  +
-            "'");
-         doc = ClientUtils.toSolrInputDocument (ro_doc);
-      }
-      else
-         doc = getInputDocByPath (productPath, product.getId ());
-      
-      // ingest indexes
-      for (MetadataIndex index:indexes)
-      {
-         String type = index.getType ();
-         // Only textual information stored in index
-         if ((type == null)  ||
-             type.isEmpty () ||
-             "text/plain".equals (type))
-         {
-            //doc.addField ("contents", index.getName ());
-            updateField (doc, "contents", index.getValue (), true);
-         }
-         
-         if (index.getQueryable () != null)
-         {
-            updateField (doc, "contents", index.getQueryable (), true);
-            
-            updateField (doc, index.getQueryable ().toLowerCase(), 
-               index.getValue (), false);
-            
-            if (logger.isDebugEnabled())
-            {
-               logger.debug ("Added " + index.getQueryable () + ":" +
-                  index.getValue ());
-            }
-         }
-      }
-      
-      try
-      {
-         server.add (doc);
-         server.commit ();
-      }
-      catch (SolrServerException e)
-      {
-         logger.error ("Cannot save index changes in solr.", e);
-         return;
-      }
-      catch (IOException e)
-      {
-         // should never happend
-         e.printStackTrace();
-      }
-      resetQueryCache ();
-   }
-   
-   public void removeIndexes (Product product)
+   public QueryResponse search(SolrQuery query) throws SolrServerException, IOException
    {
-      SolrServer server = getSolrServer ();
-      try
-      {
-         server.deleteById (product.getId ().toString ());
-         server.commit ();
-      }
-      catch (SolrServerException e)
-      {
-         logger.error ("Problem accessing the solr server.", e);
-      }
-      catch (IOException e)
-      {
-         logger.error ("IO error.", e);
-      }
-      resetQueryCache ();
+      return solrClient.query(query);
    }
-   
+
    /**
-    * Processed Solr index optimization.
-    * Shall be called asynchronously to avoid latencies.
+    * Retrives SolrDocuments through a paginated iterator.
+    * Should not be used to delete documents because of the built-in lazy pagination.
+    * @param query to perform.
+    * @return an iterator on SolrDocument.
+    * @throws IOException network error.
+    * @throws SolrServerException solr error.
     */
-   public void optimize ()
+   public Iterator<SolrDocument> scroll(SolrQuery query) throws IOException, SolrServerException
    {
-      SolrServer server = getSolrServer ();
-      try
-      {
-         server.optimize();
-      }
-      catch (Exception e){}
+      return new IterableSearchResult(solrClient, query);
    }
-   
-   public void relocate (Long id, String new_path)
-   {
-      SolrDocument doc = getDocumentById (id);
-      
-      if (doc == null)
-      {
-         throw new DHusSearchException ("Cannot retrieve document id(" + 
-               id + ") to be relocated.");
-      }
-      
-      SolrInputDocument input = ClientUtils.toSolrInputDocument (doc);
-      Map<String, Object> partialUpdate = new HashMap<String, Object>();
-      partialUpdate.put("set", toSolrPath (new_path));
-      updateField (input, "path", partialUpdate, false);
-      try
-      {
-         getSolrServer ().add (input);
-         getSolrServer ().commit ();
-      }
-      catch (SolrServerException e)
-      {
-         throw new DHusSearchException ("Cannot product path changes in solr.", e);
-      }
-      catch (IOException e)
-      {
-         // should never happend
-         e.printStackTrace();
-      }
-      resetQueryCache ();
-   }
-   
-   
+
    /**
-    * Retrieve the number of document stored into this solr server
-    * @return number of documents.
+    * Indexes a new document.
+    * @param doc to index.
+    * @return solr response.
+    * @throws IOException network error.
+    * @throws SolrServerException solr error.
     */
-   public long getDocumentsNumber ()
+   public UpdateResponse index(SolrInputDocument doc) throws IOException, SolrServerException
    {
-      return search ("*:*", false, null).size();
-   }
-   
-   public long count (String query, User u)
-   {
-      return search (query, true, u).size ();
+      return solrClient.add(doc);
    }
 
-   private SolrDocument getDocumentById (Long id)
-   {
-      SearchResult sr = search ("id:" + id, false, null);
-      if (sr.hasNext ()) return sr.next ();
-      return null;
-   }
-
-   private SolrDocument getDocumentByPath (String productPath)
-   {
-      SearchResult sr = searchNoFilterQuery ("path:" + toSolrPath(productPath));
-      if (sr.hasNext ()) return sr.next ();
-      return null;
-   }
-
-   public SearchResult search (String squery)
-   {
-      return search(squery, true, null);
-   }
-   
-   public SearchResult search (String squery, boolean restricted, User user)
-   {
-      try
-      {
-         if (getSolrServer ().ping () == null)
-         {
-            throw new DHusSearchException ("Solr Server not ready.");
-         }
-      }
-      catch (Exception e)
-      {
-         throw new DHusSearchException (e.getMessage ());
-      }
-      SearchResult docs;
-      try
-      {
-         logger.info ("Updating query \"" +
-            ("" + squery).substring (0,
-               Math.min ( ("" + squery).length (), 512)) + " (...)\"");
-         String query = updateQuery (squery);
-
-         logger.debug ("Looking for docs...");
-         logger
-            .info ("Searching for \"" +
-               ("" + query).substring (0,
-                  Math.min ( ("" + query).length (), 512)) + " (...)\"");
-
-         boolean accessFilterActif =
-            Boolean.parseBoolean (System.getProperty ("solr.filter.user",
-               "false"));
-         if (accessFilterActif)
-         {
-            docs = getResultsCache ().get (query);
-         }
-         else
-         {
-            docs =
-               getResultsCache ().get (
-                  restricted ? getRestrictedQuery (query, user) : query);
-         }
-
-         // Rewind the iterator to the beginning
-         docs.setOffset (0);
-      }
-      catch (ExecutionException e)
-      {
-         logger.error ("Cannot retrieve results for query \"" + squery + "\".",
-            e);
-         return null;
-      }
-      return docs;
-   }
-   
    /**
-    * Retrieves suggested values from solr.
-    * @param prefix the string parsed by solr to retrieve suggestions.
-    * @return a list of suggestions.
+    * Get one document by its unique Id.
+    * @param id unique identifier.
+    * @return a doc or null if does not exist.
+    * @throws IOException network error.
+    * @throws SolrServerException solr error.
     */
-   public List<String>getSuggestions (String prefix)
+   public SolrDocument getById(Long id) throws IOException, SolrServerException
    {
-      ModifiableSolrParams params = new ModifiableSolrParams();
-      params.set("qt", "/suggest");
-      params.set("q", prefix);
-      params.set("spellcheck", "on");
-
-      QueryResponse response;
-      try
-      {
-         response = getSolrServer ().query(params);
-      }
-      catch (SolrServerException e)
-      {
-         logger.warn ("Cannot get suggestion for prefix \"" + prefix + "\".");
-         return ImmutableList.of();
-      }
-      
-      SpellCheckResponse spellCheckResponse = response.getSpellCheckResponse();      
-      if (spellCheckResponse != null && !spellCheckResponse.isCorrectlySpelled())
-      {
-         List<Suggestion>lst = response.getSpellCheckResponse().getSuggestions();
-         // Returns only the last suggestion...
-         if (!lst.isEmpty ())
-            return lst.get (lst.size ()-1).getAlternatives ();
-      }
-      return ImmutableList.of();
+      return solrClient.getById(String.valueOf(id));
    }
-   
-   
+
    /**
-    * Restricts the query with the allowed username field
-    * @param query
-    * @return
+    * Deletes a SolrDocument with the given id.
+    * @param id of the SolrDocument to remove.
+    * @return solr response.
+    * @throws IOException network error.
+    * @throws SolrServerException solr error.
     */
-   public String getRestrictedQuery (String query, User user)
+   public UpdateResponse remove(long id) throws IOException, SolrServerException
    {
-      if (user == null)
-         user = securityService.getCurrentUser ();
-      String userString = "";
-      // Bypass for Data Right Managers. They can see all products and collections.
-      if (!cfgManager.isDataPublic () &&
-          user != null && !user.getRoles ().contains (Role.DATA_MANAGER))
-      {
-         userString = "AND (user:(\""+user.getUsername ()+"\" OR \""+userDao.getPublicDataName ()+"\"))";
-      }
-      return "(" + query +") "+userString;
-   }
-   
-   public List<Product> getProductListByDocList (List<SolrDocument> docs)
-   {
-      List<Long> ids = new ArrayList<Long> ();
-      for (SolrDocument doc: docs)
-         ids.add ((Long)doc.get ("id"));
-
-      return productDao.read (ids);
-   }
-   
-   public Product getProductByDoc (SolrDocument doc)
-   {
-      Product p=null;
-      
-      try
-      {
-         long id = (Long)doc.get ("id");
-         p = productDao.read (id);
-      }
-      catch (Exception e)
-      {
-         logger.error (
-            "Cannot retrieve product by its solr Id (trying by path).", e);
-         String path = (String)doc.get ("path");
-         try
-         {
-            p=productDao.getProductByPath (new URL (toExternalPath (path)));
-         }
-         catch (MalformedURLException mfu)
-         {
-            logger.error ("Bad path \"" + toExternalPath (path) + "\".", mfu);
-         }
-      }
-      return p;
-   }
-   
-   private static final HashMap<String, String>special_keys = 
-      new HashMap<String, String> () 
-      {
-         private static final long serialVersionUID = 6935030352074844317L;
-
-         {
-            put (":", "<colon>");
-            /*
-            put (";", "<semicolon>");
-            put ("-", "<minus>");
-            put ("+", "<plus>");
-            put ("_", "<underscore>");
-            put ("~", "<tilde>");
-            put ("^", "<circ>");
-            put (" ", "<space>");
-            put ("/", "<slash>");
-            put ("\\", "<backslash>");
-            put ("]", "<closebracket>");
-            put ("[", "<openbracket>");
-            put ("&", "<amp>");
-            put ("*", "<asterisk>");
-            */
-            
-         }
-      };
-      
-   private String toSolrPath (String path)
-   {
-      logger.debug ("Converting " + path);
-      if (path.startsWith ("/")) path="file:/" + path;
-      for (String spec: special_keys.keySet ())
-      {
-         path = path.replace (spec, special_keys.get (spec));
-      }
-      logger.debug ("   to " + path);
-      return path;
-   }
-   private String toExternalPath (String path)
-   {
-      logger.debug ("Converting " + path);
-      for (String spec: special_keys.keySet ())
-      {
-         path = path.replace (special_keys.get (spec), spec);
-      }
-      logger.debug ("   to " + path);
-      return path;
+      UpdateResponse res = solrClient.deleteById(String.valueOf(id));
+      solrClient.commit(false, true, true); // mandatory explicit soft-commit.
+      return res;
    }
 
-   public void addUserRight (Product p, String username)
-   {
-      int tries = 5;
-      do
-      {
-         try
-         {
-            _addUserRight (p, username);
-            tries = 0;
-         }
-         catch (RemoteSolrException e)
-         {
-            int error = e.code ();
-            // Case of conflict access
-            if (ErrorCode.getErrorCode (error) == ErrorCode.CONFLICT)
-            {
-               tries --;
-               String message = "Solr concurrency access conflict detected " +
-                        "(product id#" + p.getId () + ")";
-               if (tries>0)
-                  logger.warn (message + ", retring ...");
-               else
-               {
-                  throw new DHusSearchException (message, e);
-               }
-            }
-         }
-      } while (tries>0);
-   }
-   public void _addUserRight (Product p, String username)
-   {
-      SolrServer server = getSolrServer ();
-      String path = ProductDao.getPathFromProduct (p);
-      SolrDocument doc = getDocumentByPath (path);
-      
-      if (doc == null)
-      {
-         logger.warn (
-            "Cannot retrieve Product in solr to set user rights with path \"" + 
-            path +"\"");
-         return;
-      }
-
-      boolean user_already_known = false;
-      if (doc.containsKey ("user"))
-      {
-         Collection<Object>users = doc.getFieldValues ("user");
-         for (Object user:users)
-         {
-            // Case of user already agreed
-            if (username.equals (user))
-            {
-               user_already_known = true;
-               break;
-            }
-         }
-      }
-      if (!user_already_known)
-      {
-         SolrInputDocument new_doc = ClientUtils.toSolrInputDocument (doc);
-         Collection<Object>users = doc.getFieldValues ("user");
-         List<Object>list = users == null ? new ArrayList<Object> () : new ArrayList<Object> (users);
-         list.add (username);
-         new_doc.setField ("user", ImmutableMap.of ("set", list));     
-         try
-         {
-            server.add (new_doc);
-            server.commit ();
-         }
-         catch (SolrServerException e)
-         {
-            logger.error ("Cannot add user product rights for user \"" + 
-               username + "\"", e);
-         }
-         catch (IOException e)
-         {
-            e.printStackTrace();
-         }
-      }
-   }
-   
-   public void removeUserRight (Product p, String username)
-   {
-      SolrServer server = getSolrServer ();
-      String path = ProductDao.getPathFromProduct (p);
-      SolrDocument doc = getDocumentByPath (path);
-      if (doc == null) return;
-      
-      if (doc.containsKey ("user"))
-      {
-         SolrInputDocument new_doc = null;
-         Collection<Object>users = doc.getFieldValues ("user");
-         for (Object user:users)
-         {
-            // Case of user already agreed
-            if (username.equals (user))
-            {
-               List<Object>list = new ArrayList<Object> (users);
-               list.remove (user);
-               new_doc =  ClientUtils.toSolrInputDocument (doc);
-               new_doc.setField ("user", ImmutableMap.of ("set", list));               
-            }
-         }
-
-         if (new_doc != null)
-         {
-            try
-            {
-               server.add (new_doc);
-               server.commit ();
-            }
-            catch (SolrServerException e)
-            {
-               logger.error ("Cannot remove user rights for \"" + 
-                  username + "\"", e);
-            }
-            catch (IOException e)
-            {
-               e.printStackTrace();
-            }
-         }
-      }
-   }
-   
-   public List<String> getAuthorizedUsers (Product p)
-   {
-      String path = ProductDao.getPathFromProduct (p);
-      SolrDocument doc = getDocumentByPath (path);
-      
-      HashSet<String> list = new HashSet<String> (); 
-      if (doc.containsKey ("user"))
-      {
-         for (Object o:doc.getFieldValues ("user"))
-            list.add (o.toString ());
-      }
-      return new ArrayList<String> (list);
-   }
-   
-   private SolrInputDocument getInputDocByPath (String path, Long id)
-   {
-      SolrInputDocument doc = new SolrInputDocument();
-      doc.setField ("path", toSolrPath(path));
-      try
-      {
-         if (id==null)
-         {
-            Product p = productDao.getProductByPath (new URL(path));
-            if (p==null) 
-               logger.error ("Path \"" + path + "\" not found in database.");
-            doc.setField ("id", p.getId ());
-         }
-         else
-            doc.setField ("id", id);
-      }
-      catch (MalformedURLException e)
-      {
-         logger.error ("Unknown product path " + path);
-         return null;
-      }
-      return doc;
-   }
-   
    /**
-    * Manages field add or replacement. document provided in intput shall be 
-    * committed by the caller.
-    * @param doc
-    * @param field
-    * @param value
+    * Get suggestions from the suggester component.
+    * @param input analysed by the suggester component.
+    * @return the suggester component response.
+    * @throws IOException network error.
+    * @throws SolrServerException solr error.
     */
-   private void updateField (SolrInputDocument doc, String field, Object value, 
-      boolean update)
+   public SuggesterResponse getSuggestions(String input) throws IOException, SolrServerException
    {
-      if (!update && doc.containsKey (field))
-      {
-         doc.remove (field);
-      }
-      doc.addField(field, value);
+      SolrQuery query = new SolrQuery(input);
+      query.setRequestHandler("/suggest");
+
+      return search(query).getSuggesterResponse();
    }
-   
-   public String updateQuery (String query)
+
+   /**
+    * Optimize the index, merges every segment of the index into one monolithic file.
+    * Optimizing is very expensive, and if the index is constantly changing,
+    * the slight performance boost will not last long...
+    * The tradeoff is not often worth it for a non static index.
+    * <p>
+    * Blocking method, will block until optimization is complete. Solr won't respond to
+    * search queries until optimization is done.
+    * @throws IOException network error.
+    * @throws SolrServerException solr error.
+    */
+   public void optimize() throws IOException, SolrServerException
    {
-      for (String[]strs: SolrQueryParser.parse (query))
+      solrClient.optimize();
+   }
+
+   /**
+    * Removes Solr special characters (such as the colon ':') from the given string.
+    * @param str to mangle.
+    * @return mangled path.
+    */
+   public String mangleString(String str)
+   {
+      LOGGER.debug("Converting " + str);
+      for (String spec: specialChars.keySet())
+      {
+         str = str.replace(spec, specialChars.get(spec));
+      }
+      LOGGER.debug("   to " + str);
+      return str;
+   }
+
+   /**
+    * Unmangles a previously mangled string.
+    * @param str to unmangle.
+    * @return unmangled path.
+    */
+   public String unmangleString(String str)
+   {
+      LOGGER.debug("Converting " + str);
+      for (String spec: specialChars.keySet())
+      {
+         str = str.replace(specialChars.get(spec), spec);
+      }
+      LOGGER.debug("   to " + str);
+      return str;
+   }
+
+   /**
+    * Geocode query.
+    * @param query query.
+    * @return result.
+    */
+   public String updateQuery(String query)
+   {
+      for (String[]strs: SolrQueryParser.parse(query))
       {
          String key = strs[SolrQueryParser.INDEX_FIELD];
          String token = strs[SolrQueryParser.INDEX_VALUE];
-         
+
          // If key defined, replace it by its lower case version.
-         if (!"".equals (key))
+         if (!"".equals(key))
          {
-            query = query.replace (key, key.toLowerCase());
+            query = query.replace(key, key.toLowerCase());
          }
-         
-         if (!(!"".equals (key) ||
-               token.startsWith ("{") ||
-               token.startsWith ("[") ||    
-               token.startsWith ("(") ||
-               token.contains ("*") ||
-               token.contains ("?") ||
-               token.contains ("TO") ||
-               token.contains ("OR") ||
-               token.contains ("AND") ||
-               token.matches(".*\\d.*") ||
-               !getSuggestions(token).isEmpty()))
+
+         boolean suggestions_empty = true;
+         try
          {
-            String wtk_boundaries=null;
-            try
-            {
-               wtk_boundaries = ((AbstractGeocoder)getGeocoder ()).
-                  getCachedBoundariesWKT (token);
-            }
-            catch (ExecutionException e)
-            {
-               logger.error ("Cannot get boundaries of \"" + token +"\"");
-            }
+            suggestions_empty = getSuggestions(token).getSuggestions().get("suggest").isEmpty();
+         }
+         catch (IOException | SolrServerException e)
+         {
+            // Ignored.
+         }
+
+         if (!(!"".equals(key) ||
+               token.startsWith("{") ||
+               token.startsWith("[") ||
+               token.startsWith("(") ||
+               token.contains("*") ||
+               token.contains("?") ||
+               token.contains("TO") ||
+               token.contains("OR") ||
+               token.contains("AND") ||
+               token.matches(".*\\d.*") ||
+               !suggestions_empty))
+         {
+            String wtk_boundaries = geocoder.getBoundariesWKT(token);
 
             if (wtk_boundaries != null)
             {
@@ -740,182 +275,92 @@ public class SolrDao
       return query;
    }
 
-   public void addProductInCollection (Product p, String cname)
-   {
-      SolrServer server = getSolrServer ();
-      String path = ProductDao.getPathFromProduct (p);
-      SolrDocument doc = getDocumentByPath (path);
-      if (doc == null)
-      {
-         logger.warn (
-            "Cannot retrieve Product in solr to set collection with path \"" + 
-            ProductDao.getPathFromProduct (p));
-         return;
-      }
-      boolean collection_already_known = false;
-      if (doc.containsKey ("collection"))
-      {
-         Collection<Object>collections = doc.getFieldValues ("collection");
-         for (Object collection:collections)
-         {
-            // Case of user already agreed
-            if (cname.equals (collection))
-            {
-               collection_already_known = true;
-               break;
-            }
-         }
-      }
-      if (!collection_already_known)
-      {
-         SolrInputDocument new_doc = ClientUtils.toSolrInputDocument (doc);
-         new_doc.setField("collection", ImmutableMap.of ("add", cname));
-
-         try
-         {
-            server.add (new_doc);
-            server.commit ();
-         }
-         catch (SolrServerException e)
-         {
-            logger.error ("Cannot add product in collection \"" + 
-               cname + "\"", e);
-         }
-         catch (IOException e)
-         {
-            e.printStackTrace();
-         }
-      }
-   }
-   
-   public void removeProductFromCollection (Product p, String cname)
-   {
-      SolrServer server = getSolrServer ();
-      String path = ProductDao.getPathFromProduct (p);
-      SolrDocument doc = getDocumentByPath (path);
-      if (doc == null)
-      {
-         logger.error (
-            "Cannot retrieve Product to remove collection with path \"" + 
-            ProductDao.getPathFromProduct (p));
-         return;
-      }
-      if (doc.containsKey ("collection"))
-      {
-         Collection<Object>collections = doc.getFieldValues ("collection");
-         for (Object collection:collections)
-         {
-            // Case of user already agreed
-            if (cname.equals (collection))
-            {
-               List<Object>list = new ArrayList<Object> (collections);
-               list.remove (collection);
-               SolrInputDocument new_doc = ClientUtils.toSolrInputDocument (doc);
-               // Seems not to work
-               // new_doc.setField ("collection", ImmutableMap.of ("remove", user));
-               new_doc.setField ("collection", ImmutableMap.of ("set", list));
-               try
-               {
-                  server.add (new_doc);
-                  server.commit ();
-               }
-               catch (SolrServerException e)
-               {
-                  logger.error ("Cannot remove product from collection \"" + 
-                     cname + "\"", e);
-               }
-               catch (IOException e)
-               {
-                  e.printStackTrace();
-               }
-               break;
-            }
-         }
-      }
-   }
-   
-   public void checkIndexes ()
-   {
-      SolrServer server = getSolrServer ();
-      SearchResult sr = search ("*:*", false, null);
-      boolean changes = false;
-      while (sr.hasNext ())
-      {
-         SolrDocument doc = sr.next ();
-         Product product = getProductByDoc (doc);
-         if (product == null)
-         {
-            Object o = doc.get ("path");
-            String path  = "unknown";
-            if (o!=null) path = toExternalPath ((String)o);
-            try
-            {
-               sr.remove ();
-               logger.warn ("Product \"" + path + 
-                  "\" present in Solr Index but not in database: removed.");
-               changes = true;
-            }
-            catch (Exception e)
-            {
-               logger.error ("Cannot remove Solr entry " + path, e);
-            }
-         }
-         try
-         {
-            server.commit ();
-         }
-         catch (Exception e)
-         {
-            logger.error ("Cannot commit Solr changes.");
-         }
-      }
-      if (changes) resetQueryCache ();
-      
-   }
-   
    /**
-    * Search all product bypassing the default query filter that hides all
-    * the product under processing thanks to the passed query. The search is 
-    * only performed on not processed products.
-    * This call does not care of user rights. It is also no handled by
-    * the search cache. Default fetch size used is 10.
-    * @param query the product request query.
-    * @return search result iterator.
+    * An iterable SolrResponse, with pagination.
     */
-   private SearchResult searchNoFilterQuery (String query)
+   private static class IterableSearchResult implements Iterator<SolrDocument>
    {
-      return new SearchResult (getSolrServer(), query, 10, "*");
-      
-   }
-   
-   public void setProcessed (Product p)
-   {
-      SolrServer server = getSolrServer ();
-      String path = ProductDao.getPathFromProduct (p);
-      SolrDocument doc = getDocumentByPath (path);
-      if (doc == null)
-      {
-         logger.warn (
-            "Cannot retrieve Product in solr to set it processed with path \"" + 
-            path);
-         return;
-      } 
-      
-      SolrInputDocument new_doc = ClientUtils.toSolrInputDocument (doc);
-      new_doc.setField("processed", true);
+      /** Logger. */
+      private static final Logger LOGGER = Logger.getLogger(IterableSearchResult.class);
+      /** Default fetch size of 50 solr documents. */
+      private static final int FETCH_SIZE = 50;
 
-      try
+      /** Solr client. */
+      private final SolrClient client;
+      /** Solr query. */
+      private final SolrQuery query;
+
+      /** For iretation purposes: offset in the current response. */
+      private int offset = 0;
+      /** Current response being served by this class. */
+      private QueryResponse rsp;
+
+      /**
+       * Creates a new SearchResult.
+       * @param client Solr client instance.
+       * @param query to perform.
+       * @throws SolrServerException Solr client exception.
+       * @throws IOException network exception.
+       */
+      public IterableSearchResult(SolrClient client, SolrQuery query)
+            throws SolrServerException, IOException
       {
-         server.add (new_doc);
-         server.commit ();
+         Objects.requireNonNull(client);
+         Objects.requireNonNull(query);
+
+         this.client = client;
+         this.query  = query;
+
+         this.query.setRows(FETCH_SIZE);
+
+         rsp = client.query(this.query, SolrRequest.METHOD.POST);
       }
-      catch (SolrServerException e)
-      {
-         logger.error ("Cannot set product processed", e);
+
+      /** Run when every document in this.response have been served by next(). */
+      private void getNextResponse() {
+         int start = (this.query.getStart() != null)? this.query.getStart(): 0;
+         this.query.setStart(start + offset);
+         try
+         {
+            rsp = client.query(this.query, SolrRequest.METHOD.POST);
+            offset = 0;
+         }
+         catch (SolrServerException | IOException ex)
+         {
+            LOGGER.warn("An exception occured, no more solr document to serve", ex);
+         }
       }
-      catch (IOException e)
+
+      @Override
+      public boolean hasNext()
       {
-         e.printStackTrace();
+         if (offset >= this.rsp.getResults().size())
+         {
+            getNextResponse();
+         }
+         return offset < this.rsp.getResults().size();
+      }
+
+      @Override
+      public SolrDocument next()
+      {
+         if (offset >= this.rsp.getResults().size())
+         {
+            getNextResponse();
+            if (offset >= this.rsp.getResults().size())
+            {
+               throw new NoSuchElementException();
+            }
+         }
+         int index = offset;
+         offset += 1;
+         return this.rsp.getResults().get(index);
+      }
+
+      @Override
+      public void remove()
+      {
+         throw new UnsupportedOperationException("Not implemented.");
       }
    }
 }

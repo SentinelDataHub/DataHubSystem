@@ -1,0 +1,240 @@
+<div>
+<!-- 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+-->
+<style>
+.borderdiv{
+  border: inset;
+  border-radius: 20px;
+}
+.bordertextarea{
+  background: #B0B0B0 !important;
+}
+.upload-button {
+        border-radius: 0px;
+        vertical-align: middle;
+        margin-bottom: 20px;
+        line-height: 20px;
+        font-weight: bold;
+        position: relative;                  
+        text-decoration: none;
+        text-align: center;
+        background-color: rgb(55, 59, 80);
+        color: white;
+        cursor: pointer;
+        margin-top: 10px;  
+        font-size: 1.5vw;     
+}
+.icon{
+  float: right;
+  margin-right: 10px;
+  padding: 7px;
+}
+.icon:hover {                
+        /*background-color: rgb(55, 59, 80) !important;
+        color: white !important;*/
+        cursor: pointer !important;
+        color: black !important;
+    }
+.user-button {
+    background-color: rgb(55, 59, 80)!important;
+    vertical-align: middle;
+    margin-top: 12px;
+    line-height: 20px;
+    font-size: 14px;
+    margin-left: 5px;
+    position: relative;
+    padding: 10px;
+    cursor: pointer;
+    color:white;
+    text-decoration: none;
+    text-align: center;
+}
+.user-button:hover{
+    color:white;
+    text-decoration: none;
+}
+.user-button:visited{
+    color:white;
+    text-decoration: none;
+}
+.visible
+{
+  display: inline;
+}
+.notVisible
+{
+  display: none;
+}
+.selectedColor
+{
+  background: yellow;
+}
+.notSelectedColor
+{
+  background: green;
+}
+.btn-file {
+    position: relative;
+    overflow: hidden;
+}
+.btn-file input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-size: 100px;
+    text-align: right;
+    filter: alpha(opacity=0);
+    opacity: 0;
+    outline: none;
+    background: white;
+    cursor: inherit;
+    display: block;
+}
+.fab-cart-disabled 
+{
+    background-color: #afb1b9 !important;        
+    cursor: default !important;
+    color: black !important;
+}
+.notActive
+{
+  background: none !important;
+}
+
+#upload-management-page header {
+  width: 100%;
+  height: 60px;  
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
+  padding-top: 15px;
+}
+
+
+</style>
+<div id="upload-management-page" class="container" ng-controller="UploadCtrl">
+  <header class="row" style="margin-top: auto">
+    <div class="col-md-1 col-sd-1 col-xs-1">
+    </div>
+    <div class="col-md-10 col-sd-8 col-xs-8">Upload Management
+    </div>
+    <div id="gotomap" class="col-md-1 col-sd-3 col-xs-3">
+      <gotomap-button></gotomap-button>
+    </div>        
+  </header>
+  <div style="width: 70%;float:left;">    
+      <div class="row" style="margin-top: auto">
+        <div class="col-md-12 col-sd-12 col-xs-12">
+             <h3>
+              Upload Product
+             </h3>
+             <div class="fileinput fileinput-new" data-provides="fileinput">
+                <span class="btn btn-default btn-file"><span>Choose file</span><input onchange='text = $(this).val();
+                text = text.substring(text.lastIndexOf("\\") + 1, text.length);$("#upload-file-info").html(text);angular.element(this).scope().setIfSelectedFile(this)' type="file" file-model="fileToUpload"/></span>
+                <span id="upload-file-info" class="fileinput-filename">No file choosen</span>
+            </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12 col-sd-12 col-xs-12">
+          <div ng-class="{'': isSelectedFile == true, 'fab-cart-disabled': isSelectedFile == false}" class="user-button" style="float: right" ng-click="uploadProduct()">UPLOAD</div>
+        </div>
+      </div>
+      <div class="row" style="margin-top: auto">
+        <div class="col-md-12 col-sd-12 col-xs-12">
+          <h3>
+           File scanners
+          </h3>
+          <label>Url to scan</label>
+          <input 
+            id="urltoscan"
+            type="text" 
+            class="form-control page-selector-input" 
+            ng-model="urltoscan"
+            >
+          <label>Username</label>
+          <input 
+            id="username"
+            type="text" 
+            class="form-control page-selector-input" 
+            ng-model="username"
+            >
+          <label>Password</label>
+          <input 
+            id="password"
+            type="text" 
+            class="form-control page-selector-input" 
+            ng-model="password"
+            >
+          <label>Pattern</label>
+          <input 
+            id="pattern"
+            type="text" 
+            class="form-control page-selector-input" 
+            ng-model="pattern"
+            >
+          <label>Scanning information</label>
+          <textarea disabled class="bordertextarea form-control" ng-model="scanninginfo" rows="5" id="comment"></textarea>
+        </div>
+      </div>
+      <div class="row" style="margin-top: auto">
+        <div class="col-md-12 col-sd-12 col-xs-12">
+          <div class="user-button" style="float: left" ng-click="refreshAllFilescanners()">REFRESH ALL</div>
+          <div ng-class="{'visible': toggle==false, 'notVisible': toggle==true}" class="user-button" style="float: right" ng-click="addFileScanner()">ADD</div>
+          <div ng-class="{'visible': toggle==true, 'notVisible': toggle==false}" class="user-button" style="float: right" ng-click="saveFileScanner()">SAVE</div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top: 5%">
+        <div class="col-md-12 col-sd-12 col-xs-12">
+          <div style="margin-left: -5%" data-ng-app="" data-ng-init="names=[]">
+            <ul>
+              <li class="list-group-item" style="background-color: #C8C8C8">
+                Display {{ names.length }} elements
+              </li>
+              <a href="" ng-click="getScanningInfo(x)" ng-mouseover="setIdFileScannerHovered(x)" ng-mouseleave="resetIdFileScannerHovered()" data-ng-repeat="x in names" ng-class="{'notActive': x.toggle==false, 'active': x.toggle==true}" class="list-group-item" style="height: 60px;">
+              <div id="infoFileScanner">
+                <span class="{{x.classicon}}"></span> 
+                {{ x.url }}
+              </div>
+              <div id="buttons" ng-class="{'notVisible': (x.toggleHover || x.toggle)==false, 'visible': (x.toggleHover || x.toggle)==true}">
+                <div class="glyphicon glyphicon-remove icon" ng-click="removeFileScanner(x)" title="Remove File Scanner"></div>
+                <div class="glyphicon glyphicon-time icon" style="{{x.styleColor}}" ng-click="scheduleFileScanner(x)" title="Schedule File Scanner"></div>
+                <div class="glyphicon glyphicon-stop icon" ng-click="stopFileScanner(x)" title="Stop File Scanner"></div>
+                <div class="glyphicon glyphicon-play icon" ng-click="playFileScanner(x)" title="Play File Scanner"></div>
+              </div>
+              </a>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="width: 30%;float: right;margin-top:2%;">
+      <collection-upload collections-ids="{{collections}}"></collection-upload>      
+    </div>
+    
+
+</div>
+</div>

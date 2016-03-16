@@ -39,9 +39,6 @@ import fr.gael.dhus.system.config.ConfigurationManager;
 @Component
 public class CleanDatabaseJob extends AbstractJob
 {
-   public CleanDatabaseJob ()
-   {
-   }
    private static Logger logger = Logger.getLogger (CleanDatabaseJob.class);
 
    @Autowired
@@ -55,7 +52,11 @@ public class CleanDatabaseJob extends AbstractJob
 
    @Autowired
    private ConfigurationManager configurationManager;
-   
+
+   public CleanDatabaseJob ()
+   {
+   }
+
    @Override
    public String getCronExpression ()
    {
@@ -88,8 +89,7 @@ public class CleanDatabaseJob extends AbstractJob
       
       // optimize database
       DaoUtils.optimize ();
-      // Optimize search index. 
-      solrDao.optimize ();
+
       logger.info ("SCHEDULER : Cleanup database done - " + 
          (System.currentTimeMillis ()-start) + "ms");
    }

@@ -1,0 +1,1302 @@
+<?xml version="1.0"?>
+<!--
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<!DOCTYPE rdf:RDF [
+        <!ENTITY rdf  "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#">
+        <!ENTITY owl  "http://www.w3.org/2002/07/owl#">
+        <!ENTITY s3   "http://www.esa.int/s3#">
+        <!ENTITY drb  "http://www.gael.fr/drb#">
+        <!ENTITY dhus "http://www.gael.fr/dhus#">
+        <!ENTITY img  "http://www.gael.fr/drb/image#">
+        ]>
+
+<rdf:RDF xmlns:owl ="&owl;"
+         xmlns:rdf ="&rdf;"
+         xmlns:rdfs="&rdfs;"
+         xmlns:s3  ="&s3;"
+         xmlns:drb ="&drb;"
+         xmlns:img ="&img;"
+         xmlns:dhus="&dhus;"
+         xml:base  ="&s3;">
+         
+   <owl:Ontology rdf:about="&dhus;">
+        <rdfs:label xml:lang="en">Data Hub Service (DHuS) ontology setup for sentinel-3</rdfs:label>         
+        <owl:imports rdf:resource="file:META-INF/level-0.owl"/>  
+        <owl:imports rdf:resource="file:META-INF/level-1-2.owl"/>    
+        <owl:imports rdf:resource="file:META-INF/olci.owl"/>
+        <owl:imports rdf:resource="file:META-INF/slstr.owl"/>
+        <owl:imports rdf:resource="file:META-INF/synergy.owl"/>  
+        <owl:imports rdf:resource="file:META-INF/sral-mwr.owl"/>             
+   </owl:Ontology>         
+         
+   <owl:Ontology rdf:about="&s3;"/>           
+   
+   <rdf:Description rdf:about="&s3;aux_product">
+      <dhus:metadataTypes rdf:parseType="Literal">
+
+         <metadataType id="format"
+                       name="Format"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="format"
+                       type="string"
+                       required="true"/>
+         </metadataType>
+         
+         <metadataType id="filename"
+                       name="Filename"
+                       contentType="text/plain"
+                       category="">
+            <solrField name="filename"
+                       type="string"
+                       required="true"/>
+         </metadataType>
+         
+         <metadataType id="platformName"
+                       name="Satellite name"
+                       contentType="text/plain"
+                       category="platform">
+            <solrField name="platformname"
+                       type="text_general"/>
+         </metadataType>
+         
+         <metadataType id="satellite"
+                       name="Satellite"
+                       contentType="text/plain"
+                       category="summary">
+         </metadataType> 
+         
+         <metadataType id="platformNumber"
+                       name="Satellite number"
+                       contentType="text/plain"
+                       category="platform">
+         </metadataType>
+         
+         <metadataType id="beginPosition"
+                       name="Validity start"
+                       contentType="text/date+iso8601"
+                       category="product">
+            <solrField name="beginposition"
+                       type="tdate"/>
+         </metadataType>
+
+         <metadataType id="endPosition"
+                       name="Validity stop"
+                       contentType="text/date+iso8601"
+                       category="product">
+            <solrField name="endposition"
+                       type="tdate"/>
+         </metadataType>
+         
+         <metadataType id="productType"
+                       name="Product type"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="producttype"
+                       type="text_general"/>
+         </metadataType>
+         
+         <metadataType id="creationdate"
+                       name="Creation date"
+                       contentType="text/date+iso8601"
+                       category="product">
+           	<solrField name="creationdate"
+                       type="date"/>
+         </metadataType>
+
+		 <metadataType id="size"
+                       name="Size"
+                       contentType="text/plain"
+                       category="summary">
+            <solrField name="size"
+                       type="string"/>
+         </metadataType>
+         
+         <metadataType id="adfqualitycheck"
+                       name="ADF Quality Check"
+                       contentType="text/plain"
+                       category="processing">
+            <solrField name="adfqualitycheck"
+                       type="string"/>
+         </metadataType>
+                  
+     </dhus:metadataTypes>
+   </rdf:Description>
+   <rdf:Description rdf:about="&s3;aux_product">
+   <dhus:support/>
+   <dhus:identifier rdf:parseType="Literal">
+	  <![CDATA[
+         fn:tokenize(name (.), '\.')[1]
+      ]]>
+	</dhus:identifier>
+      <dhus:metadataExtractor  rdf:parseType="Literal"> 
+	<![CDATA[ 
+	declare namespace utils="java:fr.gael.drb.cortex.topic.sentinel3.Sentinel3Utils";
+	declare variable $validitystart as xs:string := data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="generalProductInformation"]/metadataWrap/xmlData/
+                generalProductInformation/validityStartTime);
+    declare variable $validitystop as xs:string := data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="generalProductInformation"]/metadataWrap/xmlData/
+                generalProductInformation/validityStopTime);
+    declare variable $product_type as xs:string :=fn:data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="generalProductInformation"]/metadataWrap/xmlData/
+                generalProductInformation/fileType); 
+    declare function local:computeSizes ($path, $base as item()*) as item()*
+     {
+        for $child in $path/*
+        return
+           if ($child/@directory)
+           then
+              local:computeSizes ($child, base)
+           else
+              data($child/@size), $base
+     }; 
+	<!-- FORMAT -->
+         <metadata queryable="format"
+             category="product"
+             name="Format"
+             type="text/plain">
+             SAFE
+         </metadata>,
+
+	<!-- FILENAME -->
+         <metadata queryable="filename"
+            category=""
+            name="Filename"
+            type="text/plain">
+            {
+               name()
+            }
+         </metadata>,	
+    	<!-- SATELLITE NAME -->
+         <metadata
+            queryable="platformname"
+            category="platform" name="Satellite name" type="text/plain">
+            Sentinel-3
+         </metadata>,
+         
+         <metadata category="summary" name="Satellite" type="text/plain">
+            Sentinel-3
+         </metadata>,                                             
+
+		 <!-- SATELLITE NUMBER -->
+         <metadata category="platform" name="Satellite number" type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="generalProductInformation"]/metadataWrap/xmlData/
+                generalProductInformation/number)}                
+         </metadata>,
+		<metadata queryable="beginposition"
+            category="product"
+            name="Validity start"
+            type="text/date+iso8601">
+            {if (fn:string-length($validitystart)=27) then $validitystart else
+             drb:Iso8601DateFormatter(
+                  $validitystart, "yyyyMMdd'T'hhmmss")
+              
+             }
+        </metadata>,
+		<metadata queryable="endposition"
+            category="product"
+            name="Validity stop"
+            type="text/date+iso8601">
+            {if (fn:string-length($validitystop)=27) then $validitystop else
+             drb:Iso8601DateFormatter(
+                  $validitystop, "yyyyMMdd'T'hhmmss")
+              
+             }
+         </metadata>,
+         
+         <metadata queryable="producttype"
+            category="product" name="Product type" type="text/plain">
+            {$product_type}
+         </metadata>,
+         
+         <metadata queryable="creationdate"
+            category="product" 
+            name="Creation Date" 
+            type="text/date+iso8601">
+            {
+               drb:Iso8601DateFormatter(
+                  data (xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="generalProductInformation"]/metadataWrap/xmlData/
+                generalProductInformation/creationTime), "yyyyMMdd'T'hhmmss")
+            }            
+         </metadata>,  
+         
+         <metadata queryable="size" 
+            category="summary" name="Size" type="text/plain">
+         {
+            let $size := xs:double(data (xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="generalProductInformation"]/metadataWrap/xmlData/
+                generalProductInformation/productSize))
+            return
+               if ($size < 1024)
+               then 
+                  concat ($size, " bytes")
+               else
+                  if (($size div 1024) < 1024)
+                  then
+                     concat (utils:formatNumber($size div 1024), " KB")
+                  else
+                     if (($size div (1024*1024)) < 1024)
+                        then concat (utils:formatNumber($size div (1024*1024)), " MB")
+                     else
+                        if (($size div (1024*1024*1024)) < 1024)
+                        then
+                           concat (utils:formatNumber($size div (1024*1024*1024)), " GB")
+                        else 
+                           concat (utils:formatNumber($size div (1024*1024*1024*1024)), " TB")
+         }
+         </metadata>,
+         
+         <metadata queryable="adfqualitycheck" 
+            category="quality"
+            name="ADF Quality Check"
+            type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[fn:matches(@ID,".+ualityInformation")]/
+                metadataWrap/xmlData/qualityInformation/extension/adfQuality/adfQualityCheck)}
+         </metadata> 
+	]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+   <rdf:Description rdf:about="&s3;product">
+      <dhus:metadataTypes rdf:parseType="Literal">
+
+         <metadataType id="format"
+                       name="Format"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="format"
+                       type="string"
+                       required="true"/>
+         </metadataType>
+         
+         <metadataType id="filename"
+                       name="Filename"
+                       contentType="text/plain"
+                       category="">
+            <solrField name="filename"
+                       type="string"
+                       required="true"/>
+         </metadataType>
+         
+         <metadataType id="platformName"
+                       name="Satellite name"
+                       contentType="text/plain"
+                       category="platform">
+            <solrField name="platformname"
+                       type="text_general"/>
+         </metadataType>
+         
+         <metadataType id="satellite"
+                       name="Satellite"
+                       contentType="text/plain"
+                       category="summary">
+         </metadataType> 
+         
+         <metadataType id="platformNumber"
+                       name="Satellite number"
+                       contentType="text/plain"
+                       category="platform">
+         </metadataType>
+         
+         <metadataType id="beginPosition"
+                       name="Sensing start"
+                       contentType="text/date+iso8601"
+                       category="product">
+            <solrField name="beginposition"
+                       type="tdate"/>
+         </metadataType>
+
+         <metadataType id="endPosition"
+                       name="Sensing stop"
+                       contentType="text/date+iso8601"
+                       category="product">
+            <solrField name="endposition"
+                       type="tdate"/>
+         </metadataType>
+         
+         <metadataType id="platformidentifier"
+                       name="NSSDC identifier"
+                       contentType="text/plain"
+                       category="platform">
+            <solrField name="platformidentifier"
+                       type="text_general"/>
+         </metadataType>
+         
+         <metadataType id="operator"
+                       name="Operator"
+                       contentType="text/plain"
+                       category="platform">
+         </metadataType>
+
+         <metadataType id="missionType"
+                       name="Mission type"
+                       contentType="text/plain"
+                       category="platform">
+         </metadataType>
+         
+         <metadataType id="satelliteDescription"
+                       name="Satellite description"
+                       contentType="text/plain"
+                       category="platform">
+         </metadataType>
+         
+         <metadataType id="instrumentName"
+                       name="Instrument name"
+                       contentType="text/plain"
+                       category="instrument">
+            <solrField name="instrumentname"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="instrumentShortName"
+                       name="Instrument abbreviation"
+                       contentType="text/plain"
+                       category="instrument">
+            <solrField name="instrumentshortname"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="instrument"
+                       name="Instrument"
+                       contentType="text/plain"
+                       category="summary">
+         </metadataType>
+         
+         <metadataType id="sensorOperationalMode"
+                       name="Instrument mode"
+                       contentType="text/plain"
+                       category="instrument">
+            <solrField name="sensoroperationalmode"
+                       type="text_general"/>
+         </metadataType>
+
+         <metadataType id="mode"
+                       name="Mode"
+                       contentType="text/plain"
+                       category="summary">
+           	<solrField name="mode"
+                       type="text_general"/>
+         </metadataType>
+         
+         <metadataType id="leapsecond"
+                       name="Leap Second (s)"
+                       contentType="text/plain"
+                       category="platform">
+           	<solrField name="leapsecond"
+                       type="text_general"/>
+         </metadataType>
+         
+         <metadataType id="leapSecondOccurrence"
+                       name="Leap Second Occurrence"
+                       contentType="text/plain"
+                       category="platform">
+           	<solrField name="leapSecondOccurrence"
+                       type="text_general"/>
+         </metadataType>
+         
+         <metadataType id="productType"
+                       name="Product type"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="producttype"
+                       type="text_general"/>
+         </metadataType>
+         
+         <metadataType id="timeliness"
+                       name="Timeliness Category"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="timeliness"
+                       type="text_general"/>
+         </metadataType> 
+         
+         <metadataType id="collection"
+                       name="Baseline Collection"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="collection"
+                       type="text_general"/>
+         </metadataType> 
+         
+         <metadataType id="date"
+                       name="Date"
+                       contentType="text/date+iso8601"
+                       category="summary">
+         </metadataType>
+         
+         <metadataType id="creationdate"
+                       name="Creation date"
+                       contentType="text/date+iso8601"
+                       category="product">
+           	<solrField name="creationdate"
+                       type="date"/>
+         </metadataType>
+
+		 <metadataType id="size"
+                       name="Size"
+                       contentType="text/plain"
+                       category="summary">
+            <solrField name="size"
+                       type="string"/>
+         </metadataType>
+         
+         <metadataType id="pduduration"
+                       name="PDU Duration (s)"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="pduduration"
+                       type="text_general"/>
+         </metadataType>
+         
+         <metadataType id="pdualongtrackcoord"
+                       name="PDU Along Track Coordinate (s)"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="pdualongtrackcoord"
+                       type="text_general"/>
+         </metadataType>
+         
+         <metadataType id="pdutileid"
+                       name="PDU Tile identifier"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="pdutileid"
+                       type="text_general"/>
+         </metadataType>
+                  
+         <metadataType id="orbitNumber"
+                       name="Orbit number (start)"
+                       contentType="text/integer"
+                       category="product">
+            <solrField name="orbitnumber"
+                       type="int"/>
+         </metadataType>
+         
+         <metadataType id="lastOrbitNumber"
+                       name="Orbit number (stop)"
+                       contentType="text/integer"
+                       category="product">
+            <solrField name="lastorbitnumber"
+                       type="int"/>
+         </metadataType>
+         
+         <metadataType id="orbitDirection"
+                       name="Orbit Direction (start)"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="orbitdirection"
+                       type="text_general"/>
+         </metadataType>
+         
+         <metadataType id="lastOrbitDirection"
+                       name="Orbit Direction (stop)"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="lastorbitdirection"
+                       type="text_general"/>
+         </metadataType>
+         
+		<metadataType id="relativeOrbitNumber"
+                       name="Relative orbit (start)"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="relativeorbitnumber"
+                       type="int"/>
+         </metadataType>
+         
+         <metadataType id="lastRelativeOrbitNumber"
+                       name="Relative orbit (stop)"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="lastrelativeorbitnumber"
+                       type="int"/>
+         </metadataType>
+         
+         <metadataType id="relorbitdir"
+                       name="Relative Orbit Direction (start)"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="relorbitdir"
+                       type="text_general"/>
+         </metadataType>
+         
+         <metadataType id="lastrelorbitdirection"
+                       name="Relative Orbit Direction (stop)"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="lastrelorbitdirection"
+                       type="text_general"/>
+         </metadataType>
+         
+         <metadataType id="relPassNumber"
+                       name="Relative pass (start)"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="relpassnumber"
+                       type="text_general"/>
+         </metadataType>
+         
+		 <metadataType id="lastRelPassNumber"
+                       name="Relative pass (stop)"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="lastrelpassnumber"
+                       type="text_general"/>
+         </metadataType>
+         
+         <metadataType id="relpassdirection"
+                       name="Relative pass direction (start)"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="relpassdirection"
+                       type="text_general"/>
+         </metadataType>
+         
+         <metadataType id="lastrelpassdirection"
+                       name="Relative pass direction (stop)"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="lastrelpassdirection"
+                       type="text_general"/>
+         </metadataType>
+         
+         <metadataType id="passNumber"
+                       name="Pass (start)"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="passnumber"
+                       type="text_general"/>
+         </metadataType>
+         
+         <metadataType id="lastPassNumber"
+                       name="Pass (stop)"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="lastpassnumber"
+                       type="text_general"/>
+         </metadataType>
+         
+         <metadataType id="passdirection"
+                       name="Pass direction (start)"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="passdirection"
+                       type="text_general"/>
+         </metadataType>
+         
+         <metadataType id="lastpassdirection"
+                       name="Pass direction (stop)"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="lastpassdirection"
+                       type="text_general"/>
+         </metadataType>                 
+         
+         <metadataType id="cyclenumber"
+                       name="Cycle number"
+                       contentType="text/plain"
+                       category="product">
+            <solrField name="cyclenumber"
+                       type="long"/>
+         </metadataType>
+         
+         <metadataType id="processingname"
+                       name="Processing name"
+                       contentType="text/plain"
+                       category="processing">
+            <solrField name="processingname"
+                       type="text_general"/>
+         </metadataType>
+         
+         <metadataType id="processinglevel"
+                       name="Processing level"
+                       contentType="text/plain"
+                       category="processing">
+            <solrField name="processinglevel"
+                       type="text_general"/>
+         </metadataType>
+         
+         <metadataType id="procfacilityname"
+                       name="Processing Facility Name"
+                       contentType="text/plain"
+                       category="processing">
+            <solrField name="procfacilityname"
+                       type="text_general"/>
+         </metadataType>                 
+         
+         <metadataType id="procfacilityorg"
+                       name="Processing Facility Organization"
+                       contentType="text/plain"
+                       category="processing">
+            <solrField name="procfacilityorg"
+                       type="text_general"/>
+         </metadataType>
+         
+         <metadataType id="onlinequalitycheck"
+                       name="Online Quality Check"
+                       contentType="text/plain"
+                       category="processing">
+            <solrField name="onlinequalitycheck"
+                       type="string"/>
+         </metadataType>
+         
+         <metadataType id="GMLfootprint"
+                       name="Footprint"
+                       contentType="application/gml+xml"
+                       category="product">
+            <solrField name="gmlfootprint"
+                       type="string"/>
+         </metadataType>
+
+         <metadataType id="footprint"
+                       name="JTS footprint"
+                       contentType="application/jts"
+                       category="product">
+            <solrField name="footprint"
+                       type="location_rpt"/>
+         </metadataType> 
+         
+         <metadataType id="olcilevel"
+                       name="olci level"
+                       contentType="text/plain"
+                       category="">
+         </metadataType>
+   	  
+     </dhus:metadataTypes>
+   </rdf:Description>
+   <rdf:Description rdf:about="&s3;product">
+   <dhus:support/>
+	   <dhus:identifier rdf:parseType="Literal">
+		    <![CDATA[
+	         fn:tokenize(name (.), '\.')[1]
+	      ]]>
+		</dhus:identifier>
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+         <![CDATA[         	             
+         declare namespace utils="java:fr.gael.drb.cortex.topic.sentinel3.Sentinel3Utils";
+         declare namespace bd="java:fr.gael.drb.cortex.topic.sentinel3.MetadataBuilder";                                                             
+         
+         declare function local:footprint() as xs:string*{
+            fn:data(*[matches (name(), "xfdumanifest.xml")]/XFDU/metadataSection/metadataObject[@ID="measurementFrameSet"]/
+                 metadataWrap/xmlData/frameSet/footPrint/posList)
+         };
+         
+         <!-- It's requested to compute real product size, instead of product size reported
+         in manifest file  -->
+         declare function local:computeSizes ($path, $base as item()*) as item()*
+         {
+            for $child in $path/*
+            return
+               if ($child/@directory)
+               then
+                  local:computeSizes ($child, base)
+               else
+                  data($child/@size), $base
+         };     
+         
+         declare variable $instrument as xs:string := data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="platform"]/metadataWrap/xmlData/
+                platform/instrument/familyName/@abbreviation);
+
+	declare variable $product_type as xs:string :=fn:data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="generalProductInformation"]/metadataWrap/xmlData/
+                generalProductInformation/productType);         
+
+	declare variable $level as xs:integer := fn:substring (name(),8,1);
+				                                                             
+	                    
+         <!-- SATELLITE NAME -->
+         <metadata
+            queryable="platformname"
+            category="platform" name="Satellite name" type="text/plain">
+            Sentinel-3
+         </metadata>,
+         
+         <metadata category="summary" name="Satellite" type="text/plain">
+            Sentinel-3
+         </metadata>,                            
+
+		 <!-- SATELLITE NUMBER -->
+         <metadata category="platform" name="Satellite number" type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="platform"]/metadataWrap/xmlData/
+                platform/number)}                
+         </metadata>,
+
+         <!-- NSSDC identifier -->
+         <metadata queryable="platformidentifier" 
+            category="platform"
+            name="NSSDC identifier"
+            type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="platform"]/metadataWrap/xmlData/
+                platform/nssdcIdentifier)}
+         </metadata>,
+         
+         <metadata category="platform" name="Operator" type="text/plain">
+            European Space Agency
+         </metadata>,
+
+         <metadata category="platform" name="Mission type" type="text/plain">
+            Earth observation
+         </metadata>,
+         
+         <!-- NOT DEFINED YET -->
+         <!--<metadata category="platform" name="Launch date" type="text/plain">
+            2015
+         </metadata>,-->
+
+		 <metadata category="platform" name="Satellite description" type="text/html">
+		 	&lt;a target=&quot;_blank&quot; href=&quot;https://sentinel.esa.int/web/sentinel/missions/sentinel-3&quot;&gt;https://sentinel.esa.int/web/sentinel/missions/sentinel-3&lt;/a&gt;
+         </metadata>,
+
+	<!-- FORMAT -->
+         <metadata queryable="format"
+             category="product"
+             name="Format"
+             type="text/plain">
+             SAFE
+         </metadata>,
+
+	<!-- FILENAME -->
+         <metadata queryable="filename"
+            category=""
+            name="Filename"
+            type="text/plain">
+            {
+               name()
+            }
+         </metadata>,
+         
+         <!-- Sensing START -->
+         <metadata queryable="beginposition"
+            category="product"
+            name="Sensing start"
+            type="text/date+iso8601">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="acquisitionPeriod"]/metadataWrap/xmlData/
+                acquisitionPeriod/startTime)}
+         </metadata>,
+
+         <!-- Sensing STOP -->
+         <metadata queryable="endposition"
+            category="product"
+            name="Sensing stop"
+            type="text/date+iso8601">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="acquisitionPeriod"]/metadataWrap/xmlData/
+                acquisitionPeriod/stopTime)}
+         </metadata>,
+         
+         <!-- INSTRUMENT -->
+         <metadata queryable="instrumentname"
+            category="instrument"
+            name="Instrument name"
+            type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="platform"]/metadataWrap/xmlData/
+                platform/instrument/familyName)
+            }                    
+         </metadata>,
+
+         <metadata queryable="instrumentshortname"
+            category="instrument"
+            name="Instrument abbreviation"
+            type="text/plain">
+            {$instrument}              
+         </metadata>,
+
+         <metadata
+            category="summary"
+            name="Instrument"
+            type="text/plain">
+            {$instrument}  
+         </metadata>,
+         
+         <metadata
+            queryable="sensoroperationalmode"
+            category="instrument" name="Instrument mode" type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="platform"]/metadataWrap/xmlData/
+                platform/instrument/mode)}              
+         </metadata>,
+         
+         <metadata
+            queryable="mode" 
+            category="summary" name="Mode" type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="platform"]/metadataWrap/xmlData/
+                platform/instrument/mode/@identifier)}            
+         </metadata>,
+         
+         <!-- LEAP SECOND -->
+         
+         <metadata
+            queryable="leapsecond" 
+            category="platform" name="Leap Second (s)" type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="platform"]/metadataWrap/xmlData/
+                platform/leapSecond)}            
+         </metadata>,
+         
+         <metadata
+            queryable="leapsecondoccurrence" 
+            category="platform" name="Leap Second Occurrence" type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="platform"]/metadataWrap/xmlData/
+                platform/leapSecond/@occurrenceUTC)}            
+         </metadata>,
+         
+         <!-- GENERAL PRODUCT INFO -->
+         <metadata queryable="producttype"
+            category="product" name="Product type" type="text/plain">
+            {$product_type}
+         </metadata>,
+         
+         <metadata queryable="timeliness"
+            category="product" 
+            name="Timeliness Category" 
+            type="text/plain">
+            {let $tl:=fn:data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="generalProductInformation"]/metadataWrap/xmlData/
+                generalProductInformation/timeliness)
+              return
+              if ($tl="NR") then "Near Real Time" else 
+              if ($tl="ST") then "Short Time Critical" else 
+              if ($tl="NT") then "Non Time Critical" else $tl}                
+         </metadata>,  
+         
+         <metadata queryable="collection"
+            category="product" 
+            name="Baseline Collection" 
+            type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="generalProductInformation"]/metadataWrap/xmlData/
+                generalProductInformation/baselineCollection)}
+         </metadata>,  
+         
+         <metadata 
+            category="summary" 
+            name="Date" 
+            type="text/date+iso8601">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="acquisitionPeriod"]/metadataWrap/xmlData/
+                acquisitionPeriod/startTime)}            
+         </metadata>,  
+
+	 <metadata queryable="creationdate"
+            category="product" 
+            name="Creation Date" 
+            type="text/date+iso8601">
+            {
+               drb:Iso8601DateFormatter(
+                  data (xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="generalProductInformation"]/metadataWrap/xmlData/
+                generalProductInformation/creationTime), "yyyyMMdd'T'hhmmss")
+            }            
+         </metadata>,  
+         
+         <metadata queryable="size" 
+            category="summary" name="Size" type="text/plain">
+         {
+            let $size := xs:double(fn:sum(local:computeSizes(., ())))
+            return
+               if ($size < 1024)
+               then 
+                  concat ($size, " bytes")
+               else
+                  if (($size div 1024) < 1024)
+                  then
+                     concat (utils:formatNumber($size div 1024), " KB")
+                  else
+                     if (($size div (1024*1024)) < 1024)
+                        then concat (utils:formatNumber($size div (1024*1024)), " MB")
+                     else
+                        if (($size div (1024*1024*1024)) < 1024)
+                        then
+                           concat (utils:formatNumber($size div (1024*1024*1024)), " GB")
+                        else 
+                           concat (utils:formatNumber($size div (1024*1024*1024*1024)), " TB")
+         }
+         </metadata>,
+         
+         <!-- PRODUCT INFO FOR COMMISSIONING BEGIN -->                     
+                 
+         <!-- PDU SECTION  -->
+         
+          <metadata
+            queryable="pduduration" 
+            category="product" name="PDU Duration (s)" type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="generalProductInformation"]/metadataWrap/xmlData/
+                generalProductInformation/productUnit/duration)}            
+         </metadata>, 
+         
+         <metadata
+            queryable="pdualongtrackcoord" 
+            category="product" name="PDU Along Track Coordinate (s)" type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="generalProductInformation"]/metadataWrap/xmlData/
+                generalProductInformation/productUnit/alongtrackCoordinate)}            
+         </metadata>, 
+         
+         <metadata
+            queryable="pdutileid" 
+            category="product" name="PDU Tile identifier" type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="generalProductInformation"]/metadataWrap/xmlData/
+                generalProductInformation/productUnit/tileIdentifier)}            
+         </metadata>,    
+         
+         <!-- PRODUCT INFO FOR COMMISSIONING END -->
+         
+         <!-- ORBIT INFO  -->
+         
+         <metadata queryable="orbitnumber" 
+            category="product"
+            name="Orbit number (start)"
+            type="text/integer">            
+            {if (xfdumanifest.xml/XFDU/metadataSection/metadataObject[fn:matches(@ID,".+OrbitReference")]/metadataWrap/xmlData/orbitReference/orbitNumber[@type="start"]) then 
+                 data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[fn:matches(@ID,".+OrbitReference")]/
+                metadataWrap/xmlData/orbitReference/orbitNumber[@type="start"]) 
+              else 
+               data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[fn:matches(@ID,".+OrbitReference")]/
+                metadataWrap/xmlData/orbitReference/orbitNumber)}
+         </metadata>,
+         
+         <metadata queryable="lastorbitnumber"
+            category="product" 
+            name="Orbit number (stop)" 
+            type="text/integer">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[fn:matches(@ID,".+OrbitReference")]/
+                metadataWrap/xmlData/orbitReference/orbitNumber[@type="stop"])}
+         </metadata>,
+         
+         <metadata queryable="orbitdirection" 
+            category="product"
+            name="Orbit Direction (start)"
+            type="text/plain">            
+            {let $node:= xfdumanifest.xml/XFDU/metadataSection/
+            metadataObject[fn:matches(@ID,".+OrbitReference")]/
+            metadataWrap/xmlData/orbitReference/orbitNumber
+          return
+          if ($node[@type="start"]) then 
+              data(xfdumanifest.xml/XFDU/metadataSection/
+            metadataObject[fn:matches(@ID,".+OrbitReference")]/
+            metadataWrap/xmlData/orbitReference/orbitNumber[@type="start"]/@groundTrackDirection) 
+          else 
+           data(xfdumanifest.xml/XFDU/metadataSection/
+            metadataObject[fn:matches(@ID,".+OrbitReference")]/
+            metadataWrap/xmlData/orbitReference/orbitNumber/@groundTrackDirection)}
+         </metadata>,
+         
+         <metadata queryable="lastorbitdirection"
+            category="product" 
+            name="Orbit Direction (stop)" 
+            type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[fn:matches(@ID,".+OrbitReference")]/
+                metadataWrap/xmlData/orbitReference/orbitNumber[@type="stop"]/@groundTrackDirection)}
+         </metadata>,
+
+         <metadata queryable="relativeorbitnumber" 
+            category="product"
+            name="Relative orbit (start)"
+            type="text/plain">            
+            {let $node:= xfdumanifest.xml/XFDU/metadataSection/
+	            metadataObject[fn:matches(@ID,".+OrbitReference")]/
+	            metadataWrap/xmlData/orbitReference/relativeOrbitNumber
+	          return
+	          if ($node[@type="start"]) then 
+	              data(xfdumanifest.xml/XFDU/metadataSection/
+	            metadataObject[fn:matches(@ID,".+OrbitReference")]/
+	            metadataWrap/xmlData/orbitReference/relativeOrbitNumber[@type="start"]) 
+	          else 
+	           data(xfdumanifest.xml/XFDU/metadataSection/
+	            metadataObject[fn:matches(@ID,".+OrbitReference")]/
+	            metadataWrap/xmlData/orbitReference/relativeOrbitNumber)}
+         </metadata>,
+         
+         <metadata queryable="lastrelativeorbitnumber" 
+            category="product"
+            name="Relative orbit (stop)"
+            type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[fn:matches(@ID,".+OrbitReference")]/
+                metadataWrap/xmlData/orbitReference/relativeOrbitNumber[@type="stop"])}
+         </metadata>,
+         
+         <metadata queryable="relorbitdir" 
+            category="product"
+            name="Relative Orbit Direction (start)"
+            type="text/plain">            
+            {let $node:= xfdumanifest.xml/XFDU/metadataSection/
+	            metadataObject[fn:matches(@ID,".+OrbitReference")]/
+	            metadataWrap/xmlData/orbitReference/relativeOrbitNumber
+	          return
+	          if ($node[@type="start"]) then 
+	              data(xfdumanifest.xml/XFDU/metadataSection/
+	            metadataObject[fn:matches(@ID,".+OrbitReference")]/
+	            metadataWrap/xmlData/orbitReference/relativeOrbitNumber[@type="start"]/@groundTrackDirection) 
+	          else 
+	           data(xfdumanifest.xml/XFDU/metadataSection/
+	            metadataObject[fn:matches(@ID,".+OrbitReference")]/
+	            metadataWrap/xmlData/orbitReference/relativeOrbitNumber/@groundTrackDirection)}
+         </metadata>,
+         
+         <metadata queryable="lastrelorbitdirection"
+            category="product" 
+            name="Relative Orbit Direction (stop)" 
+            type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[fn:matches(@ID,".+OrbitReference")]/
+                metadataWrap/xmlData/orbitReference/relativeOrbitNumber[@type="stop"]/@groundTrackDirection)}
+         </metadata>,
+
+         <metadata queryable="relpassnumber" 
+            category="product"
+            name="Relative pass (start)"
+            type="text/plain">            
+            {let $node:= xfdumanifest.xml/XFDU/metadataSection/
+	            metadataObject[fn:matches(@ID,".+OrbitReference")]/
+	            metadataWrap/xmlData/orbitReference/relativePassNumber
+	          return
+	          if ($node[@type="start"]) then 
+	              data(xfdumanifest.xml/XFDU/metadataSection/
+	            metadataObject[fn:matches(@ID,".+OrbitReference")]/
+	            metadataWrap/xmlData/orbitReference/relativePassNumber[@type="start"]) 
+	          else 
+	           data(xfdumanifest.xml/XFDU/metadataSection/
+	            metadataObject[fn:matches(@ID,".+OrbitReference")]/
+	            metadataWrap/xmlData/orbitReference/relativePassNumber)}
+         </metadata>,
+         
+         <metadata queryable="lastrelpassnumber" 
+            category="product"
+            name="Relative pass (stop)"
+            type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[fn:matches(@ID,".+OrbitReference")]/
+                metadataWrap/xmlData/orbitReference/relativePassNumber[@type="stop"])}
+         </metadata>,
+         
+         <metadata queryable="relpassdirection" 
+            category="product"
+            name="Relative pass direction (start)"
+            type="text/plain">            
+            {let $node:= xfdumanifest.xml/XFDU/metadataSection/
+	            metadataObject[fn:matches(@ID,".+OrbitReference")]/
+	            metadataWrap/xmlData/orbitReference/relativePassNumber
+	          return
+	          if ($node[@type="start"]) then 
+	              data(xfdumanifest.xml/XFDU/metadataSection/
+	            metadataObject[fn:matches(@ID,".+OrbitReference")]/
+	            metadataWrap/xmlData/orbitReference/relativePassNumber[@type="start"]/@groundTrackDirection) 
+	          else 
+	           data(xfdumanifest.xml/XFDU/metadataSection/
+	            metadataObject[fn:matches(@ID,".+OrbitReference")]/
+	            metadataWrap/xmlData/orbitReference/relativePassNumber/@groundTrackDirection)}
+         </metadata>,
+         
+         <metadata queryable="lastrelpassdirection" 
+            category=""
+            name="Relative pass direction (stop)"
+            type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[fn:matches(@ID,".+OrbitReference")]/
+                metadataWrap/xmlData/orbitReference/relativePassNumber[@type="stop"]/@groundTrackDirection)}
+         </metadata>,
+         
+         <metadata queryable="passnumber" 
+            category="product"
+            name="Pass (start)"
+            type="text/plain">            
+            {let $node:= xfdumanifest.xml/XFDU/metadataSection/
+	            metadataObject[fn:matches(@ID,".+OrbitReference")]/
+	            metadataWrap/xmlData/orbitReference/passNumber
+	          return
+	          if ($node[@type="start"]) then 
+	              data(xfdumanifest.xml/XFDU/metadataSection/
+	            metadataObject[fn:matches(@ID,".+OrbitReference")]/
+	            metadataWrap/xmlData/orbitReference/passNumber[@type="start"]) 
+	          else 
+	           data(xfdumanifest.xml/XFDU/metadataSection/
+	            metadataObject[fn:matches(@ID,".+OrbitReference")]/
+	            metadataWrap/xmlData/orbitReference/passNumber)}
+         </metadata>,
+         
+         <metadata queryable="lastpassnumber" 
+            category="product"
+            name="Pass (stop)"
+            type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[fn:matches(@ID,".+OrbitReference")]/
+                metadataWrap/xmlData/orbitReference/passNumber[@type="stop"])}
+         </metadata>,
+         
+         <metadata queryable="passdirection" 
+            category="product"
+            name="Pass direction (start)"
+            type="text/plain">            
+            {let $node:= xfdumanifest.xml/XFDU/metadataSection/
+	            metadataObject[fn:matches(@ID,".+OrbitReference")]/
+	            metadataWrap/xmlData/orbitReference/passNumber
+	          return
+	          if ($node[@type="start"]) then 
+	              data(xfdumanifest.xml/XFDU/metadataSection/
+	            metadataObject[fn:matches(@ID,".+OrbitReference")]/
+	            metadataWrap/xmlData/orbitReference/passNumber[@type="start"]/@groundTrackDirection) 
+	          else 
+	           data(xfdumanifest.xml/XFDU/metadataSection/
+	            metadataObject[fn:matches(@ID,".+OrbitReference")]/
+	            metadataWrap/xmlData/orbitReference/passNumber/@groundTrackDirection)}
+         </metadata>,
+         
+         <metadata queryable="lastpassdirection" 
+            category="product"
+            name="Pass direction (stop)"
+            type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[fn:matches(@ID,".+OrbitReference")]/
+                metadataWrap/xmlData/orbitReference/passNumber[@type="stop"]/@groundTrackDirection)}
+         </metadata>,
+         
+         <metadata queryable="cyclenumber" category="product" name="Cycle number" type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[fn:matches(@ID,".+OrbitReference")]/
+                metadataWrap/xmlData/orbitReference/cycleNumber)}
+         </metadata>,         
+         
+         <!-- PROCESSING INFO  --> 
+         
+         <metadata queryable="processingname" 
+            category="processing"
+            name="Processing name"
+            type="text/plain">
+            Data Processing
+         </metadata>,
+         
+         <metadata queryable="processinglevel" 
+            category="processing"
+            name="Processing level"
+            type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="processing"]/
+                metadataWrap/xmlData/processing/@outputLevel)}
+         </metadata>,                  
+         
+         <metadata queryable="procfacilityname" 
+            category="processing"
+            name="Processing Facility Name"
+            type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="processing"]/metadataWrap/xmlData/processing/facility/@name)}
+         </metadata>, 
+         
+         <!--PROCESSING INFO FOR COMMISSIONING ONLY BEGIN -->
+         
+         <metadata queryable="procfacilityorg" 
+            category="processing"
+            name="Processing Facility Organization"
+            type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="processing"]/metadataWrap/xmlData/processing/facility/@organisation)}
+         </metadata>,
+                  
+         <!--PROCESSING INFO FOR COMMISSIONING ONLY END -->
+         
+            
+         
+         <!-- QUALITY INFO -->
+         
+         <metadata queryable="onlinequalitycheck" 
+            category="quality"
+            name="Online Quality Check"
+            type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[fn:matches(@ID,".+QualityInformation")]/
+                metadataWrap/xmlData/qualityInformation/extension/productQuality/onlineQualityCheck)}
+         </metadata>,   
+                  
+                 
+        <!-- S3 FOOTPRINT BEGIN FOR NON OLCI LEVEL 0 -->
+        let $instr:=0      
+		return 		
+		(
+		  if($instrument="OLCI" and $level = 0 ) then		  
+		  (
+			  <metadata
+            category=""
+            name="olci level"
+            type="text/plain">
+            S3
+         	</metadata>
+	        )
+	        else
+	        (        	                                 
+	         <metadata
+	           queryable="GMLfootprint"
+	           category="product"
+	           name="Footprint"
+	           type="application/gml+xml">
+	              <gml:Polygon xmlns:gml="http://www.opengis.net/gml"
+	                           srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">
+	                 <gml:outerBoundaryIs>
+	                    <gml:LinearRing>
+	                       <gml:coordinates>
+	                           {
+	                                utils:points2GML(local:footprint())
+	                            }
+	                       </gml:coordinates>
+	                    </gml:LinearRing>
+	                 </gml:outerBoundaryIs>
+	              </gml:Polygon>
+	        </metadata>,
+	
+	        <!-- JTS FOOTPRINT -->
+	        <metadata
+	           queryable="footprint"
+	           category="product"
+	           name="JTS footprint"
+	           type="application/jts">
+	              {
+	                    concat ("POLYGON ((",utils:points2JTS(local:footprint()),"))")
+	              }
+	        </metadata>	       
+          )	                    
+		)
+		
+         <!-- S3 FOOTPRINT END -->
+                                           
+      ]]>
+      </dhus:metadataExtractor>
+   </rdf:Description>
+      
+</rdf:RDF>

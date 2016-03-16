@@ -25,41 +25,43 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
+import fr.gael.dhus.service.NetworkUsageService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.io.CopyStreamAdapter;
 
-import fr.gael.dhus.database.dao.NetworkUsageDao;
-import fr.gael.dhus.database.object.NetworkUsage;
 import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
 
 public class RegulatedInputStream extends FilterInputStream
 {
-   /**
-    * A logger for this class.
-    */
-   private static Log logger = LogFactory.getLog(RegulatedInputStream.class);
 
    /**
     * Default buffer size in bytes.
     */
-   public static int DEFAULT_BUFFER_SIZE = 8192;
-
-   /**
-    * The internal buffer array where the data is stored. When necessary, it may
-    * be replaced by another array of a different size.
-    */
-   protected volatile byte buf[];
+   public static final int DEFAULT_BUFFER_SIZE = 8192;
 
    /**
     * Atomic updater to provide compareAndSet for buf. This is necessary because
     * closes can be asynchronous. We use nullness of buf[] as primary indicator
     * that this stream is closed. (The "in" field is also nulled out on close.)
     */
-   private static final AtomicReferenceFieldUpdater<RegulatedInputStream, byte[]> bufUpdater =
-      AtomicReferenceFieldUpdater.newUpdater(RegulatedInputStream.class,
-            byte[].class, "buf");
+   private static final AtomicReferenceFieldUpdater
+         <RegulatedInputStream, byte[]> BUF_UPDATER =
+         AtomicReferenceFieldUpdater.newUpdater (RegulatedInputStream.class,
+               byte[].class, "buf");
+
+
+   /**
+    * A logger for this class.
+    */
+   private static Log logger = LogFactory.getLog(RegulatedInputStream.class);
+
+   /**
+    * The internal buffer array where the data is stored. When necessary, it may
+    * be replaced by another array of a different size.
+    */
+   protected volatile byte buf[];
 
    /**
     * The index one greater than the index of the last valid byte in the buffer.
@@ -70,6 +72,55 @@ public class RegulatedInputStream extends FilterInputStream
     * stream.
     */
    protected int count;
+
+   /**
+    * The current position in the buffer. This is the index of the next
+    * character to be read from the <code>buf</code> array.
+    * <p>
+    * This value is always in the range <code>0</code> through
+    * <code>count</code>. If it is less than <code>count</code>, then
+    * <code>buf[pos]</code> is the next byte to be supplied as input; if it is
+    * equal to <code>count</code>, then the next <code>read</code> or
+    * <code>skip</code> operation will require more bytes to be read from the
+    * contained input stream.
+    *
+    * @see java.io.BufferedInputStream#buf
+    */
+   protected int pos;
+
+   /**
+    * The value of the <code>pos</code> field at the time the last
+    * <code>mark</code> method was called.
+    * <p>
+    * This value is always in the range <code>-1</code> through <code>pos</code>
+    * . If there is no marked position in the input stream, this field is
+    * <code>-1</code>. If there is a marked position in the input stream, then
+    * <code>buf[markpos]</code> is the first byte to be supplied as input after
+    * a <code>reset</code> operation. If <code>markpos</code> is not
+    * <code>-1</code>, then all bytes from positions <code>buf[markpos]</code>
+    * through <code>buf[pos-1]</code> must remain in the buffer array (though
+    * they may be moved to another place in the buffer array, with suitable
+    * adjustments to the values of <code>count</code>, <code>pos</code>, and
+    * <code>markpos</code>); they may not be discarded unless and until the
+    * difference between <code>pos</code> and <code>markpos</code> exceeds
+    * <code>marklimit</code>.
+    *
+    * @see java.io.BufferedInputStream#mark(int)
+    * @see java.io.BufferedInputStream#pos
+    */
+   protected int markpos = -1;
+
+   /**
+    * The maximum read ahead allowed after a call to the <code>mark</code>
+    * method before subsequent calls to the <code>reset</code> method fail.
+    * Whenever the difference between <code>pos</code> and <code>markpos</code>
+    * exceeds <code>marklimit</code>, then the mark may be dropped by setting
+    * <code>markpos</code> to <code>-1</code>.
+    *
+    * @see java.io.BufferedInputStream#mark(int)
+    * @see java.io.BufferedInputStream#reset()
+    */
+   protected int marklimit;
 
    /**
     * The network regulator to be used. TODO Should be auto-wired by default
@@ -181,55 +232,6 @@ public class RegulatedInputStream extends FilterInputStream
    }
 
    /**
-    * The current position in the buffer. This is the index of the next
-    * character to be read from the <code>buf</code> array.
-    * <p>
-    * This value is always in the range <code>0</code> through
-    * <code>count</code>. If it is less than <code>count</code>, then
-    * <code>buf[pos]</code> is the next byte to be supplied as input; if it is
-    * equal to <code>count</code>, then the next <code>read</code> or
-    * <code>skip</code> operation will require more bytes to be read from the
-    * contained input stream.
-    *
-    * @see java.io.BufferedInputStream#buf
-    */
-   protected int pos;
-
-   /**
-    * The value of the <code>pos</code> field at the time the last
-    * <code>mark</code> method was called.
-    * <p>
-    * This value is always in the range <code>-1</code> through <code>pos</code>
-    * . If there is no marked position in the input stream, this field is
-    * <code>-1</code>. If there is a marked position in the input stream, then
-    * <code>buf[markpos]</code> is the first byte to be supplied as input after
-    * a <code>reset</code> operation. If <code>markpos</code> is not
-    * <code>-1</code>, then all bytes from positions <code>buf[markpos]</code>
-    * through <code>buf[pos-1]</code> must remain in the buffer array (though
-    * they may be moved to another place in the buffer array, with suitable
-    * adjustments to the values of <code>count</code>, <code>pos</code>, and
-    * <code>markpos</code>); they may not be discarded unless and until the
-    * difference between <code>pos</code> and <code>markpos</code> exceeds
-    * <code>marklimit</code>.
-    *
-    * @see java.io.BufferedInputStream#mark(int)
-    * @see java.io.BufferedInputStream#pos
-    */
-   protected int markpos = -1;
-
-   /**
-    * The maximum read ahead allowed after a call to the <code>mark</code>
-    * method before subsequent calls to the <code>reset</code> method fail.
-    * Whenever the difference between <code>pos</code> and <code>markpos</code>
-    * exceeds <code>marklimit</code>, then the mark may be dropped by setting
-    * <code>markpos</code> to <code>-1</code>.
-    *
-    * @see java.io.BufferedInputStream#mark(int)
-    * @see java.io.BufferedInputStream#reset()
-    */
-   protected int marklimit;
-
-   /**
     * Check to make sure that underlying input stream has not been nulled out
     * due to close; if not return it;
     */
@@ -284,7 +286,7 @@ public class RegulatedInputStream extends FilterInputStream
                nsz = marklimit;
             byte nbuf[] = new byte[nsz];
             System.arraycopy(buffer, 0, nbuf, 0, pos);
-            if (!bufUpdater.compareAndSet(this, buffer, nbuf))
+            if (!BUF_UPDATER.compareAndSet(this, buffer, nbuf))
             {
                // Can't replace buf if there was an async close.
                // Note: This would need to be changed if fill()
@@ -601,17 +603,13 @@ public class RegulatedInputStream extends FilterInputStream
       // Store transfer information into database if transfer completed.
       if (!error)
       {
-         NetworkUsageDao networkDao = ApplicationContextProvider.
-            getBean (NetworkUsageDao.class);
+         NetworkUsageService network_service = ApplicationContextProvider.
+            getBean (NetworkUsageService.class);
 
-         if (networkDao != null)
+         if (network_service != null)
          {
-            NetworkUsage network = new NetworkUsage ();
-            network.setSize (flow.getTransferedSize ());
-            network.setDate (flow.getStartDate ());
-            network.setIsDownload (true);
-            network.setUser (this.connectionParameters.getUser ());
-            networkDao.create (network);
+            network_service.createDownloadUsage (flow.getTransferedSize (),
+                  flow.getStartDate (), connectionParameters.getUser ());
          }
       }
       
@@ -630,7 +628,7 @@ public class RegulatedInputStream extends FilterInputStream
       byte[] buffer;
       while ((buffer = buf) != null)
       {
-         if (bufUpdater.compareAndSet(this, buffer, null))
+         if (BUF_UPDATER.compareAndSet(this, buffer, null))
          {
             InputStream input = in;
             in = null;

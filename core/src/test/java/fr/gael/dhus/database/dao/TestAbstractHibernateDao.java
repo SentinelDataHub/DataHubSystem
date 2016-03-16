@@ -7,6 +7,7 @@ import java.io.Serializable;
 import org.springframework.test.context.testng.AbstractTransactionalTestNGSpringContextTests;
 import org.testng.annotations.Test;
 
+import fr.gael.dhus.database.dao.interfaces.DaoListener;
 import fr.gael.dhus.database.dao.interfaces.HibernateDao;
 
 public abstract class TestAbstractHibernateDao<T, PK extends Serializable>
@@ -50,7 +51,15 @@ public abstract class TestAbstractHibernateDao<T, PK extends Serializable>
    @Test
    public void deleteAll ()
    {
+      cancelListeners (getHibernateDao ());
+      
       getHibernateDao ().deleteAll ();
       assertEquals (getHibernateDao ().count (), 0);
+   }
+   
+   protected void cancelListeners (HibernateDao<T, PK>dao)
+   {
+      for (DaoListener<T> listener: getHibernateDao ().getListeners ())
+         getHibernateDao ().removeListener ((DaoListener<T>)listener);
    }
 }

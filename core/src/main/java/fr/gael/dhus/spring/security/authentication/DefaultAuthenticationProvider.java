@@ -23,18 +23,22 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import fr.gael.dhus.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication
+      .UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.codec.Hex;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import fr.gael.dhus.database.dao.ActionRecordWritterDao;
 import fr.gael.dhus.database.dao.UserDao;
@@ -47,18 +51,20 @@ import fr.gael.dhus.messaging.jms.Message.MessageType;
 @Component
 public class DefaultAuthenticationProvider implements AuthenticationProvider
 {
-   private static final Log logger = LogFactory
+   private static final Log LOGGER = LogFactory
       .getLog (DefaultAuthenticationProvider.class);
 
+   protected final String errorMessage = "There was an error with your " +
+         "login/password combination. Please try again.";
+
    @Autowired
-   private UserDao userDao;
+   private UserService userService;
    
    @Autowired
    private ActionRecordWritterDao arwDao;
 
-   protected final String errorMessage = "There was an error with your login/password combination. Please try again.";
-
    @Override
+   @Transactional (propagation=Propagation.REQUIRED)
    public Authentication authenticate (Authentication authentication)
       throws AuthenticationException
    {
@@ -67,13 +73,18 @@ public class DefaultAuthenticationProvider implements AuthenticationProvider
       String ip = "unknown";
       if (authentication.getDetails () instanceof WebAuthenticationDetails)
       {
-         ip = ((WebAuthenticationDetails)authentication.getDetails ()).getRemoteAddress ();
+         ip = ((WebAuthenticationDetails)authentication.getDetails ())
+               .getRemoteAddress ();
       }
-      logger.info ("Connection attempted by '" + authentication.getName () + "' from " + ip);
+      LOGGER.info ("Connection attempted by '" + authentication.getName () +
+            "' from " + ip);
       arwDao.loginStart (username);
 
-      User user = userDao.getByName (username);
-      if (user == null) throw new BadCredentialsException (errorMessage);
+      User user = userService.getUserNoCheck (username);
+      if (user == null || user.isDeleted ())
+      {
+         throw new BadCredentialsException (errorMessage);
+      }
 
       PasswordEncryption encryption = user.getPasswordEncryption ();
       if ( !encryption.equals (PasswordEncryption.NONE))
@@ -83,32 +94,38 @@ public class DefaultAuthenticationProvider implements AuthenticationProvider
          {
             md = MessageDigest.getInstance (encryption.getAlgorithmKey ());
             password =
-               new String (Hex.encode (md.digest (password.getBytes ("UTF-8"))));
+               new String (
+                     Hex.encode (md.digest (password.getBytes ("UTF-8"))));
          }
          catch (NoSuchAlgorithmException | UnsupportedEncodingException e)
          {
             arwDao.loginEnd (user, false);
-            throw new BadCredentialsException ("Authentication process failed", e);
+            throw new BadCredentialsException ("Authentication process failed",
+                  e);
          }
       }
 
       if ( !user.getPassword ().equals (password))
       {
-         logger.warn (new Message(MessageType.USER, "Connection refused for '" + username
-            + "' from "+ip+" : error in login/password combination"));
+         LOGGER.warn (
+               new Message (MessageType.USER, "Connection refused for '" +
+                     username
+                     + "' from " + ip +
+                     " : error in login/password combination"));
          arwDao.loginEnd (user, false);
          throw new BadCredentialsException (errorMessage);
       }
       
       for (AccessRestriction restriction : user.getRestrictions ())
       {
-         logger.warn ("Connection refused for '" + username
-            + "' from "+ip+" : account is locked ("+restriction.getBlockingReason ()+")");
+         LOGGER.warn ("Connection refused for '" + username +
+               "' from " + ip + " : account is locked (" +
+               restriction.getBlockingReason () + ")");
          arwDao.loginEnd (user, false);
          throw new LockedException (restriction.getBlockingReason ());
       }
       
-      logger.info ("Connection success for '" + username + "' from "+ip);
+      LOGGER.info ("Connection success for '" + username + "' from " + ip);
       arwDao.loginEnd (user, true);
       return new ValidityAuthentication (user, user.getAuthorities ());
    }

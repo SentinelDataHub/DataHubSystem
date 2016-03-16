@@ -1,0 +1,28 @@
+paper-input {                        
+  color: white;        				
+}   
+core-toolbar {                
+  background: #3597da;
+  font-family: Verdana;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;		
+  bottom: 10px;
+}         
+#core_toolbar {        
+  color: rgb(255, 255, 255);
+  fill: rgb(255, 255, 255);
+  bottom: 10px;        
+  background-color: rgb(79, 125, 201);
+}
+
+.panel-title {
+  cursor: pointer;
+  text-transform: capitalize;
+  font-weight: bold;
+}
+.attr{ font-weight: bold; }
+
+.panel-body {
+  padding: 5px 15px;
+}

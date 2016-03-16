@@ -19,6 +19,7 @@
  */
 package fr.gael.dhus.database.object;
 
+import java.io.Serializable;
 import java.math.BigInteger;
 
 import javax.persistence.Column;
@@ -34,8 +35,10 @@ import javax.persistence.Table;
  */
 @Entity
 @Table (name = "QUOTAS")
-public class Quota
+public class Quota implements Serializable
 {
+   private static final long serialVersionUID = 160128668451266745L;
+
    @Id
    @GeneratedValue(strategy=GenerationType.AUTO)
    @Column ( name="ID", nullable = false )
@@ -69,11 +72,11 @@ public class Quota
       return maxUpload;
    }
    /**
-    * @param maxUpload the maxUpload to set
+    * @param max_upload the maxUpload to set
     */
-   public void setMaxUpload (BigInteger maxUpload)
+   public void setMaxUpload (BigInteger max_upload)
    {
-      this.maxUpload = maxUpload;
+      this.maxUpload = max_upload;
    }
    /**
     * @return the maxDownload
@@ -83,18 +86,18 @@ public class Quota
       return maxDownload;
    }
    /**
-    * @param maxDownload the maxDownload to set
+    * @param max_download the maxDownload to set
     */
-   public void setMaxDownload (BigInteger maxDownload)
+   public void setMaxDownload (BigInteger max_download)
    {
-      this.maxDownload = maxDownload;
+      this.maxDownload = max_download;
    }
    /**
-    * @param maxConnectionCount the maxConnectionCount to set
+    * @param max_connection_count the maxConnectionCount to set
     */
-   public void setMaxConnectionCount (BigInteger maxConnectionCount)
+   public void setMaxConnectionCount (BigInteger max_connection_count)
    {
-      this.maxConnectionCount = maxConnectionCount;
+      this.maxConnectionCount = max_connection_count;
    }
    /**
     * @return the maxConnectionCount

@@ -40,11 +40,8 @@
 			ref="preAuthFilter" />
 		<security:custom-filter position="BASIC_AUTH_FILTER"
 			ref="basicAuthFilter" />
-
-		<security:logout invalidate-session="true"
-			success-handler-ref="logoutSuccessHandler" />
-
 		<security:intercept-url pattern="/**"
 			access="hasRole('ROLE_SYSTEM_MANAGER')" />
+			
 	</security:http>
 </beans>

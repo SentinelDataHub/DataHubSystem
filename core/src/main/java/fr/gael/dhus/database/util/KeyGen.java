@@ -27,14 +27,24 @@ import java.sql.Statement;
 public class KeyGen
 {
 
+   /**
+    * Hide utility class constructor
+    */
+   private KeyGen ()
+   {
+
+   }
+
    public static void main(String[] args)
    {
       try
       {
          Class.forName("org.hsqldb.jdbc.JDBCDriver");
-         Connection con = DriverManager.getConnection("jdbc:hsqldb:file:local_dhus/database/hsqldb", "SA", "");  
+         Connection con = DriverManager.getConnection(
+               "jdbc:hsqldb:file:local_dhus/database/hsqldb", "SA", "");
          Statement stmt = con.createStatement();  
-         ResultSet rs = stmt.executeQuery("select CRYPT_KEY('AES', null) from USERS");  
+         ResultSet rs = stmt.executeQuery(
+               "select CRYPT_KEY('AES', null) from USERS");
          rs.next();  
          String key = rs.getString(1); 
          System.out.println(key);

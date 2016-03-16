@@ -17,8 +17,8 @@
 			    <ThresholdFilter level="WARN"/>
 			</Filters>
 		</Console>
-		<RollingFile name="RollingFile" fileName="/data/dhus-senthub/logs/senthub.log"
-			filePattern="/data/dhus/logs/senthub-%d{yyyy-MM-dd}.log">
+		<RollingFile name="RollingFile" fileName="dhus.log"
+			filePattern="dhus-%d{yyyy-MM-dd}.log">
 			<PatternLayout>
 				<Pattern>${pattern}</Pattern>
 			</PatternLayout>
@@ -33,6 +33,7 @@
 	<Loggers>
 		<logger name="fr.gael.dhus" level="info"/>
 		<logger name="fr.gael.drb.query.FunctionCallExpression" level="debug"/>
+		<logger name="org.apache.cxf.jaxrs.utils.JAXRSUtils" level="error"/>
 		<logger name="org.apache.solr" level="error"/>
 		<Root level="info">
 			<AppenderRef ref="stderr" />

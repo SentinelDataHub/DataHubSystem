@@ -21,7 +21,7 @@
 <web-app id="DHuS GUI - User Webapp" version="3.0"
 	xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
-
+   	
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
 		<param-value>/WEB-INF/spring.xml</param-value>
@@ -61,11 +61,4 @@
         <servlet-name>dhus-api</servlet-name>
         <url-pattern>/statistic/download/get</url-pattern>
     </servlet-mapping>
-
-	<listener>
-		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
-	</listener>
-	<listener>
-		<listener-class>org.springframework.security.web.session.HttpSessionEventPublisher</listener-class>
-	</listener>
 </web-app>

@@ -22,12 +22,13 @@ import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.util.CheckIterator;
 import fr.gael.dhus.util.TestContextLoader;
 
-@ContextConfiguration (locations = "classpath:fr/gael/dhus/spring/context-test.xml", loader = TestContextLoader.class)
+@ContextConfiguration (
+   locations = "classpath:fr/gael/dhus/spring/context-test.xml",
+   loader = TestContextLoader.class)
 @DirtiesContext (classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestProductCartDao extends
    TestAbstractHibernateDao<ProductCart, Long>
 {
-
    @Autowired
    private ProductCartDao dao;
 
@@ -46,7 +47,7 @@ public class TestProductCartDao extends
    @Override
    protected int howMany ()
    {
-      return 3;
+      return 4;
    }
 
    @Override
@@ -106,16 +107,15 @@ public class TestProductCartDao extends
    {
       String hql = "WHERE id > 0";
       Iterator<ProductCart> it = dao.scroll (hql, -1, -1).iterator ();
-      assertTrue (CheckIterator.checkElementNumber (it, 2));
+      assertTrue (CheckIterator.checkElementNumber (it, 3));
    }
 
    @Override
    public void first ()
    {
-      String hql = "FROM ProductCart ORDER BY id DESC";
-      ProductCart cart = dao.first (hql);
+      ProductCart cart = dao.first ("FROM ProductCart ORDER BY id DESC");
       assertNotNull (cart);
-      assertEquals (cart.getId ().intValue (), 2);
+      assertEquals (cart.getId ().intValue (), 3);
    }
 
    @Test
@@ -136,6 +136,17 @@ public class TestProductCartDao extends
       ProductCart cart = dao.getCartOfUser (user);
       assertNotNull (cart);
       assertEquals (cart.getId ().intValue (), 1);
+      assertEquals (cart.getUser(), user, "User not owner of the found cart.");
+      
+      // No cart attached to User #1
+      user = udao.read (1L);
+      cart = dao.getCartOfUser (user);
+      assertNull (cart);
+      
+      // User #2 has 2 carts
+      user = udao.read (2L);
+      cart = dao.getCartOfUser (user);
+      assertNotNull (cart);
    }
 
    @Test
@@ -174,6 +185,19 @@ public class TestProductCartDao extends
 
       Iterator<Product> it = dao.scrollCartOfUser (user, -1, -1).iterator ();
       assertTrue (CheckIterator.checkElementNumber (it, 2));
+
+      it = dao.scrollCartOfUser (user, 0, 10000).iterator ();
+      assertTrue (CheckIterator.checkElementNumber (it, 2));
+
+      it = dao.scrollCartOfUser (user, 1, 10).iterator ();
+      assertTrue (CheckIterator.checkElementNumber (it, 1));
+
+      it = dao.scrollCartOfUser (user, 2, 10).iterator ();
+      assertTrue (CheckIterator.checkElementNumber (it, 0));
+      
+      it = dao.scrollCartOfUser (user, 10, 10).iterator ();
+      assertTrue (CheckIterator.checkElementNumber (it, 0));
+
    }
 
 }

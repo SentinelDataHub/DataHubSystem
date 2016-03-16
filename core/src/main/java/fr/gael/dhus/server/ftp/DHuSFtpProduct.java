@@ -54,12 +54,12 @@ public class DHuSFtpProduct implements FtpFile
    private DHuSVFSService vfsService;
    
    public DHuSFtpProduct (String path, Product product, 
-         DHuSVFSService vfsService, User user)
+         DHuSVFSService vfs_service, User user)
    {
       this.path = path;
       this.user = user;
       this.product = product;
-      this.vfsService = vfsService;
+      this.vfsService = vfs_service;
    }
 
    /* (non-Javadoc)
@@ -86,7 +86,8 @@ public class DHuSFtpProduct implements FtpFile
          raf.seek(offset);
          // The IBM jre needs to have both the stream and the random access file
          // objects closed to actually close the file
-         return new RegulatedInputStream.Builder (new FileInputStream(raf.getFD())
+         return new RegulatedInputStream.Builder (new FileInputStream(
+               raf.getFD())
          {
             public void close() throws IOException 
             {
@@ -94,7 +95,8 @@ public class DHuSFtpProduct implements FtpFile
                raf.close();
             }
          }, TrafficDirection.OUTBOUND).userName(user.getName ()).
-         copyStreamListener (new DownloadActionRecordListener(product,
+         copyStreamListener (new DownloadActionRecordListener(
+            product.getUuid(), product.getIdentifier(), 
             vfsService.getDhusUserFromFtpUser (user))).build ();
       }
       catch (IOException e)
@@ -281,7 +283,8 @@ public class DHuSFtpProduct implements FtpFile
    }
 
    /* (non-Javadoc)
-    * @see org.apache.ftpserver.ftplet.FtpFile#move(org.apache.ftpserver.ftplet.FtpFile)
+    * @see org.apache.ftpserver.ftplet.FtpFile#move(
+    * org.apache.ftpserver.ftplet.FtpFile)
     */
    @Override
    public boolean move(FtpFile arg0)

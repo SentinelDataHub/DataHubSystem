@@ -1,72 +1,99 @@
 <?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-	<modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+            http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-	<parent>
-		<groupId>fr.gael.dhus</groupId>
-		<artifactId>dhus-parent</artifactId>
-   	    <version>0.4.3-5-2</version>
-   	    <relativePath></relativePath>
-	</parent>
+   <modelVersion>4.0.0</modelVersion>
 
-	<artifactId>dhus-software</artifactId>
-	<packaging>pom</packaging>
+   <properties>
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+   </properties>
 
-	<name>DHuS - Software Distribution</name>
+   <parent>
+      <groupId>fr.gael.dhus</groupId>
+      <artifactId>dhus-parent</artifactId>
+      <version>0.9.0-2</version>
+      <relativePath></relativePath>
+   </parent>
 
-	<dependencies>
-		<!-- DHuS core (required) -->
-		<dependency>
-			<groupId>fr.gael.dhus</groupId>
-			<artifactId>dhus-core</artifactId>
-		</dependency>
-		<!-- Chosen IHM -->
-		<dependency>
-			<groupId>fr.gael.dhus</groupId>
-			<artifactId>dhus-gwt-client</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>javax.validation</groupId>
-					<artifactId>validation-api</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-		   <groupId>fr.gael.dhus</groupId>
-		   <artifactId>dhus-addon-sentinel-1</artifactId>
-		   <version>1.0.1-1</version>
-		</dependency>
-	</dependencies>
+   <artifactId>dhus-software</artifactId>
+   <packaging>pom</packaging>
 
-	<build>
-		<plugins>
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.2-beta-5</version>
-				<configuration>
-					<descriptors>
-						<descriptor>assembly/assembly.xml</descriptor>
-					</descriptors>		
-				</configuration>
-				<executions>
-					<execution>
-						<id>make-assembly</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-				</executions>
-				<dependencies>
-					<dependency>
-						<groupId>fr.gael.plexus</groupId>
-						<artifactId>plexus-archiver-shar</artifactId>
-						<version>1.0.0</version>
-					</dependency>
-				</dependencies>
-			</plugin>
-		</plugins>
-	</build>
+   <name>DHuS - Software Distribution</name>
+
+   <dependencies>
+      <!-- DHuS core (required) -->
+      <dependency>
+         <groupId>fr.gael.dhus</groupId>
+         <artifactId>dhus-core</artifactId>
+      </dependency>
+      <!-- Chosen IHM -->
+      <!--<dependency>-->
+         <!--<groupId>fr.gael.dhus</groupId>-->
+         <!--<artifactId>dhus-gwt-client</artifactId>-->
+         <!--<exclusions>-->
+            <!--<exclusion>-->
+               <!--<groupId>javax.validation</groupId>-->
+               <!--<artifactId>validation-api</artifactId>-->
+            <!--</exclusion>-->
+         <!--</exclusions>-->
+      <!--</dependency>-->
+      <!--<dependency>-->
+         <!--<groupId>fr.gael.dhus</groupId>-->
+         <!--<artifactId>dhus-client-html</artifactId>-->
+      <!--</dependency>-->
+      
+      <dependency>
+         <groupId>fr.gael.dhus</groupId>
+         <artifactId>dhus-web-client</artifactId>
+      </dependency>
+     
+      <dependency>
+         <groupId>fr.gael.dhus</groupId>
+         <artifactId>dhus-addon-sentinel-1</artifactId>
+         <version>1.0.4</version>
+      </dependency>
+      <dependency>
+         <groupId>eu.serco.xmf.drb</groupId>
+         <artifactId>dhus-addon-sentinel-2</artifactId>
+         <version>1.0.6</version>
+      </dependency>            
+      <dependency>
+	 <groupId>eu.serco.xmf.drb</groupId>
+	 <artifactId>dhus-addon-sentinel-3</artifactId>
+	 <version>1.0.1</version>
+      </dependency>
+   </dependencies>
+
+   <build>
+      <plugins>
+         <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>2.2-beta-5</version>
+            <configuration>
+               <descriptors>
+                  <descriptor>assembly/assembly.xml</descriptor>
+               </descriptors>
+            </configuration>
+            <executions>
+               <execution>
+                  <id>make-assembly</id>
+                  <phase>package</phase>
+                  <goals>
+                     <goal>single</goal>
+                  </goals>
+               </execution>
+            </executions>
+            <dependencies>
+               <dependency>
+                  <groupId>fr.gael.plexus</groupId>
+                  <artifactId>plexus-archiver-shar</artifactId>
+                  <version>1.0.0</version>
+               </dependency>
+            </dependencies>
+         </plugin>
+      </plugins>
+   </build>
 </project>

@@ -28,16 +28,29 @@ public class ProxyWebAuthenticationDetails extends WebAuthenticationDetails
 {
    private final String remoteAddress;
    
-   public ProxyWebAuthenticationDetails(HttpServletRequest request) {
+   public ProxyWebAuthenticationDetails(HttpServletRequest request)
+   {
       super (request);
-      String ip = request.getHeader("X-Forwarded-For");
-      if (ip == null) ip=request.getRemoteAddr ();
-
-      this.remoteAddress = ip;
+      this.remoteAddress = getRemoteIp (request);
    }
    
    @Override
-   public String getRemoteAddress() {
+   public String getRemoteAddress()
+   {
       return remoteAddress;
-  }
+   }
+   
+   public static String getRemoteIp (HttpServletRequest request)
+   {
+      String ip = request.getHeader("X-Forwarded-For");
+      if (ip == null) ip=request.getRemoteAddr ();
+      return ip;
+   }
+   
+   public static String getRemoteHost (HttpServletRequest request)
+   {
+      String host = request.getHeader("X-Forwarded-Host");
+      if (host == null) host=request.getRemoteHost();
+      return host;
+   }
 }

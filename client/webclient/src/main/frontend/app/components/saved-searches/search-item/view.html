@@ -1,0 +1,102 @@
+<div>
+<!-- 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+-->
+<div >
+	
+    
+    <style>
+        .search-item{
+        	/*height: 100px;*/
+        	width: 100%;
+        	position: relative;
+      		background-color: inherit;
+        	border-top: 1px solid #bdc3c7; 
+   			color: #34495e;      				
+   			padding-top: 10px;
+   			cursor: default;
+        }
+        
+        	
+		#search-item .list-item-title{
+			font-size: 13px;
+		    font-weight: bold;
+		    line-height: 20px;
+		    
+		}		
+
+		.search-item-buttons{
+			float: right;			
+		}
+
+		.item-button{
+			margin-left: 15px;
+			cursor: pointer;
+		}
+
+		.item-button-disabled{
+			margin-left: 15px;
+			cursor: pointer;
+			color: silver !important;			
+		}
+        /* **** */
+    </style>
+    
+    <div 
+    	id="search-item"
+    	class="search-item "    	
+    	ng-mouseover="hoverIn()"
+    	ng-mouseleave="hoverOut()"
+    	>    	
+    	<div class="row">
+    		<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+		    	<!-- title -->
+		    	<div class="row">
+		    		<span  class="list-item-title"
+		    			
+    					
+		    			title="{{product.complete}}"
+		    			
+					    >{{product.complete}}
+		    			
+		    		</span>
+	    		</div>
+    		</div>
+    	</div>
+    	<div class="row" style="height: 24px;">
+    		<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">	    		
+	    		<div class="row search-item-buttons" ng-show="visibleItemButton">
+					<div class="glyphicon glyphicon-search item-button" ng-click="executeSavedSearch()" title="Execute Saved Search"></div>
+					<div class="glyphicon glyphicon-envelope item-button" ng-show="product.notify" ng-click="updateNotificationStatus()" title="Deactivate Notification"></div>
+					<div class="glyphicon glyphicon-envelope item-button-disabled" ng-show="!product.notify" ng-click="updateNotificationStatus()" title="Activate Notification"></div>
+					<div class="glyphicon glyphicon-trash item-button" ng-click="removeSavedSearch()" title="Delete Search">	
+					</div>
+				</div>
+
+		    	<!-- content -->		    	
+		    </div>
+	    </div>
+	    <!-- buttons -->		
+    </div>
+
+</div>
+</div>

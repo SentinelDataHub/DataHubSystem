@@ -18,7 +18,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- * CLI Utility class to be removed once the Sentinel-1 Metadata extraction has been fixed.
+ * CLI Utility class to be removed once the Sentinel-1 Metadata
+ * extraction has been fixed.
  */
 package fr.gael.dhus.util;
 
@@ -47,7 +48,7 @@ import org.apache.xerces.xs.XSTerm;
 import org.apache.xerces.xs.XSTypeDefinition;
 
 import fr.gael.dhus.database.object.MetadataIndex;
-import fr.gael.dhus.datastore.processing.impl.ProcessingUtils;
+import fr.gael.dhus.datastore.processing.ProcessingUtils;
 import fr.gael.drb.DrbAttribute;
 import fr.gael.drb.DrbNode;
 import fr.gael.drb.DrbSequence;
@@ -67,6 +68,14 @@ public class SentinelXsdDumpMetadata
    final public static String MIME_APPLICATION_GML = "application/gml+xml";
 
    /**
+    * Hide utility class constructor
+    */
+   private SentinelXsdDumpMetadata ()
+   {
+
+   }
+
+   /**
     * @param args
     */
    public static void main(String[] args)
@@ -76,7 +85,8 @@ public class SentinelXsdDumpMetadata
          // Activates the resolver for Drb
          try
          {
-            DrbFactoryResolver.setMetadataResolver (new DrbCortexMetadataResolver (
+            DrbFactoryResolver.setMetadataResolver (
+                  new DrbCortexMetadataResolver (
                DrbCortexModel.getDefaultModel ()));
          }
          catch (IOException e)
@@ -94,13 +104,15 @@ public class SentinelXsdDumpMetadata
       System.out.println("      $tail := $list[position() > 1]");
       System.out.println("    return");
       System.out
-            .println("      if (fn:exists($tail[ . = $head ])) then local:deduplicate($tail)");
+            .println("      if (fn:exists($tail[ . = $head ])) then " +
+                  "local:deduplicate($tail)");
       System.out.println("      else ($head, local:deduplicate($tail))");
       System.out.println("};");
       System.out.println();
       System.out.println("declare function local:values($list) {");
       System.out
-            .println("  fn:string-join(local:deduplicate(fn:data($list)), ' ')");
+            .println("  fn:string-join(local:deduplicate(" +
+                  "fn:data($list)), ' ')");
       System.out.println("};");
       System.out.println();
 
@@ -141,17 +153,24 @@ public class SentinelXsdDumpMetadata
          return;
       }
 
-      if (((type.getTypeCategory() == XSTypeDefinition.SIMPLE_TYPE) || ((XSComplexTypeDefinition) type)
+      if (((type.getTypeCategory() == XSTypeDefinition.SIMPLE_TYPE)
+            || ((XSComplexTypeDefinition) type)
             .getContentType() == XSComplexTypeDefinition.CONTENTTYPE_SIMPLE))
       {
-         if (includesBaseType(type, "string") || includesBaseType(type, "integer") || includesBaseType(type, "boolean"))
+         if (includesBaseType(type, "string")
+               || includesBaseType(type, "integer")
+               || includesBaseType(type, "boolean"))
          {
-//            System.out.println("         <metadata name=\"" + element.getName() + "\" type=\"text/plain\" category=\"\">");
-//            System.out.println("            " + indexedName(element.getName())
+//            System.out.println("         <metadata name=\"" +
+// element.getName() + "\" type=\"text/plain\" category=\"\">");
+//            System.out.println("            " +
+// indexedName(element.getName())
 //               + " { local:values($doc" + output_path + ") }");
 //            System.out.println("         </metadata>,");
 
-            System.out.println("         local:getMetadata('" + element.getName() + "', '" + indexedName(element.getName()) + "',");
+            System.out.println("         local:getMetadata('" +
+                  element.getName() + "', '" +
+                  indexedName(element.getName()) + "',");
             System.out.println("            $doc" + output_path + "),");
          }
       }
@@ -203,7 +222,8 @@ public class SentinelXsdDumpMetadata
          return type;
    }
 
-   private static boolean includesBaseType(XSTypeDefinition type, String type_name)
+   private static boolean includesBaseType(XSTypeDefinition type,
+         String type_name)
    {
       XSTypeDefinition base_type = type.getBaseType();
 
@@ -249,25 +269,13 @@ public class SentinelXsdDumpMetadata
       try
       {
          // First : force loading the model before accessing items.
-         DrbCortexModel model = DrbCortexModel.getDefaultModel ();
-         node = ProcessingUtils.getNodeFromPath (url);
-      
-         if (node == null)
-         {
-            throw new IOException ("Cannot Instantiate Drb with URI \"" + 
-               url + "\".");
-         }
+         node = ProcessingUtils.getNodeFromPath(url);
+         cl = ProcessingUtils.getClassFromNode(node);
          
-         cl = model.getClassOf (node);
-         
-         if (cl == null)
-         {
-            throw new UnsupportedOperationException(
-               "Class cannot be retrieved for product " + node.getPath());
-         }
-         
-         System.err.println ("Class \"" + cl.getLabel () + "\" for product " + node.getName ());
-System.err.println("First child: " + node.getNamedChild("manifest.safe", 1).getFirstChild().getName());
+         System.err.println ("Class \"" + cl.getLabel () + "\" for product " +
+               node.getName ());
+System.err.println("First child: " + node.getNamedChild("manifest.safe", 1)
+      .getFirstChild().getName());
          // Get all values of the metadata properties attached to the item
          // class or any of its super-classes
          properties =
@@ -295,8 +303,10 @@ System.err.println("First child: " + node.getNamedChild("manifest.safe", 1).getF
          property = property.replaceAll("&lt;", "<");
          property = property.replaceAll("&gt;", ">");
          /*
-         property = property.replaceAll("\n", " "); // Replace eol by blank space
-         property = property.replaceAll(" +", " "); // Remove contiguous blank spaces
+         property = property.replaceAll("\n", " "); // Replace eol by
+         blank space
+         property = property.replaceAll(" +", " "); // Remove contiguous
+         blank spaces
          */
 
          // Create a query for the current metadata extractor
@@ -307,7 +317,8 @@ System.err.println("First child: " + node.getNamedChild("manifest.safe", 1).getF
 
          // Check that something results from the evaluation: jump to next
          // value otherwise
-         if ((metadataSequence == null) || (metadataSequence.getLength() < 1))
+         if ((metadataSequence == null)
+               || (metadataSequence.getLength() < 1))
          {
             continue;
          }
@@ -387,7 +398,8 @@ System.err.println("First child: " + node.getNamedChild("manifest.safe", 1).getF
                index.setCategory (category);
                index.setValue (value);
                index.setQueryable (queryable);
-System.err.println("Index: name=\"" + index.getName() + "\", value=\"" + index.getValue() + "\", category=\"" + index.getCategory() + "\"");
+System.err.println("Index: name=\"" + index.getName() + "\", value=\"" +
+      index.getValue() + "\", category=\"" + index.getCategory() + "\"");
                indexes.add (index);
             }
             else
@@ -395,7 +407,8 @@ System.err.println("Index: name=\"" + index.getName() + "\", value=\"" + index.g
                String field_name="";
                if (name != null) field_name = name;
                else if (queryable != null) field_name = queryable;
-               else if (category != null) field_name = "of category " + category ;
+               else if (category != null) field_name = "of category " +
+                     category ;
                
                System.err.println("Nothing extracted for field " + field_name);
             }
@@ -406,7 +419,8 @@ System.err.println("Index: name=\"" + index.getName() + "\", value=\"" + index.g
       index.setCategory ("product");
       index.setName ("Ingestion Date");
       index.setQueryable ("ingestionDate");
-      SimpleDateFormat df = new SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+      SimpleDateFormat df = new SimpleDateFormat (
+            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
       index.setValue (df.format (new Date()));
       indexes.add (index);
       

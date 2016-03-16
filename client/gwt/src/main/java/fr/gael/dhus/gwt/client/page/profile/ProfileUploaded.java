@@ -26,9 +26,9 @@ import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.core.client.JsonUtils;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.RootPanel;
 
+import fr.gael.dhus.gwt.client.AccessDeniedRedirectionCallback;
 import fr.gael.dhus.gwt.client.GWTClient;
 import fr.gael.dhus.gwt.client.page.AbstractPage;
 import fr.gael.dhus.gwt.client.page.SearchViewPage;
@@ -103,11 +103,11 @@ public class ProfileUploaded extends AbstractPage
       GWTClient.callback (function, JsonUtils.safeEval ("{\"aaData\": [],\"iTotalRecords\" : 0, \"iTotalDisplayRecords\" : 0}"));
       
       final UserData user = GWTClient.getCurrentUser ();
-      userService.countUploadedProducts (user.getId (), new AsyncCallback<Integer>()
+      userService.countUploadedProducts (user.getId (), new AccessDeniedRedirectionCallback<Integer>()
       {
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             DOM.setStyleAttribute (RootPanel.getBodyElement (), "cursor",
             "default");
@@ -117,11 +117,11 @@ public class ProfileUploaded extends AbstractPage
          @Override
          public void onSuccess (final Integer total)
          {
-            userService.getUploadedProductsIdentifiers (start, length, user.getId (), new AsyncCallback<List<String>>()
+            userService.getUploadedProductsIdentifiers (start, length, user.getId (), new AccessDeniedRedirectionCallback<List<String>>()
             {
                
                @Override
-               public void onFailure (Throwable caught)
+               public void _onFailure (Throwable caught)
                {
                   DOM.setStyleAttribute (RootPanel.getBodyElement (), "cursor",
                   "default");

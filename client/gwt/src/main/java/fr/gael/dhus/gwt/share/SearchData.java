@@ -29,14 +29,14 @@ public class SearchData implements IsSerializable
    private boolean notify;
    private String value;
    private String complete;
-   private Double[][] footprint;
+   private Double[][][] footprint;
    private Map<String, String> advanced;
 
    public SearchData ()
    {
    }
    
-   public SearchData (Long id, String value, String complete, Map<String, String> advanced, Double[][] footprint, boolean notify)
+   public SearchData (Long id, String value, String complete, Map<String, String> advanced, Double[][][] footprint, boolean notify)
    {
       this.id = id;
       this.value = value;
@@ -71,12 +71,12 @@ public class SearchData implements IsSerializable
       this.value = value;
    }
 
-   public Double[][] getFootprint ()
+   public Double[][][] getFootprint ()
    {
       return footprint;
    }
 
-   public void setFootprint (Double[][] footprint)
+   public void setFootprint (Double[][][] footprint)
    {
       this.footprint = footprint;
    }

@@ -22,11 +22,14 @@ package fr.gael.dhus.spring.security.authentication;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.security.web.authentication
+      .WebAuthenticationDetailsSource;
 
-public class ProxyWebAuthenticationDetailsSource extends WebAuthenticationDetailsSource
+public class ProxyWebAuthenticationDetailsSource extends
+      WebAuthenticationDetailsSource
 {
-   public WebAuthenticationDetails buildDetails(HttpServletRequest context) {
+   public WebAuthenticationDetails buildDetails(HttpServletRequest context)
+   {
        return new ProxyWebAuthenticationDetails(context);
    }
 }

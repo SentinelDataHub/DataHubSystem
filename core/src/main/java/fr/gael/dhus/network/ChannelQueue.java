@@ -21,10 +21,13 @@ package fr.gael.dhus.network;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
-import fr.gael.dhus.database.dao.NetworkUsageDao;
+import fr.gael.dhus.service.NetworkUsageService;
+
 import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
 
@@ -48,7 +51,7 @@ class ChannelQueue extends AbstractChannel
    ChannelQueue(final String name) throws IllegalArgumentException
    {
       super(name);
-      this.subChannels = new ArrayList<Channel>();
+      this.subChannels = Collections.synchronizedList (new LinkedList<Channel> ());
 
       new Thread(new RoundRobin(), "" + name + " - Round-Robin Thread").start();
    }
@@ -99,7 +102,7 @@ class ChannelQueue extends AbstractChannel
    }
 
    @Override
-   public Channel getChannel(ConnectionParameters parameters) throws
+   public synchronized Channel getChannel(ConnectionParameters parameters) throws
       IllegalArgumentException, RegulationException
    {
       // Check parameter
@@ -140,7 +143,8 @@ class ChannelQueue extends AbstractChannel
          flow_name = parameters.getUser().getUsername();
       }
       
-      flow_name += "@" + this.getName() + "{" + parameters.getDirection().getLabel() + "}";
+      flow_name += "@" + this.getName() + "{" + parameters.getDirection()
+            .getLabel() + "}";
       
       // Otherwise creates the channel
       Channel channel = new ChannelFlow(flow_name, parameters);
@@ -149,8 +153,8 @@ class ChannelQueue extends AbstractChannel
       
       return channel;
    }
-   
-   private void checkQuotas (ConnectionParameters parameters, UserQuotas quotas) 
+
+   private void checkQuotas (ConnectionParameters parameters, UserQuotas quotas)
       throws RegulationException
    {
       // Raise an exception if connection count exceeded
@@ -162,7 +166,7 @@ class ChannelQueue extends AbstractChannel
          int max_concurrent = quotas.getMaxConcurrent();
          int connection_count = this.countUserChannels(parameters.getUser());
 
-         if (connection_count > max_concurrent)
+         if (connection_count >= max_concurrent)
          {
             // Get user name
             String user_name = "--anonymous--";
@@ -177,8 +181,8 @@ class ChannelQueue extends AbstractChannel
                user_name + "\"");
          }
       }
-      NetworkUsageDao networkDao = ApplicationContextProvider.
-               getBean (NetworkUsageDao.class);
+      NetworkUsageService network_service = ApplicationContextProvider.
+               getBean (NetworkUsageService.class);
       // Raise an exception if maxCount reached
       if ((quotas !=null) &&
           (quotas.getMaxCount () != null) &&
@@ -187,7 +191,7 @@ class ChannelQueue extends AbstractChannel
          User user = parameters.getUser();
          long period = quotas.getMaxCountPeriod ();
 
-         int total_counted = networkDao.getDownlaodedCountPerUser(user,
+         int total_counted = network_service.countDownloadsByUserSince (user,
             period);
          // Checks the retrieved count
          if (total_counted>=quotas.getMaxCount ())
@@ -208,8 +212,8 @@ class ChannelQueue extends AbstractChannel
          long period = quotas.getMaxCountPeriod ();
          long expected_size = parameters.getStreamSize ();
          
-         long total_sized = networkDao.getDownlaodedSizePerUser (user,
-            period)+expected_size;
+         long total_sized = network_service.getDownloadedSizeByUserSince (user,
+            period) + expected_size;
          // Checks the retrieved count
          if (total_sized>=quotas.getMaxCumulativeSize ())
          {

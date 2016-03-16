@@ -12,25 +12,28 @@
 
    <context:component-scan base-package="fr.gael.dhus.database" />
 
-   <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource">
-        <property name="driverClassName" value="org.hsqldb.jdbcDriver" />
-        <property name="url" value="jdbc:hsqldb:file:#{ configurationLoader.getDatabasePath () };shutdown=true;#{ configurationLoader.getDatabaseSettings () }" />
-        <property name="username" value="sa" />
-        <property name="password" value="" />
-        
-        <property name="initialSize" value="5" />
-        <property name="maxTotal" value="10" />
-        <property name="poolPreparedStatements" value="true" />
-        <property name="maxOpenPreparedStatements" value="10" />
-    </bean>
+   <bean id="boneCPDataSource" class="com.jolbox.bonecp.BoneCPDataSource">
+      <property name="driverClass" value="org.hsqldb.jdbcDriver" />
+      <property name="jdbcUrl" value="jdbc:hsqldb:file:#{ configurationLoader.getDatabasePath () };shutdown=true;#{ configurationLoader.getDatabaseSettings () }" />
+      <property name="username" value="sa" />
+      <property name="password" value="" />
 
-   <bean id="liquibase" class="liquibase.integration.spring.SpringLiquibase">
-      <property name="dataSource" ref="dataSource" />
-      <property name="changeLog"
-                value="classpath:liquibase/changelog-master.xml" />
+      <property name="idleConnectionTestPeriodInMinutes" value="60"/>
+      <property name="idleMaxAgeInMinutes" value="240"/>
+      <property name="maxConnectionsPerPartition" value="60"/>
+      <property name="minConnectionsPerPartition" value="20"/>
+      <property name="partitionCount" value="3"/>
+      <property name="acquireIncrement" value="10"/>
+      <property name="statementsCacheSize" value="50"/>
    </bean>
 
-   <bean id="sessionFactory" depends-on="liquibase"
+   <!-- Spring bean configuration. Tell Spring to bounce off BoneCP -->
+   <bean id="dataSource"
+         class="org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy">
+      <property name="targetDataSource" ref="boneCPDataSource" />
+   </bean>
+
+    <bean id="sessionFactory"
          class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
       <property name="dataSource" ref="dataSource" />
       <property name="packagesToScan">
@@ -38,16 +41,17 @@
             <value>fr.gael.dhus.database.object</value>
          </list>
       </property>
+      
       <property name="hibernateProperties">
          <props>
             <prop key="hibernate.dialect">org.hibernate.dialect.HSQLDialect</prop>
-            <prop key="hibernate.hbm2ddl.auto">create</prop>
+            <prop key="hibernate.hbm2ddl.auto">create-drop</prop>
             <prop key="hibernate.show_sql">false</prop>
             <prop key="hibernate.format_sql">true</prop>
             <prop key="hibernate.query.substitutions">true 1, false 0, yes 'Y', no 'N'</prop>
-           
+            <prop key="hibernate.cache.provider_class">org.hibernate.cache.EhCacheProvider</prop>
+            <prop key="hibernate.cache.use_second_level_cache">true</prop>
             <prop key="javax.persistence.validation.mode">none</prop>
-            <prop key="hibernate.generate_statistics">false</prop>
          </props>
       </property>
       

@@ -53,11 +53,11 @@ public class DHuSFtpProductViewByCollection implements FileSystemView
    private String date;
    private String currentPath;
 
-   public DHuSFtpProductViewByCollection (User user, DHuSVFSService vfsService)
+   public DHuSFtpProductViewByCollection (User user, DHuSVFSService vfs_service)
    {
       this.user = user;
-      this.vfsService = vfsService;
-      this.workingCol = vfsService.getCollectionDao ().getRootCollection ();
+      this.vfsService = vfs_service;
+      this.workingCol = vfs_service.getCollectionDao ().getRootCollection ();
       this.currentPath = "/";
    }
 
@@ -72,7 +72,8 @@ public class DHuSFtpProductViewByCollection implements FileSystemView
    {
       if (!wd.startsWith("/"))
       {
-         String prefix = currentPath; //vfsService.getVPathByCollection(workingCol);
+         String prefix = currentPath;
+         //vfsService.getVPathByCollection(workingCol);
          if (!prefix.endsWith("/")) prefix+="/";
          wd =  prefix + wd;
       }
@@ -193,7 +194,8 @@ public class DHuSFtpProductViewByCollection implements FileSystemView
       else
       {
          path = vfsService.getVPathByCollection(this.workingCol);
-         path += ((path.endsWith ("/") || path.endsWith ("\\")) ? "" : "/") + name;
+         path += ((path.endsWith ("/") || path.endsWith ("\\")) ? "" : "/") +
+               name;
       }
       
       path = vfsService.normalizePath(path);
@@ -202,8 +204,8 @@ public class DHuSFtpProductViewByCollection implements FileSystemView
       String product_name =
                name.substring (name.lastIndexOf ("/") + 1, name.length ());
       Product product =
-               vfsService.getProductDao ().getProductByDownloadableFilename (product_name,
-                  workingCol);
+               vfsService.getProductDao ().getProductByDownloadableFilename (
+                     product_name, workingCol);
       Collection collection = vfsService.getCollectionByVPath(path, user);
       if (product == null)
       {
@@ -224,7 +226,8 @@ public class DHuSFtpProductViewByCollection implements FileSystemView
       { // Case of product found
          logger.debug("Found Product : " + product.getDownloadablePath());
          String collection_vpath   = path.substring(0, path.lastIndexOf("/"));
-         product.setOwner (vfsService.getProductDao ().getOwnerOfProduct (product));
+         product.setOwner (vfsService.getProductDao ().getOwnerOfProduct (
+               product));
          return new DHuSFtpProduct(collection_vpath, product, vfsService, user);
       }
    }

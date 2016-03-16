@@ -35,12 +35,12 @@ import com.google.gwt.http.client.RequestException;
 import com.google.gwt.http.client.Response;
 import com.google.gwt.http.client.URL;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PasswordTextBox;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
 
+import fr.gael.dhus.gwt.client.AccessDeniedRedirectionCallback;
 import fr.gael.dhus.gwt.client.GWTClient;
 import fr.gael.dhus.gwt.client.page.Page;
 import fr.gael.dhus.gwt.services.SecurityServiceAsync;
@@ -117,7 +117,7 @@ public class LoginModule
                      else
                      {
                      securityService
-                        .getCurrentUser (new AsyncCallback<UserData> ()
+                        .getCurrentUser (new AccessDeniedRedirectionCallback<UserData> ()
                         {
 
                            @Override
@@ -132,7 +132,7 @@ public class LoginModule
                            }
 
                            @Override
-                           public void onFailure (Throwable caught)
+                           public void _onFailure (Throwable caught)
                            {
                               Window.alert (caught.getMessage ());
                               loginRefresh ();
@@ -228,7 +228,7 @@ public class LoginModule
    {
       final SecurityServiceAsync securityService =
          SecurityServiceAsync.Util.getInstance ();
-      AsyncCallback<UserData> callback = new AsyncCallback<UserData> ()
+      AccessDeniedRedirectionCallback<UserData> callback = new AccessDeniedRedirectionCallback<UserData> ()
       {
          public void onSuccess (UserData result)
          {
@@ -256,7 +256,7 @@ public class LoginModule
             }
          }
 
-         public void onFailure (Throwable ex)
+         public void _onFailure (Throwable ex)
          {
             Window.alert ("Error while requesting user information.\n" +
                ex.getMessage ());

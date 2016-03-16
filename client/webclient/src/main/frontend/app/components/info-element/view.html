@@ -1,0 +1,58 @@
+<div>
+<!-- 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+-->
+<div>
+    <style>
+      /* FAB */
+      .fab-info {
+          vertical-align: middle;
+          margin-bottom: 30px;  
+          margin-right: 22px;        
+          padding: 8px;
+          line-height: 20px;
+          font-size: 15px;                    
+          display: block;
+          height: 40px;
+          width: 40px;
+          color: #fff;
+          fill: currentColor;
+          cursor: pointer;
+          text-decoration: none;            
+          border-radius: 50%;          
+          overflow: hidden;                
+          box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+          background-color: #373B50;
+          z-index: 10;
+          bottom:0;
+          right:0;
+          position: absolute;
+      }
+            
+    </style>
+    <div ng-click="openInfo()" class="fab-info dhus-button" title="About" >
+        <svg viewBox="0 0 24 24" height="100%" width="100%" preserveAspectRatio="xMidYMid meet" fit="" style="pointer-events: none; display: block;">
+            <g id="info-outline"><path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/></g>
+        </svg>
+    </div>    
+</div>
+</div>

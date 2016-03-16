@@ -36,13 +36,14 @@ import fr.gael.dhus.server.ftp.service.DHuSVFSService;
 public class DHuSFtpFileSystemFactory implements FileSystemFactory
 {
    private DHuSVFSService vfsService;
-   public DHuSFtpFileSystemFactory (DHuSVFSService vfsService)
+   public DHuSFtpFileSystemFactory (DHuSVFSService vfs_service)
    {
-      this.vfsService = vfsService;
+      this.vfsService = vfs_service;
    }
 
    /* (non-Javadoc)
-    * @see org.apache.ftpserver.ftplet.FileSystemFactory#createFileSystemView(org.apache.ftpserver.ftplet.User)
+    * @see org.apache.ftpserver.ftplet.FileSystemFactory#createFileSystemView(
+    * org.apache.ftpserver.ftplet.User)
     */
    @Override
    public FileSystemView createFileSystemView(User user) throws FtpException

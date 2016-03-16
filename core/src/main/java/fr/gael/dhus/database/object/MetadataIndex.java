@@ -30,16 +30,7 @@ import javax.persistence.Embeddable;
 @Embeddable
 public class MetadataIndex
 {
-   public MetadataIndex () { }
-   
-   public MetadataIndex (MetadataIndex index)
-   {
-      setName (index.getName ());
-      setType (index.getType ());
-      setCategory (index.getCategory ());
-      setQueryable (index.getQueryable ());
-      setValue (index.getValue ());
-   }
+
    @Column (name = "NAME", nullable = false)
    private String name;
    
@@ -52,8 +43,31 @@ public class MetadataIndex
    @Column (name = "QUERYABLE")
    private String queryable;
    
-   @Column (name = "VALUE", nullable = false, length=4096)
+   @Column (name = "VALUE", nullable = false, length=8192)
    private String value;
+
+   public MetadataIndex ()
+   {
+   }
+
+   public MetadataIndex (String name, String type, String category,
+      String queryable, String value)
+   {
+      setName (name);
+      setType (type);
+      setCategory (category);
+      setQueryable (queryable);
+      setValue (value);
+   }
+
+   public MetadataIndex (MetadataIndex index)
+   {
+      setName (index.getName ());
+      setType (index.getType ());
+      setCategory (index.getCategory ());
+      setQueryable (index.getQueryable ());
+      setValue (index.getValue ());
+   }
 
    /**
     * @param name the name to set

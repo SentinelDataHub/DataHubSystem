@@ -19,6 +19,14 @@
  */
 package fr.gael.dhus.api;
 
+import fr.gael.dhus.service.StatisticsService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -26,33 +34,25 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
-import javax.servlet.http.HttpServletResponse;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-
-import fr.gael.dhus.service.StatisticsService;
-
 @Controller
 @RequestMapping (value = "/statistic")
 public class StatisticController
 {
    @Autowired // ActionRecordReaderService
    private StatisticsService statisticsService;
-   
+
    @PreAuthorize ("hasRole('ROLE_UPLOAD')")
    @RequestMapping (value = "/download/get")
-   public void search (@RequestParam(value="type", defaultValue="number") String type, 
-      @RequestParam(value="periodScale", defaultValue="day") String periodScale,
-      @RequestParam(value="per", defaultValue="") String per,
-      @RequestParam(value="period", defaultValue="") String period,
-      HttpServletResponse res) throws IOException, ParseException
+   public void search (
+         @RequestParam (value = "type", defaultValue = "number") String type,
+         @RequestParam (value = "periodScale", defaultValue = "day")
+         String period_scale,
+         @RequestParam (value = "per", defaultValue = "") String per,
+         @RequestParam (value = "period", defaultValue = "") String period,
+         HttpServletResponse res) throws IOException, ParseException
    {
       type = type.toLowerCase ();
-      periodScale = periodScale.toLowerCase ();
+      period_scale = period_scale.toLowerCase ();
       per = per.toLowerCase ();
 
       SimpleDateFormat day = new SimpleDateFormat ("yyyyMMdd'T'");
@@ -81,17 +81,17 @@ public class StatisticController
          if ("domain".equals (per))
          {
             stats = statisticsService.getDownloadsSizePerDomain (start, end,
-               "hour".equals (periodScale));
+               "hour".equals (period_scale));
          }
          else if ("usage".equals (per))
          {
             stats = statisticsService.getDownloadsSizePerUsage (start, end,
-               "hour".equals (periodScale));
+               "hour".equals (period_scale));
          }
          else
          {
             stats = statisticsService.getDownloadsSizePerUser (start, end,
-               new ArrayList<String> (), "hour".equals (periodScale));
+               new ArrayList<String> (), "hour".equals (period_scale));
          }
       }
       else if ("number".equals (type))
@@ -99,24 +99,25 @@ public class StatisticController
          if ("domain".equals (per))
          {
             stats = statisticsService.getDownloadsPerDomain (start, end,
-               "hour".equals (periodScale));
+               "hour".equals (period_scale));
          }
          else if ("usage".equals (per))
          {
             stats = statisticsService.getDownloadsPerUsage (start, end,
-               "hour".equals (periodScale));
+               "hour".equals (period_scale));
          }
          else
          {
             stats = statisticsService.getDownloadsPerUser (start, end,
-               new ArrayList<String> (), "hour".equals (periodScale));
+               new ArrayList<String> (), "hour".equals (period_scale));
          }
       }
       else
       {
          // should not happen
          res.sendError (HttpServletResponse.SC_BAD_REQUEST,
-            "'type' parameter shall be 'number' or 'volume' only. Default value is 'number'.");
+            "'type' parameter shall be 'number' or 'volume' only. " +
+                  "Default value is 'number'.");
          return;
       }
 

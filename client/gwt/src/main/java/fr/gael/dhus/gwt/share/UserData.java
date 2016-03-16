@@ -24,8 +24,6 @@ import java.util.List;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
 
-import fr.gael.dhus.gwt.share.RoleData;
-
 public class UserData implements IsSerializable
 {
    private Long id;
@@ -52,6 +50,8 @@ public class UserData implements IsSerializable
    private List<Long> authorizedCollections;
    private List<Long> addedCollectionsIds;
    private List<Long> removedCollectionsIds;
+   // Trick: used only for publicData user
+   private List<Long> productsFromPublicCollections;
 
    public UserData ()
    {
@@ -450,6 +450,38 @@ public class UserData implements IsSerializable
       boolean base = authorizedCollections != null && authorizedCollections.contains (pid);
       
       return added || (base && !removed);
+   }
+      
+   public List<Long> getProductsFromPublicCollections ()
+   {
+      return productsFromPublicCollections;
+   }
+
+   public void setProductsFromPublicCollections (
+      List<Long> productsFromPublicCollections)
+   {
+      this.productsFromPublicCollections = productsFromPublicCollections;
+   }
+   
+   public boolean fromPublicCollection(Long pid)
+   {
+      return productsFromPublicCollections != null && productsFromPublicCollections.contains (pid);
+   }
+   
+   public void addProductFromPublicCollection (Long id)
+   {
+      if (productsFromPublicCollections == null)
+      {
+         productsFromPublicCollections = new ArrayList<Long> ();
+      }
+      if (!productsFromPublicCollections.contains (id))
+      productsFromPublicCollections.add (id);
+   }
+   
+   public void removeProductFromPublicCollection (Long id)
+   {
+      if (productsFromPublicCollections != null && productsFromPublicCollections.contains (id))
+         productsFromPublicCollections.remove (id);
    }
    
    @Override

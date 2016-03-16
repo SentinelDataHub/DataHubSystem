@@ -68,43 +68,44 @@ public final class CollectionProductsMap extends
    /**
     * Creates a new map view.
     * 
-    * @param collectionId identifier of the parent collection
+    * @param collection_id identifier of the parent collection
     */
-   public CollectionProductsMap (Long collectionId)
+   public CollectionProductsMap (Long collection_id)
    {
-      this (collectionId, null, null, 0, -1);
+      this (collection_id, null, null, 0, -1);
    }
 
    /**
     * Private constructor used by
     * {@link CollectionProductsMap#getSubMapBuilder()}
     */
-   public CollectionProductsMap (Long collectionId, FilterExpression filter,
-      OrderByExpression orderBy, int skip, int top)
+   public CollectionProductsMap (Long collection_id, FilterExpression filter,
+      OrderByExpression order, int skip, int top)
    {
-      this.collectionId = collectionId;
+      this.collectionId = collection_id;
 
       this.filter = filter;
-      this.orderBy = orderBy;
+      this.orderBy = order;
       this.skip = skip;
       this.top = top;
    }
 
    @Override
-   protected Product serviceGet (String sKey)
+   protected Product serviceGet (String s_key)
    {
       User u = V1Util.getCurrentUser ();
       fr.gael.dhus.database.object.Product product;
       try
       {
-         product = collectionService.getProduct (sKey, collectionId, u);
+         product = collectionService.getProduct (s_key, collectionId, u);
+         if (product == null) return null;
       }
       catch (Exception e)
       {
          logger.warn ("Cannot load Product from database !", e);
          return null;
       }
-      return Product.fromDatabase (product);
+      return new Product (product);
    }
 
    @Override
@@ -123,7 +124,10 @@ public final class CollectionProductsMap extends
          while (it.hasNext ())
          {
             fr.gael.dhus.database.object.Product p = it.next ();
-            prods.add (Product.fromDatabase (p));
+            if (p != null)
+            {
+               prods.add (new Product (p));
+            }
          }
 
          return prods.iterator ();
@@ -161,7 +165,6 @@ public final class CollectionProductsMap extends
          @Override
          public Map<String, Product> build ()
          {
-            ;
             return new CollectionProductsMap (collectionId, filter, orderBy,
                skip, top);
          }

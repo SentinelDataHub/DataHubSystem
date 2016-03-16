@@ -25,6 +25,7 @@ import java.util.List;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 import fr.gael.dhus.gwt.services.annotation.RPCService;
+import fr.gael.dhus.gwt.share.exceptions.AccessDeniedException;
 import fr.gael.dhus.gwt.share.exceptions.StatisticsServiceException;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
 
@@ -34,7 +35,7 @@ public class StatisticsServiceImpl extends RemoteServiceServlet implements
 {
    private static final long serialVersionUID = 3176551543265675517L;
 
-   public Date getNextScheduleFileScanner () throws StatisticsServiceException
+   public Date getNextScheduleFileScanner () throws StatisticsServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.StatisticsService statisticsService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.StatisticsService.class);
@@ -43,6 +44,11 @@ public class StatisticsServiceImpl extends RemoteServiceServlet implements
       {
       return statisticsService.getNextScheduleFileScanner ();
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -50,7 +56,7 @@ public class StatisticsServiceImpl extends RemoteServiceServlet implements
       }
    }
 
-   public Date getNextScheduleSearch () throws StatisticsServiceException
+   public Date getNextScheduleSearch () throws StatisticsServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.StatisticsService statisticsService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.StatisticsService.class);
@@ -59,6 +65,11 @@ public class StatisticsServiceImpl extends RemoteServiceServlet implements
       {
       return statisticsService.getNextScheduleSearch ();
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -66,7 +77,7 @@ public class StatisticsServiceImpl extends RemoteServiceServlet implements
       }
    }
 
-   public Date getNextScheduleDumpDB () throws StatisticsServiceException
+   public Date getNextScheduleDumpDB () throws StatisticsServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.StatisticsService statisticsService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.StatisticsService.class);
@@ -75,6 +86,11 @@ public class StatisticsServiceImpl extends RemoteServiceServlet implements
       {
       return statisticsService.getNextScheduleDumpDB ();
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -82,7 +98,7 @@ public class StatisticsServiceImpl extends RemoteServiceServlet implements
       }
    }
 
-   public Date getNextScheduleCleanupDumpDB () throws StatisticsServiceException
+   public Date getNextScheduleCleanupDumpDB () throws StatisticsServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.StatisticsService statisticsService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.StatisticsService.class);
@@ -91,6 +107,11 @@ public class StatisticsServiceImpl extends RemoteServiceServlet implements
       {
       return statisticsService.getNextScheduleCleanupDumpDB ();
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -98,7 +119,7 @@ public class StatisticsServiceImpl extends RemoteServiceServlet implements
       }
    }
 
-   public Date getNextScheduleCleanupDB () throws StatisticsServiceException
+   public Date getNextScheduleCleanupDB () throws StatisticsServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.StatisticsService statisticsService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.StatisticsService.class);
@@ -107,6 +128,11 @@ public class StatisticsServiceImpl extends RemoteServiceServlet implements
       {
       return statisticsService.getNextScheduleCleanupDB ();
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -114,7 +140,7 @@ public class StatisticsServiceImpl extends RemoteServiceServlet implements
       }
    }
 
-   public Date getNextScheduleMailLogs () throws StatisticsServiceException
+   public Date getNextScheduleMailLogs () throws StatisticsServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.StatisticsService statisticsService = ApplicationContextProvider
             .getBean (fr.gael.dhus.service.StatisticsService.class);
@@ -123,6 +149,11 @@ public class StatisticsServiceImpl extends RemoteServiceServlet implements
       {
       return statisticsService.getNextScheduleMailLogs ();
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -130,7 +161,7 @@ public class StatisticsServiceImpl extends RemoteServiceServlet implements
       }
    }
    
-   public Date getNextScheduleEviction () throws StatisticsServiceException
+   public Date getNextScheduleEviction () throws StatisticsServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.StatisticsService statisticsService = ApplicationContextProvider
                   .getBean (fr.gael.dhus.service.StatisticsService.class);
@@ -139,6 +170,11 @@ public class StatisticsServiceImpl extends RemoteServiceServlet implements
       {
       return statisticsService.getNextScheduleEviction ();
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -146,7 +182,7 @@ public class StatisticsServiceImpl extends RemoteServiceServlet implements
       }
    }
    
-   public Date getNextScheduleArchiveSynchronization () throws StatisticsServiceException
+   public Date getNextScheduleArchiveSynchronization () throws StatisticsServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.StatisticsService statisticsService = ApplicationContextProvider
                   .getBean (fr.gael.dhus.service.StatisticsService.class);
@@ -155,6 +191,11 @@ public class StatisticsServiceImpl extends RemoteServiceServlet implements
       {
       return statisticsService.getNextScheduleArchiveSynchronization ();
       }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
+      }
       catch (Exception e)
       {
          e.printStackTrace ();
@@ -162,7 +203,7 @@ public class StatisticsServiceImpl extends RemoteServiceServlet implements
       }
    }
    
-   public Date getNextScheduleSystemCheck () throws StatisticsServiceException
+   public Date getNextScheduleSystemCheck () throws StatisticsServiceException, AccessDeniedException
    {
       fr.gael.dhus.service.StatisticsService statisticsService = ApplicationContextProvider
                   .getBean (fr.gael.dhus.service.StatisticsService.class);
@@ -170,6 +211,11 @@ public class StatisticsServiceImpl extends RemoteServiceServlet implements
       try
       {
       return statisticsService.getNextScheduleSystemCheck ();
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {

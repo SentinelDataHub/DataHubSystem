@@ -31,5 +31,5 @@
       <modifyDataType tableName="SEARCHES" columnName="FOOTPRINT"
                       newDataType="VARCHAR(4096)" />
    </changeSet>
-
+   
 </databaseChangeLog>

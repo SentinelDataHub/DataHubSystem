@@ -44,7 +44,7 @@ public class StoreProductQLAndThumbSizes implements CustomTaskChange
    }
 
    @Override
-   public void setFileOpener (ResourceAccessor resourceAccessor)
+   public void setFileOpener (ResourceAccessor resource_accessor)
    {
    }
 
@@ -69,7 +69,8 @@ public class StoreProductQLAndThumbSizes implements CustomTaskChange
       {
          PreparedStatement getProducts =
             databaseConnection
-               .prepareStatement ("SELECT ID, QUICKLOOK_PATH, THUMBNAIL_PATH FROM Products");
+               .prepareStatement ("SELECT ID, QUICKLOOK_PATH, " +
+                     "THUMBNAIL_PATH FROM Products");
          ResultSet res = getProducts.executeQuery ();
          while (res.next ())
          {
@@ -95,8 +96,10 @@ public class StoreProductQLAndThumbSizes implements CustomTaskChange
                }
             }
             
-            PreparedStatement updateProduct = databaseConnection.prepareStatement (
-               "UPDATE PRODUCTS SET QUICKLOOK_SIZE = "+qlSize+", THUMBNAIL_SIZE = "+tbSize+" WHERE ID = "+productId);
+            PreparedStatement updateProduct =
+                  databaseConnection.prepareStatement ("UPDATE PRODUCTS SET" +
+                        " QUICKLOOK_SIZE = " + qlSize +
+                        ", THUMBNAIL_SIZE = "+tbSize+" WHERE ID = "+productId);
             updateProduct.execute ();
             updateProduct.close();
          }
@@ -104,7 +107,8 @@ public class StoreProductQLAndThumbSizes implements CustomTaskChange
       }
       catch (Exception e)
       {
-         logger.error ("Error during liquibase update 'ExtractProductDatesAndDownloadSize'", e);
+         logger.error ("Error during liquibase update " +
+               "'ExtractProductDatesAndDownloadSize'", e);
       }
    }
 }

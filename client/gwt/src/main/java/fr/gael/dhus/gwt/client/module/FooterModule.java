@@ -19,8 +19,7 @@
  */
 package fr.gael.dhus.gwt.client.module;
 
-import com.google.gwt.user.client.rpc.AsyncCallback;
-
+import fr.gael.dhus.gwt.client.AccessDeniedRedirectionCallback;
 import fr.gael.dhus.gwt.services.VersionServiceAsync;
 
 public class FooterModule
@@ -32,25 +31,21 @@ public class FooterModule
    
    public static void init()
    {
-      AsyncCallback<String> callback = new AsyncCallback<String> ()
+      AccessDeniedRedirectionCallback<String> callback = new AccessDeniedRedirectionCallback<String> ()
       {         
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
-            setFooter(
-               " Data Hub System developed by a Serco and GAEL " +
-               "Systems consortium under a contract with the European" +
-               " Space Agency - Funded by the EU and ESA ");
+            setFooter("&nbsp;&nbsp;&nbsp;" +
+               " Created by Gael Systems - 2013 " + "&nbsp;&nbsp;&nbsp;");
          }
 
          @Override
          public void onSuccess (String result)
          {
-            setFooter(
-                     " Data Hub System V " + result + 
-                     " developed by a Serco and GAEL " +
-                     "Systems consortium <br> under a contract with the European" +
-                     " Space Agency - Funded by the EU and ESA ");
+            setFooter("&nbsp;&nbsp;&nbsp;" +
+                  " Created by Gael Systems - 2013 " + result + 
+                  "&nbsp;&nbsp;&nbsp;");
          }
       };
 

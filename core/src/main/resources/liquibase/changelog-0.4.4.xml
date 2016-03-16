@@ -1,0 +1,1618 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+	<changeSet author="nico" id="addRegistrationMail"
+		runOnChange="true">
+		<addColumn tableName="CONFIGURATION">
+            <column name="SYSTEM_REGISTRATIONMAIL" type="varchar (255)"/>     
+		</addColumn>		
+	</changeSet>
+	
+    <changeSet author="nico" id="createCountryTable" runOnChange="true">
+		<createTable tableName="COUNTRIES">
+			<column autoIncrement="true" name="ID" type="BIGINT">
+	            <constraints primaryKey="true" primaryKeyName="SYS_PK_20115"/>
+	        </column>
+	        <column name="NAME" type="varchar (255)"/>
+	        <column name="ALPHA2" type="varchar (2)"/>
+	        <column name="ALPHA3" type="varchar (3)"/>
+	        <column name="NUMERIC" type="INTEGER"/>
+	    </createTable>
+	    <addUniqueConstraint columnNames="ALPHA2" constraintName="CT_A2_UN" deferrable="false" disabled="false" initiallyDeferred="false" tableName="COUNTRIES"/>	
+	    <addUniqueConstraint columnNames="ALPHA3" constraintName="CT_A3_UN" deferrable="false" disabled="false" initiallyDeferred="false" tableName="COUNTRIES"/>	
+	    <addUniqueConstraint columnNames="NUMERIC" constraintName="CT_NM_UN" deferrable="false" disabled="false" initiallyDeferred="false" tableName="COUNTRIES"/>	
+	    <addUniqueConstraint columnNames="NAME" constraintName="CT_NAME_UN" deferrable="false" disabled="false" initiallyDeferred="false" tableName="COUNTRIES"/>		
+	</changeSet>
+	
+	<changeSet author="nico" id="fillCountrie2">
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Afghanistan" />
+			<column name="ALPHA2" value="AF" />
+			<column name="ALPHA3" value="AFG" />
+			<column name="NUMERIC" value="004" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Åland Islands" />
+			<column name="ALPHA2" value="AX" />
+			<column name="ALPHA3" value="ALA" />
+			<column name="NUMERIC" value="248" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Albania" />
+			<column name="ALPHA2" value="AL" />
+			<column name="ALPHA3" value="ALB" />
+			<column name="NUMERIC" value="008" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Algeria" />
+			<column name="ALPHA2" value="DZ" />
+			<column name="ALPHA3" value="DZA" />
+			<column name="NUMERIC" value="012" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="American Samoa" />
+			<column name="ALPHA2" value="AS" />
+			<column name="ALPHA3" value="ASM" />
+			<column name="NUMERIC" value="016" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Andorra" />
+			<column name="ALPHA2" value="AD" />
+			<column name="ALPHA3" value="AND" />
+			<column name="NUMERIC" value="020" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Angola" />
+			<column name="ALPHA2" value="AO" />
+			<column name="ALPHA3" value="AGO" />
+			<column name="NUMERIC" value="024" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Anguilla" />
+			<column name="ALPHA2" value="AI" />
+			<column name="ALPHA3" value="AIA" />
+			<column name="NUMERIC" value="660" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Antarctica" />
+			<column name="ALPHA2" value="AQ" />
+			<column name="ALPHA3" value="ATA" />
+			<column name="NUMERIC" value="010" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Antigua and Barbuda" />
+			<column name="ALPHA2" value="AG" />
+			<column name="ALPHA3" value="ATG" />
+			<column name="NUMERIC" value="028" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Argentina" />
+			<column name="ALPHA2" value="AR" />
+			<column name="ALPHA3" value="ARG" />
+			<column name="NUMERIC" value="032" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Armenia" />
+			<column name="ALPHA2" value="AM" />
+			<column name="ALPHA3" value="ARM" />
+			<column name="NUMERIC" value="051" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Aruba" />
+			<column name="ALPHA2" value="AW" />
+			<column name="ALPHA3" value="ABW" />
+			<column name="NUMERIC" value="533" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Australia" />
+			<column name="ALPHA2" value="AU" />
+			<column name="ALPHA3" value="AUS" />
+			<column name="NUMERIC" value="036" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Austria" />
+			<column name="ALPHA2" value="AT" />
+			<column name="ALPHA3" value="AUT" />
+			<column name="NUMERIC" value="040" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Azerbaijan" />
+			<column name="ALPHA2" value="AZ" />
+			<column name="ALPHA3" value="AZE" />
+			<column name="NUMERIC" value="031" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Bahamas" />
+			<column name="ALPHA2" value="BS" />
+			<column name="ALPHA3" value="BHS" />
+			<column name="NUMERIC" value="044" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Bahrain" />
+			<column name="ALPHA2" value="BH" />
+			<column name="ALPHA3" value="BHR" />
+			<column name="NUMERIC" value="048" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Bangladesh" />
+			<column name="ALPHA2" value="BD" />
+			<column name="ALPHA3" value="BGD" />
+			<column name="NUMERIC" value="050" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Barbados" />
+			<column name="ALPHA2" value="BB" />
+			<column name="ALPHA3" value="BRB" />
+			<column name="NUMERIC" value="052" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Belarus" />
+			<column name="ALPHA2" value="BY" />
+			<column name="ALPHA3" value="BLR" />
+			<column name="NUMERIC" value="112" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Belgium" />
+			<column name="ALPHA2" value="BE" />
+			<column name="ALPHA3" value="BEL" />
+			<column name="NUMERIC" value="056" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Belize" />
+			<column name="ALPHA2" value="BZ" />
+			<column name="ALPHA3" value="BLZ" />
+			<column name="NUMERIC" value="084" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Benin" />
+			<column name="ALPHA2" value="BJ" />
+			<column name="ALPHA3" value="BEN" />
+			<column name="NUMERIC" value="204" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Bermuda" />
+			<column name="ALPHA2" value="BM" />
+			<column name="ALPHA3" value="BMU" />
+			<column name="NUMERIC" value="060" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Bhutan" />
+			<column name="ALPHA2" value="BT" />
+			<column name="ALPHA3" value="BTN" />
+			<column name="NUMERIC" value="064" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Bolivia, Plurinational State of" />
+			<column name="ALPHA2" value="BO" />
+			<column name="ALPHA3" value="BOL" />
+			<column name="NUMERIC" value="068" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Bonaire, Sint Eustatius and Saba" />
+			<column name="ALPHA2" value="BQ" />
+			<column name="ALPHA3" value="BES" />
+			<column name="NUMERIC" value="535" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Bosnia and Herzegovina" />
+			<column name="ALPHA2" value="BA" />
+			<column name="ALPHA3" value="BIH" />
+			<column name="NUMERIC" value="070" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Botswana" />
+			<column name="ALPHA2" value="BW" />
+			<column name="ALPHA3" value="BWA" />
+			<column name="NUMERIC" value="072" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Bouvet Island" />
+			<column name="ALPHA2" value="BV" />
+			<column name="ALPHA3" value="BVT" />
+			<column name="NUMERIC" value="074" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Brazil" />
+			<column name="ALPHA2" value="BR" />
+			<column name="ALPHA3" value="BRA" />
+			<column name="NUMERIC" value="076" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="British Indian Ocean Territory" />
+			<column name="ALPHA2" value="IO" />
+			<column name="ALPHA3" value="IOT" />
+			<column name="NUMERIC" value="086" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Brunei Darussalam" />
+			<column name="ALPHA2" value="BN" />
+			<column name="ALPHA3" value="BRN" />
+			<column name="NUMERIC" value="096" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Bulgaria" />
+			<column name="ALPHA2" value="BG" />
+			<column name="ALPHA3" value="BGR" />
+			<column name="NUMERIC" value="100" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Burkina Faso" />
+			<column name="ALPHA2" value="BF" />
+			<column name="ALPHA3" value="BFA" />
+			<column name="NUMERIC" value="854" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Burundi" />
+			<column name="ALPHA2" value="BI" />
+			<column name="ALPHA3" value="BDI" />
+			<column name="NUMERIC" value="108" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Cambodia" />
+			<column name="ALPHA2" value="KH" />
+			<column name="ALPHA3" value="KHM" />
+			<column name="NUMERIC" value="116" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Cameroon" />
+			<column name="ALPHA2" value="CM" />
+			<column name="ALPHA3" value="CMR" />
+			<column name="NUMERIC" value="120" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Canada" />
+			<column name="ALPHA2" value="CA" />
+			<column name="ALPHA3" value="CAN" />
+			<column name="NUMERIC" value="124" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Cape Verde" />
+			<column name="ALPHA2" value="CV" />
+			<column name="ALPHA3" value="CPV" />
+			<column name="NUMERIC" value="132" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Cayman Islands" />
+			<column name="ALPHA2" value="KY" />
+			<column name="ALPHA3" value="CYM" />
+			<column name="NUMERIC" value="136" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Central African Republic" />
+			<column name="ALPHA2" value="CF" />
+			<column name="ALPHA3" value="CAF" />
+			<column name="NUMERIC" value="140" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Chad" />
+			<column name="ALPHA2" value="TD" />
+			<column name="ALPHA3" value="TCD" />
+			<column name="NUMERIC" value="148" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Chile" />
+			<column name="ALPHA2" value="CL" />
+			<column name="ALPHA3" value="CHL" />
+			<column name="NUMERIC" value="152" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="China" />
+			<column name="ALPHA2" value="CN" />
+			<column name="ALPHA3" value="CHN" />
+			<column name="NUMERIC" value="156" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Christmas Island" />
+			<column name="ALPHA2" value="CX" />
+			<column name="ALPHA3" value="CXR" />
+			<column name="NUMERIC" value="162" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Cocos (Keeling) Islands" />
+			<column name="ALPHA2" value="CC" />
+			<column name="ALPHA3" value="CCK" />
+			<column name="NUMERIC" value="166" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Colombia" />
+			<column name="ALPHA2" value="CO" />
+			<column name="ALPHA3" value="COL" />
+			<column name="NUMERIC" value="170" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Comoros" />
+			<column name="ALPHA2" value="KM" />
+			<column name="ALPHA3" value="COM" />
+			<column name="NUMERIC" value="174" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Congo" />
+			<column name="ALPHA2" value="CG" />
+			<column name="ALPHA3" value="COG" />
+			<column name="NUMERIC" value="178" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Congo, the Democratic Republic of the" />
+			<column name="ALPHA2" value="CD" />
+			<column name="ALPHA3" value="COD" />
+			<column name="NUMERIC" value="180" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Cook Islands" />
+			<column name="ALPHA2" value="CK" />
+			<column name="ALPHA3" value="COK" />
+			<column name="NUMERIC" value="184" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Costa Rica" />
+			<column name="ALPHA2" value="CR" />
+			<column name="ALPHA3" value="CRI" />
+			<column name="NUMERIC" value="188" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Côte d'Ivoire" />
+			<column name="ALPHA2" value="CI" />
+			<column name="ALPHA3" value="CIV" />
+			<column name="NUMERIC" value="384" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Croatia" />
+			<column name="ALPHA2" value="HR" />
+			<column name="ALPHA3" value="HRV" />
+			<column name="NUMERIC" value="191" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Cuba" />
+			<column name="ALPHA2" value="CU" />
+			<column name="ALPHA3" value="CUB" />
+			<column name="NUMERIC" value="192" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Curaçao" />
+			<column name="ALPHA2" value="CW" />
+			<column name="ALPHA3" value="CUW" />
+			<column name="NUMERIC" value="531" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Cyprus" />
+			<column name="ALPHA2" value="CY" />
+			<column name="ALPHA3" value="CYP" />
+			<column name="NUMERIC" value="196" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Czech Republic" />
+			<column name="ALPHA2" value="CZ" />
+			<column name="ALPHA3" value="CZE" />
+			<column name="NUMERIC" value="203" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Denmark" />
+			<column name="ALPHA2" value="DK" />
+			<column name="ALPHA3" value="DNK" />
+			<column name="NUMERIC" value="208" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Djibouti" />
+			<column name="ALPHA2" value="DJ" />
+			<column name="ALPHA3" value="DJI" />
+			<column name="NUMERIC" value="262" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Dominica" />
+			<column name="ALPHA2" value="DM" />
+			<column name="ALPHA3" value="DMA" />
+			<column name="NUMERIC" value="212" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Dominican Republic" />
+			<column name="ALPHA2" value="DO" />
+			<column name="ALPHA3" value="DOM" />
+			<column name="NUMERIC" value="214" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Ecuador" />
+			<column name="ALPHA2" value="EC" />
+			<column name="ALPHA3" value="ECU" />
+			<column name="NUMERIC" value="218" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Egypt" />
+			<column name="ALPHA2" value="EG" />
+			<column name="ALPHA3" value="EGY" />
+			<column name="NUMERIC" value="818" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="El Salvador" />
+			<column name="ALPHA2" value="SV" />
+			<column name="ALPHA3" value="SLV" />
+			<column name="NUMERIC" value="222" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Equatorial Guinea" />
+			<column name="ALPHA2" value="GQ" />
+			<column name="ALPHA3" value="GNQ" />
+			<column name="NUMERIC" value="226" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Eritrea" />
+			<column name="ALPHA2" value="ER" />
+			<column name="ALPHA3" value="ERI" />
+			<column name="NUMERIC" value="232" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Estonia" />
+			<column name="ALPHA2" value="EE" />
+			<column name="ALPHA3" value="EST" />
+			<column name="NUMERIC" value="233" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Ethiopia" />
+			<column name="ALPHA2" value="ET" />
+			<column name="ALPHA3" value="ETH" />
+			<column name="NUMERIC" value="231" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Falkland Islands (Malvinas)" />
+			<column name="ALPHA2" value="FK" />
+			<column name="ALPHA3" value="FLK" />
+			<column name="NUMERIC" value="238" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Faroe Islands" />
+			<column name="ALPHA2" value="FO" />
+			<column name="ALPHA3" value="FRO" />
+			<column name="NUMERIC" value="234" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Fiji" />
+			<column name="ALPHA2" value="FJ" />
+			<column name="ALPHA3" value="FJI" />
+			<column name="NUMERIC" value="242" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Finland" />
+			<column name="ALPHA2" value="FI" />
+			<column name="ALPHA3" value="FIN" />
+			<column name="NUMERIC" value="246" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="France" />
+			<column name="ALPHA2" value="FR" />
+			<column name="ALPHA3" value="FRA" />
+			<column name="NUMERIC" value="250" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="French Guiana" />
+			<column name="ALPHA2" value="GF" />
+			<column name="ALPHA3" value="GUF" />
+			<column name="NUMERIC" value="254" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="French Polynesia" />
+			<column name="ALPHA2" value="PF" />
+			<column name="ALPHA3" value="PYF" />
+			<column name="NUMERIC" value="258" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="French Southern Territories" />
+			<column name="ALPHA2" value="TF" />
+			<column name="ALPHA3" value="ATF" />
+			<column name="NUMERIC" value="260" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Gabon" />
+			<column name="ALPHA2" value="GA" />
+			<column name="ALPHA3" value="GAB" />
+			<column name="NUMERIC" value="266" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Gambia" />
+			<column name="ALPHA2" value="GM" />
+			<column name="ALPHA3" value="GMB" />
+			<column name="NUMERIC" value="270" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Georgia" />
+			<column name="ALPHA2" value="GE" />
+			<column name="ALPHA3" value="GEO" />
+			<column name="NUMERIC" value="268" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Germany" />
+			<column name="ALPHA2" value="DE" />
+			<column name="ALPHA3" value="DEU" />
+			<column name="NUMERIC" value="276" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Ghana" />
+			<column name="ALPHA2" value="GH" />
+			<column name="ALPHA3" value="GHA" />
+			<column name="NUMERIC" value="288" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Gibraltar" />
+			<column name="ALPHA2" value="GI" />
+			<column name="ALPHA3" value="GIB" />
+			<column name="NUMERIC" value="292" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Greece" />
+			<column name="ALPHA2" value="GR" />
+			<column name="ALPHA3" value="GRC" />
+			<column name="NUMERIC" value="300" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Greenland" />
+			<column name="ALPHA2" value="GL" />
+			<column name="ALPHA3" value="GRL" />
+			<column name="NUMERIC" value="304" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Grenada" />
+			<column name="ALPHA2" value="GD" />
+			<column name="ALPHA3" value="GRD" />
+			<column name="NUMERIC" value="308" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Guadeloupe" />
+			<column name="ALPHA2" value="GP" />
+			<column name="ALPHA3" value="GLP" />
+			<column name="NUMERIC" value="312" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Guam" />
+			<column name="ALPHA2" value="GU" />
+			<column name="ALPHA3" value="GUM" />
+			<column name="NUMERIC" value="316" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Guatemala" />
+			<column name="ALPHA2" value="GT" />
+			<column name="ALPHA3" value="GTM" />
+			<column name="NUMERIC" value="320" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Guernsey" />
+			<column name="ALPHA2" value="GG" />
+			<column name="ALPHA3" value="GGY" />
+			<column name="NUMERIC" value="831" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Guinea" />
+			<column name="ALPHA2" value="GN" />
+			<column name="ALPHA3" value="GIN" />
+			<column name="NUMERIC" value="324" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Guinea-Bissau" />
+			<column name="ALPHA2" value="GW" />
+			<column name="ALPHA3" value="GNB" />
+			<column name="NUMERIC" value="624" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Guyana" />
+			<column name="ALPHA2" value="GY" />
+			<column name="ALPHA3" value="GUY" />
+			<column name="NUMERIC" value="328" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Haiti" />
+			<column name="ALPHA2" value="HT" />
+			<column name="ALPHA3" value="HTI" />
+			<column name="NUMERIC" value="332" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Heard Island and McDonald Islands" />
+			<column name="ALPHA2" value="HM" />
+			<column name="ALPHA3" value="HMD" />
+			<column name="NUMERIC" value="334" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Holy See (Vatican City State)" />
+			<column name="ALPHA2" value="VA" />
+			<column name="ALPHA3" value="VAT" />
+			<column name="NUMERIC" value="336" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Honduras" />
+			<column name="ALPHA2" value="HN" />
+			<column name="ALPHA3" value="HND" />
+			<column name="NUMERIC" value="340" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Hong Kong" />
+			<column name="ALPHA2" value="HK" />
+			<column name="ALPHA3" value="HKG" />
+			<column name="NUMERIC" value="344" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Hungary" />
+			<column name="ALPHA2" value="HU" />
+			<column name="ALPHA3" value="HUN" />
+			<column name="NUMERIC" value="348" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Iceland" />
+			<column name="ALPHA2" value="IS" />
+			<column name="ALPHA3" value="ISL" />
+			<column name="NUMERIC" value="352" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="India" />
+			<column name="ALPHA2" value="IN" />
+			<column name="ALPHA3" value="IND" />
+			<column name="NUMERIC" value="356" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Indonesia" />
+			<column name="ALPHA2" value="ID" />
+			<column name="ALPHA3" value="IDN" />
+			<column name="NUMERIC" value="360" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Iran, Islamic Republic of" />
+			<column name="ALPHA2" value="IR" />
+			<column name="ALPHA3" value="IRN" />
+			<column name="NUMERIC" value="364" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Iraq" />
+			<column name="ALPHA2" value="IQ" />
+			<column name="ALPHA3" value="IRQ" />
+			<column name="NUMERIC" value="368" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Ireland" />
+			<column name="ALPHA2" value="IE" />
+			<column name="ALPHA3" value="IRL" />
+			<column name="NUMERIC" value="372" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Isle of Man" />
+			<column name="ALPHA2" value="IM" />
+			<column name="ALPHA3" value="IMN" />
+			<column name="NUMERIC" value="833" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Israel" />
+			<column name="ALPHA2" value="IL" />
+			<column name="ALPHA3" value="ISR" />
+			<column name="NUMERIC" value="376" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Italy" />
+			<column name="ALPHA2" value="IT" />
+			<column name="ALPHA3" value="ITA" />
+			<column name="NUMERIC" value="380" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Jamaica" />
+			<column name="ALPHA2" value="JM" />
+			<column name="ALPHA3" value="JAM" />
+			<column name="NUMERIC" value="388" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Japan" />
+			<column name="ALPHA2" value="JP" />
+			<column name="ALPHA3" value="JPN" />
+			<column name="NUMERIC" value="392" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Jersey" />
+			<column name="ALPHA2" value="JE" />
+			<column name="ALPHA3" value="JEY" />
+			<column name="NUMERIC" value="832" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Jordan" />
+			<column name="ALPHA2" value="JO" />
+			<column name="ALPHA3" value="JOR" />
+			<column name="NUMERIC" value="400" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Kazakhstan" />
+			<column name="ALPHA2" value="KZ" />
+			<column name="ALPHA3" value="KAZ" />
+			<column name="NUMERIC" value="398" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Kenya" />
+			<column name="ALPHA2" value="KE" />
+			<column name="ALPHA3" value="KEN" />
+			<column name="NUMERIC" value="404" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Kiribati" />
+			<column name="ALPHA2" value="KI" />
+			<column name="ALPHA3" value="KIR" />
+			<column name="NUMERIC" value="296" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Korea, Democratic People's Republic of" />
+			<column name="ALPHA2" value="KP" />
+			<column name="ALPHA3" value="PRK" />
+			<column name="NUMERIC" value="408" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Korea, Republic of" />
+			<column name="ALPHA2" value="KR" />
+			<column name="ALPHA3" value="KOR" />
+			<column name="NUMERIC" value="410" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Kuwait" />
+			<column name="ALPHA2" value="KW" />
+			<column name="ALPHA3" value="KWT" />
+			<column name="NUMERIC" value="414" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Kyrgyzstan" />
+			<column name="ALPHA2" value="KG" />
+			<column name="ALPHA3" value="KGZ" />
+			<column name="NUMERIC" value="417" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Lao People's Democratic Republic" />
+			<column name="ALPHA2" value="LA" />
+			<column name="ALPHA3" value="LAO" />
+			<column name="NUMERIC" value="418" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Latvia" />
+			<column name="ALPHA2" value="LV" />
+			<column name="ALPHA3" value="LVA" />
+			<column name="NUMERIC" value="428" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Lebanon" />
+			<column name="ALPHA2" value="LB" />
+			<column name="ALPHA3" value="LBN" />
+			<column name="NUMERIC" value="422" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Lesotho" />
+			<column name="ALPHA2" value="LS" />
+			<column name="ALPHA3" value="LSO" />
+			<column name="NUMERIC" value="426" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Liberia" />
+			<column name="ALPHA2" value="LR" />
+			<column name="ALPHA3" value="LBR" />
+			<column name="NUMERIC" value="430" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Libya" />
+			<column name="ALPHA2" value="LY" />
+			<column name="ALPHA3" value="LBY" />
+			<column name="NUMERIC" value="434" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Liechtenstein" />
+			<column name="ALPHA2" value="LI" />
+			<column name="ALPHA3" value="LIE" />
+			<column name="NUMERIC" value="438" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Lithuania" />
+			<column name="ALPHA2" value="LT" />
+			<column name="ALPHA3" value="LTU" />
+			<column name="NUMERIC" value="440" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Luxembourg" />
+			<column name="ALPHA2" value="LU" />
+			<column name="ALPHA3" value="LUX" />
+			<column name="NUMERIC" value="442" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Macao" />
+			<column name="ALPHA2" value="MO" />
+			<column name="ALPHA3" value="MAC" />
+			<column name="NUMERIC" value="446" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Macedonia, the former Yugoslav Republic of" />
+			<column name="ALPHA2" value="MK" />
+			<column name="ALPHA3" value="MKD" />
+			<column name="NUMERIC" value="807" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Madagascar" />
+			<column name="ALPHA2" value="MG" />
+			<column name="ALPHA3" value="MDG" />
+			<column name="NUMERIC" value="450" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Malawi" />
+			<column name="ALPHA2" value="MW" />
+			<column name="ALPHA3" value="MWI" />
+			<column name="NUMERIC" value="454" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Malaysia" />
+			<column name="ALPHA2" value="MY" />
+			<column name="ALPHA3" value="MYS" />
+			<column name="NUMERIC" value="458" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Maldives" />
+			<column name="ALPHA2" value="MV" />
+			<column name="ALPHA3" value="MDV" />
+			<column name="NUMERIC" value="462" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Mali" />
+			<column name="ALPHA2" value="ML" />
+			<column name="ALPHA3" value="MLI" />
+			<column name="NUMERIC" value="466" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Malta" />
+			<column name="ALPHA2" value="MT" />
+			<column name="ALPHA3" value="MLT" />
+			<column name="NUMERIC" value="470" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Marshall Islands" />
+			<column name="ALPHA2" value="MH" />
+			<column name="ALPHA3" value="MHL" />
+			<column name="NUMERIC" value="584" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Martinique" />
+			<column name="ALPHA2" value="MQ" />
+			<column name="ALPHA3" value="MTQ" />
+			<column name="NUMERIC" value="474" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Mauritania" />
+			<column name="ALPHA2" value="MR" />
+			<column name="ALPHA3" value="MRT" />
+			<column name="NUMERIC" value="478" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Mauritius" />
+			<column name="ALPHA2" value="MU" />
+			<column name="ALPHA3" value="MUS" />
+			<column name="NUMERIC" value="480" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Mayotte" />
+			<column name="ALPHA2" value="YT" />
+			<column name="ALPHA3" value="MYT" />
+			<column name="NUMERIC" value="175" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Mexico" />
+			<column name="ALPHA2" value="MX" />
+			<column name="ALPHA3" value="MEX" />
+			<column name="NUMERIC" value="484" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Micronesia, Federated States of" />
+			<column name="ALPHA2" value="FM" />
+			<column name="ALPHA3" value="FSM" />
+			<column name="NUMERIC" value="583" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Moldova, Republic of" />
+			<column name="ALPHA2" value="MD" />
+			<column name="ALPHA3" value="MDA" />
+			<column name="NUMERIC" value="498" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Monaco" />
+			<column name="ALPHA2" value="MC" />
+			<column name="ALPHA3" value="MCO" />
+			<column name="NUMERIC" value="492" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Mongolia" />
+			<column name="ALPHA2" value="MN" />
+			<column name="ALPHA3" value="MNG" />
+			<column name="NUMERIC" value="496" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Montenegro" />
+			<column name="ALPHA2" value="ME" />
+			<column name="ALPHA3" value="MNE" />
+			<column name="NUMERIC" value="499" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Montserrat" />
+			<column name="ALPHA2" value="MS" />
+			<column name="ALPHA3" value="MSR" />
+			<column name="NUMERIC" value="500" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Morocco" />
+			<column name="ALPHA2" value="MA" />
+			<column name="ALPHA3" value="MAR" />
+			<column name="NUMERIC" value="504" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Mozambique" />
+			<column name="ALPHA2" value="MZ" />
+			<column name="ALPHA3" value="MOZ" />
+			<column name="NUMERIC" value="508" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Myanmar" />
+			<column name="ALPHA2" value="MM" />
+			<column name="ALPHA3" value="MMR" />
+			<column name="NUMERIC" value="104" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Namibia" />
+			<column name="ALPHA2" value="NA" />
+			<column name="ALPHA3" value="NAM" />
+			<column name="NUMERIC" value="516" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Nauru" />
+			<column name="ALPHA2" value="NR" />
+			<column name="ALPHA3" value="NRU" />
+			<column name="NUMERIC" value="520" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Nepal" />
+			<column name="ALPHA2" value="NP" />
+			<column name="ALPHA3" value="NPL" />
+			<column name="NUMERIC" value="524" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Netherlands" />
+			<column name="ALPHA2" value="NL" />
+			<column name="ALPHA3" value="NLD" />
+			<column name="NUMERIC" value="528" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="New Caledonia" />
+			<column name="ALPHA2" value="NC" />
+			<column name="ALPHA3" value="NCL" />
+			<column name="NUMERIC" value="540" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="New Zealand" />
+			<column name="ALPHA2" value="NZ" />
+			<column name="ALPHA3" value="NZL" />
+			<column name="NUMERIC" value="554" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Nicaragua" />
+			<column name="ALPHA2" value="NI" />
+			<column name="ALPHA3" value="NIC" />
+			<column name="NUMERIC" value="558" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Niger" />
+			<column name="ALPHA2" value="NE" />
+			<column name="ALPHA3" value="NER" />
+			<column name="NUMERIC" value="562" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Nigeria" />
+			<column name="ALPHA2" value="NG" />
+			<column name="ALPHA3" value="NGA" />
+			<column name="NUMERIC" value="566" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Niue" />
+			<column name="ALPHA2" value="NU" />
+			<column name="ALPHA3" value="NIU" />
+			<column name="NUMERIC" value="570" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Norfolk Island" />
+			<column name="ALPHA2" value="NF" />
+			<column name="ALPHA3" value="NFK" />
+			<column name="NUMERIC" value="574" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Northern Mariana Islands" />
+			<column name="ALPHA2" value="MP" />
+			<column name="ALPHA3" value="MNP" />
+			<column name="NUMERIC" value="580" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Norway" />
+			<column name="ALPHA2" value="NO" />
+			<column name="ALPHA3" value="NOR" />
+			<column name="NUMERIC" value="578" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Oman" />
+			<column name="ALPHA2" value="OM" />
+			<column name="ALPHA3" value="OMN" />
+			<column name="NUMERIC" value="512" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Pakistan" />
+			<column name="ALPHA2" value="PK" />
+			<column name="ALPHA3" value="PAK" />
+			<column name="NUMERIC" value="586" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Palau" />
+			<column name="ALPHA2" value="PW" />
+			<column name="ALPHA3" value="PLW" />
+			<column name="NUMERIC" value="585" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Palestine, State of" />
+			<column name="ALPHA2" value="PS" />
+			<column name="ALPHA3" value="PSE" />
+			<column name="NUMERIC" value="275" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Panama" />
+			<column name="ALPHA2" value="PA" />
+			<column name="ALPHA3" value="PAN" />
+			<column name="NUMERIC" value="591" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Papua New Guinea" />
+			<column name="ALPHA2" value="PG" />
+			<column name="ALPHA3" value="PNG" />
+			<column name="NUMERIC" value="598" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Paraguay" />
+			<column name="ALPHA2" value="PY" />
+			<column name="ALPHA3" value="PRY" />
+			<column name="NUMERIC" value="600" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Peru" />
+			<column name="ALPHA2" value="PE" />
+			<column name="ALPHA3" value="PER" />
+			<column name="NUMERIC" value="604" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Philippines" />
+			<column name="ALPHA2" value="PH" />
+			<column name="ALPHA3" value="PHL" />
+			<column name="NUMERIC" value="608" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Pitcairn" />
+			<column name="ALPHA2" value="PN" />
+			<column name="ALPHA3" value="PCN" />
+			<column name="NUMERIC" value="612" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Poland" />
+			<column name="ALPHA2" value="PL" />
+			<column name="ALPHA3" value="POL" />
+			<column name="NUMERIC" value="616" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Portugal" />
+			<column name="ALPHA2" value="PT" />
+			<column name="ALPHA3" value="PRT" />
+			<column name="NUMERIC" value="620" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Puerto Rico" />
+			<column name="ALPHA2" value="PR" />
+			<column name="ALPHA3" value="PRI" />
+			<column name="NUMERIC" value="630" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Qatar" />
+			<column name="ALPHA2" value="QA" />
+			<column name="ALPHA3" value="QAT" />
+			<column name="NUMERIC" value="634" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Réunion" />
+			<column name="ALPHA2" value="RE" />
+			<column name="ALPHA3" value="REU" />
+			<column name="NUMERIC" value="638" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Romania" />
+			<column name="ALPHA2" value="RO" />
+			<column name="ALPHA3" value="ROU" />
+			<column name="NUMERIC" value="642" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Russian Federation" />
+			<column name="ALPHA2" value="RU" />
+			<column name="ALPHA3" value="RUS" />
+			<column name="NUMERIC" value="643" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Rwanda" />
+			<column name="ALPHA2" value="RW" />
+			<column name="ALPHA3" value="RWA" />
+			<column name="NUMERIC" value="646" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Saint Barthélemy" />
+			<column name="ALPHA2" value="BL" />
+			<column name="ALPHA3" value="BLM" />
+			<column name="NUMERIC" value="652" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Saint Helena, Ascension and Tristan da Cunha" />
+			<column name="ALPHA2" value="SH" />
+			<column name="ALPHA3" value="SHN" />
+			<column name="NUMERIC" value="654" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Saint Kitts and Nevis" />
+			<column name="ALPHA2" value="KN" />
+			<column name="ALPHA3" value="KNA" />
+			<column name="NUMERIC" value="659" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Saint Lucia" />
+			<column name="ALPHA2" value="LC" />
+			<column name="ALPHA3" value="LCA" />
+			<column name="NUMERIC" value="662" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Saint Martin (French part)" />
+			<column name="ALPHA2" value="MF" />
+			<column name="ALPHA3" value="MAF" />
+			<column name="NUMERIC" value="663" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Saint Pierre and Miquelon" />
+			<column name="ALPHA2" value="PM" />
+			<column name="ALPHA3" value="SPM" />
+			<column name="NUMERIC" value="666" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Saint Vincent and the Grenadines" />
+			<column name="ALPHA2" value="VC" />
+			<column name="ALPHA3" value="VCT" />
+			<column name="NUMERIC" value="670" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Samoa" />
+			<column name="ALPHA2" value="WS" />
+			<column name="ALPHA3" value="WSM" />
+			<column name="NUMERIC" value="882" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="San Marino" />
+			<column name="ALPHA2" value="SM" />
+			<column name="ALPHA3" value="SMR" />
+			<column name="NUMERIC" value="674" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Sao Tome and Principe" />
+			<column name="ALPHA2" value="ST" />
+			<column name="ALPHA3" value="STP" />
+			<column name="NUMERIC" value="678" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Saudi Arabia" />
+			<column name="ALPHA2" value="SA" />
+			<column name="ALPHA3" value="SAU" />
+			<column name="NUMERIC" value="682" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Senegal" />
+			<column name="ALPHA2" value="SN" />
+			<column name="ALPHA3" value="SEN" />
+			<column name="NUMERIC" value="686" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Serbia" />
+			<column name="ALPHA2" value="RS" />
+			<column name="ALPHA3" value="SRB" />
+			<column name="NUMERIC" value="688" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Seychelles" />
+			<column name="ALPHA2" value="SC" />
+			<column name="ALPHA3" value="SYC" />
+			<column name="NUMERIC" value="690" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Sierra Leone" />
+			<column name="ALPHA2" value="SL" />
+			<column name="ALPHA3" value="SLE" />
+			<column name="NUMERIC" value="694" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Singapore" />
+			<column name="ALPHA2" value="SG" />
+			<column name="ALPHA3" value="SGP" />
+			<column name="NUMERIC" value="702" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Sint Maarten (Dutch part)" />
+			<column name="ALPHA2" value="SX" />
+			<column name="ALPHA3" value="SXM" />
+			<column name="NUMERIC" value="534" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Slovakia" />
+			<column name="ALPHA2" value="SK" />
+			<column name="ALPHA3" value="SVK" />
+			<column name="NUMERIC" value="703" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Slovenia" />
+			<column name="ALPHA2" value="SI" />
+			<column name="ALPHA3" value="SVN" />
+			<column name="NUMERIC" value="705" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Solomon Islands" />
+			<column name="ALPHA2" value="SB" />
+			<column name="ALPHA3" value="SLB" />
+			<column name="NUMERIC" value="090" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Somalia" />
+			<column name="ALPHA2" value="SO" />
+			<column name="ALPHA3" value="SOM" />
+			<column name="NUMERIC" value="706" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="South Africa" />
+			<column name="ALPHA2" value="ZA" />
+			<column name="ALPHA3" value="ZAF" />
+			<column name="NUMERIC" value="710" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="South Georgia and the South Sandwich Islands" />
+			<column name="ALPHA2" value="GS" />
+			<column name="ALPHA3" value="SGS" />
+			<column name="NUMERIC" value="239" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="South Sudan" />
+			<column name="ALPHA2" value="SS" />
+			<column name="ALPHA3" value="SSD" />
+			<column name="NUMERIC" value="728" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Spain" />
+			<column name="ALPHA2" value="ES" />
+			<column name="ALPHA3" value="ESP" />
+			<column name="NUMERIC" value="724" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Sri Lanka" />
+			<column name="ALPHA2" value="LK" />
+			<column name="ALPHA3" value="LKA" />
+			<column name="NUMERIC" value="144" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Sudan" />
+			<column name="ALPHA2" value="SD" />
+			<column name="ALPHA3" value="SDN" />
+			<column name="NUMERIC" value="729" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Suriname" />
+			<column name="ALPHA2" value="SR" />
+			<column name="ALPHA3" value="SUR" />
+			<column name="NUMERIC" value="740" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Svalbard and Jan Mayen" />
+			<column name="ALPHA2" value="SJ" />
+			<column name="ALPHA3" value="SJM" />
+			<column name="NUMERIC" value="744" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Swaziland" />
+			<column name="ALPHA2" value="SZ" />
+			<column name="ALPHA3" value="SWZ" />
+			<column name="NUMERIC" value="748" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Sweden" />
+			<column name="ALPHA2" value="SE" />
+			<column name="ALPHA3" value="SWE" />
+			<column name="NUMERIC" value="752" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Switzerland" />
+			<column name="ALPHA2" value="CH" />
+			<column name="ALPHA3" value="CHE" />
+			<column name="NUMERIC" value="756" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Syrian Arab Republic" />
+			<column name="ALPHA2" value="SY" />
+			<column name="ALPHA3" value="SYR" />
+			<column name="NUMERIC" value="760" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Taiwan, Province of China" />
+			<column name="ALPHA2" value="TW" />
+			<column name="ALPHA3" value="TWN" />
+			<column name="NUMERIC" value="158" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Tajikistan" />
+			<column name="ALPHA2" value="TJ" />
+			<column name="ALPHA3" value="TJK" />
+			<column name="NUMERIC" value="762" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Tanzania, United Republic of" />
+			<column name="ALPHA2" value="TZ" />
+			<column name="ALPHA3" value="TZA" />
+			<column name="NUMERIC" value="834" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Thailand" />
+			<column name="ALPHA2" value="TH" />
+			<column name="ALPHA3" value="THA" />
+			<column name="NUMERIC" value="764" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Timor-Leste" />
+			<column name="ALPHA2" value="TL" />
+			<column name="ALPHA3" value="TLS" />
+			<column name="NUMERIC" value="626" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Togo" />
+			<column name="ALPHA2" value="TG" />
+			<column name="ALPHA3" value="TGO" />
+			<column name="NUMERIC" value="768" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Tokelau" />
+			<column name="ALPHA2" value="TK" />
+			<column name="ALPHA3" value="TKL" />
+			<column name="NUMERIC" value="772" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Tonga" />
+			<column name="ALPHA2" value="TO" />
+			<column name="ALPHA3" value="TON" />
+			<column name="NUMERIC" value="776" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Trinidad and Tobago" />
+			<column name="ALPHA2" value="TT" />
+			<column name="ALPHA3" value="TTO" />
+			<column name="NUMERIC" value="780" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Tunisia" />
+			<column name="ALPHA2" value="TN" />
+			<column name="ALPHA3" value="TUN" />
+			<column name="NUMERIC" value="788" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Turkey" />
+			<column name="ALPHA2" value="TR" />
+			<column name="ALPHA3" value="TUR" />
+			<column name="NUMERIC" value="792" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Turkmenistan" />
+			<column name="ALPHA2" value="TM" />
+			<column name="ALPHA3" value="TKM" />
+			<column name="NUMERIC" value="795" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Turks and Caicos Islands" />
+			<column name="ALPHA2" value="TC" />
+			<column name="ALPHA3" value="TCA" />
+			<column name="NUMERIC" value="796" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Tuvalu" />
+			<column name="ALPHA2" value="TV" />
+			<column name="ALPHA3" value="TUV" />
+			<column name="NUMERIC" value="798" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Uganda" />
+			<column name="ALPHA2" value="UG" />
+			<column name="ALPHA3" value="UGA" />
+			<column name="NUMERIC" value="800" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Ukraine" />
+			<column name="ALPHA2" value="UA" />
+			<column name="ALPHA3" value="UKR" />
+			<column name="NUMERIC" value="804" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="United Arab Emirates" />
+			<column name="ALPHA2" value="AE" />
+			<column name="ALPHA3" value="ARE" />
+			<column name="NUMERIC" value="784" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="United Kingdom" />
+			<column name="ALPHA2" value="GB" />
+			<column name="ALPHA3" value="GBR" />
+			<column name="NUMERIC" value="826" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="United States" />
+			<column name="ALPHA2" value="US" />
+			<column name="ALPHA3" value="USA" />
+			<column name="NUMERIC" value="840" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="United States Minor Outlying Islands" />
+			<column name="ALPHA2" value="UM" />
+			<column name="ALPHA3" value="UMI" />
+			<column name="NUMERIC" value="581" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Uruguay" />
+			<column name="ALPHA2" value="UY" />
+			<column name="ALPHA3" value="URY" />
+			<column name="NUMERIC" value="858" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Uzbekistan" />
+			<column name="ALPHA2" value="UZ" />
+			<column name="ALPHA3" value="UZB" />
+			<column name="NUMERIC" value="860" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Vanuatu" />
+			<column name="ALPHA2" value="VU" />
+			<column name="ALPHA3" value="VUT" />
+			<column name="NUMERIC" value="548" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Venezuela, Bolivarian Republic of" />
+			<column name="ALPHA2" value="VE" />
+			<column name="ALPHA3" value="VEN" />
+			<column name="NUMERIC" value="862" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Viet Nam" />
+			<column name="ALPHA2" value="VN" />
+			<column name="ALPHA3" value="VNM" />
+			<column name="NUMERIC" value="704" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Virgin Islands, British" />
+			<column name="ALPHA2" value="VG" />
+			<column name="ALPHA3" value="VGB" />
+			<column name="NUMERIC" value="092" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Virgin Islands, U.S." />
+			<column name="ALPHA2" value="VI" />
+			<column name="ALPHA3" value="VIR" />
+			<column name="NUMERIC" value="850" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Wallis and Futuna" />
+			<column name="ALPHA2" value="WF" />
+			<column name="ALPHA3" value="WLF" />
+			<column name="NUMERIC" value="876" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Western Sahara" />
+			<column name="ALPHA2" value="EH" />
+			<column name="ALPHA3" value="ESH" />
+			<column name="NUMERIC" value="732" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Yemen" />
+			<column name="ALPHA2" value="YE" />
+			<column name="ALPHA3" value="YEM" />
+			<column name="NUMERIC" value="887" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Zambia" />
+			<column name="ALPHA2" value="ZM" />
+			<column name="ALPHA3" value="ZMB" />
+			<column name="NUMERIC" value="894" />
+		</insert>
+		<insert tableName="COUNTRIES">
+			<column name="NAME" value="Zimbabwe" />
+			<column name="ALPHA2" value="ZW" />
+			<column name="ALPHA3" value="ZWE" />
+			<column name="NUMERIC" value="716" />
+		</insert>
+	</changeSet>
+	
+	<changeSet author="nico" id="transformCountries" runOnChange="true">
+		<customChange
+			class="fr.gael.dhus.database.liquibase.TransformUserCountry">
+		</customChange>
+	</changeSet>
+
+   <changeSet id="correctsIngestionDates" author="julien">
+      <customChange class="fr.gael.dhus.database.liquibase.CorrectsIngestionDate" />
+   </changeSet>
+   
+   <changeSet author="fred" id="addActionRecordLogonIdIndex">
+      <createIndex 
+         indexName="idx_action_record_logon_id"
+         tableName="ACTION_RECORD_LOGONS"
+         unique="false">
+         <column name="ID" />
+      </createIndex>
+   </changeSet>
+   
+   <changeSet author="fred" id="addActionRecordDownloadIdIndex">
+      <createIndex 
+         indexName="idx_action_record_download_id"
+         tableName="ACTION_RECORD_DOWNLOADS"
+         unique="false">
+         <column name="ID" />
+      </createIndex>
+   </changeSet>
+
+   <changeSet author="fred" id="addActionRecordSearchIdIndex">
+      <createIndex 
+         indexName="idx_action_record_search_id"
+         tableName="ACTION_RECORD_SEARCHES"
+         unique="false">
+         <column name="ID" />
+      </createIndex>
+   </changeSet>
+
+   <changeSet author="fred" id="addActionRecordUploadIdIndex">
+      <createIndex 
+         indexName="idx_action_record_upload_id"
+         tableName="ACTION_RECORD_UPLOADS"
+         unique="false">
+         <column name="ID" />
+      </createIndex>
+   </changeSet>
+
+   <changeSet author="fred" id="addNetworkUsageIdIndex">
+      <createIndex 
+         indexName="idx_network_usage_id"
+         tableName="NETWORK_USAGE"
+         unique="false">
+         <column name="ID" />
+      </createIndex>
+   </changeSet>
+   
+   <changeSet author="fred" id="addProductIdIndex">
+      <createIndex 
+         indexName="idx_products_id"
+         tableName="PRODUCTS"
+         unique="false">
+         <column name="ID" />
+      </createIndex>   
+   </changeSet>
+   
+   <changeSet author="fred" id="addProductCardIdIndex">
+      <createIndex 
+         indexName="idx_product_card_id"
+         tableName="PRODUCTCARTS"
+         unique="false">
+         <column name="ID" />
+      </createIndex>   
+   </changeSet>
+</databaseChangeLog>

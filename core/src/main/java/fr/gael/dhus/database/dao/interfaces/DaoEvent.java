@@ -29,7 +29,7 @@ import java.util.Map;
 public class DaoEvent<T>
 {
    private T element;
-   Map<String, Object>parameters = new HashMap<String, Object>();
+   private Map<String, Object> parameters = new HashMap<>();
    
    public DaoEvent (T element)
    {

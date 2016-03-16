@@ -62,7 +62,8 @@ interface Channel extends Iterable<Channel>
 
    public int countUserChannels(final User user);
 
-   public void acquire(int permits) throws IllegalArgumentException, RegulationException, InterruptedException;
+   public void acquire(int permits) throws IllegalArgumentException,
+         RegulationException, InterruptedException;
    
    public void release(int permits);
    

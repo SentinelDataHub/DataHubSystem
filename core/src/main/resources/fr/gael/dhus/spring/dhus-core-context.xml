@@ -30,6 +30,7 @@
    <import resource="dhus-core-commons.xml" />
    <import resource="dhus-core-jobs.xml" />
    <import resource="dhus-core-security.xml" />
+   <import resource="dhus-core-cache.xml" />
    
    <!-- Load GUIs contexts -->
    <import resource="classpath*:spring/dhus-gui-*-context.xml" />

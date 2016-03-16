@@ -1,0 +1,250 @@
+<div>
+<!-- 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+-->
+<div>
+    <style>
+        
+        #alertmessage{
+          width: 100%;
+          text-align: center;          
+          margin: 10px 0px;                
+        }
+
+        .confirmbutton {
+          background-color: rgb(55, 59, 80)!important;
+          vertical-align: middle;
+          margin-top: 12px;
+          line-height: 20px;
+          font-size: 14px;
+          margin-left: 20px;
+          position: relative;
+          float: right;
+          padding: 10px;
+          cursor: pointer;
+          color:white;
+          text-decoration: none;
+
+      }
+      .confirmbutton:hover{
+          color:white;
+          text-decoration: none;
+      }
+      .confirmbutton:visited{
+          color:white;
+          text-decoration: none;
+      }     
+
+        h4{
+        text-align: center;
+        color:black;
+        font-size: 25px;
+        }        
+
+        .modal {
+          text-align: center;
+        }
+
+        @media screen and (min-width: 768px) { 
+          .modal:before {
+            display: inline-block;
+            vertical-align: middle;
+            content: " ";
+            height: 100%;
+          }
+        }
+
+        .modal-dialog {
+          display: inline-block;
+          text-align: left;
+          vertical-align: middle;
+          width:90%;
+        }
+
+        @media screen and (min-width: 768px) { 
+          .modal-dialog {
+            display: inline-block;
+            vertical-align: middle;
+             width: 30%;            
+             max-width: 400px;            
+          }
+        }
+        /*.modal-dialog {
+            width: 30%;
+            max-width: 400px;
+        }*/
+
+        .modal-header {
+            border: none !important;
+        } 
+
+        .modal-body-alert {
+            padding-left: 30px;
+            padding-right: 15px;
+            padding-top: 15px;
+            padding-bottom: 15px;
+        }        
+      
+        .divider {
+          border-top: 1px solid #EEE !important;
+          width: 80%;
+        }
+
+        #alerticon {
+          height: 52px !important;
+          width: 52px !important;
+          text-align: center;
+          width: 100%;
+          margin: 10px 0px;
+        }
+        .success #alerticon{
+          color: #419641;
+        }
+
+        .error #alerticon{
+          color: #d9534f;
+        }
+
+        .warn #alerticon{
+          color: #f0ad4e;
+        }
+
+        .info #alerticon{
+          color: #337ab7;
+        }
+
+        #alerttitle{
+          font-size: 26px;
+          margin: 0px 0px 15px 0px;
+          text-align: center;
+        }
+        .success #alerttitle{
+          border-bottom: #419641 2px solid;
+        }
+
+        .error #alerttitle{
+          border-bottom: #d9534f 2px solid;
+        }
+
+        .warn #alerttitle{
+          border-bottom: #f0ad4e 2px solid;
+        }
+
+        .info #alerttitle{
+          border-bottom: #337ab7 2px solid;
+        }
+        
+         
+        .fab {
+          vertical-align: middle;
+          margin-top: 12px;
+          margin-left: 20px;
+          padding: 6px;
+          line-height: 20px;
+          font-size: 15px;
+          position: relative;
+          float: right;
+          display: block;
+          height: 62px;
+          width: 62px;
+          color: #fff;
+          fill: currentColor;
+          cursor: pointer;
+          text-decoration: none;            
+          border-radius: 50%;          
+          overflow: hidden;
+          transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          transition-delay: 0.2s;
+          box-shadow: 0 0px 0px 0 rgba(0, 0, 0, 0);
+      }
+        
+        .fab.error {
+          color: #d9534f;
+        } 
+
+        .fab.warn {
+          color: #f0ad4e;
+        }
+
+        .fab.success {
+          color: #419641;
+        }
+
+        .fab.info {
+          color: #337ab7;
+        }  
+
+        #alertmessage h1{
+          font-size: 16px;               
+        } 
+        #alertmessage h3{
+          font-size: 14px;               
+        } 
+        #alertmessage p{
+          text-align: justify;
+          text-decoration: none !important;               
+        }           
+    </style>    
+
+    <div class="modal fade" id="alertModal" tabindex="-1" role="dialog" aria-labelledby="alerttitle" ng-keyup="$event.keyCode == 13 && close()">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">            
+            <div class="modal-title" id="alerttitle"></div>
+          </div>          
+          <div class="modal-body modal-body-alert">
+            <div class="row">
+            <div class="col-md-2 col-sd-3 col-xs-3">              
+              <div class="fab error">
+                <svg viewBox="0 0 24 24" height="100%" width="100%" preserveAspectRatio="xMidYMid meet" fit="" style="pointer-events: none; display: block;">
+                    <g id="error"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></g>
+                </svg>
+              </div>
+              <div class="fab info">
+                <svg viewBox="0 0 24 24" height="100%" width="100%" preserveAspectRatio="xMidYMid meet" fit="" style="pointer-events: none; display: block;">
+                    <g id="info"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></g>
+                </svg>
+              </div>
+              <div class="fab warn">
+                <svg viewBox="0 0 24 24" height="100%" width="100%" preserveAspectRatio="xMidYMid meet" fit="" style="pointer-events: none; display: block;">
+                    <g id="error"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></g>
+                </svg>
+              </div>
+              <div class="fab success">
+                <svg viewBox="0 0 24 24" height="100%" width="100%" preserveAspectRatio="xMidYMid meet" fit="" style="pointer-events: none; display: block;">
+                    <g id="check-circle"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></g>
+                </svg>
+              </div>
+            </div>
+            <div class="col-md-10 col-sd-9 col-xs-9">
+              <div id="alertmessage"></div>
+            </div>
+            </div>                                  
+            <div class="row" style="text-align:right">
+              <div class="confirmbutton" ng-click="close()">OK</div>
+            </div>                                
+          </div>                              
+        </div>
+      </div>
+    </div>
+</div>
+</div>

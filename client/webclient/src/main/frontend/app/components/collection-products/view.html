@@ -1,0 +1,222 @@
+<div>
+<!-- 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+-->
+<div >
+    <style>
+     .coll-product-container{
+        background-color: white;
+        /*min-width: 40%;*/
+        width: 100%;
+        height: 400px;        
+        
+     }
+
+     .coll-product-footer {
+        font-size: 14px;
+     }
+
+     @media screen and (min-width: 993px) and (max-width: 1200px) { 
+        /*.list-container {
+          min-width: 50%  !important;
+        }*/
+        .coll-product-footer {
+           font-size: 14px;
+        }
+      } 
+
+      @media screen and (min-width: 769px) and(max-width: 992px) { 
+        /*.list-container {
+          min-width: 100% !important;
+        }*/
+        .coll-product-footer {
+           font-size: 13px;
+        }
+      } 
+
+      @media screen and (max-width: 768px) { 
+        /*.list-container {
+          min-width: 100% !important;
+        }*/
+        .coll-product-footer {
+           font-size: 13px;
+        }
+      }   
+
+     
+
+     .coll-product-list-container{
+        padding: 0px 0px 0px 0px;
+        position: relative;
+        height: 100%;
+        width: 100%;          
+     }
+
+     .coll-product-list{
+        position: relative;
+        height: calc(100% - 85px);
+        width: 100%;
+        background-color: white;
+        overflow-y: auto;
+        overflow-x: auto; 
+     }
+
+     .coll-product-toolbar{
+        position: relative;        
+        width: 100%;
+        background-color: white;
+        padding: 10px;
+        background-color: #FAFAFA;
+        height: 50px;
+     }
+
+     .coll-product-header{
+        position: relative;
+        height: 35px;
+        background-color: white;
+        top: 0px;        
+        background-color: #FAFAFA;
+     }
+
+     .disabled-button{
+        opacity:0.4;
+        cursor: default;
+     }
+
+     .select-page-button{
+        cursor: pointer;
+     }
+
+     .page-selector-input{
+        width: 40px !important;
+        cursor: pointer;
+        margin: 0px;
+        padding: 7px;
+        height: 30px;
+        border: 1px solid #9A9A9A !important;
+        display: inline;
+     }
+     
+     .pagination-button{
+        margin-right: 2.5px;
+        margin-left: 2.5px;
+        display:inline;
+     }
+
+     .coll-product-list-checkbox {
+        width: 30px;                
+     }
+
+     .coll-product{
+        display: inline-flex;
+        font-size: 12px;
+        font-family: Roboto;
+        height: 25px;
+        line-height: 20px;
+     }
+
+     .coll-product:hover{
+        background: #dedede;
+     }
+
+     .coll-products-left {
+        float: left; 
+        display: inline-flex;
+        padding-left: 0px;
+     }
+
+     .coll-products-right {
+        float: right; 
+        display: inline-flex;        
+     }
+
+    </style>
+    <div id="coll-product-container" class="coll-product-container">
+        <div class="coll-product-list-container">
+            <div  class="coll-product-header">
+                <div  class="listtitle row" style="color: #373b50; font-weight: bold; font-size: 14px; ">
+                  <div ng-show="productCount" class="col-md-6 coll-products-left">
+                    <input type="checkbox" id="product-list-all-checkbox" class="coll-product-list-checkbox" ng-disabled="disableField" ng-click="checkUncheckAll()">
+                    <span>
+                    Display {{visualizedProductsFrom}} to {{visualizedProductsTo}} of {{productCount}} products.</span>
+                  </div>
+                  <div class="listtitle" style="color: #373b50; font-weight: bold; margin-left:5px;" ng-hide="productCount">No products found.</div>
+                  <div class="col-md-6  coll-products-right">
+                    <span >Search: </span>
+                    <input type="text" style="padding: 0px !important;" ng-model="filter" id="coll-product-search">
+                  </div>
+                </div>
+                
+            </div>            
+            <div  class="coll-product-list" >
+               <div ng-repeat="product in products ">
+                <div class="coll-product" title="{{product.identifier}}"><input type="checkbox" class="coll-product-list-checkbox" ng-disabled="disableField" ng-checked="isChecked(product)" ng-click="addRemoveProduct(product)"><span >{{product.identifier}}</span></div>
+               </div>
+            </div>
+            <div  class="coll-product-toolbar">                
+                    <div  style="height:20px;">
+                        <span ng-show="productCount" id="coll-product-per-page-label" class="coll-product-footer">Products per page:</span>
+                              <select  ng-show="productCount"                                
+                             title="Products per page"
+                             ng-model="productsPerPage" 
+                             ng-change="updateValue()"
+                             id="coll-product-pagination" >                                
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="75">75</option>
+                                <option value="100">100</option>
+                                <option value="125">125</option>
+                                <option value="150">150</option>
+                            </select>                                                              
+                        <span ng-show="productCount" class="pagination-button" ng-class="{'disabled-button': (productCount == 0 || currentPage == 1)}" class="select-page-button" ng-click="gotoFirstPage()" class="pagination-button">
+                            &lt;&lt;
+                        </span>
+                        <span ng-show="productCount" class="pagination-button" ng-class="{'disabled-button': (productCount == 0 ||  currentPage == 1)}" class="select-page-button"   ng-click="gotoPreviousPage()">
+                            &lt;
+                        </span>   
+
+                        <span id="coll-page-label-id" ng-show="productCount" class="coll-product-footer" >page:</span> 
+
+                        <input ng-show="productCount" 
+                            id="coll-product-page-selector"
+                            ng-click="selectPageDidClicked(this)" 
+                            type="text" 
+                            class="page-selector-input" 
+                            ng-model="currentPage"
+                            title="Enter page number"
+                            
+                            >
+                        <span ng-show="productCount" class="coll-product-footer">of {{pageCount}}</span>
+
+                        <span ng-show="productCount" class="pagination-button" ng-class="{'disabled-button': (productCount == 0 || currentPage == pageCount || pageCount == 1 || pageCount == 0 ) }" class="select-page-button" ng-click="gotoNextPage()" >
+                            &gt;
+                        </span>
+                        <span ng-show="productCount"  class="pagination-button" ng-class="{'disabled-button': ( productCount == 0 || currentPage == pageCount || pageCount == 1 || pageCount == 0 )}" class="select-page-button" ng-click="gotoLastPage()" >
+                            &gt;&gt;
+                        </span> 
+
+                    </div>
+            </div>
+        </div> 
+    </div>    
+</div>
+</div>

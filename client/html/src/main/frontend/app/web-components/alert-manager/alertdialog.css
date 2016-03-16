@@ -1,0 +1,52 @@
+#alerticon {
+	height: 52px !important;
+	width: 52px !important;
+	text-align: center;
+	width: 100%;
+	margin: 10px 0px;
+}
+.success #alerticon{
+	color: #419641;
+}
+
+.error #alerticon{
+	color: #d9534f;
+}
+
+.warn #alerticon{
+	color: #f0ad4e;
+}
+
+.info #alerticon{
+	color: #337ab7;
+}
+
+#alerttitle{
+	font-size: 26px;
+	margin: 0px 0px 15px 0px;
+	text-align: center;
+}
+.success #alerttitle{
+	border-bottom: #419641 px solid;
+}
+
+.error #alerttitle{
+	border-bottom: #d9534f 2px solid;
+}
+
+.warn #alerttitle{
+	border-bottom: #f0ad4e 2px solid;
+}
+
+.info #alerttitle{
+	border-bottom: #337ab7 2px solid;
+}
+
+#alertmessage{
+	margin: 10px 0px;
+}
+
+paper-button{
+	background: #373b50;
+	color: #ffffff;
+}

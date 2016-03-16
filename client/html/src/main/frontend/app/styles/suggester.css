@@ -1,0 +1,14 @@
+#ui-id-1 {
+  position: absolute !important;
+  width: 190px;
+  top: 64px !important;
+  left: 10px !important;
+  background-color: white !important;
+  z-index: 1001;
+}
+
+.ui-state-focus{
+  color: #000 !important;
+  background-color: #a6abc2 !important;
+  border: 1px solid #a6abc2 !important;
+}

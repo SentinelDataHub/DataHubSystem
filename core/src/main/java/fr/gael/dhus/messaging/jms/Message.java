@@ -78,8 +78,10 @@ public class Message
       String user;
       if (auth.getDetails () instanceof WebAuthenticationDetails)
       {
-         WebAuthenticationDetails details = (WebAuthenticationDetails) auth.getDetails ();
-         user = "["+((User)auth.getPrincipal ()).getUsername () +" @ "+details.getRemoteAddress ()+"] ";
+         WebAuthenticationDetails details =
+               (WebAuthenticationDetails) auth.getDetails ();
+         user = "["+((User)auth.getPrincipal ()).getUsername () +
+               " @ "+details.getRemoteAddress ()+"] ";
       }
       else
       {

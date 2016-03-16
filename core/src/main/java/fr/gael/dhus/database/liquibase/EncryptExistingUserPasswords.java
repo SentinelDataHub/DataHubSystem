@@ -19,10 +19,8 @@
  */
 package fr.gael.dhus.database.liquibase;
 
-import java.security.MessageDigest;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-
+import fr.gael.dhus.database.object.User.PasswordEncryption;
+import fr.gael.dhus.service.exception.UserBadEncryptionException;
 import liquibase.change.custom.CustomTaskChange;
 import liquibase.database.Database;
 import liquibase.database.jvm.JdbcConnection;
@@ -30,11 +28,11 @@ import liquibase.exception.CustomChangeException;
 import liquibase.exception.SetupException;
 import liquibase.exception.ValidationErrors;
 import liquibase.resource.ResourceAccessor;
-
 import org.springframework.security.crypto.codec.Hex;
 
-import fr.gael.dhus.database.object.User.PasswordEncryption;
-import fr.gael.dhus.service.exception.UserBadEncryptionException;
+import java.security.MessageDigest;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 public class EncryptExistingUserPasswords implements CustomTaskChange
 {
@@ -45,7 +43,7 @@ public class EncryptExistingUserPasswords implements CustomTaskChange
    }
 
    @Override
-   public void setFileOpener (ResourceAccessor resourceAccessor)
+   public void setFileOpener (ResourceAccessor resource_accessor)
    {
    }
 
@@ -79,16 +77,20 @@ public class EncryptExistingUserPasswords implements CustomTaskChange
             String password = (String) res.getObject ("PASSWORD");
                try
                {
-                  MessageDigest md = MessageDigest.getInstance(encryption.getAlgorithmKey());
-                  password = new String(Hex.encode(md.digest(password.getBytes("UTF-8"))));
+                  MessageDigest md = MessageDigest.getInstance(
+                        encryption.getAlgorithmKey());
+                  password = new String(Hex.encode(
+                        md.digest(password.getBytes("UTF-8"))));
                }
                catch (Exception e)
                {
-                  throw new UserBadEncryptionException ("There was an error while encrypting password", e);
+                  throw new UserBadEncryptionException (
+                        "There was an error while encrypting password", e);
                }
             PreparedStatement changePassword =
                databaseConnection
-                  .prepareStatement ("UPDATE USERS SET PASSWORD = '"+password+"' WHERE ID = "+res.getObject ("ID"));
+                  .prepareStatement ("UPDATE USERS SET PASSWORD = '" +
+                        password + "' WHERE ID = "+res.getObject ("ID"));
             changePassword.execute ();
             changePassword.close ();
          }
@@ -96,8 +98,9 @@ public class EncryptExistingUserPasswords implements CustomTaskChange
          if (hasResults)
          {
             PreparedStatement call =
-               databaseConnection
-                  .prepareStatement ("UPDATE USERS SET PASSWORD_ENCRYPTION = '"+encryption.getAlgorithmKey ()+"'");
+                  databaseConnection.prepareStatement (
+                              "UPDATE USERS SET PASSWORD_ENCRYPTION = '" +
+                                    encryption.getAlgorithmKey () + "'");
             call.execute ();
             call.close ();
          }

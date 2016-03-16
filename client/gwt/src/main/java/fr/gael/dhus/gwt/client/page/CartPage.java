@@ -30,14 +30,14 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.RootPanel;
 
-import fr.gael.dhus.gwt.share.RoleData;
+import fr.gael.dhus.gwt.client.AccessDeniedRedirectionCallback;
 import fr.gael.dhus.gwt.client.GWTClient;
 import fr.gael.dhus.gwt.services.ProductCartServiceAsync;
 import fr.gael.dhus.gwt.services.UserServiceAsync;
 import fr.gael.dhus.gwt.share.ProductData;
+import fr.gael.dhus.gwt.share.RoleData;
 import fr.gael.dhus.gwt.share.UserData;
 
 public class CartPage extends AbstractPage
@@ -111,10 +111,10 @@ public class CartPage extends AbstractPage
             {
                return;
             }
-            productCartService.clearCart (uId, new AsyncCallback<Void>()
+            productCartService.clearCart (uId, new AccessDeniedRedirectionCallback<Void>()
             {               
                @Override
-               public void onFailure (Throwable caught)
+               public void _onFailure (Throwable caught)
                {
                   DOM.setStyleAttribute (RootPanel.getBodyElement (), "cursor",
                   "default");
@@ -157,11 +157,11 @@ public class CartPage extends AbstractPage
    private static void removeProductFromCart(int id)
    {
       productCartService.removeProductFromCart (GWTClient.getCurrentUser ().getId (),
-         new Long(id), new AsyncCallback<Void>()
+         new Long(id), new AccessDeniedRedirectionCallback<Void>()
          {
    
             @Override
-            public void onFailure (Throwable caught)
+            public void _onFailure (Throwable caught)
             {
                Window.alert("There was an error while adding product to your cart.");
             }
@@ -182,11 +182,11 @@ public class CartPage extends AbstractPage
       GWTClient.callback (function, JsonUtils.safeEval ("{\"aaData\": [],\"iTotalRecords\" : 0, \"iTotalDisplayRecords\" : 0}"));
       
       final UserData user = GWTClient.getCurrentUser ();
-      productCartService.countProductsInCart (user.getId (), new AsyncCallback<Integer>()
+      productCartService.countProductsInCart (user.getId (), new AccessDeniedRedirectionCallback<Integer>()
       {
          
          @Override
-         public void onFailure (Throwable caught)
+         public void _onFailure (Throwable caught)
          {
             DOM.setStyleAttribute (RootPanel.getBodyElement (), "cursor",
             "default");
@@ -196,11 +196,11 @@ public class CartPage extends AbstractPage
          @Override
          public void onSuccess (final Integer total)
          {
-            productCartService.getProductsOfCart (start, length, user.getId (), new AsyncCallback<List<ProductData>>()
+            productCartService.getProductsOfCart (start, length, user.getId (), new AccessDeniedRedirectionCallback<List<ProductData>>()
             {
                
                @Override
-               public void onFailure (Throwable caught)
+               public void _onFailure (Throwable caught)
                {
                   DOM.setStyleAttribute (RootPanel.getBodyElement (), "cursor",
                   "default");

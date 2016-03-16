@@ -29,6 +29,7 @@ import fr.gael.dhus.database.object.MetadataIndex;
 import fr.gael.dhus.database.object.Product;
 import fr.gael.dhus.gwt.services.annotation.RPCService;
 import fr.gael.dhus.gwt.share.ProductData;
+import fr.gael.dhus.gwt.share.exceptions.AccessDeniedException;
 import fr.gael.dhus.gwt.share.exceptions.ProductCartServiceException;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
 
@@ -38,14 +39,21 @@ public class ProductCartServiceImpl extends RemoteServiceServlet implements
 {
    private static final long serialVersionUID = -8887822393470427912L;
    
-   public void addProductToCart(Long uId, Long pId) throws ProductCartServiceException
+   public void addProductToCart(Long uId, Long pId)
+      throws ProductCartServiceException, AccessDeniedException
    {
-      fr.gael.dhus.service.ProductCartService productCartService = ApplicationContextProvider
-            .getBean (fr.gael.dhus.service.ProductCartService.class);
+      fr.gael.dhus.service.ProductCartService productCartService = 
+         ApplicationContextProvider.getBean (
+            fr.gael.dhus.service.ProductCartService.class);
       
       try
       {
          productCartService.addProductToCart (uId, pId);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -54,14 +62,21 @@ public class ProductCartServiceImpl extends RemoteServiceServlet implements
       }      
    }
    
-   public void removeProductFromCart(Long uId, Long pId) throws ProductCartServiceException
+   public void removeProductFromCart(Long uId, Long pId) 
+      throws ProductCartServiceException, AccessDeniedException
    {
-      fr.gael.dhus.service.ProductCartService productCartService = ApplicationContextProvider
-            .getBean (fr.gael.dhus.service.ProductCartService.class);
+      fr.gael.dhus.service.ProductCartService productCartService = 
+         ApplicationContextProvider.getBean (
+            fr.gael.dhus.service.ProductCartService.class);
       
       try
       {
          productCartService.removeProductFromCart (uId, pId);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -70,13 +85,20 @@ public class ProductCartServiceImpl extends RemoteServiceServlet implements
       }      
    }
 
-   public List<Long> getProductsIdOfCart(Long uId) throws ProductCartServiceException
+   public List<Long> getProductsIdOfCart(Long uId) 
+      throws ProductCartServiceException, AccessDeniedException
    {
-      fr.gael.dhus.service.ProductCartService productCartService = ApplicationContextProvider
-            .getBean (fr.gael.dhus.service.ProductCartService.class);
+      fr.gael.dhus.service.ProductCartService productCartService = 
+         ApplicationContextProvider.getBean (
+            fr.gael.dhus.service.ProductCartService.class);
       try
       { 
          return productCartService.getProductsIdOfCart (uId);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -85,14 +107,21 @@ public class ProductCartServiceImpl extends RemoteServiceServlet implements
       } 
    }
    
-   public List<ProductData> getProductsOfCart(int start, int count, Long uId) throws ProductCartServiceException
+   public List<ProductData> getProductsOfCart(int start, int count, Long uId) 
+      throws ProductCartServiceException, AccessDeniedException
    {
-      fr.gael.dhus.service.ProductCartService productCartService = ApplicationContextProvider
-            .getBean (fr.gael.dhus.service.ProductCartService.class);
+      fr.gael.dhus.service.ProductCartService productCartService = 
+               ApplicationContextProvider.getBean (
+                  fr.gael.dhus.service.ProductCartService.class);
+      
+      fr.gael.dhus.service.ProductService productService = 
+         ApplicationContextProvider.getBean (
+            fr.gael.dhus.service.ProductService.class);
       
       try
       {     
-         List<Product> products = productCartService.getProductsOfCart (uId, start, count);
+         List<Product> products = 
+            productCartService.getProductsOfCart(uId, start, count);
          ArrayList<ProductData> productDatas = new ArrayList<ProductData> ();
          for (Product product : products)
          {
@@ -102,22 +131,32 @@ public class ProductCartServiceImpl extends RemoteServiceServlet implements
                    product.getIdentifier ());
     
             ArrayList<String> summary = new ArrayList<String> ();
+            List<MetadataIndex> indexes =
+               productService.getIndexes(product.getId());
             
-            for (MetadataIndex index : product.getIndexes ())
+            if (indexes!=null)
             {
-               if ("summary".equals (index.getCategory ()))
+               for (MetadataIndex index:indexes)
                {
-                  summary.add (index.getName () + " : " + index.getValue ());
-                  Collections.sort (summary, null);
+                  if ("summary".equals (index.getCategory ()))
+                  {
+                     summary.add (index.getName () + " : " + index.getValue ());
+                     Collections.sort (summary, null);
+                  }
                }
+               productData.setSummary (summary);
             }
-            productData.setSummary (summary);    
             productData.setHasQuicklook (product.getQuicklookFlag ());
             productData.setHasThumbnail (product.getThumbnailFlag ());             
                         
             productDatas.add (productData);
          }
          return productDatas;
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -126,14 +165,20 @@ public class ProductCartServiceImpl extends RemoteServiceServlet implements
       } 
    }
    
-   public int countProductsInCart (Long uId) throws ProductCartServiceException
+   public int countProductsInCart (Long uId) throws ProductCartServiceException, AccessDeniedException
    {
-      fr.gael.dhus.service.ProductCartService productCartService = ApplicationContextProvider
-            .getBean (fr.gael.dhus.service.ProductCartService.class);
+      fr.gael.dhus.service.ProductCartService productCartService = 
+         ApplicationContextProvider.getBean (
+            fr.gael.dhus.service.ProductCartService.class);
       
       try
       {
          return productCartService.countProductsInCart (uId);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {
@@ -142,14 +187,20 @@ public class ProductCartServiceImpl extends RemoteServiceServlet implements
       } 
    }
 
-   public void clearCart (Long uId) throws ProductCartServiceException
+   public void clearCart (Long uId) throws ProductCartServiceException, AccessDeniedException
    {
-      fr.gael.dhus.service.ProductCartService productCartService = ApplicationContextProvider
-                  .getBean (fr.gael.dhus.service.ProductCartService.class);
+      fr.gael.dhus.service.ProductCartService productCartService = 
+         ApplicationContextProvider.getBean (
+            fr.gael.dhus.service.ProductCartService.class);
       
       try
       {
          productCartService.clearCart (uId);
+      }
+      catch (org.springframework.security.access.AccessDeniedException e)
+      {
+         e.printStackTrace ();
+         throw new AccessDeniedException (e.getMessage ());
       }
       catch (Exception e)
       {

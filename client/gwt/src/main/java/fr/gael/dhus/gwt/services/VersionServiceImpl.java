@@ -42,7 +42,7 @@ public class VersionServiceImpl extends RemoteServiceServlet implements
    {
       String version = DHuS.class.getPackage ().
          getImplementationVersion ();
-      return (version==null?"Development":(version));
+      return (version==null?"- Development Version -":("- V" + version+" -"));
    }
 
 }

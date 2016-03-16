@@ -1,0 +1,191 @@
+<div>
+<!-- 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+-->
+<div>
+	<style>
+		#advanced-search-container{
+		    position: fixed;
+		    background-color: white;
+		    width: 728px;
+		    height: 700px;
+		    z-index: 999;
+		    top: 150px;
+		    left: calc(-728px -20px);
+		    box-shadow: 3px 5px 19px 0 rgba(49,50,50,.62);
+		    padding: 8px;
+		}
+
+		#advanced-search-close-button{
+			position: absolute;
+			top:10px;
+			right:10px;
+		}
+
+		#advanced-search-content{
+			position: relative;
+	        height: 100%;
+	        width: 100%;
+	        background-color: white;
+	        overflow-y: auto;
+	        overflow-x: hidden; 
+		}
+
+		.advanced-search-collapse-title {
+			margin-left: 5px;
+			font-size: 14px;
+		}
+
+		.advanced-search-clear {
+			margin-right: 10px;
+			font-size: 14px;
+			float: right;
+			font-weight: normal !important;
+		}
+
+		.advanced-search-clear:hover {
+			text-decoration: underline;
+		}
+
+		.advanced-search-heading {
+			padding: 5px 10px !important;
+		}
+		.advanced-search-panel-title {
+			margin-top: -5px !important;
+			cursor: default !important;
+		}
+
+		.panel-heading .accordion-toggle:before {
+		    font-family: 'Glyphicons Halflings';
+		    content: '\e113';
+		    float: left;
+		    color: grey;    
+		  }
+		  .panel-heading .accordion-toggle.collapsed:before {    
+		    content: "\e114";    
+		  }
+		  .avanced-search-subtitle{
+		  	margin-top:10px;
+		  }
+
+		   .collapse {
+		        position: inherit;
+		    }
+		  #section_0 {
+		  	overflow-y: hidden !important;
+		  }
+
+		  #advanced-search-content  .dropdown-menu{
+		  	position: fixed !important;
+		  	visibility: hidden;
+		  }
+		  .advanced-panel {
+		  	margin-bottom: 8px !important;
+		  }
+		  .advanced-calendar-button {
+		  	border:none;
+		  	top: 5px;
+		  }
+		  .advanced-calendar-label {		  	
+		  	top: 10px;		  	
+		  }
+
+		  .advanced-calendar-date-input {		  	
+		  	padding: 0px;
+		  	text-align: center;
+		  }
+		  .advanced-calendar-date-input{
+		  	font-size: 11px;
+		  }
+
+	</style>
+
+	<div id="advanced-search-container">		
+		<div id="advanced-search-content">			
+		
+	        <div class="panel panel-default details">
+	          <div class="panel-heading advanced-search-heading" role="tab" >
+	            <h4 class="panel-title advanced-search-panel-title">
+	              <a class="accordion-toggle " role="button" data-toggle="collapse"  data-parent="#accordion" aria-expanded="false" data-target="#section_2" aria-controls="section_2">
+	                <span class="advanced-search-collapse-title">Advanced search</span>	                
+	              </a>
+	              <span class="advanced-search-clear" ng-click="clearFilter()" title="Clear Search Filter">Clear</span>
+	            </h4>
+	          </div>
+	          <div id="section_2" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="section_2"   style="overflow:visible;padding:15px 5px;">	              	
+				    <div class="row" ng-if="showsensingfilter">
+				    	<div class="col-md-4 col-sd-12 col-xs-12 avanced-search-subtitle">&raquo; Sensing period</div>
+				    	<div class="col-md-1 col-sd-2 col-xs-4 advanced-calendar-label" >
+				    		From:
+				    	</div>				   
+				        <div class="col-md-3 col-sd-4 col-xs-8">
+				            <p class="input-group">
+				              <input type="text" class="form-control advanced-calendar-date-input" uib-datepicker-popup="{{format}}" ng-model="model.sensingPeriodFrom" is-open="status.openedSensingPeriodFrom"    date-disabled="disabled(date, mode)" max-date="model.sensingPeriodTo" ng-required="true" ng-blur="updateFilter()" readonly="true" close-text="Close" />
+				              <span class="input-group-btn">
+				                <button type="button" class="btn btn-default advanced-calendar-button" ng-click="openSensingPeriodFrom($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+				              </span>
+				            </p>
+				        </div>
+				        <div class="col-md-1 col-sd-2 col-xs-4 advanced-calendar-label">
+				    		to:
+				    	</div>				
+				        <div class="col-md-3 col-sd-4 col-xs-8">
+				            <p class="input-group">
+				              <input type="text" class="form-control advanced-calendar-date-input" uib-datepicker-popup="{{format}}" ng-model="model.sensingPeriodTo" is-open="status.openedSensingPeriodTo"    date-disabled="disabled(date, mode)" ng-required="true" min-date="model.sensingPeriodFrom" ng-blur="updateFilter()"close-text="Close" readonly="true" data-container="body" />
+				              <span class="input-group-btn">
+				                <button type="button" class="btn btn-default advanced-calendar-button" ng-click="openSensingPeriodTo($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+				              </span>
+				            </p>
+				        </div>				        
+				    </div>				    	              	
+				    <div class="row" ng-if="showingestionfilter">
+				    	<div class="col-md-4 col-sd-12 col-xs-12 avanced-search-subtitle">&raquo; Ingestion period</div>
+				    	<div class="col-md-1 col-sd-2 col-xs-4 advanced-calendar-label" >
+				    		From:
+				    	</div>				   
+				        <div class="col-md-3 col-sd-4 col-xs-8">
+				            <p class="input-group">
+				              <input type="text" class="form-control advanced-calendar-date-input" uib-datepicker-popup="{{format}}" ng-model="model.ingestionFrom" is-open="status.openedIngestionFrom"    date-disabled="disabled(date, mode)" max-date="model.ingestionTo" ng-required="true" ng-blur="updateFilter()" close-text="Close" readonly="true" data-container="body" />
+				              <span class="input-group-btn">
+				                <button type="button" class="btn btn-default advanced-calendar-button" ng-click="openIngestionFrom($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+				              </span>
+				            </p>
+				        </div>
+				        <div class="col-md-1 col-sd-2 col-xs-4 advanced-calendar-label">
+				    		to:
+				    	</div>				
+				        <div class="col-md-3 col-sd-4 col-xs-8">
+				            <p class="input-group">
+				              <input type="text" class="form-control advanced-calendar-date-input" uib-datepicker-popup="{{format}}" ng-model="model.ingestionTo" is-open="status.openedIngestionTo"    date-disabled="disabled(date, mode)" min-date="model.ingestionFrom" ng-required="true" close-text="Close" ng-blur="updateFilter()" readonly="true"data-container="body"/>
+				              <span class="input-group-btn">
+				                <button type="button" class="btn btn-default advanced-calendar-button" ng-click="openIngestionTo($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+				              </span>
+				            </p>
+				        </div>				        
+				    </div>	
+				    <advanced-filter></advanced-filter>			    
+	          </div>
+	        </div>
+	    </div>
+	</div> 
+</div>
+</div>

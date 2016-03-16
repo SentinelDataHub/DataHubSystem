@@ -40,19 +40,20 @@ import fr.gael.dhus.database.object.User;
 
 @MappedSuperclass
 @Inheritance (strategy = InheritanceType.TABLE_PER_CLASS)
-public abstract class ActionRecord extends AbstractTimestampEntity implements Serializable 
+public abstract class ActionRecord extends AbstractTimestampEntity
+      implements Serializable
 {
+   public static final String STATUS_STARTED = "STARTED";
+   // never used? public static final String STATUS_CLOSED = "CLOSED";
+   public static final String STATUS_SUCCEEDED = "SUCCEEDED";
+   public static final String STATUS_FAILED = "FAILED";
+   
+   public static final String PERIODICITY_YEAR = "YEAR";
+   public static final String PERIODICITY_MONTH = "MONTH";
+   public static final String PERIODICITY_WEEK = "WEEK";
+
    private static final long serialVersionUID = -6258559874812820257L;
-   
-   public static String STATUS_STARTED = "STARTED";
-   // never used? public static String STATUS_CLOSED = "CLOSED";
-   public static String STATUS_SUCCEEDED = "SUCCEEDED";
-   public static String STATUS_FAILED = "FAILED";
-   
-   public static String PERIODICITY_YEAR = "YEAR";
-   public static String PERIODICITY_MONTH = "MONTH";
-   public static String PERIODICITY_WEEK = "WEEK";
-      
+
    @Id
    @GeneratedValue (strategy = GenerationType.AUTO)
    @Column (name = "ID", nullable = false)
@@ -65,16 +66,11 @@ public abstract class ActionRecord extends AbstractTimestampEntity implements Se
    private String name;
 
    /**
-    * Action status. Possible values are 'STARTED', 'CLOSED', 'SUCCEEDED', 'FAILED'.
+    * Action status. Possible values are 'STARTED', 'CLOSED', 'SUCCEEDED',
+    * 'FAILED'.
     */
    @Column (name = "STATUS", nullable = true)
    private String status;
-
-//   /**
-//    * User name
-//    */
-//   @Column (name = "USER", nullable = true)
-//   private String username;
 
    /**
     * Foreign key USERS_ID
@@ -82,6 +78,12 @@ public abstract class ActionRecord extends AbstractTimestampEntity implements Se
    @ManyToOne
    @JoinColumn (name = "USERS_ID", nullable = true)
    private User user;
+
+//   /**
+//    * User name
+//    */
+//   @Column (name = "USER", nullable = true)
+//   private String username;
 
    public Long getId ()
    {

@@ -25,8 +25,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import fr.gael.dhus.database.dao.interfaces.HibernateDao;
+import fr.gael.dhus.database.dao.interfaces.IEvictionDao;
 import fr.gael.dhus.database.object.Eviction;
 import fr.gael.dhus.database.object.Product;
+import fr.gael.dhus.database.object.config.system.EvictionConfiguration;
 import fr.gael.dhus.datastore.eviction.EvictionStrategy;
 import fr.gael.dhus.system.config.ConfigurationManager;
 
@@ -35,59 +37,43 @@ import fr.gael.dhus.system.config.ConfigurationManager;
  *
  */
 @Repository
-public class EvictionDao extends HibernateDao<Eviction, Long>
+public class EvictionDao extends HibernateDao<Eviction, Long> implements
+      IEvictionDao
 {
    @Autowired
    private ConfigurationManager cfgManager;
-   
+
    public Eviction getFactoryDefault ()
    {
-      // TODO rename method (getDefaultEviction)      
       Eviction eviction = new Eviction ();
-      eviction.setMaxDiskUsage (cfgManager.getArchiveConfiguration ().getEvictionConfiguration ().getMaxDiskUsage ());
-      eviction.setKeepPeriod (cfgManager.getArchiveConfiguration ().getEvictionConfiguration ().getKeepPeriod ());
+      EvictionConfiguration config = cfgManager.getArchiveConfiguration ()
+            .getEvictionConfiguration ();
+
+      eviction.setMaxDiskUsage (config.getMaxDiskUsage ());
+      eviction.setKeepPeriod (config.getKeepPeriod ());
       eviction.setStrategy (EvictionStrategy.NONE);
-      eviction.setMaxProductNumber (cfgManager.getArchiveConfiguration ().getEvictionConfiguration ().getMaxEvictedProducts ());
+      eviction.setMaxProductNumber (config.getMaxEvictedProducts ());
 
       return eviction;
    }
 
    public Eviction getEviction ()
    {
-      //List<Eviction> evictions = readAll ();
-      // Eviction eviction = null;
-      // if (evictions.isEmpty ())
-      // {
-      // eviction = getFactoryDefault ();
-      // eviction = create (eviction);
-      // }
-      // else
-      // {
-      // // Get the last inserted one
-      // eviction = evictions.get (evictions.size ()-1);
-      // }
-      // return eviction;
-      if (count () == 0)
-      {
-         return null; //create (getFactoryDefault ());
-      }
       return first ("FROM Eviction ORDER BY id DESC LIMIT 1");
    }
 
-   public void update (EvictionStrategy strategy, int keepPeriod,
-      int maxDiskUsage)
+   public void update (EvictionStrategy strategy, int keep_period,
+      int max_disk_usage)
    {
-      // TODO move to service
       Eviction eviction = getEviction ();
-      eviction.setKeepPeriod (keepPeriod);
-      eviction.setMaxDiskUsage (maxDiskUsage);
+      eviction.setKeepPeriod (keep_period);
+      eviction.setMaxDiskUsage (max_disk_usage);
       eviction.setStrategy (strategy);
       update (eviction);
    }
 
    public void setProducts (Set<Product> products)
    {
-      // TODO move to service
       Eviction eviction = getEviction ();
       eviction.setProducts (products);
       update (eviction);

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+<!--
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<!DOCTYPE rdf:RDF [
+   <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#">
+   <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#">
+   <!ENTITY owl "http://www.w3.org/2002/07/owl#">
+   <!ENTITY drb "http://www.gael.fr/drb#">
+   <!ENTITY ctx "http://www.gael.fr/cortex#">
+   <!ENTITY safe "http://www.esa.int/safe/1.0#">
+   <!ENTITY xfdu "http://www.ccsds.org/xfdu/2004#">
+   <!ENTITY nc   "http://www.unidata.ucar.edu/netcdf#">
+   <!ENTITY img "http://www.gael.fr/drb/image#">
+   <!ENTITY s3   "http://www.esa.int/s3#">
+]>
+<rdf:RDF xmlns:ctx="&ctx;"
+         xmlns:drb="&drb;"
+         xmlns:owl="&owl;"
+         xmlns:rdf="&rdf;"
+         xmlns:rdfs="&rdfs;"
+         xmlns:safe="&safe;"
+         xmlns:xfdu="&xfdu;"
+         xmlns:nc="&nc;"
+         xmlns:img="&img;"
+         xml:base="&s3;">
+
+   <owl:Ontology rdf:about="&s3;">
+      <rdfs:label xml:lang="en">Sentinel-3 - Product Ontology</rdfs:label>
+      <owl:imports rdf:resource="file:META-INF/topic/ipf/level-0.owl"/>
+      <owl:imports rdf:resource="file:META-INF/topic/ipf/level-1_2.owl"/>
+      <owl:imports rdf:resource="file:META-INF/topic/instr/olci.owl"/>
+      <owl:imports rdf:resource="file:META-INF/topic/instr/slstr.owl"/>
+      <owl:imports rdf:resource="file:META-INF/topic/instr/sral-mwr.owl"/>
+      <owl:imports rdf:resource="file:META-INF/topic/instr/synergy.owl"/>            
+   </owl:Ontology>
+   
+   <!-- ================================================================== -->
+   <!-- SENTINEL-3 PRODUCT CONTAINERS                                      -->
+   <!-- ================================================================== -->
+   <owl:Class rdf:about="&s3;product">
+      
+      <rdfs:label>SENTINEL-3 Product</rdfs:label>
+	  <rdfs:comment xml:lang="en">
+        	 A Sentinel-3 product is derived from XML Formatted Data Unit (XFDU).
+      </rdfs:comment>	
+      <rdfs:subClassOf rdf:resource="&drb;item" />
+      <drb:signature rdf:parseType="Resource">
+	  <drb:nameMatch>S3[AB_]_(OL|SL|SR|DO|MW|GN|SY|TM)_[012]_(SRA___|CAL___|MWR___|SLT___|EFR___|CR0___|CR1___|GNS___|NAV___|DOP___|HKM___|NAT___|HKM2__|ERR___|RAC___|SPC___|EFR_BW|ERR_BW|RBT___|RBT_BW|MISR__|LAN___|WAT___|WFR___|LFR___|WRR___|LRR___|WRR_BW|LFR_BW|WFR_BW|LRR_BW|WCT___|WST___|LST___|LST_BW|SYN___|VGP___|VGK___|VG1___|V10___|SYN_BW|VGP_BW|VG1_BW|V10_BW)_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_\w{8}.SEN3</drb:nameMatch>
+	  <drb:xqueryTest>
+         <![CDATA[
+            exists (*[name() = "xfdumanifest.xml"])
+         ]]>
+      </drb:xqueryTest>
+      </drb:signature>
+   </owl:Class>
+
+   <owl:Class rdf:about="&s3;aux_product">
+      
+      <rdfs:label>SENTINEL-3 Auxiliary Product</rdfs:label>
+	  <rdfs:comment xml:lang="en">
+        	 A Sentinel-3 Auxiliary product is derived from XML Formatted Data Unit (XFDU).
+      </rdfs:comment>	
+      <rdfs:subClassOf rdf:resource="&drb;item" />
+      <drb:signature rdf:parseType="Resource">
+	  <drb:nameMatch>S3[AB_]_(OL|SL|SR|DO|MW|GN|SY|TM|AX)_[012_]_\w{4}AX\w{79}.SEN3</drb:nameMatch>
+	  <drb:xqueryTest>
+         <![CDATA[
+            exists (*[name() = "xfdumanifest.xml"])
+         ]]>
+      </drb:xqueryTest>
+      </drb:signature>
+   </owl:Class>
+   
+</rdf:RDF>

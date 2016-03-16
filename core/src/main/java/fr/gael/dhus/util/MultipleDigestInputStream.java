@@ -34,9 +34,9 @@ import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
  */
 public class MultipleDigestInputStream extends FilterInputStream
 {
-   private Map<String, MessageDigest> digests =
-      new LinkedHashMap<String, MessageDigest> ();
    public static final String[] DEFAULT_ALGORITHMS = { "MD5", "SHA-1" };
+
+   private Map<String, MessageDigest> digests = new LinkedHashMap<> ();
 
    public MultipleDigestInputStream (InputStream is)
       throws NoSuchAlgorithmException

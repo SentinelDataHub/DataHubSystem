@@ -25,23 +25,24 @@ import java.util.List;
 import com.google.gwt.user.client.rpc.RemoteService;
 
 import fr.gael.dhus.gwt.share.ConfigurationData;
+import fr.gael.dhus.gwt.share.exceptions.AccessDeniedException;
 import fr.gael.dhus.gwt.share.exceptions.SystemServiceException;
 
 public interface SystemService extends RemoteService
 {
-   public ConfigurationData getConfiguration () throws SystemServiceException;
+   public ConfigurationData getConfiguration () throws SystemServiceException, AccessDeniedException;
 
    public ConfigurationData saveConfiguration (ConfigurationData systemData)
-      throws SystemServiceException;
+      throws SystemServiceException, AccessDeniedException;
 
    public ConfigurationData resetToDefaultConfiguration ()
-      throws SystemServiceException;
+      throws SystemServiceException, AccessDeniedException;
 
    public void changeRootPassword (String new_pwd, String old_pwd)
-      throws SystemServiceException;
+      throws SystemServiceException, AccessDeniedException;
 
    public List<Date> getDumpDatabaseList ()
-      throws SystemServiceException;
+      throws SystemServiceException, AccessDeniedException;
 
-   public void restoreDatabase (Date date) throws SystemServiceException;
+   public void restoreDatabase (Date date) throws SystemServiceException, AccessDeniedException;
 }

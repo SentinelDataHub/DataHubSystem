@@ -24,15 +24,16 @@ import java.util.List;
 import com.google.gwt.user.client.rpc.RemoteService;
 
 import fr.gael.dhus.gwt.share.ProductData;
+import fr.gael.dhus.gwt.share.exceptions.AccessDeniedException;
 import fr.gael.dhus.gwt.share.exceptions.ProductServiceException;
 
 public interface ProductService extends RemoteService
 {
-   public List<ProductData> getProducts (int start, int count, String filter, Long parentId) throws ProductServiceException;
+   public List<ProductData> getProducts (int start, int count, String filter, Long parentId) throws ProductServiceException, AccessDeniedException;
 
-   public Integer count (String filter, Long parentId) throws ProductServiceException;
+   public Integer count (String filter, Long parentId) throws ProductServiceException, AccessDeniedException;
    
-   public ProductData getProduct (long pid) throws  ProductServiceException;
+   public ProductData getProduct (long pid) throws  ProductServiceException, AccessDeniedException;
       
-   public void deleteProduct(Long pid) throws  ProductServiceException;
+   public void deleteProduct(Long pid) throws  ProductServiceException, AccessDeniedException;
 }

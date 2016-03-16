@@ -26,7 +26,11 @@ import java.util.List;
 
 public enum Role implements Serializable  
 {
-   // if modified, shall be modified in GWT module too (fr.gael.dhus.share.RoleData)
+
+   /*
+    * if modified, shall be modified in GWT module too
+    * (fr.gael.dhus.share.RoleData)
+    */
    AUTHED ("ROLE_AUTHED", "Authed"), 
    SEARCH ("ROLE_SEARCH", "Search"), 
    DOWNLOAD ("ROLE_DOWNLOAD", "Download"),
@@ -38,9 +42,9 @@ public enum Role implements Serializable
    STATISTICS ("ROLE_STATS", "Statistics");
 
    private static final long serialVersionUID = -3552817193045379891L;
+   private static List<Role> displayableRoles;
    private String authority;
    private String description;
-   private static List<Role> displayableRoles;
 
    private Role (String authority, String description)
    {
@@ -72,7 +76,7 @@ public enum Role implements Serializable
       if (displayableRoles == null)
       {
          displayableRoles =
-            new ArrayList<Role> (Arrays.asList (Role.values ()));
+            new ArrayList<> (Arrays.asList (Role.values ()));
          displayableRoles.remove (AUTHED);
       }
       return displayableRoles;

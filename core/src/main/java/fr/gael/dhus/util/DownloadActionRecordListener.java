@@ -19,11 +19,14 @@
  */
 package fr.gael.dhus.util;
 
+import java.util.Date;
+
 import org.apache.commons.net.io.CopyStreamAdapter;
 import org.apache.log4j.Logger;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import fr.gael.dhus.database.dao.ActionRecordWritterDao;
-import fr.gael.dhus.database.object.Product;
 import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
 
@@ -33,17 +36,23 @@ import fr.gael.dhus.spring.context.ApplicationContextProvider;
  */
 public class DownloadActionRecordListener extends CopyStreamAdapter
 {
-   private static Logger logger = Logger.getLogger (DownloadActionRecordListener.class);
-   private Product product;
+   private static Logger logger = Logger.getLogger (
+         DownloadActionRecordListener.class);
+   private String uuid;
+   private String identifier;
    private User user;
    private boolean started=false;
+   private long start;
    
-   public DownloadActionRecordListener (Product product, User user)
+   public DownloadActionRecordListener(String uuid,String identifier,User user)
    {
-      this.product = product;
+      this.uuid = uuid;
+      this.identifier = identifier;
       this.user = user;
    }
+
    @Override
+   @Transactional (propagation=Propagation.REQUIRED)
    public void bytesTransferred (long total_bytes_transferred,
       int bytes_transferred, long stream_size)
    {
@@ -54,40 +63,46 @@ public class DownloadActionRecordListener extends CopyStreamAdapter
       
       if ((total_bytes_transferred==bytes_transferred) && !started)
       {
-         ActionRecordWritterDao writer = (ActionRecordWritterDao) 
+         ActionRecordWritterDao writer =
             ApplicationContextProvider.getBean (ActionRecordWritterDao.class);
 
-         writer.downloadStart (this.product.getUuid (), stream_size, 
+         writer.downloadStart (this.uuid, stream_size, 
             user.getUsername ());
-         
+         start = new Date ().getTime ();
          started=true;
-         logger.info ("Product '" + product.getUuid () + 
-            "' download by user '" + user.getUsername () + "' started -> " + 
-            stream_size);
+         logger.info ("Product '" + this.uuid +
+            "' ("+ this.identifier + ") "+
+               "download by user '" + user.getUsername () +
+            "' started -> " + stream_size);
          return;
       }
       
       if (bytes_transferred == -1)
       {
-         ActionRecordWritterDao writer = (ActionRecordWritterDao) 
+         ActionRecordWritterDao writer =
             ApplicationContextProvider.getBean (ActionRecordWritterDao.class);
 
          if (total_bytes_transferred==stream_size)
          {
-            logger.info ("Product '" + product.getUuid () + 
-               "' download by user '" + user.getUsername () + 
-               "' completed -> " + stream_size);
-            
-            writer.downloadEnd (product.getUuid (), stream_size, 
+            long end = new Date ().getTime ();
+            logger.info ("Product '" + this.uuid +
+               "' ("+ this.identifier + ") " +
+                  "download by user '" + user.getUsername () +
+               "' completed in "+ (end-start) + "ms -> " + stream_size);
+
+            writer.downloadEnd (this.uuid, stream_size, 
                user);
          }
          else
          {
-            logger.info ("Product '" + product.getUuid () + 
-               "' download by user '" + user.getUsername () + "' failed at " + 
-               total_bytes_transferred + "/" + stream_size);
+            long end = new Date ().getTime ();
+            logger.info ("Product '" + this.uuid +
+               "' ("+ this.identifier + ") " +
+                  "download by user '" + user.getUsername () +
+               "' failed at " + total_bytes_transferred + "/" + stream_size +
+               " in "+ (end-start) + "ms ");
             
-            writer.downloadFailed (product.getUuid (), total_bytes_transferred, 
+            writer.downloadFailed (this.uuid, total_bytes_transferred, 
                user.getUsername ());
          }
       }

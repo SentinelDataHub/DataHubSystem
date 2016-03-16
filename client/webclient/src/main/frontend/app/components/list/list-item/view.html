@@ -1,0 +1,228 @@
+<div>
+<!-- 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+-->
+
+<div >
+	
+    
+    <style>
+        .item{
+        	/*height: 100px;*/
+        	width: 100%;
+        	position: relative;
+      		background-color: inherit;
+        	border-top: 1px solid #bdc3c7; 
+   			color: #34495e;
+   			height: 108px;
+   			padding-top: 5px;
+   			cursor: default;
+   			margin-bottom: -5px;
+        }
+
+        .placeholder-image{
+
+			width:            100px;
+			height:           auto;
+			display: block;
+			background-repeat: no-repeat;
+			background-image: url('data:image/jpg;base64,/9j/4AAQSkZJRgABAgAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAA6AEADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDxWUZc1PcriOPn+AfyqKX73/1qlueUjz/dH8q9apJvm7HVFLQS3I2t9KYOX+nFS2yjYxoBxIRXbk3LPEcik1dP8CMUmqfM1cui0lu7hVtomO7O0MegHqeOmRzxWv4e+02OqjNpL5ggYmNlJJycZxwQPbuO+DRpd1bWlu0lw5OwrKiIclWUHDH5SB8xUDnr7HB6qa8hciG2i/eGIFV4Q5OfcdCD+J65ryM0nJYmUHTundXf4u/o/wBTuwkYqip89no7fpY2NPRLm+VmAOxCN+B8zEnPTr3z0711GqSyN8P/ABHDuBVNMuRxnH+rb/A/n3rhdLuUxsVJFTGVZkYAjsQ3Tp+PtkYrpb7UH/4Q/wAQWwwGXTbnepwdv7tuR+FfF4qhKNWPNpZr8z1sTarh3y69TwB+XxU067lj/wB0fyqBv9aQT3qzP9yPv8o/lX3dd2crHgU1e1xbdCEb6VGR+844/rU9scqw9qjK4k6d646VWcJKUXZnVOEZRt0Oz8MCWaJzIQsKkZkd+FwuSfwAX24FbSPNKCoZXCxkeVv5JyAcjkEHKYyQfm5xmuc8OOxhvEd8QbULLkgnntjOfTGOeB7HvYdLnNtG67eEZZI2ZS456FQSCcL155JBAK8+Vjq6p4qU6m7/AMjuoQ58PGCf9XMy0tN8k0s8UTOF3yx7z+7IHAbjJwe5PGSOwNTa1K6eHdW/eIwNjOmFGONhA/D/AD3qzbRvJL5sqoVGOmGY9MgZB9MfgfaoPEEMaeGdSFqxMa2U+AvQgoeegzxjnJzx2rz6k3VcXLudNo01KK7HjUgPmValOY4/90fyqvJy55qdv9SmfT0r7DEatnz9LoPtujfSpQm489ajtSCH+lTxjJry6ztqehQV9GaWmX9xpF6l1bMysAAdpwSOMjPbpXoGn6nPfr+5tpBbAF/P2BcLvzgMODgZyAfXGCdo8+WLKqT6V6P4Ie1j09CEGbcs5fdwrdSPmOAcHOfujnJUcnx8bOL95rVHpQg4U7otxWzT3qqsZkeMAMSeGUkgJjOAeGyTjpiofEtpJF4d1ppBk/Y5mIZTlD5ZBA6d+K1rXVpdkrNYrFBKFcXLh0DufvZI6qAT8p+b5cZyQK5/xNr/AJ+havZw2UzK9nMRJ5RC4CnLAEEgepz36815yVbnWml0Dnzppdjxp8eYf6VPP/q0Ax90VXb75qxOflj/AN0V9/iI2bPnKT2JLRcIw74q1APmAIqtbf6t/pVuDqv1rx670PUw6uzVQYUY9K2dE1C5055mhZQjKSdw4XlcsMc525H4msde30rUsRmOfP8Azy/qK8WtK002rn0FCiqlFxZ3JhluRaGC7VtzbGjl2/u1yG4X+EgEADHG8EletM8SiKXwvrD2kZEKWFwgQMQoUIQCPXjHqefrXOaQi/2toEe0eXJaKHXHDAmUkEd810niMlfAF2ykhv7PkTI67fJPH04HHtWWLoexrQhe+vp1f+R40avNTlLun+R//9k=');
+
+        }
+        /* **** */
+        .header {
+		    display:table; 
+		    width:100%;
+		    margin-top: 10px;
+		}
+		.logo,
+		.attributes {
+		    display:table-cell; 
+		    vertical-align:top;
+		    
+		}
+		.attributes{
+			padding-left: 10px;
+		    font-size: 12px;
+			font-style: italic;
+			line-height: 20px;
+			
+		}
+		.logo{
+			width:60px;
+			height:60px;
+			opacity: 1;
+		}
+		.list-item-title{
+			font-size: 12px;
+		    font-weight: bold;
+		    line-height: 20px;
+		    
+		}
+		.tooltip{
+			background-color: red;
+			position:fixed;
+			z-index:99999999;
+		}
+
+		.item-buttons{
+			position:absolute;
+			bottom:10px;
+			right: 20px;
+	
+		}
+
+		.item-button{
+			margin-left: 15px;
+			cursor: pointer;
+		}
+
+		.item-title{
+			overflow-x: hidden;
+			text-overflow:ellipsis;
+		}
+        /* **** */
+
+        /* marker label */
+        .button.S1 {
+		  background-color: #DC143C;
+		  color: #fff;
+		  font-family: 'Open Sans', Helvetica, sans-serif ;
+		  font-size: 12px;
+		}
+
+		.button.S2 {
+		  background-color: #0f9d58;
+		  color: #fff;
+		  font-family: 'Open Sans', Helvetica, sans-serif ;
+		  font-size: 12px;
+		}
+
+		.button.S3 {
+		  background-color: #191970;
+		  color: #fff;
+		  font-family: 'Open Sans', Helvetica, sans-serif ;
+		  font-size: 12px;
+		}
+
+		.button {
+		  background-color: #505050;
+		  color: #fff;
+		  font-family: 'Open Sans', Helvetica, sans-serif ;
+		  font-size: 12px;
+		}
+
+		.button.raised {            
+		  text-align: center;
+		  line-height: 15px;
+		  height: 15px;
+		  width: 30px; 
+		  margin-top: 0px;
+    	  margin-left: 0px;
+    	  margin-bottom: 3px;
+		  font-family: 'Open Sans', Helvetica, sans-serif ;
+		  font-size: 12px;
+		  padding: 1px 5px 1px 5px;
+		}
+		.list-link {
+			white-space: nowrap;
+			overflow-x: hidden;
+			text-overflow: ellipsis !important;
+		}
+
+		.listrow {
+			margin-top: -5px;
+		}
+
+		.list-attribute-value {
+			color: black;
+		}
+
+		.item-checkbox{
+			display: inline-block;
+		}
+
+		.selected-item{
+			color:green;
+		}
+    </style>
+    
+    <div 
+    	class="item "
+    	ng-click="selectSingleProduct()"
+    	ng-mouseover="hoverIn()"
+    	ng-mouseleave="hoverOut()"
+    	>
+
+    	<div class="row">
+    		<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+		    	<!-- title -->
+		    	<div class="row item-title" >
+		    		<div style="overflow: hidden;text-overflow: ellipsis;white-space: nowrap;">
+		    		<span class="button raised " style="{{product.label_style}}">{{mission}}</span>
+		    		<span ng-if="product.instrument" class="button raised " style="{{product.instrlabel_style}}">{{product.instrument}}</span>
+		    		<span  class="list-item-title"
+		    			
+    					
+		    			title="{{product.identifier}}"
+		    			
+					    >{{product.identifier}}
+		    			
+		    		</span>
+		    		</div>
+		    	</div>
+		    	<!-- content -->
+		    	<div class="row listrow" style="overflow:hidden;text-overflow:ellipsis;">		    		
+		    		<div class="header" style="overflow:hidden;text-overflow:ellipsis;">
+					    <div ng-show="showquicklook"><a class="logo" >
+					        <img ng-if="!product.quicklook" style="opacity:1;" src="images/placeholder.png" alt="quicklook"/>
+					        <img ng-if="product.quicklook" alt="quicklook" ng-src="{{quicklooksrc}}">
+					    </a></div>
+					    <div class="attributes" style="overflow:hidden;text-overflow:ellipsis;">
+					      	<div class="list-link">Download URL: <a class="list-link" style="overflow:hidden;text-overflow:ellipsis;" href="{{link}}">{{link}}</a></div>
+					      	<div title="{{summary}}" style="overflow:hidden;text-overflow:ellipsis; white-space: nowrap;">Mission: <span class="list-attribute-value">{{satellitename}}</span>; Instrument: <span class="list-attribute-value">{{product.instrument}}</span>; Sensing Date: <span class="list-attribute-value">{{date}}</span>; Size: <span class="list-attribute-value">{{size}}</span></div>						      	
+					    </div>    
+					</div>
+
+		    	</div>
+		    </div>
+	    </div>
+	    <!-- buttons -->
+		<div class="item-buttons" ng-show="visibleItemButton">			
+			
+			<!-- <input class=" item-checkbox " ng-model="product.selected"  type="checkbox"> </input> -->
+			<div class="glyphicon" ng-class="{ ' glyphicon-unchecked': !product.selected, 'glyphicon-check': product.selected, 'selected-item': product.selected }"  ng-click="selectProduct(); $event.stopPropagation();" title="Select product"></div>
+
+			
+			<div class="glyphicon glyphicon glyphicon-screenshot item-button" ng-click="zoomTo(product)" title="Zoom to product"></div>
+			<div class="glyphicon glyphicon-eye-open item-button" ng-click="showProductDetails()" title="View Product Details"></div>
+			<div class="glyphicon glyphicon-plus item-button" title="Add Product to Cart" ng-click="addProductToCart()" ng-show="!product.isincart" ng-if="showcart"></div>
+			<div class="glyphicon glyphicon-minus item-button" title="Remove Product from Cart" ng-click="removeProductFromCart()" ng-show="product.isincart" ng-if="showcart"></div>			
+			<div class="glyphicon glyphicon-download-alt item-button" ng-click="downloadProduct()" title="Download Product"></div>
+			<!-- delete product -->
+			<div ng-if="showDeleteButton" class="glyphicon glyphicon-remove item-button" ng-click="deleteProduct()" title="Delete Product"></div>
+			
+		</div>
+    </div>
+
+</div>
+</div>

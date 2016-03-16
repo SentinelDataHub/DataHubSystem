@@ -1,0 +1,370 @@
+<?xml version="1.0"?>
+<!--
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<!DOCTYPE rdf:RDF [
+        <!ENTITY rdf  "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#">
+        <!ENTITY owl  "http://www.w3.org/2002/07/owl#">
+        <!ENTITY s3   "http://www.esa.int/s3#">
+        <!ENTITY drb  "http://www.gael.fr/drb#">
+        <!ENTITY dhus "http://www.gael.fr/dhus#">
+        <!ENTITY img  "http://www.gael.fr/drb/image#">
+        ]>
+
+<rdf:RDF xmlns:owl ="&owl;"
+         xmlns:rdf ="&rdf;"
+         xmlns:rdfs="&rdfs;"
+         xmlns:s3  ="&s3;"
+         xmlns:drb ="&drb;"
+         xmlns:img ="&img;"
+         xmlns:dhus="&dhus;"
+         xml:base  ="&s3;">           
+      
+   <owl:Ontology rdf:about="&s3;"/>                            
+    
+    <rdf:Description rdf:about="&s3;ipf_olci_level_1_2_but_cal">
+      <dhus:metadataTypes rdf:parseType="Literal">
+
+         <metadataType id="salinewaterpixels"
+                       name="Saline Water Pixels (%)"
+                       contentType="text/plain"
+                       category="product">
+           	<solrField name="salinewaterpixels"
+                       type="float"/>
+         </metadataType> 
+         
+         <metadataType id="coastalpixels"
+                       name="Coastal Pixels (%)"
+                       contentType="text/plain"
+                       category="product">
+           	<solrField name="coastalpixels"
+                       type="float"/>
+         </metadataType>
+         
+         <metadataType id="tidalregionpixels"
+                       name="Tidal Region Pixels (%)"
+                       contentType="text/plain"
+                       category="product">
+           	<solrField name="tidalregionpixels"
+                       type="float"/>
+         </metadataType>
+         
+         <metadataType id="freshwaterpixels"
+                       name="Fresh Inland Water Pixels (%)"
+                       contentType="text/plain"
+                       category="product">
+           	<solrField name="freshwaterpixels"
+                       type="float"/>
+         </metadataType>
+         
+         <metadataType id="ecmwf"
+                       name="ECMWF Type"
+                       contentType="text/plain"
+                       category="product">
+           	<solrField name="ecmwf"
+                       type="text_general"/>
+         </metadataType>
+                  
+     </dhus:metadataTypes>
+   </rdf:Description>
+    <rdf:Description rdf:about="&s3;ipf_olci_level_1_2_but_cal">
+    <dhus:support/>
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+         <![CDATA[ 
+                                         
+         declare namespace utils="java:fr.gael.drb.cortex.topic.sentinel3.Sentinel3Utils";
+         
+          declare function local:parseMissingElements($path as item()*) as string*
+         {
+         	for $child in $path
+            return
+              concat("threshold: ",data($child/@threshold),"; value: ", data($child/@*[4]), "; over: ", data($child/@over), "; percentage: ", data($child/@percentage), "%")                                                        
+         };
+                 
+                
+         <!-- OLCI Level 1 and 2 (No Calibration) -->
+          
+         <metadata
+            queryable="salinewaterpixels"
+            category="product" name="Saline Water Pixels (%)" type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="olciProductInformation"]/metadataWrap/xmlData/
+                olciProductInformation/classificationSummary/salineWaterPixels/@percentage)}    
+         </metadata>,
+         
+         <metadata
+            queryable="coastalpixels"
+            category="product" name="Coastal Pixels (%)" type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="olciProductInformation"]/metadataWrap/xmlData/
+                olciProductInformation/classificationSummary/coastalPixels/@percentage)}    
+         </metadata>,
+         
+         <metadata
+            queryable="tidalregionpixels"
+            category="product" name="Tidal Region Pixels (%)" type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="olciProductInformation"]/metadataWrap/xmlData/
+                olciProductInformation/classificationSummary/tidalRegionPixels/@percentage)}    
+         </metadata>,
+         
+         <metadata
+            queryable="freshwaterpixels"
+            category="product" name="Fresh Inland Water Pixels (%)" type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="olciProductInformation"]/metadataWrap/xmlData/
+                olciProductInformation/classificationSummary/freshInlandWaterPixels/@percentage)}    
+         </metadata>,
+                  
+         <metadata
+            queryable="ecmwf"
+            category="product" name="ECMWF Type" type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="olciProductInformation"]/metadataWrap/xmlData/
+                olciProductInformation/ecmwfType)}    
+         </metadata>
+         
+  		 ]]>
+      </dhus:metadataExtractor>   
+    </rdf:Description> 
+    
+    <rdf:Description rdf:about="&s3;ipf_olci_level_1">
+      <dhus:metadataTypes rdf:parseType="Literal">
+
+         <metadataType id="brightpixels"
+                       name="Bright Pixels (%)"
+                       contentType="text/plain"
+                       category="product">
+           	<solrField name="brightpixels"
+                       type="float"/>
+         </metadataType> 
+                  
+     </dhus:metadataTypes>
+   </rdf:Description>
+    <rdf:Description rdf:about="&s3;ipf_olci_level_1">
+    <dhus:support/>
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+         <![CDATA[                                 
+                
+         <!-- OLCI Level 1 -->
+         <metadata
+            queryable="brightpixels"
+            category="product" name="Bright Pixels (%)" type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="olciProductInformation"]/metadataWrap/xmlData/
+                olciProductInformation/classificationSummary/brightPixels/@percentage)}    
+         </metadata>                
+                        
+  		 ]]>
+      </dhus:metadataExtractor>   
+    </rdf:Description>
+    
+   <rdf:Description rdf:about="&s3;ipf_olci_level_1_bw">    
+      <img:descriptor rdf:parseType="Literal">
+         <img:query>
+         <![CDATA[
+         
+         declare function local:listdata()
+         {
+            for $node in *[fn:matches(fn:name(),"BrowseImage.*")]
+            return
+               name($node) 
+         };
+         
+         declare function local:createCollection ()
+         {
+            <img:collection xmlns:img="http://www.gael.fr/drb/image#">
+            {
+               for $data in local:listdata()
+               return
+                  (: look at all BrowseImage files :)
+                  <img:raster name="previews">
+                     <img:source>
+                        {$data}
+                     </img:source>
+                  </img:raster>
+            }
+            </img:collection>
+         };
+         
+         local:createCollection()
+         ]]>
+         </img:query>
+      </img:descriptor>
+    </rdf:Description> 
+    
+    <rdf:Description rdf:about="&s3;ipf_olci_level_2">
+      <dhus:metadataTypes rdf:parseType="Literal">
+
+         <metadataType id="landpixels"
+                       name="Land Pixels (%)"
+                       contentType="text/plain"
+                       category="product">
+           	<solrField name="landpixels"
+                       type="float"/>
+         </metadataType>
+         
+         <metadataType id="cloudypixels"
+                       name="Cloudy Pixels (%)"
+                       contentType="text/plain"
+                       category="product">
+           	<solrField name="cloudypixels"
+                       type="float"/>
+         </metadataType> 
+                  
+     </dhus:metadataTypes>
+   </rdf:Description>
+    <rdf:Description rdf:about="&s3;ipf_olci_level_2">
+    <dhus:support/>
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+         <![CDATA[                                 
+                
+         <!-- OLCI Level 2 -->
+         <metadata
+            queryable="landpixels"
+            category="product" name="Land Pixels (%)" type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="olciProductInformation"]/metadataWrap/xmlData/
+                olciProductInformation/classificationSummary/landPixels/@percentage)}    
+         </metadata>,                
+                       
+         <metadata
+            queryable="cloudypixels"
+            category="product" name="Cloudy Pixels (%)" type="text/plain">
+            {data(xfdumanifest.xml/XFDU/metadataSection/
+                metadataObject[@ID="olciProductInformation"]/metadataWrap/xmlData/
+                olciProductInformation/classificationSummary/cloudyPixels/@percentage)}    
+         </metadata>
+          
+  		 ]]>
+      </dhus:metadataExtractor>   
+    </rdf:Description>    
+    
+    <rdf:Description rdf:about="&s3;ipf_olci_level_2_bw">               
+      
+      <img:descriptor rdf:parseType="Literal">
+         <img:query>
+         <![CDATA[
+         
+         declare function local:listLevel2Data()
+         {
+            for $node in *[fn:matches(fn:name(),".*BrwImage.*")]
+            return
+               name($node) 
+         };
+         
+         declare function local:createLevel2Collection ()
+         {
+            <img:collection xmlns:img="http://www.gael.fr/drb/image#">
+            {
+               for $data in local:listLevel2Data()
+               return
+                  (: look at all BrwImage files :)
+                  <img:raster name="previews">
+                     <img:source>
+                        {$data}
+                     </img:source>
+                  </img:raster>
+            }
+            </img:collection>
+         };
+         
+         local:createLevel2Collection()
+         ]]>
+         </img:query>
+      </img:descriptor>
+      <!-- GEAERATE MOSAIC -->
+      <img:rendering rdf:parseType="Literal">
+         <img:operator name="natural-colors" xmlns:img="&img;">
+            <img:script language="beanshell" version="1.0">
+               // Prepare output mosaic layout
+               ImageLayout layout = new ImageLayout();
+               boolean isLayoutTileSet = false;
+
+               // Prepare variables for building output strip mosaic
+               int i = 0;
+		       int currentWidth = 0;
+		       int currentHeight = 0;
+		       int imageNum=source.getChildren().size();
+		       int numRowCol=(int)Math.ceil(Math.sqrt(imageNum));
+		       ParameterBlock mosaicParameters = new ParameterBlock();
+		       mosaicParameters.add(javax.media.jai.operator.MosaicDescriptor.MOSAIC_TYPE_BLEND);               
+		       for (Object current_component : source.getChildren())
+		       {
+		          // Cast current component as an image
+		          RenderedImage current_image = (RenderedImage)current_component;
+		
+		          // Set layout tile size if not already done
+		          if (!isLayoutTileSet)
+		          {
+		             layout.setTileWidth(current_image.getTileWidth());
+		             layout.setTileHeight(current_image.getTileHeight());
+		             layout.setColorModel(current_image.getColorModel());
+		             layout.setSampleModel(current_image.getSampleModel());
+		
+		             isLayoutTileSet = true;
+		          }
+		
+		          // Translate strip to the output coordinate (vertical shift)
+		          ParameterBlock translateParameters = new ParameterBlock();
+		
+		          translateParameters.addSource(current_image);
+		          translateParameters.add((float) currentWidth);
+		          translateParameters.add((float) currentHeight);
+		          translateParameters.add(new InterpolationNearest());
+		
+		          current_image = JAI.create("translate", translateParameters,
+		             new RenderingHints(JAI.KEY_IMAGE_LAYOUT,layout));
+				  i++;
+		          // Update following strip translation
+		          if (fr.gael.drb.cortex.topic.sentinel3.Sentinel3Utils.isFullResolution (source))
+		          {
+			          if(i%numRowCol!=0)
+			          {
+			        	  currentWidth += current_image.getWidth();		        	  
+			          }
+			          else
+			          {
+			        	  currentWidth=0;
+			        	  currentHeight += current_image.getHeight();
+			          }
+		          }
+		          else
+		          {
+		          		currentWidth += current_image.getWidth();
+		          }		
+		          // Add current strip to the output mosaic
+		          mosaicParameters.addSource(current_image);
+		          
+		
+		       }			   
+               // Create output mosaic
+               quicklook_image = JAI.create("mosaic", mosaicParameters,
+                  new RenderingHints(JAI.KEY_IMAGE_LAYOUT, layout));
+                  
+               return quicklook_image;
+            </img:script>
+         </img:operator>
+      </img:rendering>
+    </rdf:Description> 
+</rdf:RDF>

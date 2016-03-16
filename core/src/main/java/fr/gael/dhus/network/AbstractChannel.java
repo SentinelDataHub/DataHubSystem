@@ -25,14 +25,21 @@ import java.util.concurrent.Semaphore;
 abstract class AbstractChannel implements Channel
 {
    /**
-    * Name (may be null).
-    */
-   private String name = null;
-
-   /**
     * Default channel weight with respects to this channel siblings.
     */
    public static int DEFAULT_WEIGHT = 1;
+
+   /**
+    * A semaphore to wait from parent channel releases of buffer quantum.
+    */
+   private final Semaphore semaphore = new Semaphore(0, true);
+
+   private final Semaphore pokeSemaphore = new Semaphore(0, true);
+
+   /**
+    * Name (may be null).
+    */
+   private String name = null;
 
    /**
     * Weight with respects to this channel siblings.
@@ -45,11 +52,6 @@ abstract class AbstractChannel implements Channel
    private Channel parent = null;
 
    private UserQuotas defaultUserQuotas;
-
-   /**
-    * A semaphore to wait from parent channel releases of buffer quantum.
-    */
-   private final Semaphore semaphore = new Semaphore(0, true);
 
    private int awaitingPermits = 0;
 
@@ -180,7 +182,7 @@ abstract class AbstractChannel implements Channel
          return this.defaultUserQuotas;
       }
 
-      return this.getParent().getUserQuotas(monotonic);
+      return this.getParent().getUserQuotas (monotonic);
    }
 
    /**
@@ -224,8 +226,6 @@ abstract class AbstractChannel implements Channel
    {
       return this.semaphore.availablePermits();
    }
-
-   private final Semaphore pokeSemaphore = new Semaphore(0, true);
 
    @Override
    public void poke()

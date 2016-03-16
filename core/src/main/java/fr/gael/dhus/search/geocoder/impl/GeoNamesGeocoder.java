@@ -27,13 +27,13 @@ import org.geonames.ToponymSearchResult;
 import org.geonames.WebService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import fr.gael.dhus.search.geocoder.AbstractGeocoder;
+import fr.gael.dhus.search.geocoder.Geocoder;
 import fr.gael.dhus.system.config.ConfigurationManager;
 
 /**
  * A Geocoder implementation based on GeoName Web Service.
  */
-public class GeoNamesGeocoder extends AbstractGeocoder
+public class GeoNamesGeocoder implements Geocoder
 {
    /**
     * A logger for this class.
@@ -54,7 +54,8 @@ public class GeoNamesGeocoder extends AbstractGeocoder
    public GeoNamesGeocoder()
    {
       // Set GeoName user name
-      WebService.setUserName(cfgManager.getGeonameConfiguration ().getUsername ());
+      WebService.setUserName(cfgManager.getGeonameConfiguration ()
+            .getUsername ());
    }
 
    @Override

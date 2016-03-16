@@ -1,0 +1,105 @@
+<div>
+<!-- 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+-->
+<div>
+  <style>
+    #collDetailsView {
+      margin-top: 20px
+    }
+   #collDetailsView   .group            { 
+      position:relative; 
+      margin-bottom:45px; 
+    }
+
+    #collDetailsView   .checkFunction  { 
+      top: -5px; 
+    }
+    #collDetailsView input               {
+      font-size:13px;
+      padding:2px;
+      display:block;
+      width:100%;
+      border:none;
+      border-bottom:1px solid #757575;
+    }
+    #collDetailsView input:focus         { outline:none; }
+
+    /* LABEL ======================================= */
+    #collDetailsView label                {
+      color:#999; 
+      font-size:13px;
+      font-weight:normal;
+      position:absolute;
+      pointer-events:none;  
+      top:-20px;
+      transition:0.2s ease all; 
+      -moz-transition:0.2s ease all; 
+      -webkit-transition:0.2s ease all;
+    }
+
+    /* active state */
+    #collDetailsView input:focus ~ .lbl-field, #collDetailsView input:valid ~ .lbl-field, #collDetailsView input:invalid ~ .lbl-field  {      
+      font-size:13px;
+      color: rgb(55, 59, 80);
+    }
+
+    #collDetailsView input:invalid ~ .invalid-field{
+        display: inline-block !important;
+    }
+
+    #collDetailsView .invalid-field {
+      display:none;
+      color: rgb(255,110,64);
+      top: 30px;
+      font-size: 9px;
+    }
+
+    #collDetailsView .coll-details{
+      border: 1px solid;
+      margin-bottom: 30px;
+    }   
+    
+  </style>    
+  <div id="collDetailsView">
+    <div class="row">
+      <div class="col-md-6 group">  
+        <input id="coll-detail-name" type="text" ng-model="collection.name" value="collection.name" ng-blur="checkName()" ng-readonly="disableField">
+        <span class="highlight"></span>
+        <span class="bar"></span>
+        <label class="lbl-field">Name</label> 
+        <label class="invalid-field" id="collcheckName">Name is empty</label>                         
+      </div>
+      <div class="col-md-6 group">
+        <input type="text" ng-model="collection.parent.name" value="collection.parent.name" readonly="true">              
+        <label class="lbl-field">Parent</label>
+      </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12 col-sd-12 col-xs-12 ">
+          <label class="lbl-field">Description</label>
+          <textarea class="coll-details form-control" ng-model="collection.description" rows="2" ng-readonly="disableField"></textarea>
+        </div>
+    </div>    
+  </div>
+</div>
+</div>

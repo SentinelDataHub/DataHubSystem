@@ -28,6 +28,14 @@ import fr.gael.dhus.database.object.User.PasswordEncryption;
 public class EncryptPassword
 {
 
+   /**
+    * Hide utility class constructor
+    */
+   private EncryptPassword ()
+   {
+
+   }
+
    public static String encrypt (String password, PasswordEncryption encryption)
       throws EncryptPasswordException
    {
@@ -38,7 +46,8 @@ public class EncryptPassword
             MessageDigest md =
                MessageDigest.getInstance (encryption.getAlgorithmKey ());
             password =
-               new String (Hex.encode (md.digest (password.getBytes ("UTF-8"))));
+               new String (
+                     Hex.encode (md.digest (password.getBytes ("UTF-8"))));
          }
          catch (Exception e)
          {

@@ -129,6 +129,18 @@ public class Search
    @Override
    public boolean equals (Object o)
    {
-      return o instanceof Search && ((Search) o).id.equals (this.id);
+      if (this == o) return true;
+      if (!(o instanceof Search)) return false;
+
+      Search search = (Search) o;
+
+      return !(id != null ? !id.equals (search.id) : search.id != null);
+
+   }
+
+   @Override
+   public int hashCode ()
+   {
+      return id != null ? id.hashCode () : 0;
    }
 }

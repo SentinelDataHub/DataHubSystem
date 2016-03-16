@@ -22,54 +22,35 @@ package fr.gael.dhus.spring.security.handler;
 import java.io.IOException;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import fr.gael.dhus.spring.security.CookieKey;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import fr.gael.dhus.database.dao.ActionRecordWritterDao;
 import fr.gael.dhus.spring.context.SecurityContextProvider;
+import fr.gael.dhus.spring.security.authentication.ProxyWebAuthenticationDetails;
 
 @Component
 public class LogoutSuccessHandler implements
    org.springframework.security.web.authentication.logout.LogoutSuccessHandler
 {
-   private static final Log logger = LogFactory
+   private static final Log LOGGER = LogFactory
       .getLog (LogoutSuccessHandler.class);
-
-   @Autowired
-   private ActionRecordWritterDao arwDao;
 
    @Override
    public void onLogoutSuccess (HttpServletRequest request,
       HttpServletResponse response, Authentication authentication)
       throws IOException, ServletException
    {
-      String ip = request.getHeader ("X-Forwarded-For");
-      if (ip == null) ip = request.getRemoteAddr ();
+      String ip = ProxyWebAuthenticationDetails.getRemoteIp(request);
       String name = authentication==null?"unknown":authentication.getName ();
       
-      logger.info ("Connection closed by '" + name + "' from " + ip);
-
-      Cookie[] cookies = request.getCookies ();
-      if (cookies == null)
-         return;
-
-      for (Cookie cookie : cookies)
-      {
-         if (cookie.getName ().equals (CookieKey.INTEGRITY_COOKIE_NAME))
-         {
-            SecurityContextProvider.context.remove (cookie.getValue ());
-         }
-         cookie.setMaxAge (0);
-         response.addCookie (cookie);
-      }
+      LOGGER.info ("Connection closed by '" + name + "' from " + ip);
+      SecurityContextProvider.logout ((String)request.getSession ().getAttribute ("integrity")); 
+      
       request.getSession ().invalidate ();
    }
 }

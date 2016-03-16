@@ -33,15 +33,35 @@ import fr.gael.dhus.server.http.TomcatServer;
 
 /**
  * Abstract class defining WebService and install all of them in Server.
- * 
- * @author valette
+ * Deprecated: shall be removed when GWT is removed from this project.
  */
+@Deprecated
 public abstract class WebServlet implements InitializingBean
 {
    private static Log logger = LogFactory.getLog (WebServlet.class);
 
    private static List<WebServlet> registeredClass =
       new ArrayList<WebServlet> ();
+
+   /**
+    * Servlet used in this WebServlet.
+    */
+   protected Servlet servlet;
+   /**
+    * Servlet name.
+    */
+   protected String servletName;
+   /**
+    * Url base of this WebApplication. Empty for root.
+    */
+   protected String urlBase;
+
+   protected boolean loadOnStartup = false;
+
+   /**
+    * Url pattern of this WebApplication.
+    */
+   protected String urlPattern;
 
    /**
     * Install all registered WebServices in Server.
@@ -68,26 +88,6 @@ public abstract class WebServlet implements InitializingBean
       registeredClass.add (this);
       init ();
    }
-
-   /**
-    * Servlet used in this WebServlet.
-    */
-   protected Servlet servlet;
-   /**
-    * Servlet name.
-    */
-   protected String servletName;
-   /**
-    * Url base of this WebApplication. Empty for root.
-    */
-   protected String urlBase;
-   
-   protected boolean loadOnStartup = false;
-   
-   /**
-    * Url pattern of this WebApplication.
-    */
-   protected String urlPattern;
 
    public Servlet getServlet ()
    {

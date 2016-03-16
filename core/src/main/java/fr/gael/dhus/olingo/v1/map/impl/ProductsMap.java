@@ -51,7 +51,8 @@ public class ProductsMap extends AbstractDelegatingMap<String, Product>
 {
    private static Logger logger = LogManager.getLogger (ProductsMap.class
       .getName ());
-   private final OlingoManager olingoManager = ApplicationContextProvider.getBean (OlingoManager.class);
+   private final OlingoManager olingoManager = ApplicationContextProvider
+         .getBean (OlingoManager.class);
    private final ProductService productService = ApplicationContextProvider
          .getBean (ProductService.class);
    private final FilterExpression filter;
@@ -68,11 +69,11 @@ public class ProductsMap extends AbstractDelegatingMap<String, Product>
    }
 
    /** Private constructor used by {@link ProductsMap#getSubMapBuilder()}. */
-   private ProductsMap (FilterExpression filter, OrderByExpression orderBy,
+   private ProductsMap (FilterExpression filter, OrderByExpression order,
       int skip, int top)
    {
       this.filter = filter;
-      this.orderBy = orderBy;
+      this.orderBy = order;
       this.skip = skip;
       this.top = top;
    }
@@ -86,13 +87,16 @@ public class ProductsMap extends AbstractDelegatingMap<String, Product>
          final List<fr.gael.dhus.database.object.Product> products =
             olingoManager.getProducts (u, filter, orderBy, skip, top);
 
-         List<Product> prods = new ArrayList<Product> ();
+         List<Product> prods = new ArrayList<> ();
          Iterator<fr.gael.dhus.database.object.Product> it =
             products.iterator ();
          while (it.hasNext ())
          {
             fr.gael.dhus.database.object.Product p = it.next ();
-            prods.add (Product.fromDatabase (p));
+            if (p != null)
+            {
+               prods.add (new Product (p));
+            }
          }
 
          return prods.iterator ();
@@ -121,10 +125,12 @@ public class ProductsMap extends AbstractDelegatingMap<String, Product>
    @Override
    protected Product serviceGet (String key)
    {
-      User u = V1Util.getCurrentUser ();
       try
       {
-         return Product.fromDatabase (productService.getProduct (key, u));
+         fr.gael.dhus.database.object.Product p =
+            productService.getProduct (key);
+         if (p == null) return null;
+         return new Product (p);
       }
       catch (ProductNotExistingException e)
       {

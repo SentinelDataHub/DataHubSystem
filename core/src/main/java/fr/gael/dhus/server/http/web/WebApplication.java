@@ -19,6 +19,13 @@
  */
 package fr.gael.dhus.server.http.web;
 
+import com.google.common.io.Files;
+import fr.gael.dhus.server.http.TomcatServer;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.InitializingBean;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -31,26 +38,33 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.InitializingBean;
-
-import com.google.common.io.Files;
-
-import fr.gael.dhus.server.http.TomcatServer;
-
 /**
  * Abstract class defining WebApplication and install all of them in Server.
- * 
- * @author valette
+ * Deprecated: use {@link fr.gael.dhus.server.http.WebApplication} instead. 
+ * This abstract class shall be removed when GWT is removed from this project.
  */
+@Deprecated
 public abstract class WebApplication implements InitializingBean
 {
    private static Log logger = LogFactory.getLog (WebApplication.class);
    
    private static List<WebApplication> registeredClass =
-      new ArrayList<WebApplication> ();
+      new ArrayList<> ();
+
+   /**
+    * Name of this WebApplication. Empty for root.
+    */
+   protected String name;
+   /**
+    * Servlets defined by this WebApplication.
+    */
+   protected List<WebServlet> servlets;
+   /**
+    * Welcomes files of this WebApplication.
+    */
+   protected List<String> welcomeFiles;
+   protected String allowIps;
+   protected String denyIps;
 
    /**
     * Install all registered WebApplications in Server.
@@ -106,22 +120,6 @@ public abstract class WebApplication implements InitializingBean
       init ();
    }
 
-   /**
-    * Name of this WebApplication. Empty for root.
-    */
-   protected String name;
-   /**
-    * Servlets defined by this WebApplication.
-    */
-   protected List<WebServlet> servlets;
-   /**
-    * Welcomes files of this WebApplication.
-    */
-   protected List<String> welcomeFiles;
-   
-   protected String allowIps;
-   protected String denyIps;
-
    public String getName ()
    {
       return name;
@@ -136,15 +134,15 @@ public abstract class WebApplication implements InitializingBean
    {
       return welcomeFiles;
    }
-   
-   public String getAllow()
+
+   public String getAllow ()
    {
-	   return allowIps;
+      return allowIps;
    }
-   
-   public String getDeny()
+
+   public String getDeny ()
    {
-	   return denyIps;
+      return denyIps;
    }
 
    /**
@@ -167,7 +165,7 @@ public abstract class WebApplication implements InitializingBean
       return true;
    }
    
-   public void configure(String destFolder) throws IOException {}
+   public void configure(String dest_folder) throws IOException {}
    
    /** Utils functions **/   
    protected void copyFolder(File from, File to) throws IOException
@@ -186,30 +184,41 @@ public abstract class WebApplication implements InitializingBean
       }
    }
    
-   protected void extractJarFolder(URL url, String configurationFolder, String destFolder) throws IOException 
+   protected void extractJarFolder(URL url, String configuration_folder,
+         String dest_folder) throws IOException
    {
       final JarURLConnection connection =
                (JarURLConnection) url.openConnection();
       if (connection != null)
       {
          Enumeration<JarEntry> entries = connection.getJarFile ().entries ();
-         while (entries.hasMoreElements()) {
+         while (entries.hasMoreElements())
+         {
            JarEntry entry = (JarEntry)entries.nextElement();
-           if (!entry.isDirectory() && entry.getName().startsWith (configurationFolder)) {
+           if (!entry.isDirectory() && entry.getName().startsWith (
+                 configuration_folder))
+           {
              InputStream in = connection.getJarFile ().getInputStream(entry);
-             try {
-               File file = new File(destFolder, entry.getName ().substring (configurationFolder.length ()));
+             try
+             {
+               File file = new File(dest_folder, entry.getName ().substring (
+                     configuration_folder.length ()));
                if (!file.getParentFile().exists ())
                {
                   file.getParentFile().mkdirs ();
                }
                OutputStream out = new FileOutputStream(file);
-               try {
+               try
+               {
                  IOUtils.copy(in, out);
-               } finally {
+               }
+               finally
+               {
                  out.close();
                }
-             } finally {
+             }
+             finally
+             {
                in.close();
              }
            }

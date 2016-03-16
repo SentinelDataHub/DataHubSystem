@@ -17,6 +17,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+/**
+ * 
+ */
 package fr.gael.dhus.search;
 
 import java.util.ArrayList;
@@ -34,14 +37,13 @@ import org.apache.commons.logging.LogFactory;
  */
 public class SolrQueryParser
 {
+   public static final int INDEX_ALL     = 0;
+   public static final int INDEX_FOOTER  = 1;
+   public static final int INDEX_FIELD   = 2;
+   public static final int INDEX_VALUE   = 3;
+   public static final int INDEX_TRAILER = 4;
+
    private static Log logger = LogFactory.getLog (SolrQueryParser.class);
-   
-   public final static int INDEX_ALL     = 0;
-   public final static int INDEX_FOOTER  = 1;
-   public final static int INDEX_FIELD   = 2;
-   public final static int INDEX_VALUE   = 3;
-   public final static int INDEX_TRAILER = 4;
-   
    
    private static String pfooter     = "([+-]?)";
    private static String pfield      = "(?:([\\w+\\*\\?]+):)?"; 
@@ -58,15 +60,24 @@ public class SolrQueryParser
    
    private static String ptrail = "((?:\\~|\\^)[\\d\\.]*)?";
 
-   private final static Pattern pattern = Pattern.compile(pfooter+pfield+pkey+ptrail);
+   private static final Pattern PATTERN = Pattern.compile(
+         pfooter + pfield + pkey + ptrail);
+
+   /**
+    * Hide utility class constructor
+    */
+   private SolrQueryParser ()
+   {
+
+   }
    
    public static List<String[]>parse (String query)
    {
       logger.debug ("Matching query : \"" + query + "\"");
       
       List<String[]>list = new ArrayList<String[]>();
-      Matcher matcher = pattern.matcher(query.trim());
-      
+      Matcher matcher = PATTERN.matcher(query.trim());
+
       while (matcher.find())
       {
          String[] strs = new String[5];

@@ -27,10 +27,14 @@ import java.lang.annotation.Target;
 
 import org.springframework.stereotype.Component;
 
+import fr.gael.dhus.server.http.WebApp;
+
 /**
  * @Interface used by Spring to launch initialization.
- * @author valette
+ * Deprecated: use {@link WebApp} instead.
+ * This @interface shall be removed when GWT is removed from this project.
  */
+@Deprecated
 @Target ({ ElementType.TYPE })
 @Retention (RetentionPolicy.RUNTIME)
 @Documented

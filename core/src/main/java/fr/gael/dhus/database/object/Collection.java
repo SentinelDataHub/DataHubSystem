@@ -37,9 +37,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
-
 /**
  * Collection is a set of products.
  */
@@ -47,14 +44,11 @@ import org.hibernate.annotations.CascadeType;
 @Table (name = "COLLECTIONS")
 public class Collection implements Serializable
 {
-   /**
-    * serial ID
-    */
+   public static final String HIDDEN_PREFIX = "#.";
+   public static final String ROOT_NAME = HIDDEN_PREFIX+"root";
+
    private static final long serialVersionUID = 6480328554272776667L;
 
-   final public static String HIDDEN_PREFIX = "#.";
-   final public static String ROOT_NAME = HIDDEN_PREFIX+"root";
-   
    @Id
    @GeneratedValue (strategy = GenerationType.AUTO)
    @Column (name = "ID")
@@ -180,11 +174,11 @@ public class Collection implements Serializable
    }
 
    /**
-    * @param authorizedUsers the authorizedUsers to set
+    * @param authorized_users the authorizedUsers to set
     */
-   public void setAuthorizedUsers (Set<User> authorizedUsers)
+   public void setAuthorizedUsers (Set<User> authorized_users)
    {
-      this.authorizedUsers = authorizedUsers;
+      this.authorizedUsers = authorized_users;
    }
 
    /**

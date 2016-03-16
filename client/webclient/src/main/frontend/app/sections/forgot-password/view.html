@@ -1,0 +1,218 @@
+<div>
+<!-- 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+-->
+<style type="text/css">
+.user-button {
+    background-color: rgb(55, 59, 80)!important;
+    vertical-align: middle;
+    margin-top: 12px;
+    line-height: 20px;
+    font-size: 14px;
+    margin-left: 20px;
+    position: relative;
+    float: right;
+    padding: 10px;
+    cursor: pointer;
+    color:white;
+    text-decoration: none;
+
+}
+.user-button:hover{
+    color:white;
+    text-decoration: none;
+}
+.user-button:visited{
+    color:white;
+    text-decoration: none;
+}
+
+h3{
+  text-align: center;
+}
+hr{
+  width: 80%;
+  border: 0px;
+}
+
+.group            { 
+  position:relative; 
+  margin-bottom:35px; 
+}
+input               {
+  font-size:13px;
+  padding:10px 10px 10px 5px;
+  display:block;
+  width:100%;
+  border:none;
+  border-bottom:1px solid #757575;
+}
+input:focus         { outline:none; }
+
+/* LABEL ======================================= */
+label                {
+  color:#999; 
+  font-size:13px;
+  font-weight:normal;
+  position:absolute;
+  pointer-events:none;  
+  top:-15px;
+  display: none;
+  transition:0.2s ease all; 
+  -moz-transition:0.2s ease all; 
+  -webkit-transition:0.2s ease all;
+}
+
+
+input:invalid ~ .invalid-field{
+    display: inline-block !important;
+}
+
+.invalid-field {
+  display:none;
+  color: rgb(255,110,64);
+  top: 45px;
+  font-size: 9px;
+}
+
+
+/* BOTTOM BARS ================================= */
+.bar    { position:relative; display:block; width:100%; }
+.bar:before, .bar:after     {
+  content:'';
+  height:2px; 
+  width:0;
+  bottom:1px; 
+  position:absolute;
+  background:rgb(55, 59, 80); 
+  transition:0.2s ease all; 
+  -moz-transition:0.2s ease all; 
+  -webkit-transition:0.2s ease all;
+}
+.bar:before {
+  left:50%;
+}
+.bar:after {
+  right:50%; 
+}
+
+/* active state */
+input:focus ~ .bar:before, input:focus ~ .bar:after {
+  width:50%;
+}
+
+/* HIGHLIGHTER ================================== */
+.highlight {
+  position:absolute;
+  height:60%; 
+  width:100px; 
+  top:25%; 
+  left:0;
+  pointer-events:none;
+  opacity:0.5;
+}
+
+/* active state */
+input:focus ~ .highlight {
+  -webkit-animation:inputHighlighter 0.3s ease;
+  -moz-animation:inputHighlighter 0.3s ease;
+  animation:inputHighlighter 0.3s ease;
+}
+
+
+/* ANIMATIONS ================ */
+@-webkit-keyframes inputHighlighter {
+    from { background:rgb(55, 59, 80); }
+  to    { width:0; background:transparent; }
+}
+@-moz-keyframes inputHighlighter {
+    from { background:rgb(55, 59, 80); }
+  to    { width:0; background:transparent; }
+}
+@keyframes inputHighlighter {
+    from { background:rgb(55, 59, 80); }
+  to    { width:0; background:transparent; }
+}
+
+.gotomap {
+  top: 20px;
+}
+
+</style>
+<div class="container">
+  <div class="row">  
+    <div class="col-md-1 "></div>  
+    <div class="col-md-10 col-sd-8 col-xs-8">
+      <h3>Forgot Password</h3>
+    </div>
+    <div class="col-md-1 col-sd-3 col-xs-3 gotomap"><gotomap-button></gotomap-button></div>
+  </div>
+  <hr></hr>
+  <div class="row">
+    <div class="col-md-12">
+      <b>Please fill this form to receive a link that will allow you to set a new password. </b>
+    </div>
+  </div>
+  <hr></hr>
+  
+  <div class="row">
+    <div class="group col-md-6">      
+      <div > 
+        <input type="text" ng-model="user.username" value="user.username" ng-change="checkUsername()"  class="form-control" placeholder="Username">
+        <span class="highlight"></span>
+        <span class="bar"></span>
+        <label id="usernameLbl">Username</label>
+        <span class="invalid-field" id="checkUsername">Username empty</span>
+      </div>
+    </div>    
+  </div>  
+
+  <hr></hr>  
+  
+
+  <div class="row">
+    <div class="group col-md-6">      
+      <input  id="email" type="text" ng-model="user.email" value="user.email" ng-change="checkEmail()" class="form-control" placeholder="E-mail">
+      <span class="highlight"></span>
+      <span class="bar"></span>
+      <label id="emailLbl">E-mail</label> 
+      <span class="invalid-field" id="checkEmail">E-mail not valid</span>     
+    </div>
+    <div class="group col-md-6">      
+      <input id="confirmemail" type="text" ng-model="user.confirmemail" ng-change="checkConfimEmail()" class="form-control" placeholder="Confirm E-mail">
+      <span class="highlight"></span>
+      <span class="bar"></span>
+      <label id="confirmEmailLbl"l>Confirm E-mail</label>
+      <span class="invalid-field" id="checkConfirmEmail">E-mail doesn't match</span>      
+    </div>
+  </div> 
+
+  <hr></hr>
+
+  <div class="row" style="text-align:right">
+     <div class="user-button" ng-click="retrievePassword()">SEND</div>
+  </div>
+
+  <hr></hr>
+  
+</div>
+</div>

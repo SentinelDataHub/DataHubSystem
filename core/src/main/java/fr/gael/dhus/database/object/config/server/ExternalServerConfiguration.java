@@ -19,7 +19,8 @@
  */
 package fr.gael.dhus.database.object.config.server;
 
-public class ExternalServerConfiguration extends AbstractExternalServerConfiguration
+public class ExternalServerConfiguration extends
+      AbstractExternalServerConfiguration
 {
    @Override
    public String getPath ()

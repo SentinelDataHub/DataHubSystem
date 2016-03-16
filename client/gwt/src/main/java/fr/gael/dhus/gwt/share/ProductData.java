@@ -21,9 +21,9 @@ package fr.gael.dhus.gwt.share;
 
 import java.util.ArrayList;
 
-
 import org.gwtopenmaps.openlayers.client.feature.VectorFeature;
 import org.gwtopenmaps.openlayers.client.geometry.LinearRing;
+import org.gwtopenmaps.openlayers.client.geometry.MultiPolygon;
 import org.gwtopenmaps.openlayers.client.geometry.Point;
 import org.gwtopenmaps.openlayers.client.geometry.Polygon;
 
@@ -37,7 +37,7 @@ public class ProductData implements IsSerializable
    private Long id;
    private String uuid;
    private String identifier;
-   private Double[][] footprint;
+   private Double[][][] footprint;
    private ArrayList<String> summary;
    private ArrayList<MetadataIndexData> indexes;
    private boolean thumbnail;
@@ -77,12 +77,12 @@ public class ProductData implements IsSerializable
    /**
     * Footprint of this product stored as d[0]=latitude, d[1]=longitude. 
     */
-   public Double[][] getFootprint ()
+   public Double[][][] getFootprint ()
    {
       return footprint;
    }
 
-   public void setFootprint (Double[][] footprint)
+   public void setFootprint (Double[][][] footprint)
    {
       this.footprint = footprint;
    }
@@ -163,22 +163,33 @@ public class ProductData implements IsSerializable
    }
    
    
-   public static JavaScriptObject getJsFootprintLayer (Double[][] footprint)
+   public static JavaScriptObject getJsFootprintLayer (Double[][][] polygons, boolean invert)
    {
-      if (footprint != null && footprint.length > 0)
-      {                           
-         Point[] pts = new Point[footprint.length];
-         int i = 0;
-         for (Double[] d : footprint)
-         {                              
-            // x=longitude
-            // y=latitude
-            pts[i] = new Point (d[0], d[1]);
-            i++;
+      if (polygons != null && polygons.length > 0)
+      {        
+         Polygon[] polys = new Polygon[polygons.length];
+         int pid = 0;
+         for (Double[][] footprint : polygons)
+         {             
+            if (footprint != null && footprint.length > 0)
+            {
+               Point[] pts = new Point[footprint.length];
+               int i = 0;
+               for (Double[] d : footprint)
+               {            
+                  // x=longitude
+                  // y=latitude
+                  pts[i] = invert ? new Point (d[1], d[0]) : new Point (d[0], d[1]);
+                  i++;
+               }
+               LinearRing fp = new LinearRing (pts);
+               Polygon poly = new Polygon (new LinearRing[] { fp });
+               polys[pid] = poly;
+               pid++;
+            }            
          }
-         LinearRing fp = new LinearRing (pts);
-         Polygon poly = new Polygon (new LinearRing[] { fp });
-         return new VectorFeature (poly).getJSObject ();
+         MultiPolygon res = new MultiPolygon (polys);
+         return new VectorFeature (res).getJSObject ();
       }
       else 
          return null;

@@ -35,7 +35,8 @@ public class SendEvictionListJob extends AbstractJob
    }
 
    @Override
-   protected void executeInternal (JobExecutionContext context) throws JobExecutionException
+   protected void executeInternal (JobExecutionContext context) throws
+         JobExecutionException
    {
       // Email product list to be evicted
    }

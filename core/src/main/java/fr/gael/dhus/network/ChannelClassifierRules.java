@@ -85,11 +85,11 @@ class ChannelClassifierRules
    }
 
    /**
-    * @param emailPattern the emailPattern to set
+    * @param email_pattern the emailPattern to set
     */
-   void setEmailPattern(String emailPattern)
+   void setEmailPattern(String email_pattern)
    {
-      this.emailPattern = emailPattern;
+      this.emailPattern = email_pattern;
    }
 
    /**
@@ -101,11 +101,11 @@ class ChannelClassifierRules
    }
 
    /**
-    * @param serviceName the serviceName to set
+    * @param service_name the serviceName to set
     */
-   void setServiceName(String serviceName)
+   void setServiceName(String service_name)
    {
-      this.serviceName = serviceName;
+      this.serviceName = service_name;
    }
 
    @Override

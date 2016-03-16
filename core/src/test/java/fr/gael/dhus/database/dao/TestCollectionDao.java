@@ -1,22 +1,22 @@
 package fr.gael.dhus.database.dao;
 
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
 import fr.gael.dhus.database.dao.interfaces.HibernateDao;
 import fr.gael.dhus.database.object.Collection;
 import fr.gael.dhus.database.object.Product;
 import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.util.CheckIterator;
 import fr.gael.dhus.util.TestContextLoader;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.Rollback;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
 
 @ContextConfiguration (
       locations = "classpath:fr/gael/dhus/spring/context-test.xml",
@@ -219,37 +219,6 @@ public class TestCollectionDao extends
       Assert.assertEquals (collection.getId ().intValue (), 4);
    }
 
-   @Test (dependsOnMethods = "contains")
-   public void addProduct ()
-   {
-      long productId = 0;
-      long collectionId = 5;
-      long collectionParentId = 2;
-
-      Assert.assertFalse (dao.contains (collectionId, productId));
-      dao.addProduct (collectionId, productId);
-      Assert.assertTrue (dao.contains (collectionId, productId));
-      Assert.assertTrue (dao.contains (collectionParentId, productId));
-   }
-
-   @Test (dependsOnMethods = "addProduct")
-   public void addProducts ()
-   {
-      Long[] productIds = { 0L, 2L, 5L };
-      long collectionId = 5;
-      long collectionParentId = 2;
-
-      for (Long pid : productIds)
-      {
-         Assert.assertFalse (dao.contains (collectionId, pid));
-      }
-      dao.addProducts (collectionId, productIds);
-      for (Long pid : productIds)
-      {
-         Assert.assertTrue (dao.contains (collectionParentId, pid));
-      }
-   }
-
    @Test
    public void contains ()
    {
@@ -277,17 +246,15 @@ public class TestCollectionDao extends
    {
       long collectionId = 1;
       long userId = 2;
-      String filter = "p.processed IS TRUE AND p.locked IS FALSE";
+      String filter = "p.created > '2014-06-07 00:00:00'";
       Collection collection = dao.read (collectionId);
       User user = udao.read (userId);
 
-      Assert.assertEquals (dao.countAuthorizedProducts (user, collection), 4);
+      Assert.assertEquals (dao.countAuthorizedProducts (user, collection), 2);
       Assert.assertEquals (
-            dao.countAuthorizedProducts (user, collection, filter), 2);
-      Assert.assertEquals (dao.countAuthorizedProducts (null, collection), 5);
-      Assert.assertEquals (dao.countAuthorizedProducts (user, null), 4);
-      Assert
-            .assertEquals (dao.countAuthorizedProducts (null, null), 7);
+            dao.countAuthorizedProducts (user, collection, filter), 1);
+      Assert.assertEquals (dao.countAuthorizedProducts (null, collection), 2);
+      Assert.assertEquals (dao.countAuthorizedProducts (null, null), 4);
    }
 
    @Test
@@ -356,6 +323,7 @@ public class TestCollectionDao extends
       Product p0 = pdao.read (0L);
       Product p5 = pdao.read (5L);
       Product p6 = pdao.read (6L);
+      Product p7 = pdao.read (7L);
 
       Assert.assertNotNull (products);
       Assert.assertEquals (products.size (), 2);
@@ -365,8 +333,9 @@ public class TestCollectionDao extends
       products =
             dao.getAuthorizedProducts (user, null, filter, orderBy, skip, top);
       Assert.assertNotNull (products);
-      Assert.assertEquals (products.size (), 1);
-      Assert.assertTrue (products.contains (p0));
+      Assert.assertEquals (products.size (), 2);
+      Assert.assertTrue (products.contains (p5));
+      Assert.assertTrue (products.contains (p6));
 
       products = dao.getAuthorizedProducts (null, collection);
       Assert.assertNotNull (products);
@@ -376,10 +345,11 @@ public class TestCollectionDao extends
 
       products = dao.getAuthorizedProducts (null, null, filter, null, 0, 5);
       Assert.assertNotNull (products);
-      Assert.assertEquals (products.size (), 3);
+      Assert.assertEquals (products.size (), 4);
       Assert.assertTrue (products.contains (p0));
       Assert.assertTrue (products.contains (p5));
       Assert.assertTrue (products.contains (p6));
+      Assert.assertTrue (products.contains (p7));
    }
 
    @Test (dependsOnMethods = "countAuthorizedSubCollection")
@@ -449,7 +419,7 @@ public class TestCollectionDao extends
       User user = udao.read (uid);
       List<Long> pids = dao.getProductIds (cid, user);
       Assert.assertNotNull (pids);
-      Assert.assertEquals (pids.size (), 4);
+      Assert.assertEquals (pids.size (), 5);
       Assert.assertTrue (pids.contains (0L));
       Assert.assertTrue (pids.contains (2L));
       Assert.assertTrue (pids.contains (3L));

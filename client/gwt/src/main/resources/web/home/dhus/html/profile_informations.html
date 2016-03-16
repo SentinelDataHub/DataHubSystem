@@ -120,6 +120,12 @@
 			width: 192px;
 		}
 		
+		#profileInfos_country
+		{
+			height: 18px;
+			width: 192px;
+		}
+		
 		#profileInfos_subDomainLabel
 		{
 			display: none;
@@ -461,8 +467,10 @@
 			</div>	
 			<div class="profileInfos_line">
 				<div class="profileInfos_label">Country *</div>
-				<input type="text" name="profileInfos_country" id="profileInfos_country" class="profileInfos_field" 
-					onkeyup="profileInfos_validateCountry()"/>
+				<select name="profileInfos_country" id="profileInfos_country" class="profileInfos_field" 
+					onChange="profileInfos_validateCountry()">
+					<option disabled selected></option>
+				</select>
 			</div>	
 			<div class="profileInfos_line">
 				<div class="profileInfos_label">Address</div>

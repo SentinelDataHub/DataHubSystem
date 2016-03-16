@@ -108,8 +108,8 @@ class Regulator
          try
          {
             regulator.configure(((ConfigurationManager)
-               ApplicationContextProvider.getBean (ConfigurationManager.class)).
-               getNetworkConfiguration ());
+               ApplicationContextProvider.getBean (ConfigurationManager.class))
+                  .getNetworkConfiguration ());
          }
          catch (Exception exception)
          {
@@ -294,7 +294,8 @@ class Regulator
     * @param direction
     * @return
     */
-   public int countUserChannels(final User user, final TrafficDirection direction)
+   public int countUserChannels(final User user,
+         final TrafficDirection direction)
    {
       if (direction == null)
       {

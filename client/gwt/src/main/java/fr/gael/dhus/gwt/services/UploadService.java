@@ -25,24 +25,25 @@ import java.util.List;
 import com.google.gwt.user.client.rpc.RemoteService;
 
 import fr.gael.dhus.gwt.share.FileScannerData;
+import fr.gael.dhus.gwt.share.exceptions.AccessDeniedException;
 import fr.gael.dhus.gwt.share.exceptions.UploadServiceException;
 
 public interface UploadService extends RemoteService
 {
-   public void processScan (Long scanId) throws UploadServiceException;
-   public void stopScan (Long scanId) throws UploadServiceException;
+   public void processScan (Long scanId) throws UploadServiceException, AccessDeniedException;
+   public void stopScan (Long scanId) throws UploadServiceException, AccessDeniedException;
    
-   public List<FileScannerData> getFileScanners () throws UploadServiceException;
+   public List<FileScannerData> getFileScanners () throws UploadServiceException, AccessDeniedException;
    
-   public int countFileScanners () throws UploadServiceException;
+   public int countFileScanners () throws UploadServiceException, AccessDeniedException;
       
    public long addFileScanner (String url, String username, String password, String pattern,
-      List<Long> collectionDatas) throws UploadServiceException; 
-   public void removeFileScanner (Long id) throws UploadServiceException;
+      List<Long> collectionDatas) throws UploadServiceException, AccessDeniedException; 
+   public void removeFileScanner (Long id) throws UploadServiceException, AccessDeniedException;
    public void updateFileScanner (Long id, String url, String username, String password, String pattern,
-      List<Long> collectionDatas) throws UploadServiceException; 
+      List<Long> collectionDatas) throws UploadServiceException, AccessDeniedException; 
    
-   public void setFileScannerActive (Long id, boolean active) throws UploadServiceException;
+   public void setFileScannerActive (Long id, boolean active) throws UploadServiceException, AccessDeniedException;
    
-   public Date getNextScheduleFileScanner() throws UploadServiceException;
+   public Date getNextScheduleFileScanner() throws UploadServiceException, AccessDeniedException;
 }

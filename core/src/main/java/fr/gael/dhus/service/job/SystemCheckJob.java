@@ -29,9 +29,9 @@ import org.springframework.stereotype.Component;
 
 import fr.gael.dhus.DHuS;
 import fr.gael.dhus.database.dao.interfaces.DaoUtils;
-import fr.gael.dhus.datastore.DefaultDataStore;
 import fr.gael.dhus.datastore.IncomingManager;
-import fr.gael.dhus.search.SolrDao;
+import fr.gael.dhus.service.ProductService;
+import fr.gael.dhus.service.SearchService;
 import fr.gael.dhus.system.config.ConfigurationManager;
 
 /**
@@ -44,16 +44,16 @@ public class SystemCheckJob extends AbstractJob
    private static boolean running = false; 
    
    @Autowired
-   private DefaultDataStore dataStore;
+   private ProductService productService;
    
    @Autowired
-   private SolrDao solrDao;
+   private SearchService searchService;
 
    @Autowired
    private ConfigurationManager configurationManager;
    
    @Autowired
-   IncomingManager incomingManager;
+   private IncomingManager incomingManager;
    
    @Override
    public String getCronExpression ()
@@ -82,13 +82,13 @@ public class SystemCheckJob extends AbstractJob
             long time_start = System.currentTimeMillis ();
             logger.info ("Control of Database coherence...");
             long start = new Date ().getTime ();
-            dataStore.checkDBProducts ();
+            productService.checkDBProducts ();
             logger.info ("Control of Database coherence spent " + 
                      (new Date ().getTime ()-start) + " ms");
 
             logger.info ("Control of Indexes coherence...");
             start = new Date ().getTime ();
-            solrDao.checkIndexes();
+            searchService.checkIndex();
             logger.info ("Control of Indexes coherence spent " + 
                      (new Date ().getTime ()-start) + " ms");
 
@@ -100,8 +100,6 @@ public class SystemCheckJob extends AbstractJob
 
             logger.info ("Optimizing database...");
             DaoUtils.optimize ();
-            logger.info ("Optimizing search index...");
-            solrDao.optimize ();
             
             logger.info ("SCHEDULER : Check system consistency done - " +
                (System.currentTimeMillis ()-time_start) + "ms");

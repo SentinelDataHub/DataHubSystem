@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+<!--
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<!DOCTYPE rdf:RDF [
+   <!ENTITY rdf  "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#">
+   <!ENTITY owl  "http://www.w3.org/2002/07/owl#">
+   <!ENTITY s3   "http://www.esa.int/s3#">
+   <!ENTITY drb  "http://www.gael.fr/drb#">
+   <!ENTITY jpeg "http://www.gael.fr/drb/jpeg#">
+]>
+<rdf:RDF xmlns:owl="&owl;"
+         xmlns:rdf="&rdf;"
+         xmlns:rdfs="&rdfs;"
+         xmlns:drb="&drb;"
+         xmlns:jpeg="&jpeg;"
+         xmlns:s3="&s3;"
+         xml:base="&s3;">
+
+   <owl:Ontology rdf:about="&s3;">
+      <rdfs:label xml:lang="en">Sentinel-3 - Level 1-2 Ontology</rdfs:label>
+   </owl:Ontology>
+
+
+   <!-- =================================================================== -->
+   <!--                                                                     -->
+   <!--        IPF Level 1 - 2 (OLCI)                                       -->
+   <!--                                                                     -->
+   <!-- =================================================================== -->
+   
+
+   <owl:Class rdf:about="&s3;ipf_olci_level_1_2">
+      <rdfs:label xml:lang="en">IPF Level-1 Level 2 (OLCI) </rdfs:label>
+      <rdfs:comment xml:lang="en">
+         IPF Level 1 - 2 (OLCI).
+      </rdfs:comment>      
+      <rdfs:subClassOf rdf:resource="&s3;ipf_level_1_2"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>S3[AB_]_OL_[12]_.*</drb:nameMatch>	  	 
+      </drb:signature>
+   </owl:Class>
+   
+   
+   <!-- =================================================================== -->
+   <!--                                                                     -->
+   <!--        IPF Level 1 (OLCI)  Calibration                              -->
+   <!--                                                                     -->
+   <!-- =================================================================== -->
+   
+   <owl:Class rdf:about="&s3;ipf_olci_cal">
+      <rdfs:label xml:lang="en">IPF OLCI Calibration </rdfs:label>
+      <rdfs:comment xml:lang="en">
+         IPF Level 1 (OLCI)  Calibration.
+      </rdfs:comment>      
+      <rdfs:subClassOf rdf:resource="&s3;ipf_olci_level_1_2"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>S3[AB_]_OL_1_(RAC___|SPC___).*</drb:nameMatch>	  	 
+      </drb:signature>
+   </owl:Class>
+
+   <!-- =================================================================== -->
+   <!--                                                                     -->
+   <!--        IPF Level 1 (OLCI) Radiometric Calibration                   -->
+   <!--                                                                     -->
+   <!-- =================================================================== -->
+   
+   <owl:Class rdf:about="&s3;ipf_olci_radiocal">
+      <rdfs:label xml:lang="en">IPF Level-1 (OLCI) Radiometric Calibration</rdfs:label>
+      <rdfs:comment xml:lang="en">
+         IPF Level-1 (OLCI) Radiometric Calibration.
+      </rdfs:comment>      
+      <rdfs:subClassOf rdf:resource="&s3;ipf_olci_cal"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>S3[AB_]_OL_1_RAC___.*</drb:nameMatch>	  	 
+      </drb:signature>
+   </owl:Class>
+
+
+   <!-- =================================================================== -->
+   <!--                                                                     -->
+   <!--        IPF Level 1 (OLCI) Spectral Calibration                      -->
+   <!--                                                                     -->
+   <!-- =================================================================== -->
+   
+   
+   <owl:Class rdf:about="&s3;ipf_olci_spectralcal">
+      <rdfs:label xml:lang="en">IPF Level-1 (OLCI) Spectral Calibration </rdfs:label>
+      <rdfs:comment xml:lang="en">
+         IPF Level 1 (OLCI) Spectral Calibration.
+      </rdfs:comment>      
+      <rdfs:subClassOf rdf:resource="&s3;ipf_olci_cal"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>S3[AB_]_OL_1_SPC___.*</drb:nameMatch>	  	 
+      </drb:signature>
+   </owl:Class>
+   
+   <!-- =================================================================== -->
+   <!--                                                                     -->
+   <!--        IPF Level-1 Level 2 (OLCI) No Calibration                    -->
+   <!--                                                                     -->
+   <!-- =================================================================== -->
+   
+   <owl:Class rdf:about="&s3;ipf_olci_level_1_2_but_cal">
+      <rdfs:label xml:lang="en">IPF Level-1 Level 2 (OLCI) No Calibration </rdfs:label>
+      <rdfs:comment xml:lang="en">
+         IPF Level-1 Level 2 (OLCI) No Calibration.
+      </rdfs:comment>      
+      <rdfs:subClassOf rdf:resource="&s3;ipf_olci_level_1_2"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>S3[AB_]_OL_[12]_(EFR___|ERR___|EFR_BW|ERR_BW|WFR___|WRR___|WFR_BW|WRR_BW|LFR___|LRR___|LFR_BW|LRR_BW).*</drb:nameMatch>	  	 
+      </drb:signature>
+   </owl:Class>
+
+   <!-- =================================================================== -->
+   <!--                                                                     -->
+   <!--                         IPF Level-1 (OLCI)                          -->
+   <!--                                                                     -->
+   <!-- =================================================================== -->
+	
+	<owl:Class rdf:about="&s3;ipf_olci_level_1">
+      <rdfs:label xml:lang="en">IPF Level-1 (OLCI) No Calibration </rdfs:label>
+      <rdfs:comment xml:lang="en">
+         IPF Level-1 (OLCI) No Calibration.
+      </rdfs:comment>      
+      <rdfs:subClassOf rdf:resource="&s3;ipf_olci_level_1_2_but_cal"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>S3[AB_]_OL_1_(EFR___|ERR___|EFR_BW|ERR_BW).*</drb:nameMatch>	  	 
+      </drb:signature>
+   </owl:Class>
+   
+   
+   <!-- =================================================================== -->
+   <!--                                                                     -->
+   <!--           IPF Level-1 (OLCI)   Browse product                       -->
+   <!--                                                                     -->
+   <!-- =================================================================== -->
+   
+   
+   <owl:Class rdf:about="&s3;ipf_olci_level_1_bw">
+      <rdfs:label xml:lang="en">IPF Level-1 (OLCI) Browse product </rdfs:label>
+      <rdfs:comment xml:lang="en">
+         IPF Level-1 (OLCI) Browse product.
+      </rdfs:comment>      
+      <rdfs:subClassOf rdf:resource="&s3;ipf_olci_level_1_2"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>S3[AB_]_OL_1_(EFR_BW|ERR_BW).*</drb:nameMatch>	  	 
+      </drb:signature>
+   </owl:Class>
+   
+   <!-- =================================================================== -->
+   <!--                                                                     -->
+   <!--           IPF Level-2 (OLCI)                                        -->
+   <!--                                                                     -->
+   <!-- =================================================================== -->
+   
+   <owl:Class rdf:about="&s3;ipf_olci_level_2">
+      <rdfs:label xml:lang="en">IPF Level 2 (OLCI)  </rdfs:label>
+      <rdfs:comment xml:lang="en">
+         IPF Level 2 OLCI.
+      </rdfs:comment>      
+      <rdfs:subClassOf rdf:resource="&s3;ipf_olci_level_1_2_but_cal"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>S3[AB_]_OL_2_(WFR___|WRR___|WFR_BW|WRR_BW|LFR___|LRR___|LFR_BW|LRR_BW).*</drb:nameMatch>	  	 
+      </drb:signature>
+   </owl:Class>
+   
+   <!-- =================================================================== -->
+   <!--                                                                     -->
+   <!--           IPF Level-2 (OLCI)   Browse product                       -->
+   <!--                                                                     -->
+   <!-- =================================================================== -->
+   
+   <owl:Class rdf:about="&s3;ipf_olci_level_2_bw">
+      <rdfs:label xml:lang="en">IPF Level 2 (OLCI) Browse Product  </rdfs:label>
+      <rdfs:comment xml:lang="en">
+         IPF Level-2 (OLCI)   Browse product.
+      </rdfs:comment>      
+      <rdfs:subClassOf rdf:resource="&s3;ipf_olci_level_1_2"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>S3[AB_]_OL_2_(WFR_BW|WRR_BW|LFR_BW|LRR_BW).*</drb:nameMatch>	  	 
+      </drb:signature>
+   </owl:Class>
+
+</rdf:RDF>

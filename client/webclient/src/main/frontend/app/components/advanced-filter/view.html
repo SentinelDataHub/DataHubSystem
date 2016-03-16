@@ -1,0 +1,153 @@
+<div>
+<!-- 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+-->
+<div>
+	<style>
+	.filter-label {
+		font-weight: normal !important;
+	}	
+	.filter-highlight {
+		top: 50% !important;		
+	}
+	.filter-checkbox-label {
+		font-weight: bold !important;
+	}	
+	.filter-bar:before,.filter-bar:after {
+		height: 1px !important;	
+		color: rgba(0,0,0,1) !important;
+		background: rgba(0,0,0,1) !important;
+	}
+	.filter-checkbox {
+		margin-bottom: 25px !important;
+	}	
+	.filter-input:invalid {
+		color: red;
+	}
+
+	input::-webkit-calendar-picker-indicator {
+	  display: none;
+	}
+
+	#adv-options label                {
+	 
+    font-weight: normal;
+    
+    pointer-events: none;
+    
+    transition: 0.2s ease all;
+    -moz-transition: 0.2s ease all;
+    -webkit-transition: 0.2s ease all;
+	}
+	.adv-selectfield label {display: none;}
+
+	.adv-selectfield {
+	  font-family: 'Roboto','Helvetica','Arial',sans-serif;
+	  position: relative;    
+	}
+
+	.adv-selectfield::after {  
+	        position: absolute;
+	        top: -1em;
+	        right: 0.5em;
+	        /* Styling the down arrow */
+	        width: 0;
+	        height: 0;
+	        padding: 0;
+	        content: '';
+	        border-left: .25em solid transparent;
+	        border-right: .25em solid transparent;
+	        border-top: .375em solid rgba(0,0,0, 1);
+	        pointer-events: none;   
+	        color: black;     
+	  
+	}
+
+	.adv-selectfield datalist {
+		-webkit-appearance: none;
+	    -moz-appearance: none;
+	    background-color: transparent;
+	    width:	100%;
+	}
+
+
+	.adv-selectfield datalist::-ms-expand {display: none;}  
+
+	.adv-select-label {	  
+	  top: -20px;
+	  color: rgb(55, 59, 80);
+	  font-size: 13px;
+	} 
+
+	#adv-options .group            { 
+	  position:relative; 
+	  margin-bottom:15px; 
+	}                      
+
+	</style>
+	<div >
+		<div ng-repeat="mission in missions">
+			<div class="row filter-checkbox"> 
+			  <div class="col-md-1 col-xs-4 col-sd-4"> 
+			  	<div class="glyphicon mission-checkbox" ng-class="{ ' glyphicon-unchecked': !mission.selected, 'glyphicon-check': mission.selected }"  ng-click="mission.selected = !mission.selected;  updateMissionSelection($index);" ></div>
+
+			
+
+			  </div>
+			  <div class="col-md-11 col-xs-8 col-sd-8 filter-checkbox-label">{{mission.name}}</div>
+			</div>
+			<!--<div class="checkbox filter-checkbox">
+				<label class="filter-checkbox-label"><input  type="checkbox" ng-model="mission.selected" value="mission.selected" ng-change="updateMissionSelection($index)">{{mission.name}}</label>
+			</div>-->
+			<div class="row">	
+				<div ng-repeat="filter in mission.filters">
+					<!--<div class="row">
+						<div >{{filter.indexlabel}}</div>
+						<div ><input type="text" value="{{filter.indexvalue}}"></div>
+					</div>-->
+					<div class="col-md-6" ng-if="!(filter.indexvalues && filter.indexvalues.split('|').length > 0)">
+					    <div  class="group ">      
+					      <div > 
+					        <label class="filter-label">{{filter.indexlabel}}</label>
+					        
+					        <input type="text" ng-model="filter.indexvalue" value="filter.indexvalue" class="form-control filter-input" ng-blur="updateFilter($parent.$parent.$index)" pattern="{{filter.regex}}" >
+					        <span class="highlight filter-highlight"></span>
+					        <span class="bar filter-bar"></span>					        					       
+					      </div>
+					    </div>
+					</div>
+					<div id="adv-options" class="group col-md-6" ng-if="(filter.indexvalues && filter.indexvalues.split('|').length > 0)">
+					  <label  class="filter-label">{{filter.indexlabel}}</label> 
+					  <input type="text" ng-model="filter.indexvalue" value="filter.indexvalue" class="form-control filter-input" ng-blur="updateFilter($parent.$parent.$index)" ng-click="clearInput($parent.$parent.$index, $parent.$index)" pattern="{{filter.regex}}" list="{{$parent.$parent.$index}}_{{$index}}_optlist">				    
+				      <div  class="adv-selectfield">				      					      	 
+				        <datalist id="{{$parent.$parent.$index}}_{{$index}}_optlist" class="browser-default" ng-model="filter.indexvalue">
+				          <option  selected></option>
+				          <option ng-repeat="option in filter.indexvalues.split('|')" value="{{option}}" >{{option}}</option>
+				        </datalist>					     
+				      </div>					    
+					</div>					
+				</div>
+			</div>		
+		</div>
+	</div>
+</div>
+</div>

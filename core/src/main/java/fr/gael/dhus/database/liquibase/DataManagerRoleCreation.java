@@ -19,9 +19,6 @@
  */
 package fr.gael.dhus.database.liquibase;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-
 import liquibase.change.custom.CustomTaskChange;
 import liquibase.database.Database;
 import liquibase.database.jvm.JdbcConnection;
@@ -29,6 +26,9 @@ import liquibase.exception.CustomChangeException;
 import liquibase.exception.SetupException;
 import liquibase.exception.ValidationErrors;
 import liquibase.resource.ResourceAccessor;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 
 public class DataManagerRoleCreation implements CustomTaskChange
@@ -40,7 +40,7 @@ public class DataManagerRoleCreation implements CustomTaskChange
    }
 
    @Override
-   public void setFileOpener (ResourceAccessor resourceAccessor)
+   public void setFileOpener (ResourceAccessor resource_accessor)
    {
    }
 
@@ -62,10 +62,11 @@ public class DataManagerRoleCreation implements CustomTaskChange
          (JdbcConnection) database.getConnection ();
       try
       {
-          PreparedStatement getUsers =
-          databaseConnection
-             .prepareStatement ("SELECT USER_ID,ROLES FROM USER_ROLES "+
-                "WHERE ROLES = 'DATARIGHT_MANAGER' OR ROLES = 'COLLECTION_MANAGER'");
+         PreparedStatement getUsers =
+               databaseConnection.prepareStatement (
+                           "SELECT USER_ID,ROLES FROM USER_ROLES " +
+                                 "WHERE ROLES = 'DATARIGHT_MANAGER' OR " +
+                                 "ROLES = 'COLLECTION_MANAGER'");
           ResultSet res = getUsers.executeQuery ();
           Object prevId = null;
           while (res.next ())
@@ -78,7 +79,8 @@ public class DataManagerRoleCreation implements CustomTaskChange
                 PreparedStatement removeRole =
                    databaseConnection
                       .prepareStatement ("DELETE FROM USER_ROLES "+
-                         "WHERE ROLES = 'COLLECTION_MANAGER' AND USER_ID = "+res.getObject ("USER_ID"));
+                         "WHERE ROLES = 'COLLECTION_MANAGER' AND USER_ID = " +
+                            res.getObject ("USER_ID"));
                 removeRole.execute ();
                 removeRole.close ();
              }
@@ -88,7 +90,8 @@ public class DataManagerRoleCreation implements CustomTaskChange
          PreparedStatement updateRole =
             databaseConnection
                .prepareStatement ("UPDATE USER_ROLES SET ROLES = 'DATA_MANAGER"+
-                  "' WHERE ROLES = 'DATARIGHT_MANAGER' OR ROLES = 'COLLECTION_MANAGER'");
+                  "' WHERE ROLES = 'DATARIGHT_MANAGER' OR " +
+                     "ROLES = 'COLLECTION_MANAGER'");
          updateRole.execute ();
          updateRole.close ();
          getUsers.close ();

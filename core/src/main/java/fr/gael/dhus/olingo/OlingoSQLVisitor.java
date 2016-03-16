@@ -54,16 +54,16 @@ public abstract class OlingoSQLVisitor implements ExpressionVisitor
 
    /** Builds the WHERE clause (not prefixed with the WHERE statement). */
    @Override
-   public Object visitFilterExpression (FilterExpression filterExpression,
-      String expressionString, Object expression)
+   public Object visitFilterExpression (FilterExpression filter_expression,
+      String expression_string, Object expression)
    {
       return expression;
    }
 
    /** Builds the ORDER BY clause (not prefixed with the ORDER BY statement). */
    @Override
-   public Object visitOrderByExpression (OrderByExpression orderByExpression,
-      String expressionString, List<Object> orders)
+   public Object visitOrderByExpression (OrderByExpression order_expression,
+      String expression_string, List<Object> orders)
    {
       StringBuilder sb = new StringBuilder ();
 
@@ -80,21 +80,21 @@ public abstract class OlingoSQLVisitor implements ExpressionVisitor
 
    /** Called for each fields in the $orderby param. */
    @Override
-   public Object visitOrder (OrderExpression orderExpression,
-      Object filterResult, SortOrder sortOrder)
+   public Object visitOrder (OrderExpression order_expression,
+      Object filter_result, SortOrder sort_order)
    {
-      if (sortOrder == SortOrder.desc)
+      if (sort_order == SortOrder.desc)
       {
-         return filterResult + " DESC";
+         return filter_result + " DESC";
       }
 
-      return filterResult;
+      return filter_result;
    }
 
    /** Binary Operators. */
    @Override
-   public Object visitBinary (BinaryExpression binaryExpression,
-      BinaryOperator operator, Object leftSide, Object rightSide)
+   public Object visitBinary (BinaryExpression binary_expression,
+      BinaryOperator operator, Object left_side, Object right_side)
    {
       String sqlOperator = null;
       switch (operator)
@@ -129,12 +129,12 @@ public abstract class OlingoSQLVisitor implements ExpressionVisitor
                operator.toUriLiteral ());
       }
       // return the binary statement
-      return "(" + leftSide + " " + sqlOperator + " " + rightSide + ")";
+      return "(" + left_side + " " + sqlOperator + " " + right_side + ")";
    }
 
    /** Unary operator. */
    @Override
-   public Object visitUnary (UnaryExpression unaryExpression,
+   public Object visitUnary (UnaryExpression unary_expression,
       UnaryOperator operator, Object operand)
    {
       switch (operator)
@@ -143,6 +143,8 @@ public abstract class OlingoSQLVisitor implements ExpressionVisitor
             return "-" + operand;
          case NOT:
             return "NOT " + operand;
+         default:
+            break;
       }
       throw new UnsupportedOperationException ("Unsupported operator: " +
          operator.toUriLiteral ());
@@ -150,34 +152,35 @@ public abstract class OlingoSQLVisitor implements ExpressionVisitor
 
    /** A constant. */
    @Override
-   public Object visitLiteral (LiteralExpression literal, EdmLiteral edmLiteral)
+   public Object visitLiteral (LiteralExpression literal,
+         EdmLiteral edm_literal)
    {
-      if (edmLiteral.getType ().equals (
+      if (edm_literal.getType ().equals (
          EdmSimpleTypeKind.String.getEdmSimpleTypeInstance ()))
       {
          // Prevent sql injection
-         if (edmLiteral.getLiteral ().contains ("'"))
+         if (edm_literal.getLiteral ().contains ("'"))
          {
             throw new IllegalArgumentException (
                "SQL injection through the OData API is not allowed !");
          }
-         return "'" + edmLiteral.getLiteral () + "'";
+         return "'" + edm_literal.getLiteral () + "'";
       }
       else
-         if (edmLiteral.getType ().equals (
+         if (edm_literal.getType ().equals (
             EdmSimpleTypeKind.DateTime.getEdmSimpleTypeInstance ()))
          {
-            return "'" + edmLiteral.getLiteral ().replace ("T", " ") + "'";
+            return "'" + edm_literal.getLiteral ().replace ("T", " ") + "'";
          }
          else
          {
-            return "'" + edmLiteral.getLiteral () + "'";
+            return "'" + edm_literal.getLiteral () + "'";
          }
    }
 
    /** Translates to an SQL function. */
    @Override
-   public Object visitMethod (MethodExpression methodExpression,
+   public Object visitMethod (MethodExpression method_expression,
       MethodOperator method, List<Object> parameters)
    {
       StringBuilder sb = new StringBuilder ();
@@ -292,7 +295,7 @@ public abstract class OlingoSQLVisitor implements ExpressionVisitor
    }
 
    @Override
-   public Object visitMember (MemberExpression memberExpression, Object path,
+   public Object visitMember (MemberExpression member_expression, Object path,
       Object property)
    {
       /**
@@ -304,8 +307,8 @@ public abstract class OlingoSQLVisitor implements ExpressionVisitor
 
    /** Returns the field name corresponding to the given EDM type. */
    @Override
-   public abstract Object visitProperty (PropertyExpression propertyExpression,
-      String uriLiteral, EdmTyped edmProperty);
+   public abstract Object visitProperty (PropertyExpression property_expression,
+      String uri_literal, EdmTyped edm_property);
 
    /** Removes the first and last character if they are apostrophes. */
    private static String removeApostrophes (Object o)

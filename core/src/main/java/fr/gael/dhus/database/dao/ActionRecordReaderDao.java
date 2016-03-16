@@ -19,26 +19,28 @@
  */
 package fr.gael.dhus.database.dao;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-
-import org.hibernate.HibernateException;
-import org.hibernate.SQLQuery;
-import org.hibernate.Session;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.support.DataAccessUtils;
-import org.springframework.stereotype.Repository;
-
+import com.google.common.collect.Maps;
 import fr.gael.dhus.database.dao.interfaces.HibernateDao;
 import fr.gael.dhus.database.object.statistic.ActionRecord;
 import fr.gael.dhus.database.object.statistic.ActionRecordDownload;
 import fr.gael.dhus.database.object.statistic.ActionRecordLogon;
 import fr.gael.dhus.database.object.statistic.ActionRecordSearch;
 import fr.gael.dhus.database.object.statistic.ActionRecordUpload;
+import org.hibernate.HibernateException;
+import org.hibernate.SQLQuery;
+import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.support.DataAccessUtils;
+import org.springframework.stereotype.Repository;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 @Repository
 /**
@@ -71,9 +73,17 @@ import fr.gael.dhus.database.object.statistic.ActionRecordUpload;
  */
 public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
 {
+   /**
+    * Use the System parameter called "action.record.inactive" to fully 
+    * deactivate the access to all the action records of the database.
+    * Default value it false. 
+    */
+   private static Boolean inactive = Boolean.parseBoolean( 
+            System.getProperty("action.record.inactive", "false"));
+
    @Autowired
    private UserDao userDao;
-   
+
    /**
     * Returns the result of a SQL query.
     * 
@@ -130,7 +140,6 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
     */
    private int getCountValue(final String sql, final Date start, final Date end)
    {
-
       boolean newSession = false;
       Session session;
       try
@@ -156,7 +165,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
       return result.intValue ();
    }
    
-   public int getCountValue(String sql)
+   private int getCountValue(String sql)
    {
       return getCountValue(sql, null, null);
    }
@@ -168,13 +177,14 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
     * 
     * @return count The user count.
     */
-   public int getTotalUsers()
+   public int getTotalUsers ()
    {
+      if(inactive) return 0;
       final String sql = "SELECT COUNT(DISTINCT USERS.ID) FROM USERS "
-            + " WHERE USERS.DELETED = FALSE AND NOT USERS.LOGIN = '"
-            + userDao.getPublicDataName () + "'";
+            + " WHERE USERS.DELETED = FALSE AND NOT USERS.LOGIN = '" +
+            userDao.getPublicData ().getUsername () + "'";
 
-      return getCountValue(sql);
+      return getCountValue (sql);
    }
 
    /**
@@ -184,6 +194,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
     */
    public int getTotalDeletedUsers()
    {
+      if(inactive) return 0;
       final String sql = "SELECT COUNT(DISTINCT USERS.ID) FROM USERS "
             + " WHERE USERS.DELETED = TRUE";
 
@@ -197,6 +208,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
     */
    public int getTotalRestrictedUsers()
    {
+      if(inactive) return 0;
       final String sql = "SELECT COUNT(DISTINCT USER_RESTRICTIONS.USER_ID) "
             + " FROM USER_RESTRICTIONS INNER JOIN ACCESS_RESTRICTION "
             + " ON USER_RESTRICTIONS.RESTRICTION_ID = ACCESS_RESTRICTION.ID "
@@ -215,23 +227,26 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
     */
    public String[][] getRestrictedUsers()
    {
+      if(inactive) return new String[1][1];
       final String sql = "SELECT ACCESS_RESTRICTION.ACCESS_RESTRICTION, "
-            + " COUNT(USERS.ID) "
+            + " COUNT(USERS.LOGIN) "
             + " FROM ACCESS_RESTRICTION INNER JOIN USER_RESTRICTIONS "
             + " ON ACCESS_RESTRICTION.ID = USER_RESTRICTIONS.RESTRICTION_ID "
             + " INNER JOIN USERS ON USER_RESTRICTIONS.USER_ID = USERS.ID "
-            + " WHERE USERS.DELETED = FALSE GROUP BY ACCESS_RESTRICTION.ACCESS_RESTRICTION";
+            + " WHERE USERS.DELETED = FALSE "
+            + "GROUP BY ACCESS_RESTRICTION.ACCESS_RESTRICTION";
 
-      List<Object[]> value = getReturnValue(sql);
-      
+      List<Object[]> value = getReturnValue (sql);
+
       String[][] array = new String[value.size ()][2];
       int i = 0;
       for (Object[] line : value)
-      {         
+      {
          array[i] = new String[2];
-         array[i][0] = line[0].toString().substring (0,1).toUpperCase ()+
-            line[0].toString ().substring (1).toLowerCase () + " ("+line[1].toString()+")";
-         array[i][1] = line[1].toString();
+         array[i][0] = line[0].toString ().substring (0, 1).toUpperCase () +
+               line[0].toString ().substring (1).toLowerCase () +
+               " (" + line[1].toString () + ")";
+         array[i][1] = line[1].toString ();
          i++;
       }
       return array;
@@ -261,15 +276,16 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
     */
    public String[][] getUsersPerDomain()
    {
+      if(inactive) return new String[1][1];
       final String sql = 
          "SELECT USERS.domain as domain, COUNT(DISTINCT USERS.ID) " +
             "FROM USERS " +
             "WHERE USERS.DELETED = FALSE AND " +
-            "NOT USERS.LOGIN='"+ userDao.getPublicDataName () +"' " +
-            "GROUP BY domain";
+            "NOT USERS.LOGIN='"+ userDao.getPublicData ().getUsername () +
+            "' GROUP BY domain";
       
       List<Object[]> value = getReturnValue(sql);  
-      HashMap<String, String> values = new HashMap<String, String>();  
+      HashMap<String, String> values = new HashMap<String, String>();
       for (Object[] line : value)
       {
          values.put ((String) line[0], line[1].toString());
@@ -292,9 +308,12 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
     */  
    public String[][] getUsersPerUsage()
    {
-      final String sql = "SELECT USERS.usage as usage"
-            + ", COUNT(DISTINCT USERS.ID) FROM USERS WHERE USERS.DELETED = FALSE AND NOT USERS.LOGIN = '"
-            + userDao.getPublicDataName () + "' GROUP BY usage";
+      if(inactive) return new String[1][1];
+      final String sql = "SELECT USERS.usage as usage, " +
+            "COUNT(DISTINCT USERS.ID) FROM USERS " +
+            "WHERE USERS.DELETED = FALSE AND " +
+            "NOT USERS.LOGIN = '"+ userDao.getPublicData ().getUsername () +
+            "' GROUP BY usage";
       
       List<Object[]> value = getReturnValue(sql);  
       HashMap<String, String> values = new HashMap<String, String>();  
@@ -324,6 +343,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
     */
    public int getActiveUsers(Date start, Date end)
    {
+      if(inactive) return 0;
       final String sql = "SELECT COUNT(DISTINCT ACTION_RECORD_LOGONS.USERS_ID) "
             + " FROM ACTION_RECORD_LOGONS "
             + " WHERE ACTION_RECORD_LOGONS.CREATED BETWEEN ? AND ? "
@@ -362,10 +382,16 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
    /**
     * Retrieve the active user count grouped by domain.
     */
-   public String[][] getActiveUsersPerDomain(Date start, Date end, boolean perHour)
+   public String[][] getActiveUsersPerDomain(Date start, Date end,
+         boolean per_hour)
    {
-      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_LOGONS.CREATED),'-',RIGHT('00'+MONTH(ACTION_RECORD_LOGONS.CREATED),2),'-',RIGHT('00'+DAY(ACTION_RECORD_LOGONS.CREATED),2)"
-         + (perHour ? ",'T',RIGHT('00'+HOUR(ACTION_RECORD_LOGONS.CREATED),2),':00:00'":"")+")";
+      if(inactive) return new String[1][1];
+      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_LOGONS.CREATED),'-'," +
+            "RIGHT('00'+MONTH(ACTION_RECORD_LOGONS.CREATED),2),'-'," +
+            "RIGHT('00'+DAY(ACTION_RECORD_LOGONS.CREATED),2)" +
+            (per_hour ?
+                  ",'T',RIGHT('00'+HOUR(ACTION_RECORD_LOGONS.CREATED),2)" +
+                        ",':00:00'" : "") + ")";
             
       final String sql = "SELECT "+dateSQL+" as date, USERS.domain as domain, "
                + " COUNT(DISTINCT ACTION_RECORD_LOGONS.USERS_ID) FROM USERS "
@@ -373,11 +399,12 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
                + " ON USERS.ID = ACTION_RECORD_LOGONS.USERS_ID "
                + " WHERE ACTION_RECORD_LOGONS.CREATED BETWEEN ? AND ? "
                + " AND ACTION_RECORD_LOGONS.STATUS = '"
-               + ActionRecord.STATUS_SUCCEEDED + "' GROUP BY date, domain ORDER BY date, domain";
+               + ActionRecord.STATUS_SUCCEEDED + "' "
+               + "GROUP BY date, domain ORDER BY date, domain";
       
       List<Object[]> value = getReturnValue(sql, start, end);
       List<String> domains = new ArrayList<String>();  
-      List<HashMap<Integer, String>> dates = new ArrayList<HashMap<Integer, String>>();  
+      List<HashMap<Integer, String>> dates = new ArrayList<>();
       domains.add ("date");
       String previousDate = "";
       HashMap<Integer, String> counts = null;
@@ -424,10 +451,16 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
    /**
     * Retrieve the active user count grouped by usage.
     */
-   public String[][] getActiveUsersPerUsage(Date start, Date end, boolean perHour)
+   public String[][] getActiveUsersPerUsage(Date start, Date end,
+         boolean per_hour)
    {
-      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_LOGONS.CREATED),'-',RIGHT('00'+MONTH(ACTION_RECORD_LOGONS.CREATED),2),'-',RIGHT('00'+DAY(ACTION_RECORD_LOGONS.CREATED),2)"
-         + (perHour ? ",'T',RIGHT('00'+HOUR(ACTION_RECORD_LOGONS.CREATED),2),':00:00'":"")+")";
+      if(inactive) return new String[1][1];
+      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_LOGONS.CREATED),'-'," +
+            "RIGHT('00'+MONTH(ACTION_RECORD_LOGONS.CREATED),2),'-'," +
+            "RIGHT('00'+DAY(ACTION_RECORD_LOGONS.CREATED),2)"
+         + (per_hour ?
+            ",'T',RIGHT('00'+HOUR(ACTION_RECORD_LOGONS.CREATED),2),':00:00'":
+            "")+")";
             
       final String sql = "SELECT "+dateSQL+" as date, USERS.usage as usage, "
                + " COUNT(DISTINCT ACTION_RECORD_LOGONS.USERS_ID) FROM USERS "
@@ -435,11 +468,12 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
                + " ON USERS.ID = ACTION_RECORD_LOGONS.USERS_ID "
                + " WHERE ACTION_RECORD_LOGONS.CREATED BETWEEN ? AND ? "
                + " AND ACTION_RECORD_LOGONS.STATUS = '"
-               + ActionRecord.STATUS_SUCCEEDED + "' GROUP BY date, usage ORDER BY date, usage";
+               + ActionRecord.STATUS_SUCCEEDED + "' "
+               + "GROUP BY date, usage ORDER BY date, usage";
       
       List<Object[]> value = getReturnValue(sql, start, end);
-      List<String> usages = new ArrayList<String>();  
-      List<HashMap<Integer, String>> dates = new ArrayList<HashMap<Integer, String>>();  
+      List<String> usages = new ArrayList<String> ();
+      List<HashMap<Integer, String>> dates = new ArrayList<>();
       usages.add ("date");
       String previousDate = "";
       HashMap<Integer, String> counts = null;
@@ -494,7 +528,9 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
     */
    public int getTotalConnections(Date start, Date end)
    {
-      final String sql = "SELECT COUNT(ACTION_RECORD_LOGONS.ID) FROM ACTION_RECORD_LOGONS "
+      if(inactive) return 0;
+      final String sql = "SELECT COUNT(ACTION_RECORD_LOGONS.ID) "
+            + "FROM ACTION_RECORD_LOGONS "
             + " WHERE ACTION_RECORD_LOGONS.CREATED BETWEEN ? AND ? "
             + " AND ACTION_RECORD_LOGONS.STATUS = '"
             + ActionRecord.STATUS_SUCCEEDED + "' ";
@@ -510,24 +546,31 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
     * @return map A hashmap containing the user name as key and the connection
     *         count as value.
     */
-   public String[][] getConnectionsPerUser(Date start, Date end, List<String> requestedUsers, boolean perHour)
+   public String[][] getConnectionsPerUser(Date start, Date end,
+         List<String> requested_users, boolean per_hour)
    {
+      if(inactive) return new String[1][1];
       String usersStr = "(null)";
       String legend = "Total";
-      if (requestedUsers != null && !requestedUsers.isEmpty ())
+      if (requested_users != null && !requested_users.isEmpty ())
       {
          legend = "Others";
          usersStr = "(";
-         for (String user : requestedUsers)
+         for (String user : requested_users)
          {
             usersStr += "'"+user+"',";
          }
          usersStr = usersStr.substring (0,usersStr.length ()-1);
          usersStr += ")";
       }
-      String userId = "(case when USERS.LOGIN in "+usersStr+" then USERS.LOGIN else '"+legend+"' end)";
-      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_LOGONS.CREATED),'-',RIGHT('00'+MONTH(ACTION_RECORD_LOGONS.CREATED),2),'-',RIGHT('00'+DAY(ACTION_RECORD_LOGONS.CREATED),2)"
-         + (perHour ? ",'T',RIGHT('00'+HOUR(ACTION_RECORD_LOGONS.CREATED),2),':00:00'":"")+")";
+      String userId = "(case when USERS.LOGIN in "+usersStr+
+            " then USERS.LOGIN else '"+legend+"' end)";
+      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_LOGONS.CREATED),'-'," +
+            "RIGHT('00'+MONTH(ACTION_RECORD_LOGONS.CREATED),2),'-'," +
+            "RIGHT('00'+DAY(ACTION_RECORD_LOGONS.CREATED),2)"
+         + (per_hour ?
+            ",'T',RIGHT('00'+HOUR(ACTION_RECORD_LOGONS.CREATED),2),':00:00'":
+            "")+")";
       
       final String sql = "SELECT "+dateSQL+" as date,"
             + " "+userId+" as userId, "
@@ -536,11 +579,12 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
             + " ON USERS.ID = ACTION_RECORD_LOGONS.USERS_ID "
             + " WHERE ACTION_RECORD_LOGONS.CREATED BETWEEN ? AND ? "
             + " AND ACTION_RECORD_LOGONS.STATUS = '"
-            + ActionRecord.STATUS_SUCCEEDED + "' GROUP BY date, userId ORDER BY date, userId";
+            + ActionRecord.STATUS_SUCCEEDED + "' GROUP BY date, userId "
+            + "ORDER BY date, userId";
 
       List<Object[]> value = getReturnValue(sql, start, end);
       List<String> foundUsers = new ArrayList<String>();  
-      List<HashMap<Integer, String>> dates = new ArrayList<HashMap<Integer, String>>();  
+      List<HashMap<Integer, String>> dates = new ArrayList<>();
       foundUsers.add ("date");
       String previousDate = "";
       HashMap<Integer, String> counts = null;
@@ -612,10 +656,16 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
    /**
     * Retrieve the connection count grouped by domain.
     */
-   public String[][] getConnectionsPerDomain(Date start, Date end, boolean perHour)
-   {      
-      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_LOGONS.CREATED),'-',RIGHT('00'+MONTH(ACTION_RECORD_LOGONS.CREATED),2),'-',RIGHT('00'+DAY(ACTION_RECORD_LOGONS.CREATED),2)"
-         + (perHour ? ",'T',RIGHT('00'+HOUR(ACTION_RECORD_LOGONS.CREATED),2),':00:00'":"")+")";
+   public String[][] getConnectionsPerDomain(Date start, Date end,
+         boolean per_hour)
+   {
+      if(inactive) return new String[1][1];
+      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_LOGONS.CREATED),'-'," +
+            "RIGHT('00'+MONTH(ACTION_RECORD_LOGONS.CREATED),2),'-'," +
+            "RIGHT('00'+DAY(ACTION_RECORD_LOGONS.CREATED),2)"
+         + (per_hour ?
+            ",'T',RIGHT('00'+HOUR(ACTION_RECORD_LOGONS.CREATED),2),':00:00'":
+            "")+")";
             
       final String sql = "SELECT "+dateSQL+" as date, USERS.domain as domain, "
                + " COUNT(ACTION_RECORD_LOGONS.ID) FROM USERS "
@@ -623,11 +673,12 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
                + " ON USERS.ID = ACTION_RECORD_LOGONS.USERS_ID "
                + " WHERE ACTION_RECORD_LOGONS.CREATED BETWEEN ? AND ? "
                + " AND ACTION_RECORD_LOGONS.STATUS = '"
-               + ActionRecord.STATUS_SUCCEEDED + "' GROUP BY date, domain ORDER BY date, domain";
+               + ActionRecord.STATUS_SUCCEEDED + "' GROUP BY date, domain "
+               + "ORDER BY date, domain";
 
       List<Object[]> value = getReturnValue(sql, start, end);
       List<String> domains = new ArrayList<String>();  
-      List<HashMap<Integer, String>> dates = new ArrayList<HashMap<Integer, String>>();  
+      List<HashMap<Integer, String>> dates = new ArrayList<>();
       domains.add ("date");
       String previousDate = "";
       HashMap<Integer, String> counts = null;
@@ -646,7 +697,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
             {
                dates.add(counts);
             }
-            counts = new HashMap<Integer, String> ();
+            counts = new HashMap<> ();
             counts.put (0, date);
             previousDate = date;
          }
@@ -674,10 +725,16 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
    /**
     * Retrieve the connection count grouped by usage.
     */
-   public String[][] getConnectionsPerUsage(Date start, Date end, boolean perHour)
-   {      
-      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_LOGONS.CREATED),'-',RIGHT('00'+MONTH(ACTION_RECORD_LOGONS.CREATED),2),'-',RIGHT('00'+DAY(ACTION_RECORD_LOGONS.CREATED),2)"
-         + (perHour ? ",'T',RIGHT('00'+HOUR(ACTION_RECORD_LOGONS.CREATED),2),':00:00'":"")+")";
+   public String[][] getConnectionsPerUsage(Date start, Date end,
+         boolean per_hour)
+   {
+      if(inactive) return new String[1][1];
+      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_LOGONS.CREATED),'-'," +
+            "RIGHT('00'+MONTH(ACTION_RECORD_LOGONS.CREATED),2),'-'," +
+            "RIGHT('00'+DAY(ACTION_RECORD_LOGONS.CREATED),2)"
+         + (per_hour ?
+            ",'T',RIGHT('00'+HOUR(ACTION_RECORD_LOGONS.CREATED),2),':00:00'":
+            "")+")";
             
       final String sql = "SELECT "+dateSQL+" as date, USERS.usage as usage, "
                + " COUNT(ACTION_RECORD_LOGONS.ID) FROM USERS "
@@ -685,11 +742,12 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
                + " ON USERS.ID = ACTION_RECORD_LOGONS.USERS_ID "
                + " WHERE ACTION_RECORD_LOGONS.CREATED BETWEEN ? AND ? "
                + " AND ACTION_RECORD_LOGONS.STATUS = '"
-               + ActionRecord.STATUS_SUCCEEDED + "' GROUP BY date, usage ORDER BY date, usage";
+               + ActionRecord.STATUS_SUCCEEDED + "' GROUP BY date, usage "
+               + "ORDER BY date, usage";
 
       List<Object[]> value = getReturnValue(sql, start, end);
-      List<String> usages = new ArrayList<String>();  
-      List<HashMap<Integer, String>> dates = new ArrayList<HashMap<Integer, String>>();  
+      List<String> usages = new ArrayList<>();
+      List<HashMap<Integer, String>> dates = new ArrayList<>();
       usages.add ("date");
       String previousDate = "";
       HashMap<Integer, String> counts = null;
@@ -744,6 +802,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
     */
    public int getTotalSearches()
    {
+      if(inactive) return 0;
       final String sql = "SELECT COUNT(ACTION_RECORD_SEARCHES.ID) "
             + " FROM ACTION_RECORD_SEARCHES";
 
@@ -759,24 +818,30 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
     *         as value.
     */
    public String[][] getSearchesPerUser(
-         Date start, Date end, List<String> requestedUsers, boolean perHour)
-      {
+         Date start, Date end, List<String> requested_users, boolean per_hour)
+   {
+      if(inactive) return new String[1][1];
       String usersStr = "(null)";
       String legend = "Total";
-      if (requestedUsers != null && !requestedUsers.isEmpty ())
+      if (requested_users != null && !requested_users.isEmpty ())
       {
          legend = "Others";
          usersStr = "(";
-         for (String user : requestedUsers)
+         for (String user : requested_users)
          {
             usersStr += "'"+user+"',";
          }
          usersStr = usersStr.substring (0,usersStr.length ()-1);
          usersStr += ")";
       }
-      String userId = "(case when USERS.LOGIN in "+usersStr+" then USERS.LOGIN else '"+legend+"' end)";
-      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_SEARCHES.CREATED),'-',RIGHT('00'+MONTH(ACTION_RECORD_SEARCHES.CREATED),2),'-',RIGHT('00'+DAY(ACTION_RECORD_SEARCHES.CREATED),2)"
-         + (perHour ? ",'T',RIGHT('00'+HOUR(ACTION_RECORD_SEARCHES.CREATED),2),':00:00'":"")+")";
+      String userId = "(case when USERS.LOGIN in "+usersStr+
+            " then USERS.LOGIN else '"+legend+"' end)";
+      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_SEARCHES.CREATED),'-'," +
+            "RIGHT('00'+MONTH(ACTION_RECORD_SEARCHES.CREATED),2),'-'," +
+            "RIGHT('00'+DAY(ACTION_RECORD_SEARCHES.CREATED),2)"
+         + (per_hour ?
+            ",'T',RIGHT('00'+HOUR(ACTION_RECORD_SEARCHES.CREATED),2),':00:00'"
+            :"")+")";
       
       final String sql = "SELECT "+dateSQL+" as date,"
             + " "+userId+" as userId, "
@@ -787,8 +852,8 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
             + " GROUP BY date, userId ORDER BY date, userId";
 
       List<Object[]> value = getReturnValue(sql, start, end);
-      List<String> foundUsers = new ArrayList<String>();  
-      List<HashMap<Integer, String>> dates = new ArrayList<HashMap<Integer, String>>();  
+      List<String> foundUsers = new ArrayList<>();
+      List<HashMap<Integer, String>> dates = new ArrayList<>();
       foundUsers.add ("date");
       String previousDate = "";
       HashMap<Integer, String> counts = null;
@@ -806,7 +871,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
             {
                dates.add(counts);
             }
-            counts = new HashMap<Integer, String> ();
+            counts = new HashMap<> ();
             counts.put (0, date);
             previousDate = date;
          }
@@ -859,10 +924,16 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
    /**
     * Retrieve the search count grouped by domain.
     */
-   public String[][] getSearchesPerDomain(Date start, Date end, boolean perHour)
-   {      
-      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_SEARCHES.CREATED),'-',RIGHT('00'+MONTH(ACTION_RECORD_SEARCHES.CREATED),2),'-',RIGHT('00'+DAY(ACTION_RECORD_SEARCHES.CREATED),2)"
-         + (perHour ? ",'T',RIGHT('00'+HOUR(ACTION_RECORD_SEARCHES.CREATED),2),':00:00'":"")+")";
+   public String[][] getSearchesPerDomain(Date start, Date end,
+         boolean per_hour)
+   {
+      if(inactive) return new String[1][1];
+      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_SEARCHES.CREATED),'-'," +
+            "RIGHT('00'+MONTH(ACTION_RECORD_SEARCHES.CREATED),2),'-'," +
+            "RIGHT('00'+DAY(ACTION_RECORD_SEARCHES.CREATED),2)"
+         + (per_hour ?
+            ",'T',RIGHT('00'+HOUR(ACTION_RECORD_SEARCHES.CREATED),2),':00:00'":
+            "")+")";
             
       final String sql = "SELECT "+dateSQL+" as date, USERS.domain as domain, "
                + " COUNT(ACTION_RECORD_SEARCHES.ID) FROM USERS "
@@ -872,8 +943,8 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
                + " GROUP BY date, domain ORDER BY date, domain";
 
       List<Object[]> value = getReturnValue(sql, start, end);
-      List<String> domains = new ArrayList<String>();  
-      List<HashMap<Integer, String>> dates = new ArrayList<HashMap<Integer, String>>();  
+      List<String> domains = new ArrayList<>();
+      List<HashMap<Integer, String>> dates = new ArrayList<>();
       domains.add ("date");
       String previousDate = "";
       HashMap<Integer, String> counts = null;
@@ -892,7 +963,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
             {
                dates.add(counts);
             }
-            counts = new HashMap<Integer, String> ();
+            counts = new HashMap<> ();
             counts.put (0, date);
             previousDate = date;
          }
@@ -920,10 +991,15 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
    /**
     * Retrieve the search count grouped by usage.
     */
-   public String[][] getSearchesPerUsage(Date start, Date end, boolean perHour)
-   {      
-      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_SEARCHES.CREATED),'-',RIGHT('00'+MONTH(ACTION_RECORD_SEARCHES.CREATED),2),'-',RIGHT('00'+DAY(ACTION_RECORD_SEARCHES.CREATED),2)"
-         + (perHour ? ",'T',RIGHT('00'+HOUR(ACTION_RECORD_SEARCHES.CREATED),2),':00:00'":"")+")";
+   public String[][] getSearchesPerUsage(Date start, Date end, boolean per_hour)
+   {
+      if(inactive) return new String[1][1];
+      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_SEARCHES.CREATED),'-'," +
+            "RIGHT('00'+MONTH(ACTION_RECORD_SEARCHES.CREATED),2),'-'," +
+            "RIGHT('00'+DAY(ACTION_RECORD_SEARCHES.CREATED),2)"
+         + (per_hour ?
+            ",'T',RIGHT('00'+HOUR(ACTION_RECORD_SEARCHES.CREATED),2),':00:00'"
+            :"")+")";
             
       final String sql = "SELECT "+dateSQL+" as date, USERS.usage as usage, "
                + " COUNT(ACTION_RECORD_SEARCHES.ID) FROM USERS "
@@ -933,8 +1009,8 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
                + " GROUP BY date, usage ORDER BY date, usage";
 
       List<Object[]> value = getReturnValue(sql, start, end);
-      List<String> usages = new ArrayList<String>();  
-      List<HashMap<Integer, String>> dates = new ArrayList<HashMap<Integer, String>>();  
+      List<String> usages = new ArrayList<>();
+      List<HashMap<Integer, String>> dates = new ArrayList<>();
       usages.add ("date");
       String previousDate = "";
       HashMap<Integer, String> counts = null;
@@ -953,7 +1029,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
             {
                dates.add(counts);
             }
-            counts = new HashMap<Integer, String> ();
+            counts = new HashMap<> ();
             counts.put (0, date);
             previousDate = date;
          }
@@ -989,6 +1065,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
     */
    public int getTotalDownloads()
    {
+      if(inactive) return 0;
       final String sql = "SELECT COUNT (ACTION_RECORD_DOWNLOADS.ID) "
             + " FROM ACTION_RECORD_DOWNLOADS WHERE STATUS='SUCCEEDED'";
 
@@ -1004,6 +1081,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
     */
    public int getVolumeDownloads(Date start, Date end)
    {
+      if(inactive) return 0;
       final String sql = "SELECT SUM(ACTION_RECORD_DOWNLOADS.PRODUCT_SIZE) "
             + " FROM ACTION_RECORD_DOWNLOADS "
             + " WHERE ACTION_RECORD_DOWNLOADS.CREATED BETWEEN ? AND ? ";
@@ -1019,25 +1097,31 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
     * @return map A hashmap containing the user name as key and the download
     *         count as value.
     */
-   public String[][] getDownloadsPerUser(
-            Date start, Date end, List<String> requestedUsers, boolean perHour)
-         {
+   public String[][] getDownloadsPerUser (Date start, Date end,
+         List<String> requested_users, boolean per_hour)
+   {
+      if(inactive) return new String[1][1];
          String usersStr = "(null)";
          String legend = "Total";
-         if (requestedUsers != null && !requestedUsers.isEmpty ())
+         if (requested_users != null && !requested_users.isEmpty ())
          {
             legend = "Others";
             usersStr = "(";
-            for (String user : requestedUsers)
+            for (String user : requested_users)
             {
                usersStr += "'"+user+"',";
             }
             usersStr = usersStr.substring (0,usersStr.length ()-1);
             usersStr += ")";
          }
-         String userId = "(case when USERS.LOGIN in "+usersStr+" then USERS.LOGIN else '"+legend+"' end)";
-         String dateSQL = "CONCAT(YEAR(ACTION_RECORD_DOWNLOADS.CREATED),'-',RIGHT('00'+MONTH(ACTION_RECORD_DOWNLOADS.CREATED),2),'-',RIGHT('00'+DAY(ACTION_RECORD_DOWNLOADS.CREATED),2)"
-            + (perHour ? ",'T',RIGHT('00'+HOUR(ACTION_RECORD_DOWNLOADS.CREATED),2),':00:00'":"")+")";
+         String userId = "(case when USERS.LOGIN in "+usersStr+
+               " then USERS.LOGIN else '"+legend+"' end)";
+         String dateSQL = "CONCAT(YEAR(ACTION_RECORD_DOWNLOADS.CREATED),'-'," +
+               "RIGHT('00'+MONTH(ACTION_RECORD_DOWNLOADS.CREATED),2),'-'," +
+               "RIGHT('00'+DAY(ACTION_RECORD_DOWNLOADS.CREATED),2)"
+            + (per_hour ?
+               ",'T',RIGHT('00'+HOUR(ACTION_RECORD_DOWNLOADS.CREATED" +
+                     "),2),':00:00'":"")+")";
          
          final String sql = "SELECT "+dateSQL+" as date,"
                + " "+userId+" as userId, "
@@ -1049,8 +1133,8 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
                + " GROUP BY date, userId ORDER BY date, userId";
          
          List<Object[]> value = getReturnValue(sql, start, end);
-         List<String> foundUsers = new ArrayList<String>();  
-         List<HashMap<Integer, String>> dates = new ArrayList<HashMap<Integer, String>>();  
+         List<String> foundUsers = new ArrayList<>();
+         List<HashMap<Integer, String>> dates = new ArrayList<>();
          foundUsers.add ("date");
          String previousDate = "";
          HashMap<Integer, String> counts = null;
@@ -1068,7 +1152,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
                {
                   dates.add(counts);
                }
-               counts = new HashMap<Integer, String> ();
+               counts = new HashMap<> ();
                counts.put (0, date);
                previousDate = date;
             }
@@ -1093,25 +1177,31 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
          return res;      
    }
    
-   public String[][] getDownloadsSizePerUser(
-      Date start, Date end, List<String> requestedUsers, boolean perHour)
+   public String[][] getDownloadsSizePerUser(Date start, Date end,
+         List<String> requested_users, boolean per_hour)
    {
+      if(inactive) return new String[1][1];
       String usersStr = "(null)";
       String legend = "Total";
-      if (requestedUsers != null && !requestedUsers.isEmpty ())
+      if (requested_users != null && !requested_users.isEmpty ())
       {
          legend = "Others";
          usersStr = "(";
-         for (String user : requestedUsers)
+         for (String user : requested_users)
          {
             usersStr += "'"+user+"',";
          }
          usersStr = usersStr.substring (0,usersStr.length ()-1);
          usersStr += ")";
       }
-      String userId = "(case when USERS.LOGIN in "+usersStr+" then USERS.LOGIN else '"+legend+"' end)";
-      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_DOWNLOADS.CREATED),'-',RIGHT('00'+MONTH(ACTION_RECORD_DOWNLOADS.CREATED),2),'-',RIGHT('00'+DAY(ACTION_RECORD_DOWNLOADS.CREATED),2)"
-         + (perHour ? ",'T',RIGHT('00'+HOUR(ACTION_RECORD_DOWNLOADS.CREATED),2),':00:00'":"")+")";
+      String userId = "(case when USERS.LOGIN in "+usersStr+" " +
+            "then USERS.LOGIN else '"+legend+"' end)";
+      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_DOWNLOADS.CREATED),'-'," +
+            "RIGHT('00'+MONTH(ACTION_RECORD_DOWNLOADS.CREATED),2),'-'," +
+            "RIGHT('00'+DAY(ACTION_RECORD_DOWNLOADS.CREATED),2)"
+         + (per_hour ?
+            ",'T',RIGHT('00'+HOUR(ACTION_RECORD_DOWNLOADS.CREATED),2),':00:00'":
+            "")+")";
       
       final String sql = "SELECT "+dateSQL+" as date,"
             + " "+userId+" as userId, "
@@ -1123,8 +1213,8 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
             + " GROUP BY date, userId ORDER BY date, userId";
       
       List<Object[]> value = getReturnValue(sql, start, end);
-      List<String> foundUsers = new ArrayList<String>();  
-      List<HashMap<Integer, String>> dates = new ArrayList<HashMap<Integer, String>>();  
+      List<String> foundUsers = new ArrayList<>();
+      List<HashMap<Integer, String>> dates = new ArrayList<>();
       foundUsers.add ("date");
       String previousDate = "";
       HashMap<Integer, String> counts = null;
@@ -1142,7 +1232,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
             {
                dates.add(counts);
             }
-            counts = new HashMap<Integer, String> ();
+            counts = new HashMap<> ();
             counts.put (0, date);
             previousDate = date;
          }
@@ -1178,7 +1268,9 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
    public HashMap<String, BigInteger> getVolumeDownloadsPerUser(
          Date start, Date end)
    {
-      final String sql = "SELECT USERS.LOGIN, SUM(ACTION_RECORD_DOWNLOADS.PRODUCT_SIZE) "
+      if(inactive) return Maps.newHashMap();
+      final String sql = "SELECT USERS.LOGIN, "
+            + "SUM(ACTION_RECORD_DOWNLOADS.PRODUCT_SIZE) "
             + " FROM USERS "
             + " INNER JOIN ACTION_RECORD_DOWNLOADS "
             + " ON USERS.ID = ACTION_RECORD_DOWNLOADS.USERS_ID "
@@ -1187,7 +1279,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
             + " GROUP BY USERS.LOGIN ";
 
       List<Object[]> value = getReturnValue(sql, start, end);
-      HashMap<String, BigInteger> map = new HashMap<String, BigInteger>();
+      HashMap<String, BigInteger> map = new HashMap<>();
 
       for (Object[] line : value)
       {
@@ -1224,10 +1316,16 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
    /**
     * Retrieve the download count grouped by domain.
     */
-   public String[][] getDownloadsPerDomain(Date start, Date end, boolean perHour)
-   {      
-      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_DOWNLOADS.CREATED),'-',RIGHT('00'+MONTH(ACTION_RECORD_DOWNLOADS.CREATED),2),'-',RIGHT('00'+DAY(ACTION_RECORD_DOWNLOADS.CREATED),2)"
-         + (perHour ? ",'T',RIGHT('00'+HOUR(ACTION_RECORD_DOWNLOADS.CREATED),2),':00:00'":"")+")";
+   public String[][] getDownloadsPerDomain(Date start, Date end,
+         boolean per_hour)
+   {
+      if(inactive) return new String[1][1];
+      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_DOWNLOADS.CREATED),'-'," +
+            "RIGHT('00'+MONTH(ACTION_RECORD_DOWNLOADS.CREATED),2),'-'," +
+            "RIGHT('00'+DAY(ACTION_RECORD_DOWNLOADS.CREATED),2)"
+         + (per_hour ?
+            ",'T',RIGHT('00'+HOUR(ACTION_RECORD_DOWNLOADS.CREATED),2),':00:00'":
+            "")+")";
             
       final String sql = "SELECT "+dateSQL+" as date, USERS.domain as domain, "
                + " COUNT(ACTION_RECORD_DOWNLOADS.ID) FROM USERS "
@@ -1238,8 +1336,8 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
                + " GROUP BY date, domain ORDER BY date, domain";
 
       List<Object[]> value = getReturnValue(sql, start, end);
-      List<String> domains = new ArrayList<String>();  
-      List<HashMap<Integer, String>> dates = new ArrayList<HashMap<Integer, String>>();  
+      List<String> domains = new ArrayList<>();
+      List<HashMap<Integer, String>> dates = new ArrayList<>();
       domains.add ("date");
       String previousDate = "";
       HashMap<Integer, String> counts = null;
@@ -1258,7 +1356,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
             {
                dates.add(counts);
             }
-            counts = new HashMap<Integer, String> ();
+            counts = new HashMap<> ();
             counts.put (0, date);
             previousDate = date;
          }
@@ -1283,10 +1381,16 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
       return res;
    }
    
-   public String[][] getDownloadsSizePerDomain(Date start, Date end, boolean perHour)
-   {      
-      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_DOWNLOADS.CREATED),'-',RIGHT('00'+MONTH(ACTION_RECORD_DOWNLOADS.CREATED),2),'-',RIGHT('00'+DAY(ACTION_RECORD_DOWNLOADS.CREATED),2)"
-         + (perHour ? ",'T',RIGHT('00'+HOUR(ACTION_RECORD_DOWNLOADS.CREATED),2),':00:00'":"")+")";
+   public String[][] getDownloadsSizePerDomain(Date start, Date end,
+         boolean per_hour)
+   {
+      if(inactive) return new String[1][1];
+      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_DOWNLOADS.CREATED),'-'," +
+            "RIGHT('00'+MONTH(ACTION_RECORD_DOWNLOADS.CREATED),2),'-'," +
+            "RIGHT('00'+DAY(ACTION_RECORD_DOWNLOADS.CREATED),2)"
+         + (per_hour ?
+            ",'T',RIGHT('00'+HOUR(ACTION_RECORD_DOWNLOADS.CREATED),2),':00:00'":
+            "")+")";
             
       final String sql = "SELECT "+dateSQL+" as date, USERS.domain as domain, "
                + " SUM(ACTION_RECORD_DOWNLOADS.PRODUCT_SIZE) FROM USERS "
@@ -1297,8 +1401,8 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
                + " GROUP BY date, domain ORDER BY date, domain";
 
       List<Object[]> value = getReturnValue(sql, start, end);
-      List<String> domains = new ArrayList<String>();  
-      List<HashMap<Integer, String>> dates = new ArrayList<HashMap<Integer, String>>();  
+      List<String> domains = new ArrayList<>();
+      List<HashMap<Integer, String>> dates = new ArrayList<>();
       domains.add ("date");
       String previousDate = "";
       HashMap<Integer, String> counts = null;
@@ -1317,7 +1421,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
             {
                dates.add(counts);
             }
-            counts = new HashMap<Integer, String> ();
+            counts = new HashMap<> ();
             counts.put (0, date);
             previousDate = date;
          }
@@ -1345,10 +1449,17 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
    /**
     * Retrieve the download count grouped by usage.
     */
-   public String[][] getDownloadsPerUsage(Date start, Date end, boolean perHour)
-   {      
-      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_DOWNLOADS.CREATED),'-',RIGHT('00'+MONTH(ACTION_RECORD_DOWNLOADS.CREATED),2),'-',RIGHT('00'+DAY(ACTION_RECORD_DOWNLOADS.CREATED),2)"
-         + (perHour ? ",'T',RIGHT('00'+HOUR(ACTION_RECORD_DOWNLOADS.CREATED),2),':00:00'":"")+")";
+   public String[][] getDownloadsPerUsage(Date start, Date end,
+         boolean per_hour)
+   {
+      if(inactive) return new String[1][1];
+      
+      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_DOWNLOADS.CREATED),'-'," +
+            "RIGHT('00'+MONTH(ACTION_RECORD_DOWNLOADS.CREATED),2),'-'," +
+            "RIGHT('00'+DAY(ACTION_RECORD_DOWNLOADS.CREATED),2)"
+         + (per_hour ?
+            ",'T',RIGHT('00'+HOUR(ACTION_RECORD_DOWNLOADS.CREATED),2),':00:00'":
+            "")+")";
             
       final String sql = "SELECT "+dateSQL+" as date, USERS.usage as usage, "
                + " COUNT(ACTION_RECORD_DOWNLOADS.ID) FROM USERS "
@@ -1359,8 +1470,8 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
                + " GROUP BY date, usage ORDER BY date, usage";
 
       List<Object[]> value = getReturnValue(sql, start, end);
-      List<String> usages = new ArrayList<String>();  
-      List<HashMap<Integer, String>> dates = new ArrayList<HashMap<Integer, String>>();  
+      List<String> usages = new ArrayList<>();
+      List<HashMap<Integer, String>> dates = new ArrayList<>();
       usages.add ("date");
       String previousDate = "";
       HashMap<Integer, String> counts = null;
@@ -1379,7 +1490,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
             {
                dates.add(counts);
             }
-            counts = new HashMap<Integer, String> ();
+            counts = new HashMap<> ();
             counts.put (0, date);
             previousDate = date;
          }
@@ -1404,10 +1515,16 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
       return res;
    }
    
-   public String[][] getDownloadsSizePerUsage(Date start, Date end, boolean perHour)
-   {      
-      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_DOWNLOADS.CREATED),'-',RIGHT('00'+MONTH(ACTION_RECORD_DOWNLOADS.CREATED),2),'-',RIGHT('00'+DAY(ACTION_RECORD_DOWNLOADS.CREATED),2)"
-         + (perHour ? ",'T',RIGHT('00'+HOUR(ACTION_RECORD_DOWNLOADS.CREATED),2),':00:00'":"")+")";
+   public String[][] getDownloadsSizePerUsage(Date start, Date end,
+         boolean per_hour)
+   {
+      if(inactive) return new String[1][1];   
+      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_DOWNLOADS.CREATED),'-'," +
+            "RIGHT('00'+MONTH(ACTION_RECORD_DOWNLOADS.CREATED),2),'-'," +
+            "RIGHT('00'+DAY(ACTION_RECORD_DOWNLOADS.CREATED),2)"
+         + (per_hour ?
+            ",'T',RIGHT('00'+HOUR(ACTION_RECORD_DOWNLOADS.CREATED),2),':00:00'":
+            "")+")";
             
       final String sql = "SELECT "+dateSQL+" as date, USERS.usage as usage, "
                + " SUM(ACTION_RECORD_DOWNLOADS.PRODUCT_SIZE) FROM USERS "
@@ -1418,8 +1535,8 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
                + " GROUP BY date, usage ORDER BY date, usage";
 
       List<Object[]> value = getReturnValue(sql, start, end);
-      List<String> usages = new ArrayList<String>();  
-      List<HashMap<Integer, String>> dates = new ArrayList<HashMap<Integer, String>>();  
+      List<String> usages = new ArrayList<>();
+      List<HashMap<Integer, String>> dates = new ArrayList<>();
       usages.add ("date");
       String previousDate = "";
       HashMap<Integer, String> counts = null;
@@ -1438,7 +1555,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
             {
                dates.add(counts);
             }
-            counts = new HashMap<Integer, String> ();
+            counts = new HashMap<> ();
             counts.put (0, date);
             previousDate = date;
          }
@@ -1471,25 +1588,32 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
     * @return map A hashmap containing the product identifier as key and the
     *         download count as value.
     */
-   public String[][] getDownloadsPerProduct(
-         Date start, Date end, List<Long> requestProducts, boolean perHour)
+   public String[][] getDownloadsPerProduct(Date start, Date end,
+         List<Long> request_products, boolean per_hour)
    {
+      if(inactive) return new String[1][1];
+      
       String productStr = "(null)";
       String legend = "Total";
-      if (requestProducts != null && !requestProducts.isEmpty ())
+      if (request_products != null && !request_products.isEmpty ())
       {
          legend = "Others";
          productStr = "(";
-         for (Long product : requestProducts)
+         for (Long product : request_products)
          {
             productStr += "'"+product+"',";
          }
          productStr = productStr.substring (0,productStr.length ()-1);
          productStr += ")";
       }
-      String userId = "(case when USERS.LOGIN in "+productStr+" then USERS.LOGIN else '"+legend+"' end)";
-      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_DOWNLOADS.CREATED),'-',RIGHT('00'+MONTH(ACTION_RECORD_DOWNLOADS.CREATED),2),'-',RIGHT('00'+DAY(ACTION_RECORD_DOWNLOADS.CREATED),2)"
-         + (perHour ? ",'T',RIGHT('00'+HOUR(ACTION_RECORD_DOWNLOADS.CREATED),2),':00:00'":"")+")";
+      String userId = "(case when USERS.LOGIN in "+productStr+
+            " then USERS.LOGIN else '"+legend+"' end)";
+      String dateSQL = "CONCAT(YEAR(ACTION_RECORD_DOWNLOADS.CREATED),'-'," +
+            "RIGHT('00'+MONTH(ACTION_RECORD_DOWNLOADS.CREATED),2),'-'," +
+            "RIGHT('00'+DAY(ACTION_RECORD_DOWNLOADS.CREATED),2)"
+         + (per_hour ?
+            ",'T',RIGHT('00'+HOUR(ACTION_RECORD_DOWNLOADS.CREATED),2),':00:00'":
+            "")+")";
       
       final String sql = "SELECT "+dateSQL+" as date,"
             + " "+userId+" as userId, "
@@ -1506,8 +1630,8 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
 //               + " GROUP BY ACTION_RECORD_DOWNLOADS.PRODUCT_IDENTIFIER ";
       
       List<Object[]> value = getReturnValue(sql, start, end);
-      List<String> foundUsers = new ArrayList<String>();  
-      List<HashMap<Integer, String>> dates = new ArrayList<HashMap<Integer, String>>();  
+      List<String> foundUsers = new ArrayList<>();
+      List<HashMap<Integer, String>> dates = new ArrayList<>();
       foundUsers.add ("date");
       String previousDate = "";
       HashMap<Integer, String> counts = null;
@@ -1560,6 +1684,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
    public HashMap<String, BigInteger> getVolumeDownloadsPerProduct(
          Date start, Date end)
    {
+      if(inactive) return Maps.newHashMap();
       final String sql = "SELECT ACTION_RECORD_DOWNLOADS.PRODUCT_IDENTIFIER, "
             + " SUM(ACTION_RECORD_DOWNLOADS.PRODUCT_SIZE) "
             + " FROM ACTION_RECORD_DOWNLOADS "
@@ -1568,7 +1693,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
             + " GROUP BY ACTION_RECORD_DOWNLOADS.PRODUCT_IDENTIFIER ";
 
       List<Object[]> value = getReturnValue(sql, start, end);
-      HashMap<String, BigInteger> map = new HashMap<String, BigInteger>();
+      HashMap<String, BigInteger> map = new HashMap<>();
 
       for (Object[] line : value)
       {
@@ -1590,6 +1715,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
     */
    public int getTotalUploads(Date start, Date end, String status)
    {
+      if(inactive) return 0;
       final String sql = "SELECT COUNT(ACTION_RECORD_UPLOADS.ID) "
             + " FROM ACTION_RECORD_UPLOADS "
             + " WHERE ACTION_RECORD_UPLOADS.STATUS = '" + status + "' "
@@ -1609,6 +1735,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
     */
    public int getVolumeUploads(Date start, Date end, String status)
    {
+      if(inactive) return 0;
       final String sql = "SELECT SUM(ACTION_RECORD_UPLOADS.PRODUCT_SIZE) "
             + " FROM ACTION_RECORD_UPLOADS "
             + " WHERE ACTION_RECORD_UPLOADS.STATUS = '" + status + "' "
@@ -1630,6 +1757,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
    public HashMap<String, BigInteger> getUploadsPerUser(
          Date start, Date end, String status)
    {
+      if(inactive) return Maps.newHashMap();
       final String sql = "SELECT USERS.LOGIN, "
             + " COUNT(ACTION_RECORD_UPLOADS.ID) FROM USERS "
             + " INNER JOIN ACTION_RECORD_UPLOADS "
@@ -1639,7 +1767,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
             + " GROUP BY USERS.LOGIN ";
 
       List<Object[]> value = getReturnValue(sql, start, end);
-      HashMap<String, BigInteger> map = new HashMap<String, BigInteger>();
+      HashMap<String, BigInteger> map = new HashMap<>();
 
       for (Object[] line : value)
       {
@@ -1682,7 +1810,9 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
    public HashMap<String, BigInteger> getUploadsPerUsage(
          Date start, Date end, String status)
    {
-      final String sql = "SELECT USERS.usage, COUNT(DISTINCT ACTION_RECORD_UPLOADS.USERS_ID) "
+      if(inactive) return Maps.newHashMap();
+      final String sql = "SELECT USERS.usage, "
+            + "COUNT(DISTINCT ACTION_RECORD_UPLOADS.USERS_ID) "
             + " FROM USERS INNER JOIN ACTION_RECORD_UPLOADS "
             + " ON USERS.ID = ACTION_RECORD_UPLOADS.USERS_ID "
             + " WHERE ACTION_RECORD_UPLOADS.STATUS = '"
@@ -1692,7 +1822,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
             + " GROUP BY USERS.usage ";
 
       List<Object[]> value = getReturnValue(sql, start, end);
-      HashMap<String, BigInteger> map = new HashMap<String, BigInteger>();
+      HashMap<String, BigInteger> map = new HashMap<>();
 
       for (Object[] line : value)
       {
@@ -1707,7 +1837,9 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
    public HashMap<String, BigInteger> getUploadsPerDomain(
          Date start, Date end, String status)
    {
-      final String sql = "SELECT USERS.domain, COUNT(DISTINCT ACTION_RECORD_UPLOADS.USERS_ID) "
+      if(inactive) return Maps.newHashMap();
+      final String sql = "SELECT USERS.domain, "
+            + "COUNT(DISTINCT ACTION_RECORD_UPLOADS.USERS_ID) "
             + " FROM USERS INNER JOIN ACTION_RECORD_UPLOADS "
             + " ON USERS.ID = ACTION_RECORD_UPLOADS.USERS_ID "
             + " WHERE ACTION_RECORD_UPLOADS.STATUS = '"
@@ -1717,7 +1849,7 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
             + " GROUP BY USERS.domain ";
 
       List<Object[]> value = getReturnValue(sql, start, end);
-      HashMap<String, BigInteger> map = new HashMap<String, BigInteger>();
+      HashMap<String, BigInteger> map = new HashMap<>();
 
       for (Object[] line : value)
       {
@@ -1728,24 +1860,92 @@ public class ActionRecordReaderDao extends HibernateDao<ActionRecord, Long>
    
    public int countDownloads ()
    {
+      if(inactive) return 0;
       return DataAccessUtils.intResult (find (
          "select count(*) FROM " + ActionRecordDownload.class.getName ()));
    }
    
    public int countLogons ()
    {
+      if(inactive) return 0;
       return DataAccessUtils.intResult (find (
          "select count(*) FROM " + ActionRecordLogon.class.getName ()));
    }
 
    public int countSearches ()
    {
+      if(inactive) return 0;
       return DataAccessUtils.intResult (find (
          "select count(*) FROM " + ActionRecordSearch.class.getName ()));
    }
    public int countUploads()
    {
+      if(inactive) return 0;
       return DataAccessUtils.intResult (find (
          "select count(*) FROM " + ActionRecordUpload.class.getName ()));
    }
+   
+   // Override inherited methods TYo avoid access to DB
+   @Override
+   public int count()
+   {
+      if(inactive) return 0;
+      return super.count();
+   }
+   
+   @Override
+   public void update(ActionRecord t)
+   {
+      if(inactive) return;
+      super.update(t);
+   }
+   
+   @SuppressWarnings ("rawtypes")
+   @Override
+   public List find(String query_string) throws DataAccessException
+   {
+      if(inactive) return Collections.emptyList();
+      return super.find(query_string);
+   }
+   
+   @Override
+   public ActionRecord read(Long id)
+   {
+      if(inactive) return null;
+      return super.read(id);
+   }
+   @Override
+   public List<ActionRecord> readAll()
+   {
+      if(inactive) return Collections.emptyList();
+      return super.readAll();
+   }
+
+   @Override
+   public ActionRecord create(ActionRecord t)
+   {
+      if(inactive) return t;
+      return super.create(t);
+   }
+   
+   @Override
+   public void delete(ActionRecord t)
+   {
+      if(inactive) return;
+      super.delete(t);
+   }
+   
+   @Override
+   public void deleteAll()
+   {
+      if(inactive) return;
+      super.deleteAll();
+   }
+   @Override
+   public List<ActionRecord> scroll(String clauses, int skip, int n)
+   {
+      if(inactive) return Collections.emptyList();
+      return super.scroll(clauses, skip, n);
+   }
+
 }

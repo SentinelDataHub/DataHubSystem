@@ -19,17 +19,20 @@
  */
 package fr.gael.dhus.gwt.client.page;
 
+import java.util.List;
+
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.PasswordTextBox;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
 
+import fr.gael.dhus.gwt.client.AccessDeniedRedirectionCallback;
 import fr.gael.dhus.gwt.services.UserServiceAsync;
+import fr.gael.dhus.gwt.share.CountryData;
 import fr.gael.dhus.gwt.share.UserData;
 import fr.gael.dhus.gwt.share.exceptions.UserServiceMailingException;
 
@@ -82,7 +85,29 @@ public class RegisterPage extends AbstractPage
       final UserServiceAsync userService = UserServiceAsync.Util.getInstance ();
       
       final RootPanel register_button = RootPanel.get ("register_button");
+
+      final ListBox country = ListBox.wrap (RootPanel.get ("register_country").getElement ());
       
+      userService.getCountries (new AccessDeniedRedirectionCallback<List<CountryData>>()
+      {         
+         @Override
+         public void onSuccess (List<CountryData> result)
+         {
+            for (CountryData ctry : result)
+            {
+               country.addItem (ctry.getName (), ctry.getId ().toString ());
+            }
+         }
+         
+         @Override
+         public void _onFailure (Throwable caught)
+         {
+            Window
+               .alert ("There was an error while requesting countries.\n" +
+                  caught.getMessage ());
+         }
+      });      
+            
       register_button.addDomHandler (new ClickHandler()
       {         
          @Override
@@ -103,7 +128,7 @@ public class RegisterPage extends AbstractPage
             TextBox username = TextBox.wrap (RootPanel.get ("register_username").getElement ());
             PasswordTextBox password = PasswordTextBox.wrap (RootPanel.get ("register_password").getElement ());
             PasswordTextBox confirmPassword = PasswordTextBox.wrap (RootPanel.get ("register_password_confirm").getElement ());
-            TextBox country = TextBox.wrap (RootPanel.get ("register_country").getElement ());
+            ListBox country = ListBox.wrap (RootPanel.get ("register_country").getElement ());
             ListBox domain = ListBox.wrap (RootPanel.get ("register_domain").getElement ());
             TextBox subDomain = TextBox.wrap (RootPanel.get ("register_subDomain").getElement ());
             ListBox usage = ListBox.wrap (RootPanel.get ("register_usage").getElement ());
@@ -115,7 +140,7 @@ public class RegisterPage extends AbstractPage
             toSave.setLastname (lastname.getValue ());
             toSave.setUsername (username.getValue ());
             toSave.setPassword (password.getValue ());
-            toSave.setCountry (country.getValue ());
+            toSave.setCountry (country.getValue (country.getSelectedIndex ()));
             String domainStr = domain.getItemText (domain.getSelectedIndex ());
             toSave.setDomain (domainStr);
             toSave.setSubDomain ("other".equals (domainStr.toLowerCase ()) ? subDomain.getValue () : "unknown" );
@@ -146,10 +171,10 @@ public class RegisterPage extends AbstractPage
 
             enableAll (false, false);
 
-            AsyncCallback<Void> callback = new AsyncCallback<Void> ()
+            AccessDeniedRedirectionCallback<Void> callback = new AccessDeniedRedirectionCallback<Void> ()
             {
                @Override
-               public void onFailure (Throwable caught)
+               public void _onFailure (Throwable caught)
                {
                   if (caught instanceof UserServiceMailingException)
                   {

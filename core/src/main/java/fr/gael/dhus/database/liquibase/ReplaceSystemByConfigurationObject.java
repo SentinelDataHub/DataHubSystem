@@ -44,7 +44,7 @@ public class ReplaceSystemByConfigurationObject implements CustomTaskChange
    }
 
    @Override
-   public void setFileOpener (ResourceAccessor resourceAccessor)
+   public void setFileOpener (ResourceAccessor resource_accessor)
    {
    }
 
@@ -62,7 +62,8 @@ public class ReplaceSystemByConfigurationObject implements CustomTaskChange
    @Override
    public void execute (Database database) throws CustomChangeException
    {
-      JdbcConnection databaseConnection = (JdbcConnection) database.getConnection ();
+      JdbcConnection databaseConnection = (JdbcConnection) database
+            .getConnection ();
       try
       {
          PreparedStatement system = databaseConnection.prepareStatement (
@@ -71,38 +72,66 @@ public class ReplaceSystemByConfigurationObject implements CustomTaskChange
          
          while (system_res.next ())
          {
-            Integer qlWidth = (Integer) system_res.getObject ("proc_quicklook_width");   
-            Integer qlHeight = (Integer) system_res.getObject ("proc_quicklook_height");  
-            Boolean qlCutting = (Boolean) system_res.getObject ("proc_quicklook_cutting");
-            Integer tnWidth = (Integer) system_res.getObject ("proc_thumbnail_width");   
-            Integer tnHeight = (Integer) system_res.getObject ("proc_thumbnail_height");  
-            Boolean tnCutting = (Boolean) system_res.getObject ("proc_thumbnail_cutting");
-            String fromMail = (String) system_res.getObject ("MAIL_FROM_EMAIL");
-            String fromName = (String) system_res.getObject ("MAIL_FROM_NAME");
-            String replyTo = (String) system_res.getObject ("MAIL_REPLY_TO");
-            String serverHost = (String) system_res.getObject ("MAIL_SERVER_HOSTNAME");
-            Integer serverPort = (Integer) system_res.getObject ("MAIL_SERVER_PORT");
-            Boolean serverTls = (Boolean) system_res.getObject ("MAIL_SERVER_TLS");
-            String serverUser = (String) system_res.getObject ("MAIL_SERVER_USERNAME");
-            String serverPassword = (String) system_res.getObject ("MAIL_SERVER_PASSWORD");
-            String supportMail = (String) system_res.getObject ("SYSTEM_SUPPORT_MAIL");
-            String supportName = (String) system_res.getObject ("SYSTEM_SUPPORT_NAME");
-            Boolean mailCreate = (Boolean) system_res.getObject ("USER_EMAIL_ON_CREATE");
-            Boolean mailUpdate = (Boolean) system_res.getObject ("USER_EMAIL_ON_UPDATE");
-            Boolean mailDelete = (Boolean) system_res.getObject ("USER_EMAIL_ON_DELETE");
+            Integer qlWidth = (Integer) system_res.getObject (
+                  "proc_quicklook_width");
+            Integer qlHeight = (Integer) system_res.getObject (
+                  "proc_quicklook_height");
+            Boolean qlCutting = (Boolean) system_res.getObject (
+                  "proc_quicklook_cutting");
+            Integer tnWidth = (Integer) system_res.getObject (
+                  "proc_thumbnail_width");
+            Integer tnHeight = (Integer) system_res.getObject (
+                  "proc_thumbnail_height");
+            Boolean tnCutting = (Boolean) system_res.getObject (
+                  "proc_thumbnail_cutting");
+            String fromMail = (String) system_res.getObject (
+                  "MAIL_FROM_EMAIL");
+            String fromName = (String) system_res.getObject (
+                  "MAIL_FROM_NAME");
+            String replyTo = (String) system_res.getObject (
+                  "MAIL_REPLY_TO");
+            String serverHost = (String) system_res.getObject (
+                  "MAIL_SERVER_HOSTNAME");
+            Integer serverPort = (Integer) system_res.getObject (
+                  "MAIL_SERVER_PORT");
+            Boolean serverTls = (Boolean) system_res.getObject (
+                  "MAIL_SERVER_TLS");
+            String serverUser = (String) system_res.getObject (
+                  "MAIL_SERVER_USERNAME");
+            String serverPassword = (String) system_res.getObject (
+                  "MAIL_SERVER_PASSWORD");
+            String supportMail = (String) system_res.getObject (
+                  "SYSTEM_SUPPORT_MAIL");
+            String supportName = (String) system_res.getObject (
+                  "SYSTEM_SUPPORT_NAME");
+            Boolean mailCreate = (Boolean) system_res.getObject (
+                  "USER_EMAIL_ON_CREATE");
+            Boolean mailUpdate = (Boolean) system_res.getObject (
+                  "USER_EMAIL_ON_UPDATE");
+            Boolean mailDelete = (Boolean) system_res.getObject (
+                  "USER_EMAIL_ON_DELETE");
 
             PreparedStatement updateConfiguration =
                databaseConnection
-                  .prepareStatement ("INSERT INTO CONFIGURATION (QUICKLOOK_CUTTING, QUICKLOOK_HEIGHT, QUICKLOOK_WIDTH," +
-                  		"THUMBNAIL_CUTTING,THUMBNAIL_HEIGHT,THUMBNAIL_WIDTH," +
-                  		"MAILSERVER_FROMADDRESS,MAILSERVER_FROMNAME,MAILSERVER_REPLYTO," +
-                  		"MAILSERVER_SMTP,MAILSERVER_PORT,MAILSERVER_TLS,MAILSERVER_USERNAME," +
-                  		"MAILSERVER_PASSWORD,SYSTEM_SUPPORTMAIL,SYSTEM_SUPPORTNAME," +
-                  		"MAIL_ONUSERCREATE,MAIL_ONUSERUPDATE,MAIL_ONUSERDELETE) " +
-                  		" VALUES ('"+qlCutting+"', '"+qlHeight+"', '"+qlWidth+"', '"+tnCutting+"', '"+tnHeight+"', '"+tnWidth+
-                  		"', '"+fromMail+"', '"+fromName+"', '"+replyTo+"', '"+serverHost+"', '"+serverPort+
-                  		"', '"+serverTls+"', '"+serverUser+"', '"+serverPassword+"', '"+supportMail+"', '"+supportName+
-                  		"', '"+mailCreate+"', '"+mailUpdate+"', '"+mailDelete+"')");
+                  .prepareStatement ("INSERT INTO CONFIGURATION " +
+                        "(QUICKLOOK_CUTTING, QUICKLOOK_HEIGHT, " +
+                        "QUICKLOOK_WIDTH, THUMBNAIL_CUTTING, " +
+                        "THUMBNAIL_HEIGHT, " + "THUMBNAIL_WIDTH, " +
+                        "MAILSERVER_FROMADDRESS, MAILSERVER_FROMNAME, " +
+                        "MAILSERVER_REPLYTO, MAILSERVER_SMTP, " +
+                        "MAILSERVER_PORT, MAILSERVER_TLS, " +
+                        "MAILSERVER_USERNAME, MAILSERVER_PASSWORD, " +
+                        "SYSTEM_SUPPORTMAIL, SYSTEM_SUPPORTNAME, " +
+                        "MAIL_ONUSERCREATE, MAIL_ONUSERUPDATE, " +
+                        "MAIL_ONUSERDELETE) VALUES ('"+qlCutting+"', " +
+                        "'" + qlHeight + "', '" + qlWidth + "', '" + tnCutting +
+                        "', " + "'" + tnHeight + "', '" + tnWidth + "', '" +
+                        fromMail + "', '" + fromName + "', '" + replyTo +
+                        "', '" + serverHost + "', '" + serverPort + "', '" +
+                        serverTls + "', '" + serverUser + "', '" +
+                        serverPassword + "', '" + supportMail + "', '" +
+                        supportName + "', '" + mailCreate + "', '" +
+                        mailUpdate + "', '" + mailDelete + "')");
             updateConfiguration.execute ();
             updateConfiguration.close();
          }
@@ -110,7 +139,8 @@ public class ReplaceSystemByConfigurationObject implements CustomTaskChange
       }
       catch (Exception e)
       {
-         logger.error ("Error during liquibase update 'ReplaceSystemByConfigurationObject'", e);
+         logger.error ("Error during liquibase update " +
+               "'ReplaceSystemByConfigurationObject'", e);
       }
    }
 }

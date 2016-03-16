@@ -20,7 +20,7 @@
 package fr.gael.dhus.datastore.exception;
 
 /**
- * Denotes data store problems. 
+ * Denotes data store problems.
  */
 public class DataStoreNotReadableProduct extends DataStoreException
 {

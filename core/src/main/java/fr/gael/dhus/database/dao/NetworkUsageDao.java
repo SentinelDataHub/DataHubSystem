@@ -19,70 +19,62 @@
  */
 package fr.gael.dhus.database.dao;
 
-import java.sql.SQLException;
-import java.util.Date;
-
-import org.hibernate.HibernateException;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.springframework.orm.hibernate3.HibernateCallback;
-import org.springframework.stereotype.Repository;
-
 import fr.gael.dhus.database.dao.interfaces.HibernateDao;
 import fr.gael.dhus.database.object.NetworkUsage;
 import fr.gael.dhus.database.object.User;
+import org.hibernate.Criteria;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
+import org.springframework.orm.hibernate3.HibernateCallback;
+import org.springframework.stereotype.Repository;
+
+import java.sql.SQLException;
+import java.util.Date;
 
 @Repository
 public class NetworkUsageDao extends HibernateDao<NetworkUsage, Long>
 {
-   public int getDownlaodedCountPerUser (final User user, long period)
+   public int countDownloadByUserSince (final User user, final Date date)
    {
-      long current_timestamp = new Date ().getTime ();
-      final Date query_date = new Date (current_timestamp - period);
-
       Long result =
-         getHibernateTemplate ().execute (new HibernateCallback<Long> ()
-         {
-            @Override
-            public Long doInHibernate (Session session)
-               throws HibernateException, SQLException
+            getHibernateTemplate ().execute (new HibernateCallback<Long> ()
             {
-               Query query =
-                  session.createQuery ("SELECT count(networks) "
-                     + "FROM NetworkUsage networks "
-                     + "WHERE networks.user = :user AND "
-                     + "networks.isDownload = true AND networks.date > :date");
-               query.setEntity ("user", user);
-               query.setDate ("date", query_date);
-               return (Long) query.uniqueResult ();
-            }
-         });
+               @Override
+               public Long doInHibernate (Session session)
+                     throws HibernateException, SQLException
+               {
+                  Criteria criteria = session.createCriteria (
+                        NetworkUsage.class);
+                  criteria.setProjection (Projections.rowCount ());
+                  criteria.add (Restrictions.eq ("isDownload", true));
+                  criteria.add (Restrictions.eq ("user", user));
+                  criteria.add (Restrictions.gt ("date", date));
+                  return (Long) criteria.uniqueResult ();
+               }
+            });
       return (result != null) ? result.intValue () : 0;
    }
 
-   public long getDownlaodedSizePerUser (final User user, long period)
+   public long getDownloadedSizeByUserSince (final User user, final Date date)
    {
-      long current_timestamp = new Date ().getTime ();
-      final Date query_date = new Date (current_timestamp - period);
-
       Long result =
-         getHibernateTemplate ().execute (new HibernateCallback<Long> ()
-         {
-            @Override
-            public Long doInHibernate (Session session)
-               throws HibernateException, SQLException
+            getHibernateTemplate ().execute (new HibernateCallback<Long> ()
             {
-               Query query =
-                  session.createQuery ("select sum(networks.size) "
-                     + "from NetworkUsage networks "
-                     + " where networks.user=:user and "
-                     + " networks.isDownload=true and "
-                     + " networks.date>:date");
-               query.setParameter ("user", user);
-               query.setParameter ("date", query_date);
-               return (Long) query.uniqueResult ();
-            }
-         });
+               @Override
+               public Long doInHibernate (Session session)
+                     throws HibernateException, SQLException
+               {
+                  Criteria criteria = session.createCriteria (
+                        NetworkUsage.class);
+                  criteria.setProjection (Projections.sum ("size"));
+                  criteria.add (Restrictions.eq ("isDownload", true));
+                  criteria.add (Restrictions.eq ("user", user));
+                  criteria.add (Restrictions.gt ("date", date));
+                  return (Long) criteria.uniqueResult ();
+               }
+            });
       return (result == null) ? 0 : result;
    }
 }

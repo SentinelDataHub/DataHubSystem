@@ -1,0 +1,25 @@
+.footer {
+    width: 81px;
+    height:20px;
+    position: relative;
+}
+
+#footer {
+    width: 81px;
+    height:20px;
+    position: relative;
+}
+
+.footer-label {
+  line-height: 20px; 
+  color: blue;
+  font-family: 'Open Sans', Helvetica, sans-serif ;
+  font-size: 10px; 
+}
+
+#footer-label {
+  line-height: 20px; 
+  color: blue;
+  font-family: 'Open Sans', Helvetica, sans-serif ;
+  font-size: 10px; 
+}

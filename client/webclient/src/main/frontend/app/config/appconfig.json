@@ -1,0 +1,168 @@
+{    
+    
+    "debugMode": false,
+    "webAppRoot": "/",
+    "logged": false,
+    "version": "Data Hub System #version published here is developed by a Serco (http://serco.com/) and Gael Systems (http://www.gael.fr/) consortium under a contract with the European Space Agency (http://www.esa.int) in the frame of the Copernicus Programme. ",
+    "settings": {
+        "title": "Data Hub System - OSF Installation",
+        "logo": "images/datahub.png",
+        "signup": true,
+        "editprofile": true,
+        "showcart": true,
+        "showmap": true,
+        "bgimage": "images/bg_s3.jpg",
+        "showquicklook": true,        
+        "show_oldgui_link": true,
+        "show_userguide": true,
+        "show_home": true,
+        "show_extended_list": false,
+        "showsensingfilter": true,
+        "showingestionfilter": true,
+        "oldgui_link": "../",
+        "querytitle": "Request Done: ",
+        "toolbar" : {
+            "title": "Copernicus Scientific Data Hub",                        
+            "userguide_link": "https://scihub.copernicus.eu/userguide",
+            "userguide_title": "User Guide",
+            "home_link": "https://scihub.copernicus.eu",
+            "home_title": "Scientific Data Hub Portal",            
+            "logos": [
+               
+            ],
+            "rightlogos": []
+        },
+        "availableRoles": [
+            {"id":"SEARCH", "title":"Search"},
+            {"id":"DOWNLOAD", "title":"Download"},
+            {"id":"UPLOAD", "title":"Upload"},
+            {"id":"USER_MANAGER", "title":"User Manager"},
+            {"id":"ARCHIVE_MANAGER", "title":"Archive Manager"},
+            {"id":"DATA_MANAGER", "title":"Data Manager"},
+            {"id":"SYSTEM_MANAGER", "title":"System Manager"},
+            {"id":"STATISTICS", "title":"Statistics"}
+        ],
+        "managementRoles": ["USER_MANAGER","DATA_MANAGER", "SYSTEM_MANAGER"],
+        "synchronizerRoles": ["UPLOAD"],
+        "uploadRoles": ["UPLOAD"],
+
+        "isMapLayerSwitcherVisible":true,
+        "map":{
+            "Satellite":{
+                "sources":[{
+                    "class":"MapQuest",
+                    "params":{
+                        "layer":"sat",
+                        "wrapX": false
+                    }
+                }],
+                "title": "Satellite",
+                "type":"base",
+                "visible":false
+            },
+            "Road":{
+                "sources":[{
+                    "class":"OSM",
+                    "params":{
+                        "wrapX": false
+                    }
+                }],
+                "title": "Road",
+                "type":"base",
+                "visible":true
+            },
+            "Hybrid":{
+                "sources":[  {
+                        "class": "MapQuest",
+                        "params":{
+                            "layer":"sat",
+                            "wrapX": false
+                        }
+                    },
+                    {
+                        "class": "MapQuest",
+                        "params":{
+                            "layer":"hyb",
+                            "wrapX": false
+                        }
+                    }],
+                "title": "Hybrid",
+                "type":"base",
+                "visible":false
+            }
+        },
+
+        "miniMap":{        
+            "sources":[{
+                "class":"OSM",
+                "params":{
+                    "wrapX": false
+                }
+            }],
+            "title": "Road",
+            "type":"base",
+            "visible":true            
+        }        
+    },
+    "missions": [
+        {
+            "name": "Mission: Sentinel-1",
+            "indexname": "platformname",
+            "indexvalue": "Sentinel-1",            
+            "filters": [
+                {
+                    "indexname": "producttype",
+                    "indexlabel": "Product Type",
+                    "indexvalues": "",
+                    "regex": ".*"
+
+                },
+                {
+                    "indexname": "polarisationmode",
+                    "indexlabel": "Polarisation",
+                    "regex": ".*"
+
+                },
+                {
+                    "indexname": "sensoroperationalmode",
+                    "indexlabel": "Sensor Mode",
+                    "indexvalues": "",
+                    "regex": ".*"
+
+                },
+                {
+                    "indexname": "swathidentifier",
+                    "indexlabel": "Swath",
+                    "regex": ".*"
+
+                }
+            ]
+        },
+        {
+            "name": "Mission: Sentinel-2",
+            "indexname": "platformname",
+            "indexvalue": "Sentinel-2",
+            "filters": [
+                {
+                    "indexname": "producttype",
+                    "indexlabel": "Product Type",
+                    "regex": ".*"
+
+                },
+                {
+                    "indexname": "cloudcoverpercentage",
+                    "indexlabel": "Cloud Coverage (%)",
+                    "regex": ".*"
+
+                },
+                {
+                    "indexname": "processingbaseline",
+                    "indexlabel": "Processing Baseline",
+                    "regex": ".*"
+
+                }
+            ]
+        }
+    ]
+
+}

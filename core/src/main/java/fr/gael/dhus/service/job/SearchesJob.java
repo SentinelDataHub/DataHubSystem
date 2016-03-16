@@ -24,9 +24,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import fr.gael.dhus.service.ProductService;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
 import org.apache.log4j.Logger;
@@ -43,8 +45,7 @@ import fr.gael.dhus.database.object.Role;
 import fr.gael.dhus.database.object.Search;
 import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.messaging.mail.MailServer;
-import fr.gael.dhus.search.SearchResult;
-import fr.gael.dhus.search.SolrDao;
+import fr.gael.dhus.service.SearchService;
 import fr.gael.dhus.system.config.ConfigurationManager;
 
 /**
@@ -59,10 +60,13 @@ public class SearchesJob extends AbstractJob
    private UserDao userDao;
    
    @Autowired
+   private ProductService productService;
+   
+   @Autowired
    private MailServer mailServer;
    
    @Autowired
-   private SolrDao solrDao;
+   private SearchService searchService;
 
    @Autowired
    private ConfigurationManager configurationManager;
@@ -92,7 +96,8 @@ public class SearchesJob extends AbstractJob
          List<Search>searches = userDao.getUserSearches (user);
          if (searches == null || (searches.size ()==0)) 
          {
-            logger.debug ("No saved search for user \"" + user.getUsername () + "\".");
+            logger.debug ("No saved search for user \"" + user.getUsername () +
+                  "\".");
             continue;
          }
          
@@ -108,28 +113,42 @@ public class SearchesJob extends AbstractJob
 
          int maxResult = searches.size () >= 10 ? 5 : 10;
          String message = "<html><style>" +
-                        "a { font-weight: bold; color: #205887; text-decoration: none; }\n" +
-                        "a:hover { font-weight:bold; color: #FF790B; text-decoration: none; }\n" +
-                        "a img { border-style: none; }\n" +
-                        "</style><body style=\"font-family: Trebuchet MS, Helvetica, sans-serif; font-size: 14px;\">Dear " + getUserWelcome (user) + ",<p/>\n\n";
-         message += "You requested periodic notification for the following searches. Here are the top "+maxResult+" results for each search:<p/>";
-         message +="<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"width: 100%;font-family: Trebuchet MS, Helvetica, sans-serif; font-size: 14px;\"><tbody>";
+               "a { font-weight: bold; color: #205887; " +
+               "text-decoration: none; }\n" +
+               "a:hover { font-weight:bold; color: #FF790B" +
+               "; text-decoration: none; }\na img { border-style: none; }\n" +
+               "</style><body style=\"font-family: Trebuchet MS, Helvetica, " +
+               "sans-serif; font-size: 14px;\">Dear " + getUserWelcome (user) +
+               ",<p/>\n\n";
+         message += "You requested periodic notification for the following " +
+               "searches. Here are the top "+maxResult+" results for " +
+               "each search:<p/>";
+         message +="<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" " +
+               "style=\"width: 100%;font-family: Trebuchet MS, Helvetica, " +
+               "sans-serif; font-size: 14px;\"><tbody>";
 
          boolean atLeastOneResult = false;
          for (Search search:searches)
          {
             if (search.isNotify ())
             {
-               message += "<tr><td colspan=\"3\" style=\"font-size: 13px; font-weight: bold; color: white; background-color: #205887; text-align: center;\"><b>";
+               message += "<tr><td colspan=\"3\" style=\"font-size: 13px; " +
+                     "font-weight: bold; color: white; background-color: " +
+                     "#205887; text-align: center;\"><b>";
                message += search.getValue ();
                message += "</b></td></tr>\n";
 
                Map<String, String> advanceds = search.getAdvanced ();     
                if (advanceds != null && !advanceds.isEmpty ())
                {
-                  message +="<tr><td style=\"font-size: 13px; padding:0px; margin:0px; font-weight:normal; background-color: #799BB7; text-align: center; border-left: 1px solid #205887; border-right: 1px solid #205887; border-bottom: 1px solid #205887;\">";          
+                  message +="<tr><td style=\"font-size: 13px; padding:0px; " +
+                        "margin:0px; font-weight:normal; background-color: " +
+                        "#799BB7; text-align: center; border-left: 1px solid " +
+                        "#205887; border-right: 1px solid #205887; " +
+                        "border-bottom: 1px solid #205887;\">";
                   boolean first = true;
-                  List<String> keys = new ArrayList<String> (advanceds.keySet ());
+                  List<String> keys = new ArrayList<String> (
+                        advanceds.keySet ());
                   Collections.sort (keys);        
                   String lastKey = "";
                   for (String key : keys)
@@ -142,11 +161,14 @@ public class SearchesJob extends AbstractJob
                      {
                         if (key.endsWith ("End"))
                         {
-                           message += (first?"":", ") + key.substring (0, key.length ()-3)+": * to "+advanceds.get (key);
+                           message += (first?"":", ") +
+                                 key.substring (0, key.length ()-3) +
+                                 ": * to "+advanceds.get (key);
                         }
                         else
                         {
-                           message += (first?"":", ") + key+": "+advanceds.get (key);
+                           message += (first?"":", ") + key+": " +
+                                 advanceds.get (key);
                         }
                      }
                      first = false;
@@ -155,22 +177,30 @@ public class SearchesJob extends AbstractJob
                   message +="</td></tr>";
                }
                
-               SearchResult results;
-               try {
-                  results = solrDao.search (search.getComplete (), true, user);
-                  results.setOffset (0);
+               Iterator<Product> results;
+               try
+               {
+                  results = searchService.search(search.getComplete());
                }
                catch (Exception e)
                {
-                  message += "<tr><td colspan=\"3\" style=\"text-align: center; border-left: 1px solid #205887; border-right: 1px solid #205887;\">No result found</td></tr>";
-                  logger.debug ("There was an error when executing query : \"" + e.getMessage () + "\"");
+                  message += "<tr><td colspan=\"3\" style=\"" +
+                        "text-align: center; border-left: 1px solid #205887; " +
+                        "border-right: 1px solid #205887;\">" +
+                        "No result found</td></tr>";
+                  logger.debug ("There was an error when executing query : \"" +
+                        e.getMessage () + "\"");
                   continue;
                }
                               
-               if (results.size () == 0)
+               if (!results.hasNext())
                {
-                  message += "<tr><td colspan=\"3\" style=\"text-align: center; border-left: 1px solid #205887; border-right: 1px solid #205887;\">No result found</td></tr>";
-                  logger.debug ("No result matches query : \"" + search.getComplete () + "\"");
+                  message += "<tr><td colspan=\"3\" style=\"" +
+                        "text-align: center; border-left: 1px solid #205887; " +
+                        "border-right: 1px solid #205887;\">" +
+                        "No result found</td></tr>";
+                  logger.debug ("No result matches query : \"" +
+                        search.getComplete () + "\"");
                }
                
                boolean first = true;   
@@ -180,11 +210,12 @@ public class SearchesJob extends AbstractJob
                   
                   if (!first)
                   {
-                     message += "<tr><td colspan=\"3\" style=\"background-color: #205887; height:1px;\" /></tr>";
+                     message += "<tr><td colspan=\"3\" style=\"" +
+                           "background-color: #205887; height:1px;\" /></tr>";
                   }
                   first = false;
                   
-                  Product product = solrDao.getProductByDoc (results.next ());
+                  Product product = results.next();
                   // WARNING : must implement to schedule fix of this issue...
                   if (product==null) continue;
                   
@@ -193,43 +224,60 @@ public class SearchesJob extends AbstractJob
                   
                   logger.debug ("Result found: " + product.getIdentifier ());
                   
-                  String purl = configurationManager.getServerConfiguration ().getExternalUrl () + 
-                     "odata/v1/Products('" + product.getUuid () + "')";
+                  String purl = configurationManager.getServerConfiguration ()
+                        .getExternalUrl () + "odata/v1/Products('" +
+                        product.getUuid () + "')";
                   
                   // EMBEDED THUMBNAIL
                   String cid=null;
-                  String thumbname = new File (product.getThumbnailPath ()).
-                           getName ();
-                  if (cids.containsKey (thumbname))
-                     cid=cids.get (thumbname);
-                  else
+                  if (product.getThumbnailFlag ())
                   {
-                     if (product.getThumbnailFlag ())
+                     File thumbnail = new File (product.getThumbnailPath ());
+                     String thumbname = thumbnail.getName ();
+                     if (cids.containsKey (thumbname))
+                     {
+                        cid=cids.get (thumbname);
+                     }
+                     else
                      {
                         try
                         {
-                           cid = he.embed (new File (product.getThumbnailPath ()));
+                           cid = he.embed (thumbnail);
                            cids.put (thumbname, cid);
                         }
                         catch (Exception e)
                         {
-                           logger.warn ("Cannot embed image \"" + purl + "/Products('Quicklook')/$value\" :"+ e.getMessage ());
+                           logger.warn ("Cannot embed image \"" + purl +
+                                 "/Products('Quicklook')/$value\" :"+
+                                 e.getMessage ());
                            cid=null;
                         }
                      }
                   }
-                  boolean downloadRight = user.getRoles ().contains (Role.DOWNLOAD);
-                  String link = downloadRight?"(<a target=\"_blank\" href=\"" + purl + "/$value\">download</a>)" : "";
-                  message += "   <tr><td colspan=\"3\" style=\"font-size: 14px; text-align: center; border-left: 1px solid #205887; border-right: 1px solid #205887;\"><a target=\"_blank\" href=\"" + purl + "/$value\">" + product.getIdentifier () + "</a> "+link+"</td>\n</tr>\n";
+                  boolean downloadRight = user.getRoles ().contains (
+                        Role.DOWNLOAD);
+                  String link = downloadRight?"(<a target=\"_blank\" href=\"" +
+                        purl + "/$value\">download</a>)" : "";
+                  message += "   <tr><td colspan=\"3\" style=\"" +
+                        "font-size: 14px; text-align: center; " +
+                        "border-left: 1px solid #205887; border-right: 1px " +
+                        "solid #205887;\"><a target=\"_blank\" href=\"" +
+                        purl + "/$value\">" + product.getIdentifier () +
+                        "</a> "+link+"</td>\n</tr>\n";
                   if (cid != null)
                   {
-                     message += "   <tr><td rowspan=\"8\" style=\"text-align: center; vertical-align: middle; border-left: 1px solid #205887;\"><a target=\"_blank\" href=\""+purl+"/Products('Quicklook')/$value\"><img src=cid:" + 
-                        cid  + " style=\"max-height: 64px; max-width: 64px;\"></a></td>\n";
+                     message += "   <tr><td rowspan=\"8\" style=\"" +
+                           "text-align: center; vertical-align: middle;" +
+                           " border-left: 1px solid #205887;\">" +
+                           "<a target=\"_blank\" href=\"" + purl +
+                           "/Products('Quicklook')/$value\"><img src=cid:" +
+                           cid  + " style=\"max-height: 64px; max-width:" +
+                           " 64px;\"></a></td>\n";
                   }
                                     
                   // Displays metadata
-                  List<MetadataIndex>indexes = new ArrayList<MetadataIndex> (
-                        product.getIndexes ());
+                  List<MetadataIndex>indexes = new ArrayList<> (
+                        productService.getIndexes (product.getId ()));
                   Collections.sort (indexes, new Comparator<MetadataIndex>()
                   {
                      @Override
@@ -259,10 +307,13 @@ public class SearchesJob extends AbstractJob
                      String start = "<td";
                      if (cid == null || i >= 8)
                      {
-                        start += " style=\"width: 120px; border-left: 1px solid #205887;\"><td";
+                        start += " style=\"width: 120px;" +
+                              " border-left: 1px solid #205887;\"><td";
                      }
                      i++;
-                     message += start+">" + name + "</td>" + "<td style=\"border-right: 1px solid #205887;\">" + value + "</td>";
+                     message += start+">" + name + "</td>" +
+                           "<td style=\"border-right: 1px solid #205887;\">" +
+                           value + "</td>";
                      message += "</tr>";
                   }
                   if (indexes == null || indexes.size () == 0)
@@ -274,16 +325,23 @@ public class SearchesJob extends AbstractJob
          }
          // No result: next user, no mail.
          if (!atLeastOneResult) continue;
-         message += "<tr><td colspan=\"3\" style=\"background-color: #205887; height:1px;\" /></tr>";
+         message += "<tr><td colspan=\"3\" style=\"background-color: #205887;" +
+               " height:1px;\" /></tr>";
          message +="</tbody></table><p/>\n";
          message +="You can configure which searches are sent by mail in the "+
-            "<i>saved searches</i> tab in "+ configurationManager.getNameConfiguration ().getShortName () +
-            " system at <a target=\"_blank\" href=\"" + configurationManager.getServerConfiguration ().getExternalUrl () + "\">" + 
-            configurationManager.getServerConfiguration ().getExternalUrl () + "</a><br/>" +
-                        "To stop receiving this message, just disable all searches.<p/>";
+            "<i>saved searches</i> tab in "+ configurationManager
+               .getNameConfiguration ().getShortName () +
+            " system at <a target=\"_blank\" href=\"" +
+            configurationManager.getServerConfiguration ().getExternalUrl () +
+               "\">" +
+            configurationManager.getServerConfiguration ().getExternalUrl () +
+            "</a><br/>To stop receiving this message, just disable " +
+            "all searches.<p/>";
          
-         message += "Thanks for using "+configurationManager.getNameConfiguration ().getShortName () +",<br/>" + 
-                  configurationManager.getSupportConfiguration ().getName () ;
+         message += "Thanks for using " +
+               configurationManager.getNameConfiguration ().getShortName () +
+               ",<br/>" +
+               configurationManager.getSupportConfiguration ().getName ();
          message += "</body></html>";
          
          logger.info ("Sending search results to " + user.getEmail ());
@@ -292,7 +350,8 @@ public class SearchesJob extends AbstractJob
          try
          {
             he.setHtmlMsg (message);
-            mailServer.send (he, user.getEmail (), null, null, "Saved searches notifications");
+            mailServer.send (he, user.getEmail (), null, null,
+                  "Saved searches notifications");
          }
          catch (EmailException e)
          {

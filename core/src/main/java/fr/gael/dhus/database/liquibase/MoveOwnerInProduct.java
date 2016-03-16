@@ -44,7 +44,7 @@ public class MoveOwnerInProduct implements CustomTaskChange
    }
 
    @Override
-   public void setFileOpener (ResourceAccessor resourceAccessor)
+   public void setFileOpener (ResourceAccessor resource_accessor)
    {
    }   
 
@@ -68,7 +68,8 @@ public class MoveOwnerInProduct implements CustomTaskChange
       {
          PreparedStatement getOwners =
             databaseConnection
-               .prepareStatement ("SELECT o.USER_ID, p.ID FROM OWNER o, PRODUCTS p WHERE o.OWNEROFPRODUCT = p.IDENTIFIER");
+               .prepareStatement ("SELECT o.USER_ID, p.ID FROM OWNER o, " +
+                     "PRODUCTS p WHERE o.OWNEROFPRODUCT = p.IDENTIFIER");
          ResultSet res = getOwners.executeQuery ();
 
          while (res.next ())
@@ -77,7 +78,8 @@ public class MoveOwnerInProduct implements CustomTaskChange
             Long userIdentifier = (Long) res.getObject ("USER_ID");  
             PreparedStatement updateOwner =
                databaseConnection
-                  .prepareStatement ("UPDATE PRODUCTS SET OWNER_ID = "+userIdentifier+" WHERE ID = "+productIdentifier);
+                  .prepareStatement ("UPDATE PRODUCTS SET OWNER_ID = " +
+                        userIdentifier+" WHERE ID = "+productIdentifier);
             updateOwner.execute ();
             updateOwner.close();
          }

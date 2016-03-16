@@ -37,21 +37,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class DHuSFtpServerBean
 {
    private static Logger logger = Logger.getLogger (DHuSFtpServerBean.class);
+
+   FtpServer server = null;
+
    private int port;
    private boolean ftps;
-   
-   FtpServer server = null;
+   private String passivePort;
    
    @Autowired
    private DHuSFtpServer ftpServer;
-      
-   public DHuSFtpServerBean () {};
+
+   public DHuSFtpServerBean () {}
    
    @PostConstruct
    public void start () throws FtpException
    {
       if (server == null)
-         server = ftpServer.createFtpServer(getPort(), isFtps());
+         server = ftpServer.createFtpServer(port, passivePort, ftps);
       
       if (server.isStopped())
       {
@@ -72,8 +74,7 @@ public class DHuSFtpServerBean
       if ((server != null) && !server.isStopped())
           server.stop();
    }
-   
-   
+
    public int getPort()
    {
       return port;
@@ -89,5 +90,13 @@ public class DHuSFtpServerBean
    public void setFtps(boolean ftps)
    {
       this.ftps = ftps;
+   }
+   public String getPassivePort ()
+   {
+      return this.passivePort;
+   }
+   public void setPassivePort (String passivePort)
+   {
+      this.passivePort = passivePort;
    }
 }

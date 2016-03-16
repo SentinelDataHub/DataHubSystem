@@ -1,0 +1,52 @@
+
+<link rel="import" href="../../libs/core-collapse/core-collapse.html">
+
+<polymer-element name="product-attributes" attributes="modellone productuuid">
+ 
+	<template id="app" >
+	<link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="style.css">
+		<template repeat="{{section in model.indexes}}">
+			<template if="{{section.name.length > 0 &&  section.name == 'summary'}}">
+				<div class="panel panel-default">
+			    	<div class="panel-heading">
+			      		<h4 class="panel-title" on-click="{{toggle}}" data-object="#section_{{section.name}}">
+					        {{section.name}}
+			      		</h4>
+			    	</div>
+			    	<core-collapse id="section_{{section.name}}" opened>
+					    <template repeat="{{attrs in section.children}}">
+					    	<div class="panel-body">
+					   		<span class="attr">{{attrs.name}}:</span>
+						       	<span class="value">{{attrs.value}}</span>
+					      	</div>
+					    </template>
+			    	</core-collapse>
+			  	</div>
+			</template>
+		</template>
+
+		<template repeat="{{section in model.indexes}}">
+			<template if="{{section.name.length > 0 &&  section.name != 'summary'}}">
+				<div class="panel panel-default">
+			    	<div class="panel-heading">
+			      		<h4 class="panel-title" on-click="{{toggle}}" data-object="#section_{{section.name}}">
+					        {{section.name}}
+			      		</h4>
+			    	</div>
+			    	<core-collapse id="section_{{section.name}}" >
+					    <template repeat="{{attrs in section.children}}">
+					    	<div class="panel-body">
+						   	<span class="attr">{{attrs.name}}:</span>
+						       	<span class="value" >{{attrs.value | checkHTML}}</span>
+					      	</div>
+					    </template>
+			    	</core-collapse>
+			  	</div>
+			</template>
+		</template>
+
+	</template>
+
+  	<script src="script.js"></script>
+</polymer-element>

@@ -3,13 +3,21 @@
 <suite name="Service Suite Test">
    <test name="Public Services Test">
       <classes>
-
+         <class name="fr.gael.dhus.service.TestArchiveService" />
       </classes>
    </test>
 
    <test name="Internal Service Test">
       <classes>
-
+         <class name="fr.gael.dhus.service.ProductCartServiceTest" />
+         <class name="fr.gael.dhus.service.MetadataTypeServiceTest" />
+      </classes>
+   </test>
+   <test name="Cache Service Test">
+      <classes>
+         <class name="fr.gael.dhus.service.TestCacheNetworkService" />
+         <class name="fr.gael.dhus.service.TestCacheProductService" />
+         <class name="fr.gael.dhus.service.TestCacheUserService" />
       </classes>
    </test>
 </suite>

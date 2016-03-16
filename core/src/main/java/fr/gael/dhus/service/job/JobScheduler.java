@@ -56,7 +56,7 @@ public class JobScheduler extends SchedulerFactoryBean implements
    {
       Map<String, AbstractJob> webappBeanNames =
          applicationContext.getBeansOfType (AbstractJob.class);
-      triggers = new HashMap<Class<? extends AbstractJob>, Trigger> ();
+      triggers = new HashMap<> ();
       for (String webappBeanName : webappBeanNames.keySet ())
       {
          AbstractJob cron = webappBeanNames.get (webappBeanName);
@@ -125,9 +125,11 @@ public class JobScheduler extends SchedulerFactoryBean implements
       return triggers.get (EvictionJob.class).getFireTimeAfter (new Date ());
    }
 
-   public Date getNextScheduleArchiveSynchronization () throws SchedulerException
+   public Date getNextScheduleArchiveSynchronization () throws
+         SchedulerException
    {
-      return triggers.get (ArchiveSynchronizationJob.class).getFireTimeAfter (new Date ());
+      return triggers.get (ArchiveSynchronizationJob.class).getFireTimeAfter (
+            new Date ());
    }
 
    public Date getNextScheduleSystemCheck () throws SchedulerException

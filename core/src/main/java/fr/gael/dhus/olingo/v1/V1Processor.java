@@ -21,6 +21,7 @@ package fr.gael.dhus.olingo.v1;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -40,13 +41,19 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.olingo.odata2.api.commons.HttpStatusCodes;
 import org.apache.olingo.odata2.api.commons.InlineCount;
 import org.apache.olingo.odata2.api.edm.Edm;
 import org.apache.olingo.odata2.api.edm.EdmEntitySet;
+import org.apache.olingo.odata2.api.edm.EdmEntityType;
 import org.apache.olingo.odata2.api.edm.EdmProperty;
 import org.apache.olingo.odata2.api.ep.EntityProvider;
+import org.apache.olingo.odata2.api.ep.EntityProviderReadProperties;
 import org.apache.olingo.odata2.api.ep.EntityProviderWriteProperties;
 import org.apache.olingo.odata2.api.ep.EntityProviderWriteProperties.ODataEntityProviderPropertiesBuilder;
+import org.apache.olingo.odata2.api.ep.entry.ODataEntry;
 import org.apache.olingo.odata2.api.exception.ODataException;
 import org.apache.olingo.odata2.api.processor.ODataProcessor;
 import org.apache.olingo.odata2.api.processor.ODataResponse;
@@ -54,6 +61,7 @@ import org.apache.olingo.odata2.api.processor.ODataSingleProcessor;
 import org.apache.olingo.odata2.api.uri.KeyPredicate;
 import org.apache.olingo.odata2.api.uri.expression.FilterExpression;
 import org.apache.olingo.odata2.api.uri.expression.OrderByExpression;
+import org.apache.olingo.odata2.api.uri.info.DeleteUriInfo;
 import org.apache.olingo.odata2.api.uri.info.GetComplexPropertyUriInfo;
 import org.apache.olingo.odata2.api.uri.info.GetEntitySetCountUriInfo;
 import org.apache.olingo.odata2.api.uri.info.GetEntitySetLinksUriInfo;
@@ -62,10 +70,16 @@ import org.apache.olingo.odata2.api.uri.info.GetEntityUriInfo;
 import org.apache.olingo.odata2.api.uri.info.GetMediaResourceUriInfo;
 import org.apache.olingo.odata2.api.uri.info.GetServiceDocumentUriInfo;
 import org.apache.olingo.odata2.api.uri.info.GetSimplePropertyUriInfo;
+import org.apache.olingo.odata2.api.uri.info.PostUriInfo;
+import org.apache.olingo.odata2.api.uri.info.PutMergePatchUriInfo;
 import org.apache.olingo.odata2.core.uri.ExpandSelectTreeCreator;
+
 import org.w3c.dom.Document;
 
 import fr.gael.dhus.olingo.v1.entity.Product;
+import fr.gael.dhus.olingo.v1.entity.Synchronizer;
+import fr.gael.dhus.olingo.v1.entity.User;
+import fr.gael.dhus.olingo.v1.entity.UserSynchronizer;
 import fr.gael.dhus.olingo.v1.entity.V1Entity;
 import fr.gael.dhus.olingo.v1.map.SubMap;
 import fr.gael.dhus.olingo.v1.map.SubMapBuilder;
@@ -80,6 +94,7 @@ import fr.gael.dhus.util.MetalinkBuilder;
  */
 public class V1Processor extends ODataSingleProcessor
 {
+   private static Logger logger = LogManager.getLogger ();
    private static ConfigurationManager configurationManager = 
       ApplicationContextProvider.getBean (ConfigurationManager.class);
    
@@ -89,26 +104,26 @@ public class V1Processor extends ODataSingleProcessor
     */
    @Override
    public List<String> getCustomContentTypes (
-      Class<? extends ODataProcessor> processorFeature) throws ODataException
+      Class<? extends ODataProcessor> processor_feature) throws ODataException
    {
       return Collections.singletonList (MetalinkBuilder.CONTENT_TYPE);
    }
 
    @Override
-   public ODataResponse readServiceDocument (GetServiceDocumentUriInfo uriInfo,
-      String contentType) throws ODataException
+   public ODataResponse readServiceDocument (GetServiceDocumentUriInfo uri_info,
+      String content_type) throws ODataException
    {
       Edm edm =
          new V1EdmWrapper (getContext ().getService ().getEntityDataModel ());
-      return EntityProvider.writeServiceDocument (contentType, edm,
+      return EntityProvider.writeServiceDocument (content_type, edm,
          getServiceRoot ().toASCIIString ());
    }
 
    /** Writes an EntitySet eg: http://dhus.gael.fr/odata/v1/Collections */
    @SuppressWarnings ({ "unchecked", "rawtypes" })
    @Override
-   public ODataResponse readEntitySet (GetEntitySetUriInfo uriInfo,
-      String contentType) throws ODataException
+   public ODataResponse readEntitySet (GetEntitySetUriInfo uri_info,
+      String content_type) throws ODataException
    {
       int maxrows = configurationManager.getOdataConfiguration ().
          getMaxRows ();
@@ -119,42 +134,48 @@ public class V1Processor extends ODataSingleProcessor
       
       
       // Gets values for `skip` and `top` (pagination).
-      int skip = (uriInfo.getSkip () == null) ? 0 : uriInfo.getSkip ();
-      int top = (uriInfo.getTop () == null) ? maxrows : uriInfo.getTop ();
+      int skip = (uri_info.getSkip () == null) ? 0 : uri_info.getSkip ();
+      int top = (uri_info.getTop () == null) ? maxrows : uri_info.getTop ();
 
       // Gets the `collection` part of the URI.
-      EdmEntitySet targetES = uriInfo.getTargetEntitySet ();
+      EdmEntitySet targetES = uri_info.getTargetEntitySet ();
       KeyPredicate startKP =
-         (uriInfo.getKeyPredicates ().size () == 0) ? null : uriInfo
+         (uri_info.getKeyPredicates ().size () == 0) ? null : uri_info
             .getKeyPredicates ().get (0);
 
       Navigator<Map> navigator =
-         new Navigator<Map> (uriInfo.getStartEntitySet (), startKP,
-            uriInfo.getNavigationSegments (), Map.class);
+         new Navigator<Map> (uri_info.getStartEntitySet (), startKP,
+            uri_info.getNavigationSegments (), Map.class);
 
       // Creates the EntitySetResponseBuilder.
       if (targetES.getName ().equals (V1Model.PRODUCT.getName ()) ||
          targetES.getName ().equals (V1Model.COLLECTION.getName ()) ||
-         targetES.getName ().equals (V1Model.NODE.getName ()))
+         targetES.getName ().equals (V1Model.NODE.getName ()) ||
+         targetES.getName ().equals (V1Model.USER.getName ()) ||
+         targetES.getName ().equals (V1Model.CONNECTION.getName ()))
       {
          doPagination = true;
       }
-      else
-         if (targetES.getName ().equals (V1Model.ATTRIBUTE.getName ()))
-         {
-         }
-
-         else
-            throw new ODataException ("Target EntitySet not allowed.");
+      else if (!targetES.getName ().equals (V1Model.ATTRIBUTE.getName ()) &&
+               !targetES.getName ().equals (V1Model.CLASS.getName ()) &&
+               !targetES.getName ().equals (V1Model.SYNCHRONIZER.getName ()) &&
+               !targetES.getName ().equals (V1Model.NETWORK.getName ()) &&
+               !targetES.getName ().equals (V1Model.NETWORKSTATISTIC.getName ()) &&
+               !targetES.getName ().equals (V1Model.RESTRICTION.getName ()) &&
+               !targetES.getName ().equals (V1Model.SYSTEM_ROLE.getName ()) &&
+               !targetES.getName ().equals (V1Model.USER_SYNCHRONIZER.getName()))
+      {
+         throw new ODataException ("Target EntitySet not allowed.");
+      }
 
       // Builds the response.
       Map results = navigator.navigate ();
       int inlineCount = results.size ();
-      FilterExpression filter = uriInfo.getFilter ();
-      OrderByExpression orderBy = uriInfo.getOrderBy ();
+      FilterExpression filter = uri_info.getFilter ();
+      OrderByExpression orderBy = uri_info.getOrderBy ();
 
-      if (uriInfo.getInlineCount () != null &&
-         uriInfo.getInlineCount ().equals (InlineCount.ALLPAGES) &&
+      if (uri_info.getInlineCount () != null &&
+         uri_info.getInlineCount ().equals (InlineCount.ALLPAGES) &&
          results instanceof SubMap && filter != null)
       {
          SubMapBuilder smb = ((SubMap) results).getSubMapBuilder ();
@@ -175,8 +196,8 @@ public class V1Processor extends ODataSingleProcessor
       }
       try
       {
-         if (uriInfo.getFormat () != null &&
-            uriInfo.getFormat ().equals (MetalinkBuilder.CONTENT_TYPE) &&
+         if (uri_info.getFormat () != null &&
+            uri_info.getFormat ().equals (MetalinkBuilder.CONTENT_TYPE) &&
             targetES.getName ().equals (V1Model.PRODUCT.getName ()))
          {
             List<Product> res = new ArrayList<Product> ();
@@ -196,6 +217,7 @@ public class V1Processor extends ODataSingleProcessor
                }
                catch (IOException e)
                {
+                  logger.warn ("Cannot close iterator:", e);
                }
             }
 
@@ -230,6 +252,7 @@ public class V1Processor extends ODataSingleProcessor
          }
          catch (IOException e)
          {
+            logger.warn ("Cannot close iterator:", e);
          }
       }
 
@@ -242,59 +265,63 @@ public class V1Processor extends ODataSingleProcessor
          i += skip;
          builder.nextLink (makeNextLink (i));
       }
-      String targetName = uriInfo.getTargetEntitySet ().getName ();
+      String targetName = uri_info.getTargetEntitySet ().getName ();
 
       ExpandSelectTreeCreator creator =
-         new ExpandSelectTreeCreator (uriInfo.getSelect (),
-            uriInfo.getExpand ());
+         new ExpandSelectTreeCreator (uri_info.getSelect (),
+            uri_info.getExpand ());
       builder.expandSelectTree (creator.create ());
       builder.callbacks (V1Model.getEntitySet (targetName).getCallbacks (
          makeLink (false)));
 
-      if (uriInfo.getInlineCount () != null &&
-         uriInfo.getInlineCount ().equals (InlineCount.ALLPAGES))
+      if (uri_info.getInlineCount () != null &&
+         uri_info.getInlineCount ().equals (InlineCount.ALLPAGES))
       {
-         builder.inlineCountType (uriInfo.getInlineCount ());
+         builder.inlineCountType (uri_info.getInlineCount ());
          builder.inlineCount (inlineCount);
       }
 
-      return EntityProvider.writeFeed (contentType, targetES, building,
+      return EntityProvider.writeFeed (content_type, targetES, building,
          builder.build ());
    }
 
    @SuppressWarnings ("rawtypes")
    @Override
-   public ODataResponse countEntitySet (final GetEntitySetCountUriInfo uriInfo,
-      final String contentType) throws ODataException
+   public ODataResponse countEntitySet (final GetEntitySetCountUriInfo uri_info,
+      final String content_type) throws ODataException
    {
       // Gets the `collection` part of the URI.
-      EdmEntitySet targetES = uriInfo.getTargetEntitySet ();
+      EdmEntitySet targetES = uri_info.getTargetEntitySet ();
       KeyPredicate startKP =
-         (uriInfo.getKeyPredicates ().size () == 0) ? null : uriInfo
+         (uri_info.getKeyPredicates ().size () == 0) ? null : uri_info
             .getKeyPredicates ().get (0);
 
       Navigator<Map> navigator =
-         new Navigator<Map> (uriInfo.getStartEntitySet (), startKP,
-            uriInfo.getNavigationSegments (), Map.class);
+         new Navigator<Map> (uri_info.getStartEntitySet (), startKP,
+            uri_info.getNavigationSegments (), Map.class);
 
       // Creates the EntitySetResponseBuilder.
-      if (targetES.getName ().equals (V1Model.PRODUCT.getName ()) ||
-         targetES.getName ().equals (V1Model.COLLECTION.getName ()) ||
-         targetES.getName ().equals (V1Model.NODE.getName ()))
+      if (!targetES.getName ().equals (V1Model.PRODUCT.getName ()) &&
+          !targetES.getName ().equals (V1Model.COLLECTION.getName ()) &&
+          !targetES.getName ().equals (V1Model.NODE.getName ()) &&
+          !targetES.getName ().equals (V1Model.ATTRIBUTE.getName ()) &&
+          !targetES.getName ().equals (V1Model.CLASS.getName ()) &&
+          !targetES.getName ().equals (V1Model.SYNCHRONIZER.getName ()) &&
+          !targetES.getName ().equals (V1Model.USER.getName ()) &&
+          !targetES.getName ().equals (V1Model.CONNECTION.getName ()) &&
+          !targetES.getName ().equals (V1Model.NETWORK.getName ()) &&
+          !targetES.getName ().equals (V1Model.NETWORKSTATISTIC.getName ()) &&
+          !targetES.getName ().equals (V1Model.RESTRICTION.getName ()) &&
+          !targetES.getName ().equals (V1Model.SYSTEM_ROLE.getName ()) &&
+          !targetES.getName ().equals (V1Model.USER_SYNCHRONIZER.getName ()))
       {
+         throw new ODataException ("Target EntitySet not allowed.");
       }
-      else
-         if (targetES.getName ().equals (V1Model.ATTRIBUTE.getName ()))
-         {
-         }
-
-         else
-            throw new ODataException ("Target EntitySet not allowed.");
 
       // Builds the response.
       Map<?, ?> results = navigator.navigate ();
 
-      FilterExpression filter = uriInfo.getFilter ();
+      FilterExpression filter = uri_info.getFilter ();
       // Skip, Sort and Filter.
       if (results instanceof SubMap && (filter != null))
       {
@@ -308,18 +335,18 @@ public class V1Processor extends ODataSingleProcessor
 
    /** Writes an Entity eg: http://dhus.gael.fr/odata/v1/Collections(10) */
    @Override
-   public ODataResponse readEntity (GetEntityUriInfo uriInfo, String contentType)
-      throws ODataException
+   public ODataResponse readEntity (GetEntityUriInfo uri_info,
+         String content_type) throws ODataException
    {
       ODataResponse rsp = null;
-      String targetName = uriInfo.getTargetEntitySet ().getName ();
+      String targetName = uri_info.getTargetEntitySet ().getName ();
       Map<String, Object> data =
-         V1Model.getEntitySet (targetName).getEntityResponse (uriInfo,
+         V1Model.getEntitySet (targetName).getEntityResponse (uri_info,
             makeLink ().toString ());
 
       ExpandSelectTreeCreator creator =
-         new ExpandSelectTreeCreator (uriInfo.getSelect (),
-            uriInfo.getExpand ());
+         new ExpandSelectTreeCreator (uri_info.getSelect (),
+            uri_info.getExpand ());
 
       EntityProviderWriteProperties p =
          EntityProviderWriteProperties
@@ -329,18 +356,18 @@ public class V1Processor extends ODataSingleProcessor
                V1Model.getEntitySet (targetName)
                   .getCallbacks (makeLink (false))).build ();
       rsp =
-         EntityProvider.writeEntry (contentType, uriInfo.getTargetEntitySet (),
-            data, p);
+         EntityProvider.writeEntry (content_type,
+               uri_info.getTargetEntitySet (), data, p);
       return rsp;
    }
 
    /** Writes a Stream eg: http://dhus.gael.fr/odata/v1/Products('8')/$value */
    @Override
-   public ODataResponse readEntityMedia (GetMediaResourceUriInfo uriInfo,
-      String contentType) throws ODataException
+   public ODataResponse readEntityMedia (GetMediaResourceUriInfo uri_info,
+      String content_type) throws ODataException
    {
-      String targetName = uriInfo.getTargetEntitySet ().getName ();
-      return V1Model.getEntitySet (targetName).getEntityMedia (uriInfo, this);
+      String targetName = uri_info.getTargetEntitySet ().getName ();
+      return V1Model.getEntitySet (targetName).getEntityMedia (uri_info, this);
    }
 
    /**
@@ -349,17 +376,17 @@ public class V1Processor extends ODataSingleProcessor
     */
    @Override
    @SuppressWarnings ({ "unchecked", "rawtypes" })
-   public ODataResponse readEntityLinks (GetEntitySetLinksUriInfo uriInfo,
-      String contentType) throws ODataException
+   public ODataResponse readEntityLinks (GetEntitySetLinksUriInfo uri_info,
+      String content_type) throws ODataException
    {
       ODataResponse rsp = null;
       List<Map<String, Object>> building =
          new ArrayList<Map<String, Object>> ();
 
       // Gets the `collection` part of the URI.
-      EdmEntitySet targetES = uriInfo.getTargetEntitySet ();
+      EdmEntitySet targetES = uri_info.getTargetEntitySet ();
       KeyPredicate startKP =
-         (uriInfo.getKeyPredicates ().size () == 0) ? null : uriInfo
+         (uri_info.getKeyPredicates ().size () == 0) ? null : uri_info
             .getKeyPredicates ().get (0);
 
       boolean doPagination = false;
@@ -370,21 +397,22 @@ public class V1Processor extends ODataSingleProcessor
       }
       else
          if ( !targetES.getName ().equals (V1Model.NODE.getName ()) &&
-            !targetES.getName ().equals (V1Model.ATTRIBUTE.getName ()))
+            !targetES.getName ().equals (V1Model.ATTRIBUTE.getName ())&&
+            !targetES.getName ().equals (V1Model.CLASS.getName ()))
          {
             throw new ODataException ("Target EntitySet not allowed.");
          }
 
       Navigator<Map> navigator =
-         new Navigator<Map> (uriInfo.getStartEntitySet (), startKP,
-            uriInfo.getNavigationSegments (), Map.class);
+         new Navigator<Map> (uri_info.getStartEntitySet (), startKP,
+            uri_info.getNavigationSegments (), Map.class);
       Map results = navigator.navigate ();
 
       int maxrows = configurationManager.getOdataConfiguration ().getMaxRows ();
       
-      int skip = (uriInfo.getSkip () == null) ? 0 : uriInfo.getSkip ();
-      int top = (uriInfo.getTop () == null) ? maxrows : uriInfo.getTop ();
-      FilterExpression filter = uriInfo.getFilter ();
+      int skip = (uri_info.getSkip () == null) ? 0 : uri_info.getSkip ();
+      int top = (uri_info.getTop () == null) ? maxrows : uri_info.getTop ();
+      FilterExpression filter = uri_info.getFilter ();
       if (results instanceof SubMap &&
          (filter != null || skip != 0 || top != 0))
       {
@@ -411,6 +439,7 @@ public class V1Processor extends ODataSingleProcessor
          }
          catch (IOException e)
          {
+            logger.warn ("Cannot close iterator:", e);
          }
       }
 
@@ -425,7 +454,7 @@ public class V1Processor extends ODataSingleProcessor
       }
 
       rsp =
-         EntityProvider.writeLinks (contentType, targetES, building,
+         EntityProvider.writeLinks (content_type, targetES, building,
             builder.build ());
       return rsp;
    }
@@ -433,14 +462,14 @@ public class V1Processor extends ODataSingleProcessor
    /** Writes a Property eg: http://dhus.gael.fr/odata/v1/Products('8')/Name/ */
    @Override
    public ODataResponse readEntitySimpleProperty (
-      GetSimplePropertyUriInfo uriInfo, String contentType)
+      GetSimplePropertyUriInfo uri_info, String content_type)
       throws ODataException
    {
-      Object value = readPropertyValue (uriInfo);
+      Object value = readPropertyValue (uri_info);
       EdmProperty target =
-         uriInfo.getPropertyPath ()
-            .get (uriInfo.getPropertyPath ().size () - 1);
-      return EntityProvider.writeProperty (contentType, target, value);
+         uri_info.getPropertyPath ()
+            .get (uri_info.getPropertyPath ().size () - 1);
+      return EntityProvider.writeProperty (content_type, target, value);
    }
 
    /**
@@ -449,16 +478,16 @@ public class V1Processor extends ODataSingleProcessor
     */
    @Override
    public ODataResponse readEntityComplexProperty (
-      GetComplexPropertyUriInfo uriInfo, String contentType)
+      GetComplexPropertyUriInfo uri_info, String content_type)
       throws ODataException
    {
       EdmProperty target =
-         uriInfo.getPropertyPath ()
-            .get (uriInfo.getPropertyPath ().size () - 1);
-      String entityTarget = uriInfo.getTargetEntitySet ().getName ();
+         uri_info.getPropertyPath ()
+            .get (uri_info.getPropertyPath ().size () - 1);
+      String entityTarget = uri_info.getTargetEntitySet ().getName ();
       Map<String, Object> values =
-         V1Model.getEntitySet (entityTarget).getComplexProperty (uriInfo);
-      return EntityProvider.writeProperty (contentType, target, values);
+         V1Model.getEntitySet (entityTarget).getComplexProperty (uri_info);
+      return EntityProvider.writeProperty (content_type, target, values);
    }
 
    /**
@@ -467,15 +496,15 @@ public class V1Processor extends ODataSingleProcessor
     */
    @Override
    public ODataResponse readEntitySimplePropertyValue (
-      GetSimplePropertyUriInfo uriInfo, String contentType)
+      GetSimplePropertyUriInfo uri_info, String content_type)
       throws ODataException
    {
       try
       {
-         Object value = readPropertyValue (uriInfo);
+         Object value = readPropertyValue (uri_info);
          EdmProperty target =
-            uriInfo.getPropertyPath ().get (
-               uriInfo.getPropertyPath ().size () - 1);
+            uri_info.getPropertyPath ().get (
+               uri_info.getPropertyPath ().size () - 1);
 
          if (target.getName ().equals ("Metalink")) // Metalink/$value
          {
@@ -498,33 +527,144 @@ public class V1Processor extends ODataSingleProcessor
       }
    }
 
+   @Override
+   public ODataResponse createEntity (PostUriInfo uri_info, InputStream content,
+         String rq_content_type, String content_type) throws ODataException
+   {
+      if (uri_info.getNavigationSegments ().size () > 0)
+      {
+         throw new ODataException ("No support for linking a new entry");
+      }
+
+      if (uri_info.getStartEntitySet().getEntityType().hasStream())
+      {
+         throw new ODataException ("No support for media resources");
+      }
+
+      // Merge semantics is set to FALSE because this is `create` (POST)
+      EntityProviderReadProperties properties =
+            EntityProviderReadProperties.init ().mergeSemantic (false).build ();
+      ODataEntry entry = EntityProvider.readEntry(rq_content_type,
+            uri_info.getStartEntitySet(), content, properties);
+
+      EdmEntityType target_et = uri_info.getTargetEntitySet ().getEntityType ();
+
+      Map<String, Object> res = null;
+      if (target_et.getName ().equals (V1Model.SYNCHRONIZER.getEntityName ()))
+      {
+         Synchronizer sync = new Synchronizer (entry);
+         res = sync.toEntityResponse (makeLink ().toString ());
+      }
+      else if (target_et.getName().equals(V1Model.USER_SYNCHRONIZER.getEntityName()))
+      {
+         UserSynchronizer sync = new UserSynchronizer(entry);
+         res = sync.toEntityResponse(makeLink().toString());
+      }
+      else
+      {
+         throw new ODataException ("Given EntitySet is not writable");
+      }
+
+      return EntityProvider.writeEntry (content_type,
+            uri_info.getStartEntitySet (), res,
+            EntityProviderWriteProperties
+                  .serviceRoot (getContext ().getPathInfo ().getServiceRoot ())
+                  .build ()
+      );
+   }
+
+   @Override
+   public ODataResponse updateEntity (PutMergePatchUriInfo uri_info,
+         InputStream content, String rq_content_type, boolean merge,
+         String content_type) throws ODataException
+   {
+      EntityProviderReadProperties properties =
+            EntityProviderReadProperties.init().mergeSemantic(merge).build();
+      ODataEntry entry = EntityProvider.readEntry(rq_content_type,
+            uri_info.getStartEntitySet(), content, properties);
+
+      EdmEntityType target_et = uri_info.getTargetEntitySet ().getEntityType ();
+      try
+      {
+         String target_entity = target_et.getName ();
+         if (target_entity.equals (V1Model.SYNCHRONIZER.getEntityName ()))
+         {
+            long key = Long.decode (
+                  uri_info.getKeyPredicates ().get (0).getLiteral ());
+            Synchronizer s = new Synchronizer (key);
+            s.updateFromEntry (entry);
+         }
+         else if (target_entity.equals (V1Model.USER.getEntityName ()))
+         {
+            String key = uri_info.getKeyPredicates ().get (0).getLiteral ();
+            User u = new User (key);
+            u.updateFromEntry (entry);
+         }
+         else if (target_entity.equals(V1Model.USER_SYNCHRONIZER.getEntityName()))
+         {
+            long key = Long.decode(uri_info.getKeyPredicates().get(0).getLiteral());
+            UserSynchronizer s = new UserSynchronizer(key);
+            s.updateFromEntry(entry);
+         }
+         else
+         {
+            throw new ODataException ("Given EntitySet is not writable");
+         }
+      }
+      catch (NullPointerException e)
+      {
+         return ODataResponse.status(HttpStatusCodes.NOT_FOUND).build();
+      }
+
+      return ODataResponse.status(HttpStatusCodes.NO_CONTENT).build();
+   }
+
+   @Override
+   public ODataResponse deleteEntity (DeleteUriInfo uri_info,
+         String content_type) throws ODataException
+   {
+      EdmEntityType target_et = uri_info.getTargetEntitySet ().getEntityType ();
+      if (target_et.getName ().equals (V1Model.SYNCHRONIZER.getEntityName ()))
+      {
+         long key = Long.decode (
+               uri_info.getKeyPredicates().get(0).getLiteral ());
+         Synchronizer.delete (key);
+      }
+      else
+      {
+         throw new ODataException ("Given EntitySet is not writable");
+      }
+
+      return ODataResponse.status(HttpStatusCodes.NO_CONTENT).build();
+   }
+
    /** Returns the value of the given Property. */
-   private Object readPropertyValue (GetSimplePropertyUriInfo uriInfo)
+   private Object readPropertyValue (GetSimplePropertyUriInfo uri_info)
       throws ODataException
    {
-      String targetESName = uriInfo.getTargetEntitySet ().getName ();
+      String targetESName = uri_info.getTargetEntitySet ().getName ();
       EdmProperty target =
-         uriInfo.getPropertyPath ()
-            .get (uriInfo.getPropertyPath ().size () - 1);
+         uri_info.getPropertyPath ()
+            .get (uri_info.getPropertyPath ().size () - 1);
       String propName = target.getName ();
       // Particular case of Metalink
       if (targetESName.equals (V1Model.PRODUCT.getName ()) &&
          propName.equals ("Metalink"))
       {
-         KeyPredicate startKP = uriInfo.getKeyPredicates ().get (0);
+         KeyPredicate startKP = uri_info.getKeyPredicates ().get (0);
 
          Navigator<Product> navigator =
-            new Navigator<Product> (uriInfo.getStartEntitySet (), startKP,
-               uriInfo.getNavigationSegments (), Product.class);
+            new Navigator<Product> (uri_info.getStartEntitySet (), startKP,
+               uri_info.getNavigationSegments (), Product.class);
          Product p = navigator.navigate ();
 
          return makeMetalinkDocument (Collections.singletonList (p));
       }
-      return V1Model.getEntitySet (targetESName).readPropertyValue (uriInfo);
+      return V1Model.getEntitySet (targetESName).readPropertyValue (uri_info);
    }
 
    /** Makes the metalink XML Document for a given list of products. */
-   public String makeMetalinkDocument (Iterable<Product> lp)
+   private String makeMetalinkDocument (Iterable<Product> lp)
       throws ODataException
    {
       try
@@ -577,12 +717,12 @@ public class V1Processor extends ODataSingleProcessor
       return makeLink (true);
    }
 
-   private URI makeLink (boolean removeLastSegment) throws ODataException
+   private URI makeLink (boolean remove_last_segment) throws ODataException
    {
       URI selfLnk = getServiceRoot ();
       StringBuilder sb = new StringBuilder (selfLnk.getPath ());
 
-      if (removeLastSegment)
+      if (remove_last_segment)
       {
          // Removes the last segment.
          int lio = sb.lastIndexOf ("/");
@@ -636,7 +776,8 @@ public class V1Processor extends ODataSingleProcessor
          odata_header_url.substring (odata_header_url.indexOf (V1Util
             .getBasePath ()));
       
-      String url = ApplicationContextProvider.getBean (ConfigurationManager.class)
+      String url = ApplicationContextProvider.getBean (
+            ConfigurationManager.class)
             .getServerConfiguration ().getExternalUrl ();
       try
       {
