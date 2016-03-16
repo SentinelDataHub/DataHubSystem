@@ -14,7 +14,7 @@ To access the administrator panels, it is first necessary to login as root,using
 
  
 ![](https://raw.githubusercontent.com/wiki/calogera/DataHubSystem/imagessum/fig%2030%20ajs.jpg)           
- GUI Login 
+ *GUI Login* 
 
 
 ![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/figure6ajs.png)     
