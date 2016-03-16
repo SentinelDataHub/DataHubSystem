@@ -17,10 +17,5 @@ If you want to work with the source code or libraries of Data Hub System , we re
  * For Windows <a ref="http://git-scm.com/download/win"> http://git-scm.com/download/win</a>
  * For Linux <a ref="http://git-scm.com/book/en/v2/Getting-Started-Installing-Git"> http://git-scm.com/book/en/v2/Getting-Started-Installing-Git </a>       
 
-**Assumptions:**      
-`/data/`: local filesystem used for application and DB storage   
-`/data/dhus-softwareVersion`: application home directory (any version)   
-`/data/dhus-datahub`: symbolic link to latest application home   
-`/data-archive/`: product archive filesystem   
 
 
