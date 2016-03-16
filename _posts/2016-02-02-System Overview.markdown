@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "System Overview"
+title:  "Software Overview"
 date:   2016-02-02 15:40:56
 categories: page
 ---
@@ -46,9 +46,6 @@ Except for exceptional cases, the centre configuration modification shall not le
 <hr></hr>     
 ![](http://raw.githubusercontent.com/calogera/DatahubSystem/gh-pages/images/harvesting.png)**Product Harvesting**   
 The product harvester is the service responsible for the ingestion of external products into the local archive. The ingestion service defines an interface to allow definition of  location, product type and characteristics for ingestion into the local archive. Whenever new products are ingested, the ingestion process registers an event with the dispatcher service, to inform it about the availability of the newly ingested products and to allow the propagation of metadata to other potentially interested centres. An integrity measure is calculated on product ingestion that may be checked later on to ensure the product integrity.
-<hr> </hr>
-![](http://raw.githubusercontent.com/calogera/DatahubSystem/gh-pages/images/dispatcher.png) **Dispatcher**         
-The dispatcher module manages event notification or scheduled tasks within a local instance or within a more distributed scenario. The dispatcher allows scheduling any particular service task required (e.g. ingestion start, stop, local archive synchronisation, and so on). 
 <hr> </hr>
 ![](http://raw.githubusercontent.com/calogera/DatahubSystem/gh-pages/images/user-interface.png)**User Interface**     
 This module is in charge of providing the user with an interface for the discovery, visualization and downloading of products. It consists of two interfaces: a Graphical User Interface (modern and easy-to-use web application) and an Application Programming Interface (useful and mainly used for batch scripting, machine to machine scripts).    
