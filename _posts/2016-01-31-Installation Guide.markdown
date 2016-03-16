@@ -415,7 +415,7 @@ Once you have changed a value in the file, you only need to refresh your browser
 
 Dependencies
 This installation manual provides the upgrading DHuS version manual which means the installation of the reference version using a DB created during an installation of an older version of DHuS. The following instructions are ensured for all versions after the 0.4.3-1. (to be confirmed by AIV).
-Here below the list of configuration changes present from 0.4.3-1 to 0.8.2. Unless explicitly mentioned, the version which includes the change in configuration parameter is reported in the including version column.    
+Here below the list of configuration changes present from 0.4.3-1 to 0.9.0-2 Unless explicitly mentioned, the version which includes the change in configuration parameter is reported in the including version column.    
 
 
 <table border="2">
@@ -478,7 +478,7 @@ iso_country_name: synonym1, synonym2
 </tr>
 </table>
 
-Table 3: Configuration file changes from 0.4.3-1 to 0.8.2 version       
+Table 3: Configuration file changes from 0.4.3-1 to 0.9.0-2 version       
 
 
 
@@ -508,7 +508,7 @@ rename .sh .sh.orig *.sh
 `cp r dhus-old_version/*.sh dhus-new_version`           
 `cp r dhus-<old_version>/etc/*.xml dhus-<new_version>/etc`               
 `cp r dhus-<old_version>/etc/synonyms.txt dhus-<new_version>/etc`                         
-9. Change the configuration files depending on the <old-version> number (see Table 3 for details on configuration files changes). Example of the updating configuration procedure from 0.4.3-1 to 0.8.2 version is provided below.                          
+9. Change the configuration files depending on the <old-version> number (see Table 3 for details on configuration files changes). Example of the updating configuration procedure from 0.4.3-1 to 0.9.0-2 version is provided below.                          
 10. Check if an older DHuS version is running   
 `ps edf | grep java`          
 if in the list of active PID, one of them is reporting the text of the start.sh file and it is running under dhus user permission, it means that the older version of DHuS is running.                    
@@ -525,7 +525,7 @@ if in the list of active PID, one of them is reporting the text of the start.sh 
 `nohup /bin/bash start.sh &> dhus-<new_version>/logs/logs.txt &`           
 </ol>    
 
-**Example of configuration changes updating DHuS from 0.4.3-1 version to 0.8.2 version**    
+**Example of configuration changes updating DHuS from 0.4.3-1 version to 0.9.0-2 version**    
 
 Start.sh configuration
 <hr> </hr>
