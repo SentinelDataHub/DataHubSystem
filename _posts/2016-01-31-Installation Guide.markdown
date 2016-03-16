@@ -579,8 +579,7 @@ Server.xml configuration
 <ul>
  <li>	Open dhus-<new_version>/etc/server.xml.orig (that is the new one- the old one does not exist in version 0.4.3-1)    
  	<li>Chech the configuration of tomcat parameters, especially the following line (in 0.4.3-1 version tose information were in the dhus.xml file)    
-      <li> `<Connector port=    
->`</li> 
+      <li> '<Connector port=    >'</li> 
  	<li> Save server.xml.orig and remane it as server.xml    
 `mv server.xml.orig server.xml` 
    </ul>
