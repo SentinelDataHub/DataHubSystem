@@ -32,47 +32,47 @@ Given the volume of normal Sentinels production, it is also recommended to use a
 Hardware Requirements       
 The technical specifications of the DHuS are provided the following Table.
 
-  
 <table border="2">
-    <tr>
+   <th colspan="4">Required Performances</th>
+ <tr>
 <td></td>
-       <td>Minimum </td>
-       <td>Medium</td>
-       <td>High</td>
+       <th>Minimum </th>
+       <th>Medium</th>
+       <th>High</th>
    </tr>
  
    <tr>
-      <td>CPU core number</td>
+      <th>CPU core number</th>
 <td>4-16</td>
   <td>24</td>
   <td>32</td>
 </tr>
 
-      <td>RAM</td>
+      <th>RAM</th>
 <td>4-16 GB</td>
   <td>32 GB</td>
   <td>48 GB</td>
 </tr>
-      <td>Local Disk</td>
+      <th>Local Disk</th>
   <td>1 TB</td>
   <td>1 TB</td>
   <td>1 TB</td>
 </tr>
 
 
-<td>Archive *</td>
+<th>Archive *</th>
 
 <td>50 TB (1 month Rolling Archive)</td>
   <td>200 TB (till 3 month Rolling Archive)</td>
   <td>500 TB</td>
 </tr>
 
-<td>Available External Bandwith</td>
+<th>Available External Bandwith</th>
 <td>100 Mbps </td>
   <td>2 Gbps (till 3 month Rolling Archive)</td>
   <td>10 Gbps</td>
 </tr>
-<td>AInternal  Bandwith</td>
+<th>Internal  Bandwith</th>
 <td>1 Mbps </td>
   <td>4 Gbps (till 3 month Rolling Archive)</td>
   <td>10 Gbps</td>
@@ -101,9 +101,9 @@ Following table describes the default DHuS network ports configuration:
 
 <table border="2">
     <tr>
-       <td>Services </td>
-       <td>Inbound</td>
-       <td>Outbound</td>
+       <th>Services </th>
+       <th>Inbound</th>
+       <th>Outbound</th>
    </tr>
    <tr>
       <td>HTTP</td>
@@ -250,8 +250,8 @@ The dhus.xml contents are organized in 7 groups and provides all comments needed
 
 <table border="2">
     <tr>
-       <td>Grops </td>
-       <td>Description</td>
+       <th>Groups </th>
+       <th>Description</th>
    </tr>
    <tr>
 
