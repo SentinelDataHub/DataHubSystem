@@ -250,8 +250,8 @@ The dhus.xml contents are organized in 7 groups and provides all comments needed
 
 <table border="2">
     <tr>
-       <th>*Groups* </th>
-       <th>*Description*</th>
+       <th>GROUPS</th>
+       <th>DESCRIPTION</th>
    </tr>
    <tr>
 
@@ -576,7 +576,7 @@ Server.xml configuration
 <ul>
  <li>	Open dhus-<new_version>/etc/server.xml.orig (that is the new one- the old one does not exist in version 0.4.3-1)    
  	<li>Chech the configuration of tomcat parameters, especially the following line (in 0.4.3-1 version tose information were in the dhus.xml file)    
-      <li>  &lt;Connector port=&gt;</li> 
+      <li>  &lt;Connector port=  ` `&gt;</li> 
  	<li> Save server.xml.orig and remane it as server.xml    
 `mv server.xml.orig server.xml` 
    </ul>
