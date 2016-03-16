@@ -18,7 +18,7 @@ To access the administrator panels, it is first necessary to login as root,using
 
 
 ![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/figure6ajs.png)     
-GUI DHuS Login Panel user view 
+*GUI DHuS Login Panel user view* 
 
 ##Panels description   
 The DHuS provides the Administrator a serires of Panles to fulfil every service. We report here how to access them using the GUI.    
@@ -36,7 +36,7 @@ The list of panels is provided here below:
    
 Once the administrator has logged in, the  panels are accessible clicking on the user icon on the upper right side of the page.    
 ![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/figure8.png)    
-GUI Administration Panels   
+*GUI Administration Panels*   
 
 **Products Upload**   
 The Upload feature is available only to the administrator. DHuS system makes available an incoming space to let the user upload a product. Once uploaded, data is processed to be referenced by DHuS clients. 
@@ -53,7 +53,7 @@ The DHuS allows the ingestion of Sentinels products using 4 methods:
 
 ![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/table4.png)    
 
-Products upload methods
+*Products upload methods*
 
 
 
@@ -61,7 +61,7 @@ The first two methods are accessible by the upload panel, the third is accesible
 
 ![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/figure-7.png)     
 
-Access to upload features
+*Access to upload features*
 
 
 **Ad hoc upload**
@@ -70,13 +70,13 @@ Once in the Upload panel, it is possible to perform the upload of a product: sel
 ![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/fig-8.png)
 
 
-Upload panel (GUI)
+*Upload panel (GUI)*
 
 **Upload via file scanner** 
 If the upload has to be periodic, a scanner can be configured with the panel highlighted by the red arrow in figure below.       
  
 ![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/fig-9.png)     
-File scanner panel (GUI)
+*File scanner panel (GUI)*
     
 To create a file scanner 
 <ul>
@@ -105,7 +105,7 @@ The DHuS provides the Management panel and it contains 4 subpanels called
 </ul>
 
 ![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/fig-10.png)      
-Management Subpanel (GUI)
+*Management Subpanel (GUI)*
 Here follows a brief tutorial for using the management panels via the GUI.       
 **User Management Panel**   
 The administrator management panel allows managing users. This means that the administrator can create, edit and delete any user.     
@@ -132,7 +132,7 @@ The Administrator shall:
 
 ![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/fig-14.png) 
  
-User creation form GUI   
+*User creation form GUI*   
 </ul>
 
 <ul>
@@ -170,7 +170,7 @@ How to delete the selected user?
    
 ![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/figure16.png)    
 
- Update and delete users GUI
+ *Update and delete users GUI*
 <li>	The email notification service will send an e-mail to the deleted user with the communication of the deletion process. </li>
 </ul>
 
@@ -186,7 +186,7 @@ The collection management panel here below will open.  It contains the list of c
  
 ![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/fig-14.png)
 
-DHuS Collection Management Panel (GUI)
+*DHuS Collection Management Panel (GUI)*
 
 The administrator can manage the collection: he can create new collection/subcollection and delete an existing collection/subcollection,    
 
@@ -234,7 +234,7 @@ The Administrator from here can access the following sections:
 1. Mail configuration: In this form it is possible to configure the SMTP server address, the username, password and e-mail account details to send communications to the users. 
 
 ![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/fig-15.png)
-Mail configuration management Panel
+*Mail configuration management Panel*
   
 2. Support information :  For any support information it is possible to contact the DHuS Support Team sending an e-mail to dhus@xxx.zz. 
 ![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/fig-16.png)
@@ -265,7 +265,7 @@ The Data Eviction Service is responsible for removing data to keep to the  Data 
 
 ![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/fig-19.png)
 
-Eviction Management panel (GUI)    
+*Eviction Management panel (GUI)*    
 
 The eviction rules are:    
 1.First In First Out (FIFO);    
@@ -314,7 +314,7 @@ OData Synchronizer access
 <li> Click on Create synchronizer
 ![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/figure25.png)  
 
-OData Synchronizer panel
+*OData Synchronizer panel*
 
 ![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/figure26.png)   
 Create an OData Synchronizer
