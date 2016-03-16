@@ -350,7 +350,7 @@ The Administrator shall:
 </ul>
 
 Next to an existing synchronizer tab, there are also buttons for starting and stopping the item. The play button is to start the synchronizer; the square button is to stop it.
-It is possible to create, delete and update a synchronizer also from command line
+
 
 **Statistics**   
 The Statistic panel provided by DHuS allows monitoring the activities and connections handled by the software during a certain time-span. To enable these functions, it is necessary to insert in the start.sh the following line:
@@ -359,8 +359,7 @@ The Statistic panel provided by DHuS allows monitoring the activities and connec
 
 The Statistics functionality  is dedicated to the monitoring of the service activity through operation statuses and statistics. Most of these values are extracted from the DHuS Database that is fed regularly by any interested service but in particular by the dedicated DHuS Monitoring Service.
 
-**How to extract statistical information?**     
-Comin soon...
+
 
 
 
