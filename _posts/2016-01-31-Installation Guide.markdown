@@ -36,13 +36,13 @@ The technical specifications of the DHuS are provided the following Table.
    <th colspan="4">Required Performances</th>
  <tr>
 <td></td>
-       <th>Minimum </th>
-       <th>Medium</th>
-       <th>High</th>
+       <th>MINIMUM </th>
+       <th>MEDIUM</th>
+       <th>HIGH</th>
    </tr>
  
    <tr>
-      <th>CPU core number</th>
+      <th>CPU CORE NUMBER</th>
 <td>4-16</td>
   <td>24</td>
   <td>32</td>
@@ -53,26 +53,26 @@ The technical specifications of the DHuS are provided the following Table.
   <td>32 GB</td>
   <td>48 GB</td>
 </tr>
-      <th>Local Disk</th>
+      <th>LOCAL DISK</th>
   <td>1 TB</td>
   <td>1 TB</td>
   <td>1 TB</td>
 </tr>
 
 
-<th>Archive *</th>
+<th>ARCHIVE*</th>
 
 <td>50 TB (1 month Rolling Archive)</td>
   <td>200 TB (till 3 month Rolling Archive)</td>
   <td>500 TB</td>
 </tr>
 
-<th>Available External Bandwith</th>
+<th>AVAILABLE EXTERNAL BANDWITH</th>
 <td>100 Mbps </td>
   <td>2 Gbps (till 3 month Rolling Archive)</td>
   <td>10 Gbps</td>
 </tr>
-<th>Internal  Bandwith</th>
+<th>INTERNAL BANDWITH</th>
 <td>1 Mbps </td>
   <td>4 Gbps (till 3 month Rolling Archive)</td>
   <td>10 Gbps</td>
@@ -101,9 +101,9 @@ Following table describes the default DHuS network ports configuration:
 
 <table border="2">
     <tr>
-       <th>Services </th>
-       <th>Inbound</th>
-       <th>Outbound</th>
+       <th>SERVICES </th>
+       <th>INBOUND</th>
+       <th>OUTBOUND</th>
    </tr>
    <tr>
       <td>HTTP</td>
@@ -208,7 +208,7 @@ For a machine with 32g memory available it is recommended to set <nn>=24g
 Enable incremental Java Garbage Collection, distributing GC continuously during Java execution rather than periodically start heavier FullGC
 
 `-Dhttp.proxyHost=<proxyHostIP> -Dhttp.proxyPort=<proxyHostPort>`     
-In case DHuS node doesnt have access to Internet, this setting is needed to allow geo-locations searches into DHuS using an open proxy access
+In case DHuS node does not have access to Internet, this setting is needed to allow geo-locations searches into DHuS using an open proxy access
 Optional configuration
 The configuration of the following configuration items is not mandatory (some of them are not present in the default start.sh script and must be added manually).
 
@@ -421,8 +421,8 @@ Here below the list of configuration changes present from 0.4.3-1 to 0.9.0-2 Unl
 <table border="2">
     <tr>
        <td> </td>
-       <td>Change</td>
-       <td>Including version</td>
+       <td>CHANGE</td>
+       <td>INCLUDING VERSION</td>
    </tr>
    <tr>
 
