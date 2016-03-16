@@ -16,7 +16,7 @@ The application needs to manage two flows:
 
 </ul>   
 ![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/figure-2.png)   
-Fig. 2   Principal DHuS Software Functionality  
+*Principal DHuS Software Functionality*  
  
 The filesystems used by the application, can be two or more; 
 <ul type="square">
@@ -175,7 +175,7 @@ Note that the incoming and the Local archive shall be two different folders (e.g
 
 ![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/figure3.png)    
 
-Fig. 3 DHuS directories objectives
+*DHuS directories objectives*
 
 <hr> </hr>
 **Software Configuration Manual**
@@ -260,7 +260,7 @@ The dhus.xml contents are organized in 7 groups and provides all comments needed
  	active: defines if the cron is currently active or not 
  	schedule: defines the schedule of the cron.The cron pattern is defined as: Seconds Minutes Hours Day-of-month Month Day-of-week [Year] 
 You can find more information on:
-http://www.quartz-scheduler.org/documentation/quartz-1.x/tutorials/TutorialLesson06</td></tr>
+[http://www.quartz-scheduler.org/documentation/quartz-1.x/tutorials/TutorialLesson06](http://www.quartz-scheduler.org/documentation/quartz-1.x/tutorials/TutorialLesson06)</td></tr>
 
 <td>Messaging</td>
 <td>Settings contained in this group are used to configure the way DHuS is sending email messages.
