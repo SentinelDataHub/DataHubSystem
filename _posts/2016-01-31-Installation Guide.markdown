@@ -11,7 +11,7 @@ In order to allow integration into a hosting environment, the application needs 
 
 The application needs to manage two flows:  
 <ul type="square"> 
-<li>**the incoming flow**: during the products ingestion process, the DHuS SW picks up products (compressed or not) from a folder and move them into another folder. We will call those folders,  respectively, inbox and incoming.
+<li>**the incoming flow**: during the products ingestion process, the DHuS SW picks up products (compressed or not) from a folder and move them into another folder. We will call those folders,  respectively, inbox and incoming.
 <li>**the outgoing flow** (how external users can search and download published data): this can happen using http (Tomcat) and, in particular cases, also ftp (service started by DHuS) on some dedicated service ports. 
 
 </ul>   
@@ -149,7 +149,7 @@ An SMTP mail server should be made available to the DHuS System in order to allo
 The proxy configuration is required in case the HTTPS protocol shall be used.
 In this case, make sure the apache version compatible with DHuS is the number 2.2.15 with mod_proxy and mod_ssl.
 
-The httpd v command tells which config file Apache is using.
+The httpd v command tells which config file Apache is using.
 
 
 **Installation and Setup**       
@@ -327,10 +327,10 @@ Please note that all the settings are included in the client side (2 text files)
 **How to change a parameter?**    
       
 The files in charge of the GUI configuration management are located in:     
-	`[DHUSDIR?]/var/tomcat/webapps/new/config `
+*	`[DHUSDIR?]/var/tomcat/webapps/new/config `
 They are:      
-	`appconfig.json (includes 1,2,3,4,5) `     
-	`styles.json (includes 6,7) `     
+*	`appconfig.json (includes 1,2,3,4,5) `     
+*	`styles.json (includes 6,7) `     
 
 **Advanced Search Configuration**     
 <hr> </hr> 
