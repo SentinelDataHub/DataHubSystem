@@ -40,9 +40,11 @@ We suggest to copy the settings.xml file in your maven local repository:
 #### Build modules 
 “Prepare Build Environment” 
 From root of the distribution, type 
+
 ```sh    
 $ cd parent
 ``` 
+
 ```sh
  $ mvn install
 ```
