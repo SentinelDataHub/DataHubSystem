@@ -22,7 +22,7 @@ The major functionalities of the Data Hub Software are schematically represented
 
   
 
-![](http://raw.githubusercontent.com/calogera/DatahubSystem/gh-pages/images/figure1.png)
+![](http://raw.githubusercontent.com/calogera/DatahubSystem/gh-pages/images/dhusfunctions.png)
 
 *Data Hub Software functions* 
 <hr></hr>
@@ -54,13 +54,17 @@ This module is in charge of providing the user with an interface for the discove
 This module is in charge of managing the user accounts for access to the DHuS. It allows the definition of roles and permissions of the users. Permissions are usually defined in terms of macro functions e.g. the ability to upload data, download data, view statistics, perform administration etc. This module is used to apply the user shared quota allocation schemes for restricting the download bandwidth.
 This user account management service is configurable per DHuS instance to allow for self-registration at a hub or for operator driven registration. Each instance can be configured differently for usage by a known community. 
 <hr> </hr>
-   
-![](http://raw.githubusercontent.com/calogera/DatahubSystem/gh-pages/images/transformation.png)**Product Transformation**   
-This module is in charge of transforming products at ingestion or dissemination time.
-The transformations are applied accordingly through a well-defined plug-in interface. The result of the transformation can be a new product (recognised as part of the list of locally known products), a generic file, or an event (recognised by the dispatcher).
+![](http://raw.githubusercontent.com/calogera/DatahubSystem/gh-pages/images/searchpreview.png)  **Search and Product Preview**     
+   This module is in charge to provide users the possibility to perform search via standardized API protocols (OData and Open search) and via the graphical user interface. Moreover, in addition to the typical searches allowed by other EO dissemination service interfaces, the DHuS graphical user interface provides the free text search, allowing intuitive searches via keywords for the data required, region of interest, time window etc.
+The DHuS also allows users to save their defined searches, allowing both the reuse of that set of search parameters at a later date and the possibility to request an email notification whenever a new product matching the parameters is ingested.
+Following product metadata ingestion, the DHuS routinely applies “post-processing” operations allowing browse previews, data type oriented metadata visualization, following a search.     
+<hr> </hr>
+
+![](http://raw.githubusercontent.com/calogera/DatahubSystem/gh-pages/images/transformation.png)**Product Extraction**   
+The product extraction module manages the ability to disseminate / retrieve sub-components of products (with granularity smaller than the individual files). It is considered a unique and unprecedented capability that is of particular relevance for the voluminous data products managed in the Sentinels mission
 <hr> </hr>
 
 ![](http://raw.githubusercontent.com/calogera/DatahubSystem/gh-pages/images/dissemination.png)**Product Dissemination**      
 The dissemination module manages the product dissemination, retrieval and access by the user.
-The dissemination service supports several protocols, including the product transformation service, which allows transformation of the data at the time of product retrieval. The dissemination system supports the web user interface as well as machine-to-machine application programmable interfaces. Support for common internet tools and standards, (e.g. download managers), is also within the scope of this service. The ability to disseminate / retrieve sub-components of products (with granularity smaller than the individual files) is considered a unique and unprecedented capability that is of particular relevance for the voluminous data products managed in the Sentinel-2 mission.
+The dissemination service supports several protocols, including the product transformation service, which allows transformation of the data at the time of product retrieval. The dissemination system supports the web user interface as well as machine-to-machine application programmable interfaces. Support for common internet tools and standards, (e.g. download managers), is also within the scope of this service.
 
