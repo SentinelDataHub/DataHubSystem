@@ -60,7 +60,7 @@ The DHuS also allows users to save their defined searches, allowing both the reu
 Following product metadata ingestion, the DHuS routinely applies “post-processing” operations allowing browse previews, data type oriented metadata visualization, following a search.     
 <hr> </hr>
 
-![](https://github.com/calogera/DataHubSystem/blob/master/images/extraction.png)**Product Extraction**   
+![](https://raw.githubusercontent.com/calogera/DataHubSystem/master/images/extraction.png)**Product Extraction**   
 The product extraction module manages the ability to disseminate / retrieve sub-components of products (with granularity smaller than the individual files). It is considered a unique and unprecedented capability that is of particular relevance for the voluminous data products managed in the Sentinels mission
 <hr> </hr>
 
