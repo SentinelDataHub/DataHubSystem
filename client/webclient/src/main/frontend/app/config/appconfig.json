@@ -1,34 +1,31 @@
-{    
-    
+{
+
     "debugMode": false,
     "webAppRoot": "/",
     "logged": false,
     "version": "Data Hub System #version published here is developed by a Serco (http://serco.com/) and Gael Systems (http://www.gael.fr/) consortium under a contract with the European Space Agency (http://www.esa.int) in the frame of the Copernicus Programme. ",
     "settings": {
-        "title": "Data Hub System - OSF Installation",
         "logo": "images/datahub.png",
         "signup": true,
         "editprofile": true,
         "showcart": true,
         "showmap": true,
         "bgimage": "images/bg_s3.jpg",
-        "showquicklook": true,        
-        "show_oldgui_link": true,
-        "show_userguide": true,
-        "show_home": true,
+        "showquicklook": true,
+        "show_userguide": false,
+        "show_home": false,
         "show_extended_list": false,
         "showsensingfilter": true,
         "showingestionfilter": true,
-        "oldgui_link": "../",
         "querytitle": "Request Done: ",
         "toolbar" : {
-            "title": "Copernicus Scientific Data Hub",                        
-            "userguide_link": "https://scihub.copernicus.eu/userguide",
+            "title": "Data Hub System - OSF Installation",
+            "userguide_link": "",
             "userguide_title": "User Guide",
-            "home_link": "https://scihub.copernicus.eu",
-            "home_title": "Scientific Data Hub Portal",            
+            "home_link": "",
+            "home_title": "Scientific Data Hub Portal",
             "logos": [
-               
+
             ],
             "rightlogos": []
         },
@@ -92,7 +89,7 @@
             }
         },
 
-        "miniMap":{        
+        "miniMap":{
             "sources":[{
                 "class":"OSM",
                 "params":{
@@ -101,14 +98,14 @@
             }],
             "title": "Road",
             "type":"base",
-            "visible":true            
-        }        
+            "visible":true
+        }
     },
     "missions": [
         {
             "name": "Mission: Sentinel-1",
             "indexname": "platformname",
-            "indexvalue": "Sentinel-1",            
+            "indexvalue": "Sentinel-1",
             "filters": [
                 {
                     "indexname": "producttype",
