@@ -209,6 +209,12 @@ public class User extends AbstractTimestampEntity implements Serializable,
       if (username != null) this.username = username.toLowerCase ();
    }
 
+   public void setEncryptedPassword (String password, PasswordEncryption enc)
+   {
+      this.password=password;
+      setPasswordEncryption(enc);
+   }
+   
    public void setPassword (String password)
    {
       // Encrypt password with MessageDigest

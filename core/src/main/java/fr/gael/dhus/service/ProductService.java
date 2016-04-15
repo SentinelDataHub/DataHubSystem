@@ -356,6 +356,10 @@ public class ProductService extends WebService
       return final_product;
    }
 
+   @Caching(evict = {
+         @CacheEvict(value = "product" , allEntries = true),
+         @CacheEvict(value = "products", allEntries = true)
+   })
    public void addProduct (URL path, User owner,
       final List<Collection> collections, String origin, Scanner scanner, 
       FileScannerWrapper wrapper)
@@ -468,10 +472,6 @@ public class ProductService extends WebService
       }
 
       @Transactional (readOnly = false, propagation = Propagation.REQUIRED)
-      @Caching (evict = {
-            @CacheEvict (value = "product", allEntries = true),
-            @CacheEvict (value = "products", allEntries = true)
-      })
       @IncrementCache (name = "product_count", key = "all", value = 1)
       public void run ()
       {

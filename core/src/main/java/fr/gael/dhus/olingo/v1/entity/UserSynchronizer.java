@@ -21,6 +21,7 @@ package fr.gael.dhus.olingo.v1.entity;
 
 import static fr.gael.dhus.olingo.v1.entityset.UserSynchronizerEntitySet.CREATION_DATE;
 import static fr.gael.dhus.olingo.v1.entityset.UserSynchronizerEntitySet.CURSOR;
+import static fr.gael.dhus.olingo.v1.entityset.UserSynchronizerEntitySet.FORCE;
 import static fr.gael.dhus.olingo.v1.entityset.UserSynchronizerEntitySet.ID;
 import static fr.gael.dhus.olingo.v1.entityset.UserSynchronizerEntitySet.LABEL;
 import static fr.gael.dhus.olingo.v1.entityset.UserSynchronizerEntitySet.MODIFICATION_DATE;
@@ -143,7 +144,8 @@ public final class UserSynchronizer extends V1Entity
       String service_url = (String) props.remove(SERVICE_URL);
       Long   page_size   = (Long) props.remove(PAGE_SIZE);
       Long   skip        = (Long) props.remove(CURSOR);
-
+      Boolean force      = (Boolean) props.remove (FORCE);
+                
       // Nullable fields
       boolean has_label    = props.containsKey(LABEL);
       boolean has_login    = props.containsKey(SERVICE_LOGIN);
@@ -201,6 +203,11 @@ public final class UserSynchronizer extends V1Entity
          this.syncConf.setConfig("skip", skip.toString());
       }
 
+      if (force != null)
+      {
+         this.syncConf.setConfig("force", force.toString ());
+      }
+
       if (has_label)
       {
          this.syncConf.setLabel(label);
@@ -252,6 +259,9 @@ public final class UserSynchronizer extends V1Entity
       String page_size = this.syncConf.getConfig("page_size");
       res.put(PAGE_SIZE, page_size != null? Long.parseLong(page_size): Long.valueOf(500));
 
+      String force = this.syncConf.getConfig("force");
+      res.put(FORCE, force != null? Boolean.parseBoolean (force): false);
+      
       return res;
    }
 
@@ -284,6 +294,10 @@ public final class UserSynchronizer extends V1Entity
          case PAGE_SIZE:
             String page_size = this.syncConf.getConfig("page_size");
             res = page_size != null? Long.parseLong(page_size): Long.valueOf(500);
+            break;
+         case FORCE:
+            String force = this.syncConf.getConfig ("force");
+            res = force != null ? Boolean.parseBoolean (force): false;
             break;
          default: throw new ODataException("Unknown property: "+prop_name);
       }

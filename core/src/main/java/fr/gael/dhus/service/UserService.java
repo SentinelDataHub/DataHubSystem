@@ -201,6 +201,7 @@ public class UserService extends WebService
     * @throws RootNotModifiableException
     */
    @Transactional(readOnly=false)
+   @CacheEvict(value = "user", key = "#user?.getUsername()")
    public void systemCreateUser(User user) throws RequiredFieldMissingException,
       RootNotModifiableException, EmailNotSentException
    {
@@ -397,6 +398,7 @@ public class UserService extends WebService
    public void systemUpdateUser(User user) throws RootNotModifiableException,
          RequiredFieldMissingException
    {
+      checkRoot (user);
       userDao.update(user); // FIXME reproduce updateUser()?
    }
 
@@ -725,11 +727,12 @@ public class UserService extends WebService
          prods.add(p.getIdentifier ());
       }
       return prods;
-   } 
-   
+   }
+
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public void forgotPassword (User user) throws UserNotExistingException,
-      RootNotModifiableException, EmailNotSentException
+   public void forgotPassword (String base_url, User user) throws
+         UserNotExistingException, RootNotModifiableException,
+         EmailNotSentException
    {
       checkRoot (user);
       User checked = userDao.getByName (user.getUsername ());
@@ -743,7 +746,7 @@ public class UserService extends WebService
       String message = "Dear " + getUserWelcome (checked) +",\n\n" +
             "Please follow this link to set a new password in the " +
             cfgManager.getNameConfiguration ().getShortName () +" system:\n" +
-            cfgManager.getServerConfiguration ().getExternalUrl () + "?r=" +
+            cfgManager.getServerConfiguration ().getExternalUrl () + base_url +
             userDao.computeUserCodeForPasswordReset (checked) + "\n\n"  +
             "For help requests please write to: " +
             cfgManager.getSupportConfiguration ().getMail () + "\n\n" +

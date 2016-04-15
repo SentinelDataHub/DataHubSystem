@@ -293,6 +293,97 @@ public class ODataProductSynchronizer extends Synchronizer
                     " query(" + query + ") done in " + delta_time + "ms");
    }
 
+   /** Result type for {@link #downloadValidateRename(InterruptibleHttpClient, Path, String)}. */
+   private class DownloadResult
+   {
+      /** Path to downloaded data. */
+      public final Path data;
+      /** Content-Type of downloaded data. */
+      public final String dataType;
+      /** Content-Length of downloaded data. */
+      public final long dataSize;
+
+      /** Create new instance, sets public fields. */
+      public DownloadResult(Path data, String dataType, long dataSize)
+      {
+         this.data = data;
+         this.dataType = dataType;
+         this.dataSize = dataSize;
+      }
+   }
+
+   /**
+    * Uses the given `http_client` to download `url` into `out_tmp`.
+    * Renames `out_tmp` to the value of the filename param of the Content-Disposition header field.
+    * Returns a path to the renamed file.
+    *
+    * @param http_client synchronous interruptible HTTP client.
+    * @param out_tmp download destination file on disk (will be created if does not exist).
+    * @param url what to download.
+    * @return Path to file with its actual name.
+    * @throws IOException Anything went wrong (with IO or network, or if the HTTP header field
+    *       Content-Disposition is missing).
+    * @throws InterruptedException Thread has been interrupted.
+    */
+   private DownloadResult downloadValidateRename(InterruptibleHttpClient http_client, Path out_tmp,
+         String url) throws IOException, InterruptedException
+   {
+      try (FileChannel output = FileChannel.open(out_tmp,
+            StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE))
+      {
+
+         HttpResponse response = http_client.interruptibleGet(url, output);
+
+         // If the response's status code is not 200, something wrong happened
+         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK)
+         {
+            Formatter ff = new Formatter();
+            ff.format("Synchronizer#%d cannot download product at %s,"
+                  + " remote dhus returned message '%s' (HTTP%d)",
+                  getId(),
+                  url,
+                  response.getStatusLine().getReasonPhrase(),
+                  response.getStatusLine().getStatusCode());
+            throw new IOException(ff.out().toString());
+         }
+
+         // Gets the filename from the HTTP header field `Content-Disposition'
+         Pattern pat = Pattern.compile("filename=\"(.+?)\"", Pattern.CASE_INSENSITIVE);
+         String contdis = response.getFirstHeader("Content-Disposition").getValue();
+         Matcher m = pat.matcher(contdis);
+         if (!m.find())
+         {
+            throw new IOException("Synchronizer#" + getId()
+                  + " Missing HTTP header field `Content-Disposition` that determines the filename");
+         }
+         String filename = m.group(1);
+         if (filename == null || filename.isEmpty())
+         {
+            throw new IOException("Synchronizer#" + getId()
+                  + " Invalid filename in HTTP header field `Content-Disposition`");
+         }
+
+         // Renames the downloaded file
+         output.close();
+         Path dest = out_tmp.getParent().resolve(filename);
+         Files.move(out_tmp, dest, StandardCopyOption.ATOMIC_MOVE);
+
+         DownloadResult res = new DownloadResult(
+               dest,
+               response.getEntity().getContentType().getValue(),
+               response.getEntity().getContentLength());
+
+         return res;
+      }
+      finally
+      {
+         if (Files.exists(out_tmp))
+         {
+            Files.delete(out_tmp);
+         }
+      }
+   }
+
    /** Downloads a product. */
    private void downloadProduct(Product p) throws IOException, InterruptedException
    {
@@ -314,64 +405,72 @@ public class ODataProductSynchronizer extends Synchronizer
       };
 
       // Asks the Incoming manager for a download path
-      Path tmp = Paths.get (INCOMING_MANAGER.getNewIncomingPath ().toURI ());
-      tmp = tmp.resolve (p.getIdentifier () + ".part"); // Temporary name
-      // This file will be move once the download is complete
+      Path dir = Paths.get(INCOMING_MANAGER.getNewIncomingPath().toURI());
+      Path tmp_pd = dir.resolve(p.getIdentifier() + ".part");    // Temporary names
+      Path tmp_ql = dir.resolve(p.getIdentifier() + "-ql.part");
+      Path tmp_tn = dir.resolve(p.getIdentifier() + "-tn.part");
+      // These files will be moved once download is complete
 
-      try (FileChannel output = FileChannel.open (tmp,
-               StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE))
+      InterruptibleHttpClient http_client = new InterruptibleHttpClient(cliprod);
+      DownloadResult pd_res = null, ql_res = null, tn_res = null;
+      try
       {
-         InterruptibleHttpClient http_client = new InterruptibleHttpClient (cliprod);
-
-         // Download ... (blocking method)
-         long delta = System.currentTimeMillis ();
-         HttpResponse response = http_client.interruptibleGet (p.getOrigin (), output);
-         logODataPerf (p.getOrigin (), System.currentTimeMillis () - delta);
-
-         // If the response's status code is not 200, something wrong happened
-         if (response.getStatusLine ().getStatusCode () != HttpStatus.SC_OK)
-         {
-            Formatter ff = new Formatter ();
-            ff.format ("Synchronizer#%d cannot download product at %s," +
-                  " remote dhus returned message '%s' (HTTP%d)",
-                  getId (),
-                  p.getOrigin (),
-                  response.getStatusLine ().getReasonPhrase (),
-                  response.getStatusLine ().getStatusCode ());
-            throw new IOException (ff.out ().toString ());
-         }
-
-         // Gets the filename from the HTTP header field `Content-Disposition'
-         Pattern pat = Pattern.compile ("filename=\"(.+?)\"", Pattern.CASE_INSENSITIVE);
-         String contdis = response.getFirstHeader ("Content-Disposition").getValue ();
-         Matcher m = pat.matcher (contdis);
-         if (!m.find ())
-         {
-            throw new IOException ("Synchronizer#" + getId () +
-                  " Missing HTTP header field `Content-Disposition` that determines the filename");
-         }
-         String filename = m.group (1);
-         if (filename == null || filename.isEmpty ())
-         {
-            throw new IOException ("Synchronizer#" + getId () +
-                  " Invalid filename in HTTP header field `Content-Disposition`");
-         }
-
-         // Renames the downloaded file
-         Path dest = tmp.getParent ().resolve (filename);
-         Files.move (tmp, dest, StandardCopyOption.ATOMIC_MOVE);
+         long delta = System.currentTimeMillis();
+         pd_res = downloadValidateRename(http_client, tmp_pd, p.getOrigin());
+         logODataPerf(p.getOrigin(), System.currentTimeMillis() - delta);
 
          // Sets download info in the product (not written in the db here)
-         p.setPath(dest.toUri().toURL());
-         p.setDownloadablePath (dest.toString ());
-         p.setDownloadableType (response.getEntity ().getContentType ().getValue ());
-         p.setDownloadableSize (response.getEntity ().getContentLength ());
-      }
-      finally {
-         if (Files.exists (tmp))
+         p.setPath(pd_res.data.toUri().toURL());
+         p.setDownloadablePath(pd_res.data.toString());
+         p.setDownloadableType(pd_res.dataType);
+         p.setDownloadableSize(pd_res.dataSize);
+
+         // Downloads and sets the quicklook and thumbnail (if any)
+         if (p.getQuicklookFlag())
          {
-            Files.delete (tmp);
+            // Failing at downloading a quicklook must not abort the download!
+            try
+            {
+               ql_res = downloadValidateRename(http_client, tmp_ql, p.getQuicklookPath());
+               p.setQuicklookPath(ql_res.data.toString());
+               p.setQuicklookSize(ql_res.dataSize);
+            }
+            catch (IOException ex)
+            {
+               LOGGER.error("Failed to download quicklook at " + p.getQuicklookPath(), ex);
+            }
          }
+         if (p.getThumbnailFlag())
+         {
+            // Failing at downloading a thumbnail must not abort the download!
+            try
+            {
+               tn_res = downloadValidateRename(http_client, tmp_tn, p.getThumbnailPath());
+               p.setThumbnailPath(tn_res.data.toString());
+               p.setThumbnailSize(tn_res.dataSize);
+            }
+            catch (IOException ex)
+            {
+               LOGGER.error("Failed to download thumbnail at " + p.getThumbnailPath(), ex);
+            }
+         }
+      }
+      catch (Exception ex)
+      {
+         // Removes downloaded files if an error occured
+         if (pd_res != null)
+         {
+            Files.delete(pd_res.data);
+         }
+         if (ql_res != null)
+         {
+            Files.delete(ql_res.data);
+         }
+         if (tn_res != null)
+         {
+            Files.delete(tn_res.data);
+         }
+         throw ex;
       }
    }
 
@@ -542,15 +641,16 @@ public class ODataProductSynchronizer extends Synchronizer
                String id = (String) subpe.getProperties ().get ("Id");
                Long content_len = (Long) subpe.getProperties ().get ("ContentLength");
 
-               // Uses LocalPath if given
                String path = (String) subpe.getProperties ().get ("LocalPath");
-               if (path != null && !path.isEmpty ())
+               if (this.remoteIncoming != null && !this.copyProduct
+                     && path != null && !path.isEmpty ())
                {
                   path = Paths.get(this.remoteIncoming, path).toString();
                }
                else
                {
-                  path = subpe.getMetadata ().getId () + "/$value";
+                  path = client.getServiceRoot() + pdt_p
+                        + "/Products('" + subpe.getProperties().get("Id") + "')/$value";
                }
 
                // Retrieves the Quicklook

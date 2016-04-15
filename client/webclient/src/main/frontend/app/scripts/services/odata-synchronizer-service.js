@@ -43,9 +43,9 @@ angular
                 <d:ServiceUrl>'+model.serviceUrl+'</d:ServiceUrl> \
                 <d:ServiceLogin>'+model.serviceLoginUsername+'</d:ServiceLogin> '+
                 ((model.serviceLoginPassword && (model.serviceLoginPassword!=''))?('<d:ServicePassword>'+model.serviceLoginPassword+'</d:ServicePassword> ' ):'')+
-                '<d:Schedule>'+model.schedule+'</d:Schedule> \
-                <d:RemoteIncoming>'+model.remoteIncoming+'</d:RemoteIncoming> \
-                <d:Request>'+model.request+'</d:Request> '+
+                '<d:Schedule>'+model.schedule+'</d:Schedule> ' +
+                ((model.remoteIncoming && (model.remoteIncoming!=''))?('<d:RemoteIncoming>'+model.remoteIncoming+'</d:RemoteIncoming> ' ):'')+                
+                '<d:Request>'+model.request+'</d:Request> '+
                 ((model.copyProduct && (model.copyProduct!=''))?('<d:CopyProduct>'+model.copyProduct+'</d:CopyProduct> ' ):'')+
                 ((model.filterParam && (model.filterParam!=''))?('<d:FilterParam>'+model.filterParam+'</d:FilterParam> '):'<d:FilterParam></d:FilterParam>')+
                 ((model.sourceCollection && (model.sourceCollection!=''))?('<d:SourceCollection>'+model.sourceCollection+'"</d:SourceCollection> '):'')+

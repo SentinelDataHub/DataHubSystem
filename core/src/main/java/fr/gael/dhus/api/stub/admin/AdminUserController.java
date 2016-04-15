@@ -248,6 +248,7 @@ public class AdminUserController {
 
 			User user = new User ();
 			user.setId (userid);
+			user.setUsername(userData.getUsername());
 			user.setFirstname (userData.getFirstname ());
 			user.setLastname (userData.getLastname ());
 			user.setAddress (userData.getAddress ());

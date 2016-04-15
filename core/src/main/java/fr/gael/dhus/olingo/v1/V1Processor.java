@@ -40,6 +40,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import fr.gael.dhus.database.object.Role;
+import fr.gael.dhus.service.SecurityService;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -550,15 +552,34 @@ public class V1Processor extends ODataSingleProcessor
       EdmEntityType target_et = uri_info.getTargetEntitySet ().getEntityType ();
 
       Map<String, Object> res = null;
+      fr.gael.dhus.database.object.User current_user =
+            ApplicationContextProvider.getBean (SecurityService.class)
+                  .getCurrentUser ();
       if (target_et.getName ().equals (V1Model.SYNCHRONIZER.getEntityName ()))
       {
-         Synchronizer sync = new Synchronizer (entry);
-         res = sync.toEntityResponse (makeLink ().toString ());
+         if (V1Model.SYNCHRONIZER.isAuthorized (current_user))
+         {
+            Synchronizer sync = new Synchronizer (entry);
+            res = sync.toEntityResponse (makeLink ().toString ());
+         }
+         else
+         {
+            throw new ODataException (
+                  "You are authorized to create a product synchronizer");
+         }
       }
       else if (target_et.getName().equals(V1Model.USER_SYNCHRONIZER.getEntityName()))
       {
-         UserSynchronizer sync = new UserSynchronizer(entry);
-         res = sync.toEntityResponse(makeLink().toString());
+         if (V1Model.USER_SYNCHRONIZER.isAuthorized (current_user))
+         {
+            UserSynchronizer sync = new UserSynchronizer (entry);
+            res = sync.toEntityResponse (makeLink ().toString ());
+         }
+         else
+         {
+            throw new ODataException (
+                  "You are authorized to create a user synchronizer");
+         }
       }
       else
       {
@@ -583,28 +604,57 @@ public class V1Processor extends ODataSingleProcessor
       ODataEntry entry = EntityProvider.readEntry(rq_content_type,
             uri_info.getStartEntitySet(), content, properties);
 
+      fr.gael.dhus.database.object.User current_user =
+            ApplicationContextProvider.getBean (SecurityService.class)
+                  .getCurrentUser ();
+
       EdmEntityType target_et = uri_info.getTargetEntitySet ().getEntityType ();
       try
       {
          String target_entity = target_et.getName ();
          if (target_entity.equals (V1Model.SYNCHRONIZER.getEntityName ()))
          {
-            long key = Long.decode (
-                  uri_info.getKeyPredicates ().get (0).getLiteral ());
-            Synchronizer s = new Synchronizer (key);
-            s.updateFromEntry (entry);
+            if (V1Model.SYNCHRONIZER.isAuthorized (current_user))
+            {
+               long key = Long.decode (
+                     uri_info.getKeyPredicates ().get (0).getLiteral ());
+               Synchronizer s = new Synchronizer (key);
+               s.updateFromEntry (entry);
+            }
+            else
+            {
+               throw new ODataException (
+                     "You are not authorized to update a product synchronizer");
+            }
          }
          else if (target_entity.equals (V1Model.USER.getEntityName ()))
          {
             String key = uri_info.getKeyPredicates ().get (0).getLiteral ();
             User u = new User (key);
-            u.updateFromEntry (entry);
+            if (u.isAuthorize (current_user))
+            {
+               u.updateFromEntry (entry);
+            }
+            else
+            {
+               throw new ODataException (
+                     "You are not authorized to update this user");
+            }
          }
          else if (target_entity.equals(V1Model.USER_SYNCHRONIZER.getEntityName()))
          {
-            long key = Long.decode(uri_info.getKeyPredicates().get(0).getLiteral());
-            UserSynchronizer s = new UserSynchronizer(key);
-            s.updateFromEntry(entry);
+            if (V1Model.USER_SYNCHRONIZER.isAuthorized (current_user))
+            {
+               long key = Long.decode (
+                     uri_info.getKeyPredicates ().get (0).getLiteral ());
+               UserSynchronizer s = new UserSynchronizer (key);
+               s.updateFromEntry (entry);
+            }
+            else
+            {
+               throw new ODataException (
+                     "You are not authorized to update a user synchronizer");
+            }
          }
          else
          {
@@ -623,12 +673,39 @@ public class V1Processor extends ODataSingleProcessor
    public ODataResponse deleteEntity (DeleteUriInfo uri_info,
          String content_type) throws ODataException
    {
+      fr.gael.dhus.database.object.User current_user =
+            ApplicationContextProvider.getBean (SecurityService.class)
+                  .getCurrentUser ();
+
       EdmEntityType target_et = uri_info.getTargetEntitySet ().getEntityType ();
-      if (target_et.getName ().equals (V1Model.SYNCHRONIZER.getEntityName ()))
+      String target_name = target_et.getName ();
+      if (target_name.equals (V1Model.SYNCHRONIZER.getEntityName ()))
       {
-         long key = Long.decode (
-               uri_info.getKeyPredicates().get(0).getLiteral ());
-         Synchronizer.delete (key);
+         if (V1Model.SYNCHRONIZER.isAuthorized (current_user))
+         {
+            long key = Long.decode (
+                  uri_info.getKeyPredicates ().get (0).getLiteral ());
+            Synchronizer.delete (key);
+         }
+         else
+            {
+               throw new ODataException (
+                     "You are not authorized to delete a product synchronizer");
+            }
+      }
+      else if (target_name.equals (V1Model.USER_SYNCHRONIZER.getEntityName ()))
+      {
+         if (V1Model.USER_SYNCHRONIZER.isAuthorized (current_user))
+         {
+            long key = Long.decode (
+                  uri_info.getKeyPredicates ().get (0).getLiteral ());
+            Synchronizer.delete (key); // using the same method to delete
+         }
+         else
+         {
+            throw new ODataException (
+                     "You are not authorized to delete a user synchronizer");
+         }
       }
       else
       {

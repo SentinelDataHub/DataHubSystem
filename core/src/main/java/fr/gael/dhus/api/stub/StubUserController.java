@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 
+import fr.gael.dhus.service.exception.RequiredFieldMissingException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,30 +26,19 @@ import fr.gael.dhus.api.stub.stub_share.exceptions.EmailNotSentException;
 import fr.gael.dhus.api.stub.stub_share.exceptions.UserBadEncryptionException;
 import fr.gael.dhus.api.stub.stub_share.exceptions.UserBadOldPasswordException;
 import fr.gael.dhus.api.stub.stub_share.exceptions.UserPasswordConfirmationException;
-import fr.gael.dhus.database.dao.UserDao;
 import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.database.object.User.PasswordEncryption;
-import fr.gael.dhus.messaging.mail.MailServer;
 import fr.gael.dhus.service.UserService;
 import fr.gael.dhus.service.exception.RootNotModifiableException;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
-import fr.gael.dhus.system.config.ConfigurationManager;
 
 @RestController
 public class StubUserController {
 	private static Log logger = LogFactory.getLog(StubUserController.class);
 
-	@Autowired
-	private UserDao userDao;
 
 	@Autowired
 	private UserService userService;
-
-	@Autowired
-	private ConfigurationManager cfgManager;
-
-	@Autowired
-	private MailServer mailer;
 
 	private User getUserFromPrincipal(Principal principal) {
 		User user = ((User) ((UsernamePasswordAuthenticationToken) principal)
@@ -67,27 +57,14 @@ public class StubUserController {
 	@RequestMapping(value = "/stub/users/{userid}", method = RequestMethod.PUT)
 	public int updateUserProfile(Principal principal,
 			@RequestBody UserRequestBody body,
-			@PathVariable(value = "userid") String userid) {
+			@PathVariable(value = "userid") String userid) throws RequiredFieldMissingException, RootNotModifiableException {
 		logger.info("******** updateUserProfile()");
 		int responseCode = 0;
 		User user = body.getUser();
 		logger.info("******** called body.getUser");
 		PasswordModel passwordModel = body.getPasswordModel();
 		User u = getUserFromPrincipal(principal);
-		try {
-			logger.info("******** inside try");
-			checkRoot(u);
-		} catch (RootNotModifiableException e) {
-			logger.info("******** caught  RootNotModifiableException");
-			responseCode = 1001;
-			logger.error("Root cannot be modified: " + e.getMessage());
-			e.printStackTrace();
-			return responseCode;
-		} catch (Exception ex) {
-			logger.info("******** caught  generic exception");
-			logger.error(ex.getMessage());
-		}
-		logger.error("******** fields check");
+
 		// check user fields. set only not empty fields
 		if (user.getEmail() != null && !user.getEmail().isEmpty())
 			u.setEmail(user.getEmail());
@@ -146,12 +123,11 @@ public class StubUserController {
 				throw new UserPasswordConfirmationException(
 						"Confirmation password value doesn't match.");
 			}
-			// logger.info("new pwd: " +
-			// passwordModel.getConfirmPassword());RootNotModifiableException
-			u.setPassword(passwordModel.getConfirmPassword());
+			userService.selfChangePassword(u.getId(),passwordModel.getOldPassword(),passwordModel.getConfirmPassword());
 		}
 		logger.info("******** update user");
-		userDao.update(u);
+
+		userService.selfUpdateUser(u);
 		return responseCode;
 	}
 
@@ -160,66 +136,16 @@ public class StubUserController {
 			throws RootNotModifiableException {
 		int responseCode = 0;
 
-		if (userDao.isRootUser(user)) {
-			logger.error("Root cannot be modified");
-			responseCode = 1001;
-			return responseCode;
-		}
-		User checked = userService.resolveUser(userDao.getByName(user
-				.getUsername()));
-		if (checked == null
-				|| !checked.getEmail().toLowerCase()
-						.equals(user.getEmail().toLowerCase())) {
-			logger.error("No user can be found for this "
-					+ "username/mail combination");
-			responseCode = 1002;
-			return responseCode;
-		}
-
-		String message = "Dear " + getUserWelcome(checked) + ",\n\n"
-				+ "Please follow this link to set a new password in the "
-				+ cfgManager.getNameConfiguration().getShortName()
-				+ " system:\n"
-				+ cfgManager.getServerConfiguration().getExternalUrl()
-				+ "#/home/r="
-				+ userDao.computeUserCodeForPasswordReset(checked) + "\n\n"
-				+ "For help requests please write to: "
-				+ cfgManager.getSupportConfiguration().getMail() + "\n\n"
-				+ "Kind regards.\n"
-				+ cfgManager.getSupportConfiguration().getName() + ".\n"
-				+ cfgManager.getServerConfiguration().getExternalUrl();
-
-		//logger.info("Forgot password mail message: " + message);
-		String subject = "User password reset";
-
 		try {
-			mailer.send(checked.getEmail(), null, null, subject, message);
+			userService.forgotPassword ("#/home/r=", user);
 		} catch (Exception e) {
-			logger.error("Cannot send email to " + checked.getEmail(), e);
+			logger.error("Reset password of user: " + user + " failed", e);
 			responseCode = 1003;
 			return responseCode;
 		}
-		logger.info("responseCode:  " + responseCode);
+		logger.info("responseCode: " + responseCode);
 
 		return responseCode;
-	}
-
-	private void checkRoot(User user) throws RootNotModifiableException {
-		if (userDao.isRootUser(user)) {
-			logger.error("Root cannot be modified");
-			throw new RootNotModifiableException("Root cannot be modified");
-		}
-	}
-
-	private String getUserWelcome(User u) {
-		String firstname = u.getUsername();
-		String lastname = "";
-		if (u.getFirstname() != null && !u.getFirstname().trim().isEmpty()) {
-			firstname = u.getFirstname();
-			if (u.getLastname() != null && !u.getLastname().trim().isEmpty())
-				lastname = " " + u.getLastname();
-		}
-		return firstname + lastname;
 	}
 
 	/**

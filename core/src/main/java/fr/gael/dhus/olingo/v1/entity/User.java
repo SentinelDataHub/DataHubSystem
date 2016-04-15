@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import fr.gael.dhus.database.object.Country;
+import fr.gael.dhus.database.object.Role;
 import fr.gael.dhus.olingo.v1.V1Util;
 import fr.gael.dhus.service.UserService;
 import fr.gael.dhus.service.exception.RequiredFieldMissingException;
@@ -234,5 +235,11 @@ public class User extends V1Entity
       {
          throw new ODataException ("User is not complete to be updated !");
       }
+   }
+
+   public boolean isAuthorize (fr.gael.dhus.database.object.User user)
+   {
+      return user.getRoles ().contains (Role.USER_MANAGER) ||
+            user.getUsername ().toLowerCase ().equals (getName ().toLowerCase ());
    }
 }

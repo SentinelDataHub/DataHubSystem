@@ -10,7 +10,7 @@
    <parent>
       <groupId>fr.gael.dhus</groupId>
       <artifactId>dhus-parent</artifactId>
-      <version>0.9.0-2</version>
+      <version>0.9.0-2-hotfix-4</version>
    </parent>
 
    <artifactId>dhus-client-html</artifactId>

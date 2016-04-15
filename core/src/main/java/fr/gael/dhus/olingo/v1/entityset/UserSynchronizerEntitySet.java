@@ -57,6 +57,7 @@ public class UserSynchronizerEntitySet extends V1EntitySet<UserSynchronizer>
    public static final String SERVICE_PASSWORD  = "ServicePassword";
    public static final String CURSOR            = "Cursor";
    public static final String PAGE_SIZE         = "PageSize";
+   public static final String FORCE             = "Force";
 
    @Override
    public String getEntityName()
@@ -136,6 +137,14 @@ public class UserSynchronizerEntitySet extends V1EntitySet<UserSynchronizer>
                   new Facets()
                         .setNullable(false)
                         .setDefaultValue("500")
+            )
+      );
+
+      properties.add(new SimpleProperty().setName(FORCE)
+            .setType(EdmSimpleTypeKind.Boolean)
+            .setFacets(
+                  new Facets()
+                        .setDefaultValue("false")
             )
       );
 

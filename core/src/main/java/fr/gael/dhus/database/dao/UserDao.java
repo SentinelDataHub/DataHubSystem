@@ -172,7 +172,14 @@ public class UserDao extends HibernateDao<User, Long>
       user.setDeleted (true);
       getHibernateTemplate ().update (user);
       productCartDao.deleteCartOfUser(user);
-      fireDeletedEvent (new DaoEvent<User> (user));
+      try
+      {
+         fireDeletedEvent(new DaoEvent<User>(user));
+      }
+      catch (Exception ex)
+      {
+         logger.error("Exception occured in listener", ex);
+      }
    }
 
    private void forceDelete (User user)

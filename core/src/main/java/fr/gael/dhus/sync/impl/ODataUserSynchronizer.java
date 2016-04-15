@@ -22,6 +22,7 @@ package fr.gael.dhus.sync.impl;
 import fr.gael.dhus.database.object.Role;
 import fr.gael.dhus.database.object.SynchronizerConf;
 import fr.gael.dhus.database.object.User;
+import fr.gael.dhus.database.object.User.PasswordEncryption;
 import fr.gael.dhus.database.object.restriction.LockedAccessRestriction;
 import fr.gael.dhus.olingo.ODataClient;
 import fr.gael.dhus.olingo.v1.entityset.SystemRoleEntitySet;
@@ -44,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.SetUtils;
+import org.apache.log4j.Level;
 
 import org.apache.log4j.Logger;
 
@@ -86,6 +88,9 @@ public class ODataUserSynchronizer extends Synchronizer
 
    /** Size of a Page (number of users to retrieve at once, $top parameter). */
    private int pageSize;
+   
+   /** Force user synchronizer, without checking creation date. */
+   private boolean force;
 
    /**
     * Creates a new UserSynchronizer.
@@ -136,12 +141,38 @@ public class ODataUserSynchronizer extends Synchronizer
       {
          pageSize = 500;
       }
+
+      String cfgForce = sc.getConfig("force");
+      if (cfgForce != null && !cfgForce.isEmpty())
+      {
+         force = Boolean.parseBoolean (cfgForce);
+      }
+      else
+      {
+         force = false;
+      }
+   }
+
+   /** Prints log line prefixed with the sync ID. */
+   private void log(Level level, String message)
+   {
+      LOGGER.log(level, "UserSync#" + getId() + ' ' + message);
+   }
+
+   /** Prints log line prefixed with the sync ID. */
+   private void log(Level level, String message, Throwable ex)
+   {
+      LOGGER.log(level, "UserSync#" + getId() + ' ' + message, ex);
    }
 
    /** Logs how much time an OData command consumed. */
-   private void logODataPerf(String query, long delta_time)
+   private ODataFeed readFeedLogPerf(String query, Map<String, String>params)
+         throws IOException, ODataException
    {
-      LOGGER.debug("Synchronizer#" + getId() + " query(" + query + ") done in " + delta_time + "ms");
+      long delta_time = System.currentTimeMillis();
+      ODataFeed feed = client.readFeed(query, params);
+      log(Level.DEBUG, "query(" + query + ") done in " + delta_time + "ms");
+      return feed;
    }
 
    @Override
@@ -160,18 +191,18 @@ public class ODataUserSynchronizer extends Synchronizer
 
          query_param.put("$top", String.valueOf(pageSize));
 
-         long delta = System.currentTimeMillis();
-         ODataFeed userfeed = client.readFeed("/Users", query_param);
-         logODataPerf("Users", System.currentTimeMillis() - delta);
+         log(Level.DEBUG, "Querying users from " + skip + " to " + skip + pageSize);
+         ODataFeed userfeed = readFeedLogPerf("/Users", query_param);
 
          // For each entry, creates a DataBase Object
          for (ODataEntry pdt: userfeed.getEntries())
          {
+            String username = null;
             try
             {
                Map<String, Object> props = pdt.getProperties();
 
-               String username  = (String)props.get(UserEntitySet.USERNAME);
+                      username  = (String)props.get(UserEntitySet.USERNAME);
                String email     = (String)props.get(UserEntitySet.EMAIL);
                String firstname = (String)props.get(UserEntitySet.FIRSTNAME);
                String lastname  = (String)props.get(UserEntitySet.LASTNAME);
@@ -186,13 +217,16 @@ public class ODataUserSynchronizer extends Synchronizer
                String password  = (String)props.get(UserEntitySet.PASSWORD);
                Date   creation  = ((GregorianCalendar)props.get(UserEntitySet.CREATED)).getTime();
 
-               String encoded_username = UriUtils.encodePath(username, "UTF-8");
+               // Uses the Scheme encoder as it is the most restrictives, it only allows
+               // '+' (forbidden char in usernames, so it's ok)
+               // '-' (forbidden char in usernames, so it's ok)
+               // '.' (allowed char in usernames, not problematic)
+               // the alphanumeric character class (a-z A-Z 0-9)
+               String encoded_username = UriUtils.encodeScheme(username, "UTF-8");
 
                // Retrieves Roles
                String roleq = String.format("/Users('%s')/SystemRoles", encoded_username);
-               delta = System.currentTimeMillis();
-               ODataFeed userrole = client.readFeed(roleq, null);
-               logODataPerf(roleq, System.currentTimeMillis() - delta);
+               ODataFeed userrole = readFeedLogPerf(roleq, null);
 
                List<ODataEntry> roles = userrole.getEntries();
                List<Role> new_roles = new ArrayList<>();
@@ -204,16 +238,14 @@ public class ODataUserSynchronizer extends Synchronizer
 
                // Has restriction?
                String restricq = String.format("/Users('%s')/Restrictions", encoded_username);
-               delta = System.currentTimeMillis();
-               ODataFeed userrestric = client.readFeed(restricq, null);
-               logODataPerf(restricq, System.currentTimeMillis() - delta);
+               ODataFeed userrestric = readFeedLogPerf(restricq, null);
                boolean has_restriction = !userrestric.getEntries().isEmpty();
 
                // Reads user in database, may be null
                User user = USER_SERVICE.getUserNoCheck(username);
 
                // Updates existing user
-               if (user != null && creation.equals(user.getCreated()))
+               if (user != null && (force || creation.equals(user.getCreated())))
                {
                   boolean changed = false;
 
@@ -287,7 +319,11 @@ public class ODataUserSynchronizer extends Synchronizer
                   if (password == null && user.getPassword()!= null ||
                       password != null && !password.equals(user.getPassword()))
                   {
-                     user.setPassword(password);
+                     if (hash == null)
+                        hash = PasswordEncryption.NONE.getAlgorithmKey ();
+                     
+                     user.setEncryptedPassword(password,
+                         User.PasswordEncryption.valueOf(hash));
                      changed = true;
                   }
 
@@ -314,6 +350,7 @@ public class ODataUserSynchronizer extends Synchronizer
 
                   if (changed)
                   {
+                     log(Level.DEBUG, "Updating user " + user.getUsername());
                      USER_SERVICE.systemUpdateUser(user);
                      updated++;
                   }
@@ -343,15 +380,24 @@ public class ODataUserSynchronizer extends Synchronizer
                      user.addRestriction(new LockedAccessRestriction());
                   }
 
+                  log(Level.DEBUG, "Creating new user " + user.getUsername());
                   USER_SERVICE.systemCreateUser(user);
                   created++;
                }
                else
                {
-                  LOGGER.error("Namesake '" + username + "' detected!");
+                  log(Level.ERROR, "Namesake '" + username + "' detected!");
                }
             }
             catch (RootNotModifiableException e) { } // Ignored exception
+            catch (RequiredFieldMissingException ex)
+            {
+               log(Level.ERROR, "Cannot create user '" + username + "'", ex);
+            }
+            catch (IOException | ODataException ex)
+            {
+               log(Level.ERROR, "OData failure on user '" + username + "'", ex);
+            }
 
             this.skip++;
          }
@@ -361,13 +407,9 @@ public class ODataUserSynchronizer extends Synchronizer
             this.skip = 0;
          }
       }
-      catch (RequiredFieldMissingException ex)
-      {
-         LOGGER.error("Cannot create user", ex);
-      }
       catch (IOException | ODataException ex)
       {
-         LOGGER.error("OData failure", ex);
+         log(Level.ERROR, "OData failure", ex);
       }
       catch (LockAcquisitionException | CannotAcquireLockException e)
       {
@@ -375,12 +417,11 @@ public class ODataUserSynchronizer extends Synchronizer
       }
       finally
       {
-         StringBuilder sb = new StringBuilder("UserSynchronizer#");
-         sb.append(getId()).append(" done:    ");
+         StringBuilder sb = new StringBuilder("done:    ");
          sb.append(created).append(" new Users,    ");
          sb.append(updated).append(" updated Users,    ");
          sb.append("    from ").append(this.client.getServiceRoot());
-         LOGGER.info(sb.toString());
+         log(Level.INFO, sb.toString());
 
          this.syncConf.setConfig("skip", String.valueOf(skip));
          SYNC_SERVICE.saveSynchronizer(this);

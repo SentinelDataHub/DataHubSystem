@@ -329,6 +329,7 @@ public final class Synchronizer extends V1Entity
       res.put(SynchronizerEntitySet.COPY_PRODUCT,
             copy_prod != null ? Boolean.valueOf(copy_prod): false);
       res.put(SynchronizerEntitySet.FILTER_PARAM, this.syncConf.getConfig("filter_param"));
+      res.put(SynchronizerEntitySet.SOURCE_COLLECTION, this.syncConf.getConfig("source_collection"));
 
       String last_created = this.syncConf.getConfig ("last_created");
       if (last_created != null)
@@ -416,6 +417,10 @@ public final class Synchronizer extends V1Entity
       if (prop_name.equals(SynchronizerEntitySet.FILTER_PARAM))
       {
          return this.syncConf.getConfig("filter_param");
+      }
+      if (prop_name.equals(SynchronizerEntitySet.SOURCE_COLLECTION))
+      {
+         return this.syncConf.getConfig("source_collection");
       }
 
       throw new ODataException ("Unknown property " + prop_name);
