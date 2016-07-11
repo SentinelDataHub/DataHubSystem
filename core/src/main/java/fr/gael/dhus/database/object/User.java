@@ -549,8 +549,8 @@ public class User extends AbstractTimestampEntity implements Serializable,
 
    public String hash ()
    {
-      String source =
-         getUsername () + "@" + getEmail () + " - " + getPassword ();
+      String source = getId() + "-" + getUsername () + "@" + getEmail () + 
+         " - " + getPassword ();
       MessageDigest md;
       byte[] digest;
       try
