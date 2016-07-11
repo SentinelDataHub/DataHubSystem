@@ -223,35 +223,6 @@ public class StubUserController {
 		}
 	}
 
-	/**
-	 * Check User code in order to allow password reset
-	 *
-	 * @return user code or error message in json format
-	 */
-	@RequestMapping(value = "/stub/usercode", method = RequestMethod.GET)
-	public ResponseEntity<?> checkUserCodeForPasswordReset(Principal principal,
-			@RequestParam(value = "code", defaultValue = "") String code) {
-		fr.gael.dhus.service.UserService userService = ApplicationContextProvider
-				.getBean(fr.gael.dhus.service.UserService.class);
-
-		try {
-			if (userService.checkUserCodeForPasswordReset(code))
-				return new ResponseEntity<>("{\"code\":\"" + code + "\"}",
-						HttpStatus.OK);
-			else
-				return new ResponseEntity<>("{\"code\":\"unauthorized\"}",
-						HttpStatus.FORBIDDEN);
-		} catch (org.springframework.security.access.AccessDeniedException e) {
-			e.printStackTrace();
-			return new ResponseEntity<>("{\"code\":\"unauthorized\"}",
-					HttpStatus.FORBIDDEN);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ResponseEntity<>(e.getMessage(),
-					HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-
-	}
 
 	/**
 	 * Check User code in order to allow password reset

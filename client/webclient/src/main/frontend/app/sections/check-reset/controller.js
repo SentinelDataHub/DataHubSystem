@@ -36,23 +36,7 @@ angular.module('DHuS-webclient')
       var param = $routeParams.r;
       param=param.replace('r=','');
       console.log('param',param);
-      UserService.checkUserCodeForPasswordReset(param)
-      .then(function(response) {
-        console.log('response',response);
-              // promise fulfilled
-        if (response.status==200 && response.data) {
-          //forword to reset password page          
-          window.location.href = '#/reset-password/r='+param;
-        } else {
-          //forword to the home page
-          AlertManager.warn("Error Validating User Code",response.data);
-          window.location.href = '#/home';
-        }
-      }, function(response) {
-        //forword to the home page
-        AlertManager.warn("Error Validating User Code",response.data);
-        window.location.href = '#/home';
-      });
+      window.location.href = '#/reset-password/r='+param;
     }); 
     $scope.init = function() {
 

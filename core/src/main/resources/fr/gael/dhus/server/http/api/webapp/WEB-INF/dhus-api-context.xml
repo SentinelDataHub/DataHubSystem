@@ -40,7 +40,6 @@
       <security:intercept-url pattern="/stub/signup" access="permitAll"/>   <!-- stub -->
       <security:intercept-url pattern="/stub/version" access="permitAll"/>   <!-- stub -->
       <security:intercept-url pattern="/stub/forgotpwd" access="permitAll"/>   <!-- stub -->
-      <security:intercept-url pattern="/stub/usercode" access="permitAll"/>   <!-- stub -->
       <security:intercept-url pattern="/stub/resetpwd" access="permitAll"/>   <!-- stub -->
       <security:intercept-url pattern="/**" access="isAuthenticated()" />
    </security:http>

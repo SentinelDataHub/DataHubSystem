@@ -41,7 +41,6 @@ angular
     {url:/.*api\/stub\/signup/g,method: "POST"},
     {url:/.*api\/stub\/version/g,method: "GET"},
     {url:/.*api\/stub\/forgotpwd/g,method: "POST"},
-    {url:/.*api\/stub\/usercode/g,method: "GET"},
     {url:/.*api\/stub\/resetpwd/g,method: "POST"}     
     ];
   return {
