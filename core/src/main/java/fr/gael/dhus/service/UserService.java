@@ -747,7 +747,7 @@ public class UserService extends WebService
             "Please follow this link to set a new password in the " +
             cfgManager.getNameConfiguration ().getShortName () +" system:\n" +
             cfgManager.getServerConfiguration ().getExternalUrl () + base_url +
-            userDao.computeUserCodeForPasswordReset (checked) + "\n\n"  +
+            userDao.computeUserCode (checked) + "\n\n"  +
             "For help requests please write to: " +
             cfgManager.getSupportConfiguration ().getMail () + "\n\n" +
             "Kind regards.\n" +

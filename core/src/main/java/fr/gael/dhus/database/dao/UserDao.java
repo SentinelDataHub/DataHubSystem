@@ -340,21 +340,7 @@ public class UserDao extends HibernateDao<User, Long>
       }
    }
 
-   public String computeUserCodeForPasswordReset (User user)
-   {
-      if (user == null) throw new NullPointerException ("Null user.");
 
-      if (user.getId () == null)
-         throw new IllegalArgumentException ("User " + user.getUsername () +
-            " must be created in the DB to compute its code.");
-
-      String digest = user.hash ();
-      String id = String.format ("%09d", user.getId ());
-
-      String code = id + digest;
-
-      return code;
-   }
 
    public String computeUserCode (User user)
    {
@@ -388,9 +374,10 @@ public class UserDao extends HibernateDao<User, Long>
 
       // Check the Id
       String hash = user.hash ();
+      String user_hash = code.substring (9);
 
-      if ( !hash.equals (code.substring (9)))
-         throw new SecurityException ("Wrong hash code \"" + hash + "\".");
+      if ( !hash.equals (user_hash))
+         throw new SecurityException ("Wrong hash code \"" + user_hash + "\".");
 
       return user;
    }
