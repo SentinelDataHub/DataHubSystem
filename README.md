@@ -1,7 +1,7 @@
 # Data Hub System
 The Data Hub System is a Java web based system designed to manage the on-line dissemination of Earth Observation Satellites data.
 
-Data Hub System V.0.9.0-2-hotfix-4 published here is developed by a [Serco](http://serco.com/) and [Gael Systems](http://www.gael.fr) consortium under a contract with the [European Space Agency](http://www.esa.int) in the frame of the Copernicus Programme. The SW code is made available according to the GNU Affero General Public License.
+Data Hub System V.0.9.1-osf published here is developed by a [Serco](http://serco.com/) and [Gael Systems](http://www.gael.fr) consortium under a contract with the [European Space Agency](http://www.esa.int) in the frame of the Copernicus Programme. The SW code is made available according to the GNU Affero General Public License.
 </p>
 <p align="justify">
 
