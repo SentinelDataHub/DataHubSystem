@@ -48,6 +48,9 @@ $ cd parent
 ```sh
  $ mvn install
 ```
+```sh
+ $ cd ../
+```
 #### Build distribution package
 ```sh
 $ mvn -Psoftware clean package
