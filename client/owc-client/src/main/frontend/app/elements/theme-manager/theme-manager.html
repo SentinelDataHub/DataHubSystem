@@ -1,0 +1,126 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+This component is devoted to manage main theme for OWC application
+
+
+@demo demo/index.html
+-->
+<dom-module id="theme-manager">
+    <script>
+    (function() {
+        'use strict';
+        class ThemeManager {
+
+            constructor() {
+                this.beforeRegister();
+                this.attached();
+            }
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'theme-manager';
+                this.owcApp = document.querySelector('#owc-app');
+
+                this.properties = {
+
+                    theme: {
+                        type: Object,
+                        value: null,
+                        notify: true
+                    }
+
+                };
+
+            }
+
+
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+
+                var self = this;
+                var ls = localStorage.getItem('theme');
+                var navigationMaanger = document.getElementById('navigation-manager');
+                // console.log('this is my theme',ls);
+                // console.log('this is my theme stringify',JSON.stringify(ls));
+                // console.log('this is my theme stringify',JSON.parse(ls));
+                if (!ls) {
+                    self.owcApp.httpManager.sendRequest('GET', self.owcApp.config.clientUrl + '/conf/theme.json').then(function(response) {
+                        setTimeout(function() {
+                            self.owcApp.theme = (response.status == 200) ? response.data : {};
+                            localStorage.setItem('theme', JSON.stringify(self.owcApp.theme));
+                            navigationMaanger.customStyle['--theme-background-color'] = self.owcApp.theme.bgcolor;
+
+                            navigationMaanger.customStyle['--theme-background-image'] = "url(\"" +
+                                self.owcApp.theme.bgimageurl + "\")";
+                            navigationMaanger.updateStyles();                            
+                        }, 0);
+                    });
+                } else {
+                    self.owcApp.theme = JSON.parse(ls);
+                    navigationMaanger.customStyle['--theme-background-color'] = self.owcApp.theme.bgcolor;
+
+                    navigationMaanger.customStyle['--theme-background-image'] = "url(\"" +
+                        self.owcApp.theme.bgimageurl + "\")";
+                    navigationMaanger.updateStyles();
+                }
+
+                self.owcApp.messageBroker.subscribe('update-theme', function(model) {
+                    setTimeout(function() {
+                        navigationMaanger.customStyle['--theme-background-color'] = model.bgcolor;
+
+                        navigationMaanger.customStyle['--theme-background-image'] = "url(\"" +
+                            model.bgimageurl + "\")";
+                        navigationMaanger.updateStyles();                    
+                    }, 0);
+
+
+                });
+            }
+
+        };
+
+        Polymer(ThemeManager);
+        eu.serco.Owc.ThemeManager = ThemeManager;
+
+    })();
+    </script>
+</dom-module>

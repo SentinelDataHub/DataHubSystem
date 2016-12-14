@@ -1,0 +1,296 @@
+<!--
+  @license
+
+ 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<!--
+Panel to set language and open main menu
+
+
+@demo demo/index.html
+-->
+<dom-module id="settings-panel">
+    <!-- VIEW  CODE HERE -->
+    <template>
+        <style type="text/css">
+        .settings-panel {}
+        
+        #settingsContainer {
+            @apply(--layout-vertical);
+            height: var(--settingsheight, 500px);
+            width: var(--settingswidth, 100%);
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+        
+        paper-button {
+            background: #002664;
+            color: white;
+            padding: 5px 5px;
+            width: 98%;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
+        paper-button[toggles][active].colorful {
+            background-color: #002664;
+        }
+        
+        paper-button[toggles][active][raised].colorful {
+            background-color: rgba(66, 133, 244, 0.75);
+        }
+        
+        .settingsSection {
+            border-bottom: solid 1px;
+            padding: 10px;
+        }
+        
+        #language {
+            width: 100%;
+        }
+        
+        .settingsTitle {
+            padding-bottom: 0px;
+        }
+        </style>
+        <div id="settingsContainer">
+            <div class="settingsSection">
+                <div class="settingsTitle">{{i18n("user")}}</div>
+                <paper-dropdown-menu always-float-label="true" id="language" style="font-size: 26px!important;" label="{{i18n('language')}}" placeholder="{{currentLanguage}}">
+                    <!-- <paper-dropdown-menu always-float-label="true" id="language" style="font-size: 26px!important;" label="{{currentLanguage}}"> -->
+                    <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{selection}}">
+                        <paper-item value="it">it</paper-item>
+                        <paper-item value="en">en</paper-item>
+                        <paper-item value="fr">fr</paper-item>
+                    </paper-listbox>
+                </paper-dropdown-menu>
+                <br>
+                <paper-button raised class="colorful" title="{{i18n('save')}}" on-click="setLanguage">{{i18n("save")}}</paper-button>
+            </div>
+            <br>
+            <br>
+            <div hidden$="{{!isLogged}}" class="settingsSection">
+                <div class="settingsTitle">{{i18n("system")}}</div>
+                <br hidden$="{{!isDataManager}}">
+                <paper-button hidden$="{{!isDataManager}}" raised class="colorful" on-click="mainMenu" title="{{i18n('main menu')}}">{{i18n("main menu")}}</paper-button>
+                <br hidden$="{{!isDataManager}}">
+                <br>
+                <paper-button raised class="colorful" on-click="theme" title="{{i18n('theme')}}">{{i18n("theme")}}</paper-button>
+            </div>
+            <br>
+            <br>
+            <div hidden$="{{!isDataManager}}" class="settingsSection">
+                <div class="settingsTitle">OData Synchronizers</div>
+                <br>
+                <paper-button raised class="colorful" on-click="odataSynch" title="OData Synchronizers">OData Synchronizers</paper-button>
+            </div>
+        </div>
+    </template>
+    <!-- MODEL-CONTROLLER CODE -->
+    <script>
+    (function() {
+        'use strict';
+        class SettingsPanel extends HTMLElement {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'settings-panel';
+
+
+                /* --- CLASS PROPERTIES --- */
+
+                this.properties = {
+
+                    /* --- PUBLIC PROPERTIES --- */
+                    /**
+                     * check if user has data manager role
+                     *
+                     * @type {Boolean}
+                     */
+                    isDataManager: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
+                    /**
+                     * check if user is logged
+                     *
+                     * @type {Boolean}
+                     */
+                    isLogged: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    }
+                };
+            }
+
+            /**             
+             *  Called when the element has created, but before property values are set
+             *  and local DOM is initialized.
+             *
+             * @return {null}
+             */
+            created() {
+                this.navigationManager = document.getElementById('navigation-manager');
+            }
+
+            /**             
+             * Called after property values are set and local DOM is initialized
+             *
+             * @return {null}
+             */
+            ready() {
+
+            }
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+                this.owcApp = document.querySelector('#owc-app');
+                var self = this;
+                this.isDataManager = this.owcApp.userManager.isDataManager();
+                this.isLogged = this.owcApp.userManager.isLogged();
+                self.set('isDataManager', this.isDataManager);
+                self.set('self.isLogged', this.isLogged);
+                //console.log('this.isLogged called!!!!',this.isLogged);
+                self.currentLanguage = self.owcApp.i18nManager.currentLanguage;
+                window.addEventListener("resize", function() {
+                    self.resize();
+                });
+                this.owcApp.messageBroker.subscribe('logged-in', function(eventName) {
+
+                    setTimeout(function() {
+                        self.isDataManager = self.owcApp.userManager.isDataManager();
+                        self.isLogged = self.owcApp.userManager.isLogged();
+                        self.set('self.isLogged', self.isLogged);
+                        self.set('isDataManager', self.isDataManager);
+                    }, 0);
+                });
+                this.owcApp.messageBroker.subscribe('logged-out', function() {
+
+                    setTimeout(function() {
+                        self.isDataManager = self.owcApp.userManager.isDataManager();
+                        self.isLogged = self.owcApp.userManager.isLogged();
+                        self.set('self.isLogged', self.isLogged);
+                        self.set('isDataManager', self.isDataManager);
+                    }, 0);
+                });
+
+
+                //          console.log("this.owcApp: ",this.owcApp);
+                //          console.log("this.owcApp.messageBroker: ",this.owcApp.messageBroker);
+
+
+
+            }
+
+            /* --- PUBLIC METHODS --- */
+
+            /**             
+             *   Public method sample            
+             *
+             * @param {?Object} paramExample: method parameter sample
+             * @return {null}
+             */
+            setLanguage() {
+                var self = this;
+                var sel = Polymer.dom(self.root).querySelector('#language').value;
+                this.owcApp.i18nManager.setCurrentLanguage(sel);
+                self.owcApp.toastManager.info(self.i18n("change_language_success_message"));
+
+
+            }
+
+            mainMenu() {
+                if (!this.owcApp.authenticationManager.isLogged()) {
+                    this.owcApp.authenticationManager.showLogin();
+                    return;
+                }
+                var owcContainer = document.createElement('owc-settings-container');
+                this.navigationManager.pushComponent(owcContainer, '500px', 'main menu');
+            }
+
+            odataSynch() {
+                if (!this.owcApp.authenticationManager.isLogged()) {
+                    this.owcApp.authenticationManager.showLogin();
+                    return;
+                }
+                var owcContainer = document.createElement('synchronizer-container');
+                this.navigationManager.pushComponent(owcContainer, '500px', 'Synchronizer Container');
+            }
+
+            theme() {
+                if (!this.owcApp.authenticationManager.isLogged()) {
+                    this.owcApp.authenticationManager.showLogin();
+                    return;
+                }
+                var themeContainer = document.createElement('owc-theme-settings');
+                this.navigationManager.pushComponent(themeContainer, '500px', 'Theme Editor');
+            }
+
+
+            resize() {
+                var self = this;
+
+                self.customStyle['--settingsheight'] = parseInt(self.parentPanel.getSize().height) + "px";
+                self.updateStyles();
+                self.customStyle['--settingswidth'] = parseInt(self.parentPanel.getSize().width) + "px";
+                self.updateStyles();                
+
+            }
+
+
+            isDataManager() {
+                this.isDataManager = this.owcApp.userManager.isDataManager();
+            }
+
+        };
+
+        Polymer(SettingsPanel);
+
+    })();
+    </script>
+</dom-module>

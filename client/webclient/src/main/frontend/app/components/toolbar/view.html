@@ -135,7 +135,7 @@
         }
 
         .home-button {
-            float: left !important;
+            margin-top: 6px !important;
         }
 
         .map-button:hover{
@@ -241,8 +241,8 @@
                         <span class="toolbar-logo" title="{{logo.link}}"><img class="toolbar-image" src="{{logo.image}}"  ></span></a>
                     </span>                    
 
-                    <a href="{{home_link}}" target="_blank"><span ng-show="show_home" class="map-button home-button" title="{{home_title}}"><svg viewBox="0 0 24 24" height="100%" width="100%" preserveAspectRatio="xMidYMid meet" fit="" style="pointer-events: none; display: block;"><g id="home"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></g></svg>
-                    </span></a>                                    
+                    <!-- <a href="{{home_link}}" target="_blank"><span ng-show="show_home" class="map-button home-button" title="{{home_title}}"><svg viewBox="0 0 24 24" height="100%" width="100%" preserveAspectRatio="xMidYMid meet" fit="" style="pointer-events: none; display: block;"><g id="home"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></g></svg>
+                    </span></a>  -->                                   
 
 
                 </div>
@@ -255,9 +255,20 @@
                 <div class="row rowbar">
                     <div class="row little">
                     <!-- buttons -->
-                    <!--<map-button></map-button>-->                                                        
-                    <a href="{{userguide_link}}" target="_blank"><div ng-show="show_userguide" class="map-button guide" title="{{userguide_title}}"><svg viewBox="0 0 24 24" height="100%" width="100%" preserveAspectRatio="xMidYMid meet" fit="" style="pointer-events: none; display: block;"><g id="help"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></g></svg>
-                    </div></a> 
+                    <!--<map-button></map-button>-->   
+                     
+
+                    <a href="{{home_link}}" home target="_blank"><div ng-show="show_home" class="map-button home-button" title="{{home_title}}"><svg viewBox="0 0 24 24" height="100%" width="100%" preserveAspectRatio="xMidYMid meet" fit="" style="pointer-events: none; display: block;"><g id="home"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></g></svg>
+                    </div>
+                    </a> 
+
+                     <a href="{{userguide_link}}" target="_blank"><div ng-show="show_userguide" class="map-button guide" title="{{userguide_title}}"><svg viewBox="0 0 24 24" height="100%" width="100%" preserveAspectRatio="xMidYMid meet" fit="" style="pointer-events: none; display: block;"><g id="help"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></g></svg>
+                    </div>
+                    </a> 
+                    <!--
+                    <a href="{{home_link}}" target="_blank"><span ng-show="show_home" class="map-button home-button" title="{{home_title}}"><svg viewBox="0 0 24 24" height="100%" width="100%" preserveAspectRatio="xMidYMid meet" fit="" style="pointer-events: none; display: block;"><g id="home"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></g></svg>
+                    </span></a>   
+                    -->
                     <span ng-repeat="logo in rightlogos">
                         <a href="{{logo.link}}" target="_blank">
                         <span class="toolbar-logo-right" title="{{logo.link}}"><img class="toolbar-image-right" src="{{logo.image}}"  ></span></a>
@@ -269,7 +280,9 @@
                     </div>
                     <div ng-show="show_oldgui_link" class="row rowminimum"> <div class="col-md-12 col-old-link">                      
                              </div></div>
-                    <div ng-show="!show_oldgui_link"class="row rowminimum"> <div class="col-md-12 col-old-link"></div></div>                                           
+                    <div ng-show="!show_oldgui_link"class="row rowminimum"> <div class="col-md-12 col-old-link"></div></div>   
+
+                                                          
 
                 </div>
             </div>

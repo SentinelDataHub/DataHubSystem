@@ -27,7 +27,7 @@ angular
   return{
     model: null,
     signUpUrl:'api/stub/signup',
-    userRequestUrl: "api/stub/users/0",     
+    userRequestUrl: "api/stub/users/0",       
     signup: function(userModel){
       var self = this;            
       return $http({
@@ -39,11 +39,11 @@ angular
     },
     getUser: function(){
       var self = this;
-      if(self.model){
-        var deferred = $q.defer();
-        deferred.resolve(self.model);
-        return deferred.promise;            
-      }else{
+//      if(self.model){
+//        var deferred = $q.defer();
+//        deferred.resolve(self.model);
+//        return deferred.promise;            
+//      }else{
         return $http({url: ApplicationConfig.baseUrl + self.userRequestUrl, method: "GET"})
           .then(function(response) {          
             if (response.status == 200) {
@@ -52,8 +52,72 @@ angular
             }
             else return {};
           });
+      //}
+    },
+    getODataUser: function(username){
+      var self = this;
+      if(self.model){
+        var deferred = $q.defer();
+        deferred.resolve(self.model);
+        return deferred.promise;            
+      }else{
+        return $http({url: ApplicationConfig.baseUrl + "odata/v1/Users('" +  username + "')?$format=json", method: "GET"})
+          .then(function(response) {          
+            if (response.status == 200) {              
+              return response.data
+            }
+            else return {};
+          });
       }
     },
+    getODataUserRoles: function(username){
+      var self = this;
+      if(self.model && self.model.roles){
+        var deferred = $q.defer();
+        deferred.resolve(self.model.roles);
+        return deferred.promise;            
+      }else{
+        return $http({url: ApplicationConfig.baseUrl + "odata/v1/Users('" +  username + "')/SystemRoles?$format=json", method: "GET"})
+          .then(function(response) {          
+            if (response.status == 200) {              
+              return response.data
+            }
+            else return {};
+          });
+      }
+    },
+    /* to be removed after having replaced all stubs related to users with OData BEGIN*/
+    setUserModel:function(response){       
+      var self=this;
+      if(response && response.d) {
+        self.model={};
+        self.model.username=response.d.Username;
+        self.model.password=response.d.Password;
+        self.model.firstname=response.d.FirstName;
+        self.model.lastname=response.d.LastName;                
+        self.model.email=response.d.Email;
+        self.model.domain=response.d.Domain;
+        self.model.subDomain=response.d.SubDomain;
+        self.model.usage=response.d.Usage;
+        self.model.subUsage=response.d.SubUsage;
+        self.model.country=response.d.Country;       
+      }
+
+    },
+    setUserRolesModel:function(response){
+      var self=this;
+      if(response && response.d && response.d.results) {
+        if(self.model) {  
+          var roles=[];        
+          for(var i=0; i < response.d.results.length; i++) {
+            roles.push(response.d.results[i].Name);
+          }
+          self.model.roles=roles;
+        }
+      }
+
+    },
+    /* to be removed after having replaced all stubs related to users with OData END*/
     refreshModel: function(){
       var self=this;
       this.getUser().then(function(user){self.model = user;});

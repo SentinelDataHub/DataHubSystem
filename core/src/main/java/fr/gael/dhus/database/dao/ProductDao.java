@@ -1,6 +1,6 @@
 /*
  * Data Hub Service (DHuS) - For Space data distribution.
- * Copyright (C) 2013,2014,2015 GAEL Systems
+ * Copyright (C) 2013,2014,2015,2016 GAEL Systems
  *
  * This file is part of DHuS software sources.
  *
@@ -19,36 +19,36 @@
  */
 package fr.gael.dhus.database.dao;
 
-import java.math.BigInteger;
-import java.net.URL;
-import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hibernate.HibernateException;
-import org.hibernate.Query;
-import org.hibernate.SQLQuery;
-import org.hibernate.Session;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.IncorrectResultSizeDataAccessException;
-import org.springframework.dao.support.DataAccessUtils;
-import org.springframework.orm.hibernate3.HibernateCallback;
-import org.springframework.stereotype.Repository;
-
-import com.google.common.collect.ImmutableList;
-
-import fr.gael.dhus.database.dao.interfaces.DaoUtils;
 import fr.gael.dhus.database.dao.interfaces.HibernateDao;
 import fr.gael.dhus.database.object.Collection;
 import fr.gael.dhus.database.object.MetadataIndex;
 import fr.gael.dhus.database.object.Product;
 import fr.gael.dhus.database.object.User;
+
+import java.math.BigInteger;
+import java.net.URL;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import org.hibernate.HibernateException;
+import org.hibernate.Query;
+import org.hibernate.SQLQuery;
+import org.hibernate.Session;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Restrictions;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.support.DataAccessUtils;
+import org.springframework.orm.hibernate3.HibernateCallback;
+import org.springframework.stereotype.Repository;
 /**
  * Product Data Access Object provides interface to Product Table into the
  * database.
@@ -56,7 +56,7 @@ import fr.gael.dhus.database.object.User;
 @Repository
 public class ProductDao extends HibernateDao<Product, Long>
 {
-   private static Log logger = LogFactory.getLog (ProductDao.class);
+   private static final Logger LOGGER = LogManager.getLogger(ProductDao.class);
 
    @Autowired
    private CollectionDao collectionDao;
@@ -109,6 +109,14 @@ public class ProductDao extends HibernateDao<Product, Long>
       return p;
    }
    
+   @Override
+   public List<Product> listCriteria(DetachedCriteria detached, int skip,
+         int top)
+   {
+      checkProductNumber(top);
+      return super.listCriteria(detached, skip, top);
+   }
+
    /**
     * Retrieve a list of products to their ids. returned list is not controlled
     * with user rights nor processing completion.
@@ -118,7 +126,10 @@ public class ProductDao extends HibernateDao<Product, Long>
    @SuppressWarnings ("unchecked")
    public List<Product> read(List<Long>ids)
    {
-      if ((ids == null)|| ids.isEmpty ()) return ImmutableList.of ();
+      if ((ids == null)|| ids.isEmpty ())
+      {
+         return Collections.emptyList();
+      }
       String facet = "";
       String logic_op="";
       for (Long id: ids)
@@ -160,44 +171,62 @@ public class ProductDao extends HibernateDao<Product, Long>
       return super.scroll(clauses, skip, n);
    }
 
-   public Iterator<Product> scrollFiltered (String filter, final Long parent_id,
-         int skip)
+   /**
+    * Paginated scroll.
+    * @param filter substring of Product.Identifier, may be null.
+    * @param collection_id may be null.
+    * @param skip number of rows to skip from the result set.
+    * @return result set as a paginated iterator.
+    */
+   public Iterator<Product> scrollFiltered(String filter, final Long collection_id, int skip)
    {
-      StringBuilder sb = new StringBuilder ();
-      if (parent_id != null)
+      StringBuilder sb = new StringBuilder("SELECT p ");
+      if (collection_id != null)
       {
-         // filters products of a collection
-         sb.append ("SELECT p ");
-         sb.append ("FROM Collection c LEFT OUTER JOIN c.products p ");
-         sb.append ("WHERE c.id=").append (parent_id).append (" AND ")
-               .append ("p.identifier LIKE '%").append (filter.toUpperCase ())
-               .append ("%' AND p.processed=true");
+         sb.append("FROM Collection c LEFT OUTER JOIN c.products p ");
+         sb.append("WHERE c.id=").append(collection_id).append(" AND ");
       }
       else
       {
-         // filters all products
-         sb.append ("FROM ").append (entityClass.getName ()).append (" ");
-         sb.append ("WHERE identifier LIKE '%").append (filter).append ("%' ");
-         sb.append ("AND processed=true");
+         sb.append("FROM ").append(entityClass.getName()).append(" p WHERE ");
       }
-      return new PagedIterator<> (this, sb.toString (), skip);
+
+      if (filter != null && !filter.isEmpty())
+      {
+         sb.append("p.identifier LIKE '%").append(filter.toUpperCase()).append("%' AND ");
+      }
+
+      sb.append("p.processed=true");
+
+      return new PagedIterator<>(this, sb.toString(), skip);
    }
 
-
-   public int count (String filter, final Long parent_id, User user)
+   /**
+    * Returns the number of Product records whose `processed` field is `true`.
+    * @param filter an optional additionnal `where` clause (without the "where" token).
+    * @param collection_uuid an optional parent collection ID.
+    * @return a number of rows in table `PRODUCTS`.
+    */
+   public int count (String filter, final String collection_uuid)
    {
-      if (parent_id != null)
+      StringBuilder sb = new StringBuilder("select count(*) ");
+      if (collection_uuid != null)
       {
-         return DataAccessUtils.intResult (find (
-            "select count(*) " +
-            "from Collection c left outer join c.products p " +
-            "where c.id=" + parent_id + " and upper(p.identifier) LIKE " +
-            "upper('%" + filter + "%') and p.processed = true"));
+            sb.append("from Collection c left outer join c.products p ");
+            sb.append("where c.uuid='").append(collection_uuid).append("' and ");
       }
-      return DataAccessUtils.intResult (find (
-         "select count(*) FROM Product p " +
-         "WHERE upper(p.identifier) LIKE upper('%" + filter + "%')  AND " +
-         "p.processed=true "));
+      else
+      {
+         sb.append("from Product p where ");
+      }
+      sb.append("p.processed=true");
+
+      if (filter != null && !filter.isEmpty())
+      {
+         sb.append(" and ").append(filter);
+      }
+
+      return DataAccessUtils.intResult(find(sb.toString()));
    }
 
     @Override
@@ -224,22 +253,15 @@ public class ProductDao extends HibernateDao<Product, Long>
       {
          for (Collection c: cls)
          {
-            logger.info ("deconnect product from collection " + c.getName ());
-            collectionDao.removeProduct (c.getId (), p.getId (), user);
+            LOGGER.info("deconnect product from collection " + c.getName ());
+            collectionDao.removeProduct (c.getUUID (), p.getId (), user);
          }
       }
-      
-      // Remove cart references
+      // Remove references
       productCartDao.deleteProductReferences(p);
-
-      p.setAuthorizedUsers (new HashSet<User> ());
-      p.getDownload ().getChecksums ().clear ();
-      update (p);
-      
       setIndexes (p.getId (), null);
-      
       evictionDao.removeProduct (p);
-     
+
       super.delete (p);
    }
 
@@ -305,11 +327,11 @@ public class ProductDao extends HibernateDao<Product, Long>
    /**
     * THIS METHOD IS NOT SAFE: IT MUST BE REMOVED. 
     * TODO: manage access by page.
-    * @param user_id
+    * @param user_uuid
     * @return
     */
    @SuppressWarnings ("unchecked")
-   public List<Long> getAuthorizedProducts (Long user_id)
+   public List<Long> getAuthorizedProducts (String user_uuid)
    {
       return (List<Long>) find (
          "select id FROM " + entityClass.getName () +
@@ -321,7 +343,7 @@ public class ProductDao extends HibernateDao<Product, Long>
          final Collection collection)
    {
       List<Product>products=null; 
-      if (collection == null || collectionDao.isRoot (collection))
+      if (collection == null)
       {
          products = (List<Product>)find(
             "from Product where download.path LIKE '%" + filename +
@@ -340,28 +362,8 @@ public class ProductDao extends HibernateDao<Product, Long>
          return products.iterator ().next ();
       return null;
    }
-   
-   @SuppressWarnings("unchecked")
-   public Product getProductByOrigin (final String origin)
-   {
-      List<Product> products=find(
-         "from Product where origin='" + DaoUtils.secureString (origin) +
-         "' AND processed = true");
-      try
-      {
-         return DataAccessUtils.uniqueResult (products);
-      }
-      catch (IncorrectResultSizeDataAccessException e)
-      {
-         // Case of more than one product found.
-         logger.warn(
-            "More than one entry of product origin found in database: " + 
-            origin);
-         return products.get(0);
-      }
-   }
-   
-   public Product getProductByUuid (String uuid, User user)
+
+   public Product getProductByUuid (String uuid)
    {
       @SuppressWarnings ("unchecked")
       Product product = (Product) DataAccessUtils.uniqueResult (
@@ -384,7 +386,7 @@ public class ProductDao extends HibernateDao<Product, Long>
       sqlBuilder.append ("FROM PRODUCTS p ");
       sqlBuilder.append ("LEFT OUTER JOIN COLLECTION_PRODUCT cp ")
                 .append ("ON p.ID = cp.PRODUCTS_ID ");
-      sqlBuilder.append ("WHERE cp.COLLECTIONS_ID IS NULL");
+      sqlBuilder.append ("WHERE cp.COLLECTIONS_UUID IS NULL");
       final String sql = sqlBuilder.toString ();
       List<BigInteger> queryResult =
          getHibernateTemplate ().execute (
@@ -427,9 +429,9 @@ public class ProductDao extends HibernateDao<Product, Long>
             throws HibernateException, SQLException
          {
             String hql = "SELECT p FROM Product p, User u" +
-                     " WHERE p.owner = u and u.id = ? AND p.processed = true";
+                     " WHERE p.owner = u and u.uuid like ? AND p.processed = true";
             Query query = session.createQuery (hql);
-            query.setLong (0, user.getId ());
+            query.setString (0, user.getUUID ());
             query.setFirstResult (skip);
             query.setMaxResults (top);
             return (List<Product>) query.list ();
@@ -450,9 +452,9 @@ public class ProductDao extends HibernateDao<Product, Long>
          "select p.owner from Product p where p=?", product));
    }
 
-   public boolean isAuthorized (final long user_id, final long product_id)
+   public boolean isAuthorized (final String user_uuid, final long product_id)
    {
-      if(userDao.read (user_id) == null || read (product_id) == null)
+      if(userDao.read (user_uuid) == null || read (product_id) == null)
       {
          return false;
       }
@@ -470,5 +472,13 @@ public class ProductDao extends HibernateDao<Product, Long>
    {
       String query = "FROM " + entityClass.getName ();
       return new PagedIterator<> (this, query);
+   }
+
+   public Product getProductByIdentifier (String identifier)
+   {
+      DetachedCriteria criteria = DetachedCriteria.forClass (Product.class);
+      criteria.add (Restrictions.eq ("identifier", identifier));
+      criteria.add (Restrictions.eq ("processed", true));
+      return uniqueResult (criteria);
    }
 }

@@ -1,0 +1,260 @@
+<!--
+  @license
+
+ 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/iron-a11y-keys/iron-a11y-keys.html">
+<!--
+This component is used to allow users to authenticate on server
+
+
+@demo demo/index.html
+-->
+<dom-module id="login-container">
+    <!-- VIEW  CODE HERE -->
+    <template>
+        <!-- view code here -->
+        <style is="custom-style">
+        .login-container {
+            width: 98%;
+        }
+        
+        #login-component {
+            @apply(--layout-vertical);
+            height: var(--loginheight, 500px);
+            width: var(--loginwidth, 100%);
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+        
+        #user-component {
+            @apply(--layout-vertical);
+            height: var(--loginheight, 500px);
+            width: var(--loginwidth, 100%);
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+        
+        #wronglogin {
+            width: 100%;
+            text-align: center;
+            font-weight: bold;
+            margin: 20px 0px;
+            color: rgb(190, 0, 0);
+            word-wrap: break-word;
+            white-space: normal;
+            font-size: 18px;
+        }
+        
+        paper-button {
+            background: #002664;
+            color: white;
+            padding: 5px 5px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
+        paper-button[toggles][active].colorful {
+            background-color: #002664;
+        }
+        
+        paper-button[toggles][active][raised].colorful {
+            background-color: rgba(66, 133, 244, 0.75);
+        }
+        
+        .element-container {
+            margin-top: 10px;
+        }
+        </style>
+        <div id="login-component" hidden$="{{isLogged()}}">
+            <paper-input label="Username" value="{{username}}"></paper-input>
+            <paper-input type="password" label="Password" value="{{password}}"></paper-input>
+            <paper-button raised class="colorful" id="loginButton" on-click="login" title="Login">Login</paper-button>
+            <div id="wronglogin"></div>
+        </div>
+        <div id="user-component" hidden$="{{!isLogged()}}">
+            <paper-button title="Logout" raised class="colorful" on-click="logout">Logout</paper-button>
+        </div>
+        <iron-a11y-keys id="keys" keys="enter" target="[[target]]" on-keys-pressed="login">
+        </iron-a11y-keys>
+    </template>
+    <!-- MODEL-CONTROLLER CODE -->
+    <script>
+    (function() {
+            'use strict';
+            class LoginContainer {
+
+
+                /**
+                 * BeforeRegister method Polymer calls before creating the element.
+                 * This method is where you shoud define the is property (element's name) and
+                 * properties  object.
+                 *
+                 * @return {null}
+                 */
+                beforeRegister() {
+                    this.is = 'login-container';
+                    this.owcApp = document.querySelector('#owc-app');
+
+
+
+                    this.properties = {
+
+                            /**
+                             * Property containing user username
+                             *
+                             * @type {Object}
+                             */
+                            username: {
+                                type: String,
+                                value: "",
+                                notify: true
+                            },
+
+                            target: {
+                                type: Object,
+                                value: function() {
+                                    return document.body;
+                                }
+                            },
+                      
+
+                        /**
+                         * Property containing user password
+                         *
+                         * @type {Object}
+                         */
+                        password: {
+                            type: String,
+                            value: "",
+                            notify: true
+                        }
+
+                };
+            }
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+                var self = this;
+                self.$.loginButton.focus();
+                $('#wronglogin').html('');
+                var event = document.createEvent('Event');
+                event.initEvent('resize', true, true);
+                document.dispatchEvent(event);
+
+
+                window.addEventListener("resize", function() {
+                    self.resize();
+                });
+
+                
+
+            }
+
+
+            /**             
+             *   This method is used to resize panel content on panel container resize           
+             *           
+             * @return {null}
+             */
+            resize() {
+                    var self = this;
+                    self.customStyle['--loginheight'] = parseInt(self.parentPanel.getSize().height) + "px";
+                    self.updateStyles();
+                    self.customStyle['--loginwidth'] = parseInt(self.parentPanel.getSize().width) + "px";
+                    self.updateStyles();
+
+                }
+                /**             
+                 *   This method is used to perform log into the server           
+                 *           
+                 * @return {null}
+                 */
+            login() {
+                    var self = this;
+                    this.owcApp.authenticationManager.login(this.username, this.password)
+                        .then(function() {
+                            if (self.owcApp.authenticationManager.isLogged()) {
+                                self.owcApp.userManager.getUserInfo().then(function() {
+                                    self.owcApp.messageBroker.publish('logged-in');
+                                });
+
+                                self.parentPanel.closePanel();
+
+                            } else {
+                                $('#wronglogin').html('The username and password you entered don\'t match.');
+                            }
+                        });
+
+
+                }
+                /**             
+                 *   This method is used to perform logout from the server           
+                 *           
+                 * @return {null}
+                 */
+            logout() {
+                var self = this;
+                this.owcApp.authenticationManager.logout()
+                    .then(function() {
+                        if (!self.owcApp.authenticationManager.isLogged()) {
+                            self.owcApp.userManager.clearUserInfo();
+                            self.owcApp.messageBroker.publish('logged-out');
+                            self.parentPanel.closePanel();
+                        } else {
+
+                        }
+                    });
+
+
+            }
+
+            /**             
+             *   This method is used to verify if the user is currently logged-in           
+             *           
+             * @return {null}
+             */
+            isLogged() {
+                var logged = (this.owcApp.authenticationManager.isLogged()) ? true : false;
+                return logged;
+            }
+
+        };
+
+        Polymer(LoginContainer);
+
+    })();
+    </script>
+</dom-module>

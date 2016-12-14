@@ -21,5 +21,7 @@
  */
 var AdminUserDetailsManager = {	
     getUserDetails: function(){},    
-	setUserDetails: function(method){this.getUserDetails = method;}
+	setUserDetails: function(method){this.getUserDetails = method;},
+	getChangeUserPassword: function(){},    
+	setChangeUserPassword: function(method){this.getChangeUserPassword = method;}
 };

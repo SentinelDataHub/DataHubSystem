@@ -65,18 +65,22 @@
 	  position: relative;    
 	}
 
+	.adv-selectfield:hover {
+	  cursor: pointer;  	   
+	}
+
 	.adv-selectfield::after {  
 	        position: absolute;
-	        top: -1em;
+	        top: -1.5em;
 	        right: 0.5em;
 	        /* Styling the down arrow */
 	        width: 0;
 	        height: 0;
 	        padding: 0;
 	        content: '';
-	        border-left: .25em solid transparent;
-	        border-right: .25em solid transparent;
-	        border-top: .375em solid rgba(0,0,0, 1);
+	        border-left: .4em solid transparent;
+	        border-right: .4em solid transparent;
+	        border-top: .7em solid rgba(0,0,0, 1);
 	        pointer-events: none;   
 	        color: black;     
 	  
@@ -101,7 +105,64 @@
 	#adv-options .group            { 
 	  position:relative; 
 	  margin-bottom:15px; 
-	}                      
+	}  
+
+	.filter-adv-selection:hover            { 
+	  /*cursor:pointer;*/	  
+	  /*background: #e5e7e9!important;*/ 
+	} 
+
+	#adv-options {
+		position: relative;		
+	} 
+
+	#adv-options select{
+		
+		width: 100%;
+	    /*background: #e5e7e9 !important;
+	    border: none;*/
+	    background: none;
+	    height: 34px !important;
+	    line-height: 28px !important;	    
+	    /*-webkit-appearance: none;
+	    -moz-appearance: none;*/
+	} 
+
+	/*#adv-options::after {  
+	    position: absolute;
+	    top: 2.5em;
+	    right: 1.8em;
+	    width: 0;
+	    height: 0;
+	    padding: 0;
+	    content: '';
+	    border-left: .4em solid transparent;
+	    border-right: .4em solid transparent;
+	    border-top: .7em solid rgba(0,0,0, 1);
+	    pointer-events: none;
+	    color: black;     	  
+	}*/
+
+	#adv-options > *{
+		
+		box-sizing: border-box;		
+	}
+
+	#adv-options input{
+		
+		position: absolute;
+		width: 75%;
+		/*background: #e5e7e9 !important;  */
+		height:25px !important;
+		line-height: 25px !important;
+		top:30px;
+		margin-left:2px;
+		padding-left: 7px !important;
+	  	border: none;
+	} 	
+	#adv-options select:hover{
+		cursor:pointer;	  	  	
+	}                  
 
 	</style>
 	<div >
@@ -137,13 +198,13 @@
 					</div>
 					<div id="adv-options" class="group col-md-6" ng-if="(filter.indexvalues && filter.indexvalues.split('|').length > 0)">
 					  <label  class="filter-label">{{filter.indexlabel}}</label> 
-					  <input type="text" ng-model="filter.indexvalue" value="filter.indexvalue" class="form-control filter-input" ng-blur="updateFilter($parent.$parent.$index)" ng-click="clearInput($parent.$parent.$index, $parent.$index)" pattern="{{filter.regex}}" list="{{$parent.$parent.$index}}_{{$index}}_optlist">				    
-				      <div  class="adv-selectfield">				      					      	 
-				        <datalist id="{{$parent.$parent.$index}}_{{$index}}_optlist" class="browser-default" ng-model="filter.indexvalue">
+					  <input type="text" ng-model="filter.indexvalue" value="filter.indexvalue" class="form-control filter-input filter-adv-selection" ng-blur="updateFilter($parent.$parent.$index)" ng-click="clearInput($parent.$parent.$index, $parent.$index)" pattern="{{filter.regex}}" name="{{$parent.$parent.$index}}_{{$index}}_namelist" list="{{$parent.$parent.$index}}_{{$index}}_optlist" autofocus>				    
+				      			      				      	 
+				        <select onchange="this.previousElementSibling.value=this.value; this.previousElementSibling.focus()" id="{{$parent.$parent.$index}}_{{$index}}_optlist" class="browser-default" ng-model="filter.indexvalue">				        
 				          <option  selected></option>
-				          <option ng-repeat="option in filter.indexvalues.split('|')" value="{{option}}" >{{option}}</option>
-				        </datalist>					     
-				      </div>					    
+				          <option ng-repeat="option in filter.indexvalues.split('|')" value="{{option}}" >{{option}}</option>				      	
+				        </select>					     
+				      					    
 					</div>					
 				</div>
 			</div>		

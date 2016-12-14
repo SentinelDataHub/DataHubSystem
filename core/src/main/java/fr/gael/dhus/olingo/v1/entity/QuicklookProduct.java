@@ -125,8 +125,7 @@ public class QuicklookProduct extends Product
                DrbNode result = (DrbNode) results.getItem (0);
                if (result.getValue () != null)
                   attributes.put (result.getName (),
-                     new Attribute (result.getName (), result.getValue ()
-                        .toString ()));
+                     new Attribute(result.getName(), result.getValue().toString(), null));
             }
          }
          this.attributes = attributes;

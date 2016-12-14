@@ -24,8 +24,9 @@ angular
   .module('DHuS-webclient')
     .factory('UIUtils', function($window){
         return {
+          XS_LIMIT: 768,
           responsiveLayout: function(xsCallback, smCallback,  mdCallback, lgCallback){
-            var XS_LIMIT = 768,
+            var XS_LIMIT = (this.XS_LIMIT)?this.XS_LIMIT:768,
                 SM_LIMIT = 992,
                 MD_LIMIT = 1200,
                 screen = angular.element($window).width();

@@ -33,8 +33,8 @@ import fr.gael.drb.DrbNode;
 import fr.gael.drb.DrbSequence;
 import fr.gael.drb.impl.xml.XmlDocument;
 import fr.gael.drb.query.Query;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -62,7 +62,7 @@ public class NominatimGeocoder implements Geocoder
    /**
     * A logger for this class.
     */
-   private static Log logger = LogFactory.getLog(NominatimGeocoder.class);
+   private static final Logger LOGGER = LogManager.getLogger(NominatimGeocoder.class);
 
    /**
     * Arbitrarily small degree
@@ -97,7 +97,7 @@ public class NominatimGeocoder implements Geocoder
    {
       if (conf == null)
       {
-         logger.warn("Context not present: using default values");
+         LOGGER.warn("Context not present: using default values");
          return;
       }
 
@@ -167,7 +167,7 @@ public class NominatimGeocoder implements Geocoder
       }
       catch (MalformedURLException exception)
       {
-         logger.warn("Malformed Nominatim request URL", exception);
+         LOGGER.warn("Malformed Nominatim request URL", exception);
          return null;
       }
 
@@ -182,7 +182,7 @@ public class NominatimGeocoder implements Geocoder
       }
       catch (Exception exception)
       {
-         logger.warn("Cannot get response from Nominatim service: " +
+         LOGGER.warn("Cannot get response from Nominatim service: " +
             nominatim_search_url, exception);
          return null;
       }
@@ -202,7 +202,7 @@ public class NominatimGeocoder implements Geocoder
       if ((document == null) ||
             (document.getChildrenCount() <= 0))
       {
-         logger.warn("Null or empty document");
+         LOGGER.warn("Null or empty document");
          return null;
       }
 
@@ -233,7 +233,7 @@ public class NominatimGeocoder implements Geocoder
          // Return immediately if no bounding box attribute has been found
          if (boundingbox_value == null)
          {
-            logger.warn("Returned place \"" +
+            LOGGER.warn("Returned place \"" +
                   place_node.getAttribute("display_name") + "\" has no \"" +
                   "boundingbox\" attribute");
             return null;
@@ -254,7 +254,7 @@ public class NominatimGeocoder implements Geocoder
          }
          catch (Exception exception)
          {
-            logger.warn("Error while parsing bouding box");
+            LOGGER.warn("Error while parsing bouding box");
             return null;
          }
 
@@ -280,7 +280,7 @@ public class NominatimGeocoder implements Geocoder
          // Return immediately if no geotext attribute has been found
          if (geotext_attribute == null)
          {
-            logger.warn("Returned place \"" +
+            LOGGER.warn("Returned place \"" +
                   place_node.getAttribute("display_name") + "\" has no \"" +
                   "geotext\" attribute");
             return null;
@@ -289,9 +289,9 @@ public class NominatimGeocoder implements Geocoder
          // Get "geotext" WKT entry
          String geotext = geotext_attribute.getValue().toString();
 
-         if (logger.isDebugEnabled())
+         if (LOGGER.isDebugEnabled())
          {
-            logger.debug("Retrieved footprint:" + geotext);
+            LOGGER.debug("Retrieved footprint:" + geotext);
          }
 
          // Return simplified WKT if not null
@@ -305,7 +305,7 @@ public class NominatimGeocoder implements Geocoder
             }
             catch (ParseException exception)
             {
-               logger.error("Error while parsing WKT: \"" + geotext + "\"",
+               LOGGER.error("Error while parsing WKT: \"" + geotext + "\"",
                      exception);
                return null;
             }
@@ -314,9 +314,9 @@ public class NominatimGeocoder implements Geocoder
          }
 
          // Return null if no entry was found and log as necessary
-         if (logger.isDebugEnabled())
+         if (LOGGER.isDebugEnabled())
          {
-            logger.warn("No boundaries found");
+            LOGGER.warn("No boundaries found");
          }
 
          return null;

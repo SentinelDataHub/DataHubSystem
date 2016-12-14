@@ -19,9 +19,9 @@
  */
 package fr.gael.dhus.service;
 
-import fr.gael.dhus.database.dao.NetworkUsageDao;
-import fr.gael.dhus.database.object.NetworkUsage;
-import fr.gael.dhus.database.object.User;
+import java.util.Date;
+import java.util.Objects;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -29,8 +29,9 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.Objects;
+import fr.gael.dhus.database.dao.NetworkUsageDao;
+import fr.gael.dhus.database.object.NetworkUsage;
+import fr.gael.dhus.database.object.User;
 
 @Service
 public class NetworkUsageService
@@ -57,8 +58,8 @@ public class NetworkUsageService
     */
    @Transactional
    @Caching (evict = {
-         @CacheEvict (value = "network_download_count", key = "#user.id"),
-         @CacheEvict (value = "network_download_size", key = "#user.id") })
+      @CacheEvict (value = "network_download_count", key = "#user.getUUID ()", condition = "#user != null"),
+      @CacheEvict (value = "network_download_size", key = "#user.getUUID ()", condition = "#user != null") })
    public void createDownloadUsage (final Long size, final Date start_date,
          final User user)
    {
@@ -83,7 +84,7 @@ public class NetworkUsageService
     * @return number of downloads.
     */
    @Transactional (readOnly = true)
-   @Cacheable (value = "network_download_count", key = "#user.id")
+   @Cacheable (value = "network_download_count", key = "#user.getUUID ()", condition = "#user != null")
    public int countDownloadsByUserSince (final User user, final Long period)
    {
       Objects.requireNonNull (user, "'user' parameter is null");
@@ -106,7 +107,7 @@ public class NetworkUsageService
     * @return cumulative downloaded size.
     */
    @Transactional (readOnly = true)
-   @Cacheable (value = "network_download_size", key = "#user.id")
+   @Cacheable (value = "network_download_size", key = "#user.getUUID ()", condition = "#user != null")
    public Long getDownloadedSizeByUserSince (final User user, final Long period)
    {
       Objects.requireNonNull (user, "'user' parameter is null");

@@ -27,7 +27,10 @@ import javax.annotation.PreDestroy;
 
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.ftplet.FtpException;
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -36,7 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class DHuSFtpServerBean
 {
-   private static Logger logger = Logger.getLogger (DHuSFtpServerBean.class);
+   private static final Logger LOGGER = LogManager.getLogger(DHuSFtpServerBean.class);
 
    FtpServer server = null;
 
@@ -63,7 +66,7 @@ public class DHuSFtpServerBean
          }
          catch (Exception e)
          {
-            logger.error ("Cannot start ftp server: " + e.getMessage ());
+            LOGGER.error("Cannot start ftp server: " + e.getMessage ());
          }
       }
    }

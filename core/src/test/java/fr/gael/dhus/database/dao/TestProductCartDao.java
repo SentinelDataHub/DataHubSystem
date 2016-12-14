@@ -27,7 +27,7 @@ import fr.gael.dhus.util.TestContextLoader;
    loader = TestContextLoader.class)
 @DirtiesContext (classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestProductCartDao extends
-   TestAbstractHibernateDao<ProductCart, Long>
+   TestAbstractHibernateDao<ProductCart, String>
 {
    @Autowired
    private ProductCartDao dao;
@@ -39,7 +39,7 @@ public class TestProductCartDao extends
    private UserDao udao;
 
    @Override
-   protected HibernateDao<ProductCart, Long> getHibernateDao ()
+   protected HibernateDao<ProductCart, String> getHibernateDao ()
    {
       return dao;
    }
@@ -53,7 +53,7 @@ public class TestProductCartDao extends
    @Override
    public void create ()
    {
-      User user = udao.read (2L);
+      User user = udao.read ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2");
       ProductCart pc = new ProductCart ();
       pc.setUser (user);
 
@@ -65,7 +65,7 @@ public class TestProductCartDao extends
    @Override
    public void read ()
    {
-      ProductCart pc = dao.read (0L);
+      ProductCart pc = dao.read ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0");
       assertNotNull (pc);
       assertEquals (pc.getProducts ().size (), 2);
    }
@@ -73,7 +73,7 @@ public class TestProductCartDao extends
    @Override
    public void update ()
    {
-      long cartId = 0;
+      String cartId = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0";
       ProductCart pc = dao.read (cartId);
       Product p = new Product ();
       p.setId (3L);
@@ -89,7 +89,7 @@ public class TestProductCartDao extends
    @Override
    public void delete ()
    {
-      Long id = 0L;
+      String id = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0";
       ProductCart cart = dao.read (id);
       assertNotNull (cart);
       Set<Product> products = cart.getProducts ();
@@ -105,9 +105,9 @@ public class TestProductCartDao extends
    @Override
    public void scroll ()
    {
-      String hql = "WHERE id > 0";
+      String hql = "";
       Iterator<ProductCart> it = dao.scroll (hql, -1, -1).iterator ();
-      assertTrue (CheckIterator.checkElementNumber (it, 3));
+      assertTrue (CheckIterator.checkElementNumber (it, 4));
    }
 
    @Override
@@ -115,7 +115,7 @@ public class TestProductCartDao extends
    {
       ProductCart cart = dao.first ("FROM ProductCart ORDER BY id DESC");
       assertNotNull (cart);
-      assertEquals (cart.getId ().intValue (), 3);
+      assertEquals (cart.getUUID (), "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3");
    }
 
    @Test
@@ -123,28 +123,29 @@ public class TestProductCartDao extends
    {
       // emulate userDao.read (2L)
       User u = new User ();
-      u.setId (2L);
+      u.setUUID ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2");
 
       dao.deleteCartOfUser (u);
-      assertNull (dao.read (2L));
+      List<ProductCart> res = dao.getCartsOfUser (u);
+      assertTrue (res.isEmpty ());
    }
 
    @Test
    public void getCartOfUser ()
    {
-      User user = udao.read (3L);
+      User user = udao.read ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3");
       ProductCart cart = dao.getCartOfUser (user);
       assertNotNull (cart);
-      assertEquals (cart.getId ().intValue (), 1);
+      assertEquals (cart.getUUID(), "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1");
       assertEquals (cart.getUser(), user, "User not owner of the found cart.");
       
       // No cart attached to User #1
-      user = udao.read (1L);
+      user = udao.read ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1");
       cart = dao.getCartOfUser (user);
       assertNull (cart);
       
       // User #2 has 2 carts
-      user = udao.read (2L);
+      user = udao.read ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2");
       cart = dao.getCartOfUser (user);
       assertNotNull (cart);
    }
@@ -167,7 +168,7 @@ public class TestProductCartDao extends
    public void getProductsIdOfCart ()
    {
       User user = new User ();
-      user.setId (0L);
+      user.setUUID ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0");
 
       List<Long> ids = dao.getProductsIdOfCart (user);
       assertNotNull (ids);
@@ -181,7 +182,7 @@ public class TestProductCartDao extends
    public void scrollCartOfUser ()
    {
       User user = new User ();
-      user.setId (0L);
+      user.setUUID ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0");
 
       Iterator<Product> it = dao.scrollCartOfUser (user, -1, -1).iterator ();
       assertTrue (CheckIterator.checkElementNumber (it, 2));

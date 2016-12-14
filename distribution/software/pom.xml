@@ -8,17 +8,19 @@
    <modelVersion>4.0.0</modelVersion>
 
    <properties>
+      <!-- Customize here the components version to be
+           embeded into this distribution  -->
+      <dhus.core>0.12.5-6-osf</dhus.core>
+      <dhus.webclient>0.12.5-6-osf</dhus.webclient>
+      <dhus.owc-client>0.12.5-6-osf</dhus.owc-client>
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <openjpeg.version>2.4.0</openjpeg.version>
+      <openjpeg.classifier>${os.name}-${os.arch}</openjpeg.classifier>
    </properties>
 
-   <parent>
-      <groupId>fr.gael.dhus</groupId>
-      <artifactId>dhus-parent</artifactId>
-      <version>0.9.1-osf</version>
-      <relativePath></relativePath>
-   </parent>
-
+   <groupId>fr.gael.dhus</groupId>
    <artifactId>dhus-software</artifactId>
+   <version>0.12.5-6-osf</version>
    <packaging>pom</packaging>
 
    <name>DHuS - Software Distribution</name>
@@ -28,47 +30,64 @@
       <dependency>
          <groupId>fr.gael.dhus</groupId>
          <artifactId>dhus-core</artifactId>
+         <version>${dhus.core}</version>
       </dependency>
-      <!-- Chosen IHM -->
-      <!--<dependency>-->
-         <!--<groupId>fr.gael.dhus</groupId>-->
-         <!--<artifactId>dhus-gwt-client</artifactId>-->
-         <!--<exclusions>-->
-            <!--<exclusion>-->
-               <!--<groupId>javax.validation</groupId>-->
-               <!--<artifactId>validation-api</artifactId>-->
-            <!--</exclusion>-->
-         <!--</exclusions>-->
-      <!--</dependency>-->
-      <!--<dependency>-->
-         <!--<groupId>fr.gael.dhus</groupId>-->
-         <!--<artifactId>dhus-client-html</artifactId>-->
-      <!--</dependency>-->
-      
+
       <dependency>
          <groupId>fr.gael.dhus</groupId>
          <artifactId>dhus-web-client</artifactId>
+         <version>${dhus.webclient}</version>
       </dependency>
-     
+
       <dependency>
          <groupId>fr.gael.dhus</groupId>
          <artifactId>dhus-addon-sentinel-1</artifactId>
-         <version>1.0.4</version>
+         <version>1.0.5</version>
       </dependency>
       <dependency>
          <groupId>eu.serco.xmf.drb</groupId>
          <artifactId>dhus-addon-sentinel-2</artifactId>
-         <version>1.0.6</version>
-      </dependency>            
+         <version>1.1.5</version>
+      </dependency>
       <dependency>
-	 <groupId>eu.serco.xmf.drb</groupId>
-	 <artifactId>dhus-addon-sentinel-3</artifactId>
-	 <version>1.0.1</version>
+         <groupId>eu.serco.xmf.drb</groupId>
+         <artifactId>dhus-addon-sentinel-3</artifactId>
+         <version>1.0.5</version>
       </dependency>
    </dependencies>
 
    <build>
       <plugins>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <version>2.10</version>
+            <executions>
+               <execution>
+                  <id>copy-native-libraries</id>
+                  <phase>initialize</phase>
+                  <goals>
+                     <goal>copy</goal>
+                  </goals>
+                  <configuration>
+                     <artifactItems>
+                        <artifactItem>
+                           <groupId>fr.gael.openjpeg</groupId>
+                           <artifactId>openjpeg-native</artifactId>
+                           <version>${openjpeg.version}</version>
+                           <classifier>${openjpeg.classifier}</classifier>
+                           <type>${library.type}</type>
+                           <overWrite>true</overWrite>
+                           <outputDirectory>${project.build.directory}/native/Linux-x86_64</outputDirectory>
+                           <destFileName>libopenjp2.${library.type}</destFileName>
+                        </artifactItem>
+                     </artifactItems>
+                     <failOnMissingClassifierArtifact>true</failOnMissingClassifierArtifact>
+                  </configuration>
+               </execution>
+            </executions>
+         </plugin>
+
          <plugin>
             <artifactId>maven-assembly-plugin</artifactId>
             <version>2.2-beta-5</version>
@@ -94,6 +113,87 @@
                </dependency>
             </dependencies>
          </plugin>
+<!--
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-clean-plugin</artifactId>
+            <version>2.6.1</version>
+            <configuration>
+               <filesets>
+                  <fileset>
+                     <directory>native</directory>
+                     <followSymlinks>false</followSymlinks>
+                     <useDefaultExcludes>true</useDefaultExcludes>
+                     <includes>
+                        <include>*.so</include>
+                        <include>*.dll</include>
+                     </includes>
+                  </fileset>
+               </filesets>
+            </configuration>
+         </plugin>
+-->
       </plugins>
    </build>
+
+   <repositories>
+      <repository>
+        <id>osf-releases</id>
+        <name>Releases Repository</name>
+        <url>
+          https://copernicus.serco.eu/repository/nexus/content/repositories/releases/
+        </url>
+      </repository>
+      <repository>
+         <id>osf-public</id>
+         <name>OSF Public Repository</name>
+         <url>
+            https://copernicus.serco.eu/repository/nexus/content/groups/public
+         </url>
+         <layout>default</layout>
+      </repository>
+   </repositories>
+
+   <distributionManagement>
+      <repository>
+         <uniqueVersion>true</uniqueVersion>
+         <id>osf-releases</id>
+         <name>OSF Releases Repository</name>
+         <url>
+            https://copernicus.serco.eu/repository/nexus/content/repositories/releases/
+
+         </url>
+         <layout>default</layout>
+      </repository>
+      <site>
+         <id>gael-site</id>
+         <url>${site.baseUrl}/</url>
+      </site>
+   </distributionManagement>
+   <profiles>
+      <profile>
+         <id>owc</id>
+         <dependencies>
+            <dependency>
+               <groupId>fr.gael.dhus</groupId>
+               <artifactId>dhus-owc-client</artifactId>
+               <version>${dhus.owc-client}</version>
+            </dependency>
+         </dependencies>
+      </profile>
+
+      <profile>
+         <id>native-libraries-so</id>
+         <activation>
+            <property>
+               <name>os.name</name>
+               <value>Linux</value>
+            </property>
+         </activation>
+         <properties>
+            <library.type>so</library.type>
+         </properties>
+      </profile>
+   </profiles>
+
 </project>

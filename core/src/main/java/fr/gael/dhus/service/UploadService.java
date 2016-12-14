@@ -19,30 +19,12 @@
  */
 package fr.gael.dhus.service;
 
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.quartz.SchedulerException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
-import fr.gael.dhus.database.dao.ActionRecordWritterDao;
 import fr.gael.dhus.database.dao.FileScannerDao;
 import fr.gael.dhus.database.dao.UserDao;
 import fr.gael.dhus.database.object.Collection;
 import fr.gael.dhus.database.object.FileScanner;
+import fr.gael.dhus.database.object.Product;
 import fr.gael.dhus.database.object.User;
-import fr.gael.dhus.datastore.DefaultDataStore;
 import fr.gael.dhus.datastore.exception.DataStoreAlreadyExistException;
 import fr.gael.dhus.datastore.exception.DataStoreNotReadableProduct;
 import fr.gael.dhus.datastore.scanner.Scanner;
@@ -53,15 +35,28 @@ import fr.gael.dhus.service.exception.FileScannerNotModifiableException;
 import fr.gael.dhus.service.exception.ProductNotAddedException;
 import fr.gael.dhus.service.job.JobScheduler;
 import fr.gael.dhus.util.UnZip;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.quartz.SchedulerException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 @Service
 public class UploadService extends WebService
 {
-   private static Log logger = LogFactory.getLog (UploadService.class);
-   
-   @Autowired
-   private ActionRecordWritterDao actionRecordWritterDao;
-   
+   private static final Logger LOGGER = LogManager.getLogger(UploadService.class);
+
    @Autowired
    private SecurityService securityService;
    
@@ -72,7 +67,7 @@ public class UploadService extends WebService
    private UserDao userDao;
 
    @Autowired
-   private DefaultDataStore dataStore;
+   private ProductService productService;
 
    @Autowired
    private ScannerFactory scannerFactory;
@@ -89,7 +84,7 @@ public class UploadService extends WebService
       File newProduct = null;
       try
       {
-         logger.info ("Reading uploaded product : " + path.toExternalForm ());
+         LOGGER.info("Reading uploaded product : " + path.toExternalForm ());
          
          product = new File(path.toURI ());
          if (product.isFile () && UnZip.supported (product.getPath ()))
@@ -100,7 +95,7 @@ public class UploadService extends WebService
             }
             catch (Exception e)
             {
-               logger.error ("Failure during decompression.", e);
+               LOGGER.error("Failure during decompression.", e);
                DataStoreNotReadableProduct dse = 
                   new DataStoreNotReadableProduct ();
                dse.initCause (e);
@@ -127,42 +122,33 @@ public class UploadService extends WebService
             
             if (scanner.getScanList ().size () == 0)
             {
-               actionRecordWritterDao.uploadEnd (path, owner.getUsername (), 
-                  collections, false);
                throw new DataStoreNotReadableProduct ("No product recognized");
             }
             
             for (URLExt url: scanner.getScanList ())
             {
-               dataStore.addProduct (url.getUrl (), owner,
-                  collections, null, scanner, null);
-               actionRecordWritterDao.uploadEnd (url.getUrl(), 
-                  owner.getUsername (), collections, true);
+               Product p = productService.addProduct (
+                     url.getUrl (), owner, null);
+               productService.processProduct (
+                     p, owner, collections, scanner, null);
             }
             return true;
          }
          /* Case of one file product i.e. ENVISAT uploaded uncompressed */
          else if (product.isFile ())
          {
-            dataStore.addProduct (path, owner, collections,
-               null, null, null);
-            actionRecordWritterDao.uploadEnd (path, owner.getUsername (),
-               collections, true);
+            Product p = productService.addProduct (path, owner, null);
+            productService.processProduct (p, owner, collections, null, null);
             return true;
          }
          else
          {
-            actionRecordWritterDao.uploadEnd (path, owner.getUsername (), 
-               collections, false);
             throw new DataStoreNotReadableProduct (
                "Uploaded product media not supported.");
          }
       }
       catch (DataStoreAlreadyExistException e)
       {
-         // later
-         actionRecordWritterDao.uploadEnd (path, owner.getUsername (), 
-            collections, false);
          return false;
       }
       catch (DataStoreNotReadableProduct e)
@@ -175,22 +161,16 @@ public class UploadService extends WebService
          {
             deleteDir(newProduct);
          }
-         actionRecordWritterDao.uploadFailed (path.toString (), 
-            owner.getUsername ());
-         throw new ProductNotAddedException();
+         throw new ProductNotAddedException("Upload failed.", e);
       }
       catch (MalformedURLException e1)
       {
-         logger.warn ("There was a problem accessing \""+path+"\"");
-         actionRecordWritterDao.uploadEnd (path, owner.getUsername (), 
-            collections, false);
+         LOGGER.warn("There was a problem accessing \""+path+"\"");
          return false;
       }
       catch (URISyntaxException e1)
       {
-         logger.warn ("There was a problem accessing \""+path+"\"");
-         actionRecordWritterDao.uploadEnd (path, owner.getUsername (), 
-            collections, false);
+         LOGGER.warn("There was a problem accessing \""+path+"\"");
          return false;
       }
    }
@@ -224,7 +204,7 @@ public class UploadService extends WebService
       }
       catch (ScannerException e)
       {
-         logger.info ("Scanner id #" + scan_id + " not started: " +
+         LOGGER.info("Scanner id #" + scan_id + " not started: " +
             e.getMessage ());
       }
    }
@@ -238,12 +218,13 @@ public class UploadService extends WebService
       }
       catch (ScannerException e)
       {
-         logger.info ("Scanner id #" + scan_id + " not started: " +
+         LOGGER.info("Scanner id #" + scan_id + " not started: " +
             e.getMessage ());
       }
    }
 
    @PreAuthorize ("hasRole('ROLE_UPLOAD')")
+   @Transactional
    public FileScanner addFileScanner (String url, String username, 
       String password, String pattern, Set<Collection> collections)
    {
@@ -260,6 +241,7 @@ public class UploadService extends WebService
    }
 
    @PreAuthorize ("hasRole('ROLE_UPLOAD')")
+   @Transactional
    public Set<FileScanner> getFileScanners ()
    {
       User user = securityService.getCurrentUser ();
@@ -274,6 +256,7 @@ public class UploadService extends WebService
    }
 
    @PreAuthorize ("hasRole('ROLE_UPLOAD')")
+   @Transactional
    public void updateFileScanner (Long id, String url, String username, 
       String password, String pattern, Set<Collection> collections)
    {
@@ -290,6 +273,7 @@ public class UploadService extends WebService
    }
 
    @PreAuthorize ("hasRole('ROLE_UPLOAD')")
+   @Transactional
    public void setFileScannerActive (Long id, boolean active)
    {
       FileScanner fileScanner = fileScannerDao.read (id);
@@ -302,7 +286,7 @@ public class UploadService extends WebService
    }
 
    @PreAuthorize ("hasRole('ROLE_UPLOAD')")
-   public List<Long> getFileScannerCollections (Long id)
+   public List<String> getFileScannerCollections (Long id)
    {
       return fileScannerDao.getScannerCollections (id);
    }

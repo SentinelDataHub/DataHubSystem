@@ -50,8 +50,6 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 
@@ -61,7 +59,6 @@ import org.hibernate.annotations.CascadeType;
  */
 @Entity
 @Table (name = "PRODUCTS")
-@Cache(usage=CacheConcurrencyStrategy.READ_WRITE, region="product")
 public class Product implements Serializable
 {
    /**
@@ -128,11 +125,10 @@ public class Product implements Serializable
    private String footPrint;
 
    @ManyToMany (fetch = FetchType.LAZY)
-   @Cascade ({ CascadeType.SAVE_UPDATE })
    @JoinTable (
       name="PRODUCT_USER_AUTH",
       joinColumns={@JoinColumn(name="PRODUCTS_ID", table="PRODUCTS")},
-      inverseJoinColumns={@JoinColumn(name="USERS_ID", table="USERS")})
+      inverseJoinColumns={@JoinColumn(name="USERS_UUID", table="USERS")})
    @OrderBy ("username")
    private Set<User> authorizedUsers = new HashSet<User> ();
 
@@ -150,7 +146,7 @@ public class Product implements Serializable
    private Date ingestionDate;
 
    @ManyToOne (fetch = FetchType.LAZY)
-   @JoinColumn (name = "OWNER_ID", nullable = true)
+   @JoinColumn (name = "OWNER_UUID", nullable = true)
    private User owner;
 
    @Column (name = "contentStart")
@@ -321,7 +317,8 @@ public class Product implements Serializable
 
    public long getDownloadableSize ()
    {
-      return getDownload ().getSize ();
+      Long result = getDownload ().getSize ();
+      return (result != null) ? result : -1;
    }
 
    public void setDownloadableSize (long size)

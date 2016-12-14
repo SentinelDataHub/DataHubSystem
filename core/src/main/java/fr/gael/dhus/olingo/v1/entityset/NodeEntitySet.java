@@ -19,16 +19,15 @@
  */
 package fr.gael.dhus.olingo.v1.entityset;
 
-import java.net.URI;
+import fr.gael.dhus.olingo.v1.Expander;
+import fr.gael.dhus.olingo.v1.Model;
+import fr.gael.dhus.olingo.v1.entity.AbstractEntity;
+import fr.gael.dhus.olingo.v1.entity.Node;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-import org.apache.olingo.odata2.api.ODataCallback;
-import org.apache.olingo.odata2.api.edm.EdmException;
 import org.apache.olingo.odata2.api.edm.EdmMultiplicity;
 import org.apache.olingo.odata2.api.edm.EdmSimpleTypeKind;
 import org.apache.olingo.odata2.api.edm.FullQualifiedName;
@@ -39,18 +38,8 @@ import org.apache.olingo.odata2.api.edm.provider.AssociationSetEnd;
 import org.apache.olingo.odata2.api.edm.provider.EntityType;
 import org.apache.olingo.odata2.api.edm.provider.NavigationProperty;
 import org.apache.olingo.odata2.api.edm.provider.SimpleProperty;
-import org.apache.olingo.odata2.api.ep.EntityProviderWriteProperties;
-import org.apache.olingo.odata2.api.ep.callback.OnWriteFeedContent;
-import org.apache.olingo.odata2.api.ep.callback.WriteFeedCallbackContext;
-import org.apache.olingo.odata2.api.ep.callback.WriteFeedCallbackResult;
-import org.apache.olingo.odata2.api.exception.ODataApplicationException;
 
-import fr.gael.dhus.olingo.v1.V1Model;
-import fr.gael.dhus.olingo.v1.entity.Attribute;
-import fr.gael.dhus.olingo.v1.entity.Node;
-import fr.gael.drb.DrbNode;
-
-public class NodeEntitySet extends V1EntitySet<Node>
+public class NodeEntitySet extends AbstractEntitySet<Node>
 {
    public static final String ENTITY_NAME = "Node";
 
@@ -60,21 +49,19 @@ public class NodeEntitySet extends V1EntitySet<Node>
    public static final String PATH = "Path";
 
    public static final FullQualifiedName ASSO_NODE_NODE =
-         new FullQualifiedName (V1Model.NAMESPACE, "Node_Node");
+         new FullQualifiedName(Model.NAMESPACE, "Node_Node");
    public static final String ROLE_NODE_NODES = "Node_Nodes"; // many
    public static final String ROLE_NODE_PARENT = "Node_Node"; // 1
-   
+
    public static final FullQualifiedName ASSO_NODE_CLASS =
-            new FullQualifiedName (V1Model.NAMESPACE, "Node_Class");
+            new FullQualifiedName(Model.NAMESPACE, "Node_Class");
       public static final String ROLE_NODE_CLASS = "Node_Class"; // 1
       public static final String ROLE_CLASS_NODES = "Class_Nodes"; // 1
 
    public static final FullQualifiedName ASSO_NODE_ATTRIBUTE =
-         new FullQualifiedName (V1Model.NAMESPACE, "Node_Attribute");
+         new FullQualifiedName(Model.NAMESPACE, "Node_Attribute");
    public static final String ROLE_NODE_ATTRIBUTES = "Node_Attributes"; // many
    public static final String ROLE_ATTRIBUTE_NODE = "Attribute_Node"; // 1
-
-   private static Logger logger = LogManager.getLogger (NodeEntitySet.class);
 
    @Override
    public String getEntityName ()
@@ -85,7 +72,7 @@ public class NodeEntitySet extends V1EntitySet<Node>
    @Override
    public EntityType getEntityType ()
    {
-      EntityType res = V1Model.ITEM.getEntityType ();
+      EntityType res = Model.ITEM.getEntityType();
 
       res.getProperties ().add (
          new SimpleProperty ().setName (CHILDREN_NUMBER).setType (
@@ -102,7 +89,7 @@ public class NodeEntitySet extends V1EntitySet<Node>
          .setRelationship (ASSO_NODE_NODE).setFromRole (ROLE_NODE_PARENT)
          .setToRole (ROLE_NODE_NODES));
       navigationProperties.add (new NavigationProperty ()
-         .setName (V1Model.ATTRIBUTE.getName ())
+         .setName(Model.ATTRIBUTE.getName())
          .setRelationship (ASSO_NODE_ATTRIBUTE)
          .setFromRole (ROLE_ATTRIBUTE_NODE).setToRole (ROLE_NODE_ATTRIBUTES));
       navigationProperties.add (new NavigationProperty ()
@@ -134,7 +121,7 @@ public class NodeEntitySet extends V1EntitySet<Node>
          .setAssociation (ASSO_NODE_ATTRIBUTE)
          .setEnd1 (
             new AssociationSetEnd ().setRole (ROLE_NODE_ATTRIBUTES)
-               .setEntitySet (V1Model.ATTRIBUTE.getName ()))
+               .setEntitySet(Model.ATTRIBUTE.getName()))
          .setEnd2 (
             new AssociationSetEnd ().setRole (ROLE_ATTRIBUTE_NODE)
                .setEntitySet (getName ())));
@@ -143,7 +130,7 @@ public class NodeEntitySet extends V1EntitySet<Node>
          .setAssociation (ASSO_NODE_CLASS)
          .setEnd1 (
             new AssociationSetEnd ().setRole (ROLE_NODE_CLASS)
-               .setEntitySet (V1Model.CLASS.getName ()))
+               .setEntitySet(Model.CLASS.getName()))
          .setEnd2 (
             new AssociationSetEnd ().setRole (ROLE_CLASS_NODES)
                .setEntitySet (getName ())));
@@ -169,7 +156,7 @@ public class NodeEntitySet extends V1EntitySet<Node>
       .setName (ASSO_NODE_ATTRIBUTE.getName ())
       .setEnd1 (
          new AssociationEnd ()
-            .setType (V1Model.ATTRIBUTE.getFullQualifiedName ())
+            .setType(Model.ATTRIBUTE.getFullQualifiedName())
             .setRole (ROLE_NODE_ATTRIBUTES)
             .setMultiplicity (EdmMultiplicity.MANY))
       .setEnd2 (
@@ -181,7 +168,7 @@ public class NodeEntitySet extends V1EntitySet<Node>
       .setName (ASSO_NODE_CLASS.getName ())
       .setEnd1 (
          new AssociationEnd ()
-            .setType (V1Model.CLASS.getFullQualifiedName ())
+            .setType(Model.CLASS.getFullQualifiedName())
             .setRole (ROLE_NODE_CLASS)
             .setMultiplicity (EdmMultiplicity.ONE))
       .setEnd2 (
@@ -192,104 +179,24 @@ public class NodeEntitySet extends V1EntitySet<Node>
    }
 
    @Override
-   public Map<String, ODataCallback> getCallbacks (final URI lnk)
+   public boolean isTopLevel()
    {
-      Map<String, ODataCallback> res = new HashMap<String, ODataCallback> ();
-      // Expand Attributes
-      res.put ("Attributes", new OnWriteFeedContent ()
-      {
-         @Override
-         public WriteFeedCallbackResult retrieveFeedResult (
-            WriteFeedCallbackContext context) throws ODataApplicationException
-         {
-            WriteFeedCallbackResult result = new WriteFeedCallbackResult ();
-            try
-            {
-               if (isNavigationFromTo (context, getName (),
-                  V1Model.ATTRIBUTE.getName ()))
-               {
-                  EntityProviderWriteProperties inlineProperties =
-                     EntityProviderWriteProperties
-                        .serviceRoot (lnk)
-                        .expandSelectTree (
-                           context.getCurrentExpandSelectTreeNode ())
-                        .selfLink (context.getSelfLink ()).build ();
+      return false;
+   }
 
-                  DrbNode drbnode =
-                     (DrbNode) context.getEntryData ().get (PATH);
-                  List<Map<String, Object>> feedData =
-                     new ArrayList<Map<String, Object>> ();
-                  if (drbnode != null)
-                  {
-                     Node node = new Node (drbnode);
-                     if (node != null && node.getAttributes () != null)
-                     {
-                        for (Attribute attr : node.getAttributes ().values ())
-                        {
-                           feedData.add (
-                                 attr.toEntityResponse (lnk.toString ()));
-                        }
-                     }
-                  }
-                  result.setFeedData (feedData);
-                  result.setInlineProperties (inlineProperties);
-               }
-            }
-            catch (EdmException e)
-            {
-               logger.error (
-                  "Error when including Attributes in Node Response", e);
-            }
-            return result;
-         }
-      });
-      // Expand Nodes
-      res.put ("Nodes", new OnWriteFeedContent ()
-      {
-         @Override
-         public WriteFeedCallbackResult retrieveFeedResult (
-            WriteFeedCallbackContext context) throws ODataApplicationException
-         {
-            WriteFeedCallbackResult result = new WriteFeedCallbackResult ();
-            try
-            {
-               if (isNavigationFromTo (context, getName (),
-                  V1Model.NODE.getName ()))
-               {
-                  EntityProviderWriteProperties inlineProperties =
-                     EntityProviderWriteProperties
-                        .serviceRoot (lnk)
-                        .expandSelectTree (
-                           context.getCurrentExpandSelectTreeNode ())
-                        .selfLink (context.getSelfLink ()).build ();
-
-                  DrbNode drbnode =
-                     (DrbNode) context.getEntryData ().get (PATH);
-                  List<Map<String, Object>> feedData =
-                     new ArrayList<Map<String, Object>> ();
-                  if (drbnode != null)
-                  {
-                     Node node = new Node (drbnode);
-                     if (node != null)
-                     {
-                        for (Node snode : node.getNodes ().values ())
-                        {
-                           feedData.add (snode.toEntityResponse (lnk
-                              .toString ()));
-                        }
-                     }
-                  }
-                  result.setFeedData (feedData);
-                  result.setInlineProperties (inlineProperties);
-               }
-            }
-            catch (EdmException e)
-            {
-               logger.error ("Error when including Nodes in Node Response", e);
-            }
-            return result;
-         }
-      });
+   @Override
+   public List<String> getExpandableNavLinkNames()
+   {
+      List<String> res = new ArrayList<>(super.getExpandableNavLinkNames());
+      res.add("Attributes");
+      res.add("Nodes");
       return res;
+   }
+
+   @Override
+   public List<Map<String, Object>> expand(String navlink_name, String self_url,
+         Map<?, AbstractEntity> entities, Map<String, Object> key)
+   {
+      return Expander.expandFeedSingletonKey(navlink_name, self_url, entities, key, ItemEntitySet.ID);
    }
 }

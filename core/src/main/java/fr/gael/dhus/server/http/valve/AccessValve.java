@@ -23,34 +23,43 @@ package fr.gael.dhus.server.http.valve;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
+import org.apache.catalina.util.RequestUtil;
 import org.apache.catalina.valves.ValveBase;
-import org.apache.log4j.Logger;
+import org.apache.http.HttpStatus;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.crypto.codec.Base64;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.Weigher;
-
+import fr.gael.dhus.server.http.valve.AccessInformation.FailureConnectionStatus;
+import fr.gael.dhus.server.http.valve.AccessInformation.PendingConnectionStatus;
+import fr.gael.dhus.server.http.valve.AccessInformation.SuccessConnectionStatus;
 import fr.gael.dhus.spring.context.SecurityContextProvider;
 import fr.gael.dhus.spring.security.CookieKey;
 import fr.gael.dhus.spring.security.authentication.ProxyWebAuthenticationDetails;
 
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Element;
+
 public class AccessValve extends ValveBase
 {
-   private static final Logger LOGGER = Logger.getLogger(AccessValve.class);
+   private static final Logger LOGGER = LogManager.getLogger(AccessValve.class);
    
    /**
     * Filter pattern is passed as Tomcat parameter.
@@ -68,35 +77,11 @@ public class AccessValve extends ValveBase
     * Parameter to display info into the logger
     */
    private boolean useLogger = true;
-   
-   
-   private static final String INFO =
-      "fr.gael.dhus.server.http.valve.AccessValve/1.0";
-   
-   private static final Long WEIGHT;
-   
-   static 
-   {
-      Long weight = Long.getLong(
-         "fr.gael.dhus.server.http.valve.AccessValve.cache_weight", 2000000L);
-      WEIGHT=weight;
-   }
-   /**
-    * This cache could be configurable according to global statistics settings
-    * to set the retention expected maximum delay and possible others...  
-    */
-   private static Cache<UUID, AccessInformation>requests = 
-      CacheBuilder.newBuilder ().concurrencyLevel (10).maximumWeight(WEIGHT).
-      weigher(new Weigher<UUID, AccessInformation>()
-      {
-         @Override
-         public int weigh(UUID key, AccessInformation value)
-         {
-            return (Long.SIZE)/8 + value.size();
-         }
-      }).expireAfterWrite (60, TimeUnit.MINUTES).build ();
-   
-   
+
+   private static final String CACHE_MANAGER_NAME = "dhus_cache";
+   private static final String CACHE_NAME = "user_connections";
+   private static Cache cache;
+
    /**
     * Local Address
     */
@@ -118,13 +103,19 @@ public class AccessValve extends ValveBase
        LOCAL_ADDR_VALUE = init;
    }
 
-   /**
-    * Return descriptive information about this Valve implementation.
-    */
-   @Override
-   public String getInfo ()
+   private static Cache getCache ()
    {
-      return (INFO);
+      if (cache == null)
+      {
+         cache = CacheManager.getCacheManager (CACHE_MANAGER_NAME)
+               .getCache (CACHE_NAME);
+         
+         // Override the current eviction policy to avoid removing pending
+         // elements.
+         cache.setMemoryStoreEvictionPolicy(
+               new NoPendingEvictionPolicy(cache.getMemoryStoreEvictionPolicy()));
+      }
+      return cache;
    }
 
    @Override
@@ -138,27 +129,72 @@ public class AccessValve extends ValveBase
          return;
       }
       
-      AccessInformation ai = new AccessInformation();
+      final AccessInformation ai = new AccessInformation();
+      ai.setConnectionStatus(new PendingConnectionStatus());
       
       // To be sure not to retrieve the same date trough concurrency calls.
       synchronized (this)
       {
          ai.setStartTimestamp(System.nanoTime());  
          ai.setStartDate (new Date ());
-      } 
+      }
       try
       {
          this.doLog(request, response, ai);
       }
       finally
       {
-         getNext().invoke(request, response);
-      }
-      ai.setEndTimestamp(System.nanoTime());
-      if ((getPattern()==null) || ai.getRequest().matches(getPattern()))
-      {
-         requests.put(new UUID (ai.getStartTimestamp (), ai.getEndTimestamp ()), ai);
-         if (isUseLogger()) LOGGER.info ("Access " + ai);
+         Element cached_element = new Element(UUID.randomUUID(), ai);
+         getCache().put(cached_element);
+         
+         try
+         {
+            // Log of the pending request command.
+            if (isUseLogger()) LOGGER.info ("Access " + ai);
+            
+            getNext().invoke(request, response);
+         }
+         catch (Throwable e)
+         {
+            response.addHeader("cause-message", 
+               e.getClass().getSimpleName() + " : " + e.getMessage());
+            //ai.setConnectionStatus(new FailureConnectionStatus(e));
+            response.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            //throw e;
+         }
+         finally
+         {
+            ai.setReponseSize(response.getContentLength());
+            ai.setWrittenResponseSize(response.getContentWritten());
+            
+            if (response.getStatus()>=400)
+            {
+               String message = RequestUtil.filter(response.getMessage());
+               if (message==null)
+               {
+                  // The cause-message has been inserted into the reponse header
+                  // at error handler time. It no message is retrieved in the
+                  // standard response, the cause-message is used.
+                  message = response.getHeader("cause-message");
+               }
+               Throwable throwable = null;
+               if (message != null) throwable = new Throwable(message);
+               else throwable = (Throwable) request.getAttribute(
+                  RequestDispatcher.ERROR_EXCEPTION); 
+               if (throwable==null) throwable = new Throwable();
+               
+               ai.setConnectionStatus(new FailureConnectionStatus(throwable));
+            }
+            else
+               ai.setConnectionStatus(new SuccessConnectionStatus());
+      
+            ai.setEndTimestamp(System.nanoTime());
+            if ((getPattern()==null) || ai.getRequest().matches(getPattern()))
+            {
+               cached_element.updateUpdateStatistics();
+               if (isUseLogger()) LOGGER.info ("Access " + ai);
+            }
+         }
       }
    }
    
@@ -287,7 +323,22 @@ public class AccessValve extends ValveBase
    
    public static Map<UUID, AccessInformation> getAccessInformationMap ()
    {
-      return requests.asMap();
+      @SuppressWarnings ("rawtypes")
+      List keys = getCache ().getKeysWithExpiryCheck ();
+      
+      Map<UUID, AccessInformation> map = new HashMap<> ();
+      for (Object key: keys)
+      {
+         if (getCache().isKeyInCache(key))
+         {
+            Object value = getCache ().get (key).getObjectValue ();
+            if (key instanceof UUID && value instanceof AccessInformation)
+            {
+               map.put ((UUID) key, (AccessInformation)value);
+            }
+         }
+      }
+      return map;
    }
    
    /**

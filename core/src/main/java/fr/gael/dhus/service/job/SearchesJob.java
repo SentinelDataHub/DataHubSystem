@@ -28,10 +28,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import fr.gael.dhus.service.ProductService;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +47,7 @@ import fr.gael.dhus.database.object.Role;
 import fr.gael.dhus.database.object.Search;
 import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.messaging.mail.MailServer;
+import fr.gael.dhus.service.ProductService;
 import fr.gael.dhus.service.SearchService;
 import fr.gael.dhus.system.config.ConfigurationManager;
 
@@ -54,7 +57,7 @@ import fr.gael.dhus.system.config.ConfigurationManager;
 @Component
 public class SearchesJob extends AbstractJob
 {
-   private static Logger logger = Logger.getLogger (SearchesJob.class);
+   private static final Logger LOGGER = LogManager.getLogger(SearchesJob.class);
       
    @Autowired
    private UserDao userDao;
@@ -84,10 +87,10 @@ public class SearchesJob extends AbstractJob
       if (!configurationManager.getSearchesCronConfiguration ().isActive ())
          return;
       long time_start = System.currentTimeMillis ();
-      logger.info ("SCHEDULER : User searches mailings.");
+      LOGGER.info("SCHEDULER : User searches mailings.");
       if (!DHuS.isStarted ())
       {
-         logger.warn("SCHEDULER : Not run while system not fully initialized.");
+         LOGGER.warn("SCHEDULER : Not run while system not fully initialized.");
          return;
       }
       Map <String,String>cids= new HashMap<String, String> ();
@@ -96,14 +99,14 @@ public class SearchesJob extends AbstractJob
          List<Search>searches = userDao.getUserSearches (user);
          if (searches == null || (searches.size ()==0)) 
          {
-            logger.debug ("No saved search for user \"" + user.getUsername () +
+            LOGGER.debug("No saved search for user \"" + user.getUsername () +
                   "\".");
             continue;
          }
          
          if (user.getEmail () == null)
          {
-            logger.error ("User \"" + user.getUsername () + 
+            LOGGER.error("User \"" + user.getUsername () +
                "\" email not configured to send search notifications.");
             continue;
          }
@@ -188,7 +191,7 @@ public class SearchesJob extends AbstractJob
                         "text-align: center; border-left: 1px solid #205887; " +
                         "border-right: 1px solid #205887;\">" +
                         "No result found</td></tr>";
-                  logger.debug ("There was an error when executing query : \"" +
+                  LOGGER.debug("There was an error when executing query : \"" +
                         e.getMessage () + "\"");
                   continue;
                }
@@ -199,7 +202,7 @@ public class SearchesJob extends AbstractJob
                         "text-align: center; border-left: 1px solid #205887; " +
                         "border-right: 1px solid #205887;\">" +
                         "No result found</td></tr>";
-                  logger.debug ("No result matches query : \"" +
+                  LOGGER.debug("No result matches query : \"" +
                         search.getComplete () + "\"");
                }
                
@@ -222,7 +225,7 @@ public class SearchesJob extends AbstractJob
                   atLeastOneResult = true;
                   searchIndex++;
                   
-                  logger.debug ("Result found: " + product.getIdentifier ());
+                  LOGGER.debug("Result found: " + product.getIdentifier());
                   
                   String purl = configurationManager.getServerConfiguration ()
                         .getExternalUrl () + "odata/v1/Products('" +
@@ -247,7 +250,7 @@ public class SearchesJob extends AbstractJob
                         }
                         catch (Exception e)
                         {
-                           logger.warn ("Cannot embed image \"" + purl +
+                           LOGGER.warn("Cannot embed image \"" + purl +
                                  "/Products('Quicklook')/$value\" :"+
                                  e.getMessage ());
                            cid=null;
@@ -344,8 +347,8 @@ public class SearchesJob extends AbstractJob
                configurationManager.getSupportConfiguration ().getName ();
          message += "</body></html>";
          
-         logger.info ("Sending search results to " + user.getEmail ());
-         logger.debug (message);
+         LOGGER.info("Sending search results to " + user.getEmail());
+         LOGGER.debug(message);
          
          try
          {
@@ -355,11 +358,11 @@ public class SearchesJob extends AbstractJob
          }
          catch (EmailException e)
          {
-            logger.error ("Cannot send mail to \"" + 
+            LOGGER.error("Cannot send mail to \"" +
                user.getEmail () + "\" :" + e.getMessage ());
          }
       }
-      logger.info ("SCHEDULER : User searches mailings done - " + 
+      LOGGER.info("SCHEDULER : User searches mailings done - " +
           (System.currentTimeMillis ()-time_start) + "ms");
    }
    

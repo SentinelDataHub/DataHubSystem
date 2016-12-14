@@ -128,17 +128,17 @@ angular.module('DHuS-webclient')
                         for(var i=0; i<result.data.length; i++){
 
                             var entry = result.data[i];
-                            collections[entry.id]=entry;
+                            collections[entry.uuid]=entry;
                             //console.log('entry',entry);
                             //var nodelink = entry.Nodes.__deferred.uri;                                                     
                                                      
                             var item;                          
                             if(entry.hasChildren) {
 
-                                item = $('<li loaded="false" nodeid="'+entry.id+'"><span nodeid="'+entry.id+'"><a href="javascript: void(0);"><span class="glyphicon glyphicon-folder-close"></span></a>&nbsp;<span><a href="javascript: void(0);" class="collname"> ' + entry.name +'</a></span></span></li>');
+                                item = $('<li loaded="false" nodeid="'+entry.uuid+'"><span nodeid="'+entry.uuid+'"><span class="glyphicon glyphicon-folder-close"></span>&nbsp;<span><a href="javascript: void(0);" class="collname"> ' + entry.name +'</a></span></span></li>');
                             }                            
                             else{
-                                item = $('<li loaded="false" nodeid="'+entry.id+'"><span nodeid="'+entry.id+'"><a href="javascript: void(0);"><span class="glyphicon glyphicon-file"></span></a>&nbsp;<span><a href="javascript: void(0);" class="collname"> ' + entry.name +'</a></span></span></li>');
+                                item = $('<li loaded="false" nodeid="'+entry.uuid+'"><span nodeid="'+entry.uuid+'"><span class="glyphicon glyphicon-file"></span>&nbsp;<span><a href="javascript: void(0);" class="collname"> ' + entry.name +'</a></span></span></li>');
                             }                    
                             
                             if (selected.length <= 0) {
@@ -154,7 +154,7 @@ angular.module('DHuS-webclient')
                                     var id = $(selected).find(' > ul > li').attr('nodeid') ;
                                     var ids = $(selected).find(' > ul > li').map(function(){return $(this).attr('nodeid');}).get();
                                     //console.log("id CCCC ",ids)
-                                    if (_.indexOf(ids,''+entry.id)==-1) 
+                                    if (_.indexOf(ids,''+entry.uuid)==-1) 
                                     //if (id != entry.id)                   
                                         $(selected).find(' > ul').append(item);
 
@@ -164,7 +164,7 @@ angular.module('DHuS-webclient')
                                     var ids = $(selected).find(' > ul > li').map(function(){return $(this).attr('nodeid');}).get();
                                     //console.log("id DDD ",ids) 
                                     //if (id != entry.id) {
-                                    if (_.indexOf(ids,''+entry.id)==-1) {
+                                    if (_.indexOf(ids,''+entry.uuid)==-1) {
                                         $(selected).addClass('parent_li').find('span > a > span').addClass('glyphicon-folder-open').removeClass('glyphicon-folder-close');
                                         $(selected).append($('<ul></ul>')).find(' > ul').append(item);
                                     }                                                                                              
@@ -299,15 +299,14 @@ angular.module('DHuS-webclient')
                         if(!result.data || result.data.length<=0) return null;   
                         for(var i=0; i<result.data.length; i++){
                             var entry = result.data[i];                                              
-                            //console.log('entry',entry);                                     
                             //console.log('scope.product.alternative',scope.product.alternative);                                     
                             //var nodelink = entry.Nodes.__deferred.uri;                    
                             //nodelink=nodelink.replace((new RegExp("'", 'g')),"%27");                    
-                            collections[entry.id]=entry;
+                            collections[entry.uuid]=entry;
                             if(entry.hasChildren)//console.log('builtlink',builtlink);                                 
-                                $('#collection-management-tree').append("<ul><li loaded='false' nodeid='"+entry.id+"'><span nodeid='"+entry.id+"'><a href='javascript: void(0);'><span class='glyphicon glyphicon-folder-close'></span></a>&nbsp;<span><a href='javascript: void(0);' class='collname'> "+entry.name+"</a></span></span></li></ul>");
+                                $('#collection-management-tree').append("<ul><li loaded='false' nodeid='"+entry.uuid+"'><span nodeid='"+entry.uuid+"'><span class='glyphicon glyphicon-folder-close'></span>&nbsp;<span><a href='javascript: void(0);' class='collname'> "+entry.name+"</a></span></span></li></ul>");
                             else
-                                $('#collection-management-tree').append("<ul><li loaded='false' nodeid='"+entry.id+"'><span nodeid='"+entry.id+"'><a href='javascript: void(0);'><span class='glyphicon glyphicon-file'></span></a>&nbsp;<span><a href='javascript: void(0);' class='collname'> "+entry.name+"</a></span></span></li></ul>");
+                                $('#collection-management-tree').append("<ul><li loaded='false' nodeid='"+entry.uuid+"'><span nodeid='"+entry.uuid+"'><span class='glyphicon glyphicon-file'></span>&nbsp;<span><a href='javascript: void(0);' class='collname'> "+entry.name+"</a></span></span></li></ul>");
                             $('#collection-management-tree').CollectionTree({addable: true, editable: false,deletable: false}, entry);                            
                         }
                         

@@ -148,6 +148,8 @@
 		<xs:attribute name="dumpPath" type="xs:string" />
 		<xs:attribute name="path" type="xs:string" />
 		<xs:attribute name="settings" type="xs:string" />
+		<xs:attribute name="cryptType" type="xs:string" />
+		<xs:attribute name="cryptKey" type="xs:string" />
 	</xs:complexType>
 
 	<xs:complexType name="nameConfiguration">
@@ -280,6 +282,7 @@
 		<xs:attribute name="keepPeriod" type="xs:int" />
 		<xs:attribute name="maxDiskUsage" type="xs:int" />
 		<xs:attribute name="maxEvictedProducts" type="xs:int" />
+		<xs:attribute name="trashPath" type="xs:string" />
 	</xs:complexType>
 
 	<xs:complexType name="incomingConfiguration">
@@ -292,6 +295,7 @@
 		<xs:all />
 		<xs:attribute name="maxFileNo" type="xs:int" />
 		<xs:attribute name="path" type="xs:string" />
+		<xs:attribute name="errorPath" type="xs:string" />
 	</xs:complexType>
 
 	<xs:complexType name="executorConfiguration">

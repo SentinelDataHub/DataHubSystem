@@ -1,0 +1,208 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!-- DEMO TEST -->
+<link rel="import" href="../authentication-manager/demo/test-container.html">
+<link rel="import" href="../message-broker/demo/test-container.html">
+<!--
+Main container app component.
+
+
+@demo demo/index.html
+-->
+<dom-module id="owc-app">
+<template>
+<style  is="custom-style">
+  #navigation-manager{
+    position: fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height: 100%;
+  }
+</style>
+    <navigation-manager id="navigation-manager"></navigation-manager>
+    <toast-manager id="toast-manager"></toast-manager>
+    <message-broker id="message-broker"></message-broker>
+</template>
+
+document.getElementById("#owc-app");
+
+<!-- MODEL-CONTROLLER CODE -->
+<script>
+'use strict';
+    (function() {
+
+      var config = {
+
+        baseUrl: "../", // dev config
+        clientUrl: "./"		// dev config
+
+      };
+
+      'use strict';
+      class OwcApp extends HTMLElement {
+
+        constructor() {
+          super();
+          this.beforeRegister();
+          this.attached();
+        }
+
+        /**
+         * BeforeRegister method Polymer calls before creating the element.
+         * This method is where you shoud define the is property (element's name) and
+         * properties  object.
+         *
+         * @return {null}
+         */
+        beforeRegister() {
+          var self = this;
+          this.is = 'owc-app';
+          this.config = config;
+          this.appconfig = {};
+          this.theme = {};
+          this.calendar = {};
+        }
+
+	/**
+         *  Called after the element is attached to the document.
+         *  Can be called multiple times during the lifetime of an element.
+         *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+         *
+         * @return {null}
+         */
+        attached() {
+
+          //console.warn(" >>> owc-app attached <<<");
+          //console.log("eu.serco.Owc.SemanticManager: ", eu.serco.Owc.SemanticManager);
+          var self = this;
+
+          /**
+           * Http manager
+           *
+           * @type {Object}
+           */
+          this.httpManager = new eu.serco.Owc.HttpManager();
+
+          /**
+           * Internationalization manager
+           *
+           * @type {Object}
+           */
+          this.i18nManager = new eu.serco.Owc.I18nManager();
+          HTMLElement.prototype.i18n = function(key) {
+            return self.i18nManager.translate(key);
+          }
+          this.i18nManager.setCurrentLanguage('en');
+
+
+          /**
+           * Message exchange between components manager
+           *
+           * @type {Object}
+           */
+          //this.messageBroker = new eu.serco.Owc.MessageBroker();
+          this.messageBroker = document.getElementById('message-broker');
+
+//          console.log("message broker: ", this.messageBroker);
+
+          /**
+           * Loader of remote polymers
+           *
+           * @type {Object}
+           */
+          this.dynamicPolymersLoader = {};
+
+          /**
+           * Theme manager
+           *
+           * @type {Object}
+           */
+          this.themeManager = new eu.serco.Owc.ThemeManager();
+          /**
+           * Authentication manager
+           *
+           * @type {Object}
+           */
+          this.authenticationManager = new eu.serco.Owc.AuthenticationManager();
+          /**
+           * Application utilities
+           *
+           * @type {Object}
+           */
+          this.utils = new eu.serco.Owc.OwcUtils();
+          /**
+           * Owc Http filter
+           *
+           * @type {Object}
+           */
+          this.httpManager.filter = new eu.serco.Owc.OwcHttpFilter();
+          /**
+           * Application config
+           *
+           * @type {Object}
+           */
+          this.applicationConfig = new eu.serco.Owc.OwcAppConfig();
+          /**
+           * Owc User Manager
+           *
+           * @type {Object}
+           */
+          this.userManager = new eu.serco.Owc.UserManager();
+          /**
+           * Navigation manager
+           *
+           * @type {Object}
+           */
+          this.navigationManager = document.getElementById('navigation-manager');
+
+          this.Owc = eu.serco.Owc;
+
+          this.toastManager = document.getElementById('toast-manager');
+          window.owcApp = this;
+
+          this._init();
+	     }
+
+          /**
+           * Authentication manager
+           *
+           * @type {Object}
+           */
+         _init() {
+            var dynamicMenu = document.createElement('dynamic-main-menu');
+            this.navigationManager.pushComponent(dynamicMenu, "350px",(this.theme.title) ? this.theme.title : 'Copernicus Data Hub',true);
+         }
+       };
+
+        Polymer(OwcApp);
+        eu.serco.Owc.OwcApp = OwcApp;
+
+    })();
+    </script>
+</dom-module>

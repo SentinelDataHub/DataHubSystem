@@ -33,6 +33,7 @@
 		    left: calc(-728px -20px);
 		    box-shadow: 3px 5px 19px 0 rgba(49,50,50,.62);
 		    padding: 8px;
+		    padding-top: 30px;
 		}
 
 		#advanced-search-close-button{
@@ -117,12 +118,87 @@
 		  	font-size: 11px;
 		  }
 
+		  .btn-file {
+		    position: relative;
+		    overflow: hidden;
+		  }
+		  .btn-file input[type=file] {
+		    position: absolute;
+		    top: 0;
+		    right: 0;
+		    min-width: 100%;
+		    min-height: 100%;
+		    font-size: 100px;
+		    text-align: right;
+		    filter: alpha(opacity=0);
+		    opacity: 0;
+		    outline: none;
+		    background: white;
+		    cursor: inherit;
+		    display: block;
+		  }
+		  .fab-cart-disabled 
+		  {
+		    background-color: #afb1b9 !important;        
+		    cursor: default !important;
+		    color: black !important;
+		  }
+
+		  .user-button {
+		    background-color: rgb(55, 59, 80)!important;
+		    vertical-align: middle;
+		    margin-top: 12px;
+		    line-height: 20px;
+		    font-size: 14px;
+		    margin-left: 5px;
+		    position: relative;
+		    padding: 10px;
+		    cursor: pointer;
+		    color:white;
+		    text-decoration: none;
+		    text-align: center;
+		  }
+		  .user-button:hover{
+		    color:white;
+		    text-decoration: none;
+		  }
+		  .user-button:visited{
+		    color:white;
+		    text-decoration: none;
+		  }
+
 	</style>
 
-	<div id="advanced-search-container">		
+	<div id="advanced-search-container" >		
+		<div ng-show="showtoggle" ng-click="toggleExpandAdvancedSearch()" style="width: 10px;height: 10px;position: absolute;float: right;top: 10px;right: 15px;" ng-class="toggleButtonClass" title="{{toggleExpandTitle}}"></div>
 		<div id="advanced-search-content">			
 		
 	        <div class="panel panel-default details">
+	          <div ng-if="enable_shapefile" class="panel-heading advanced-search-heading" role="tab" >
+	            <h4 class="panel-title advanced-search-panel-title">
+	              <a class="accordion-toggle collapsed " role="button" data-toggle="collapse"  data-parent="#accordion" aria-expanded="false" data-target="#section_1" aria-controls="section_1">
+	                <span class="advanced-search-collapse-title">Upload shape file for geographical selection</span>	                
+	              </a>	              
+	            </h4>
+	          </div>
+	          <div ng-if="enable_shapefile" id="section_1" class="panel-collapse collapse " role="tabpanel" aria-labelledby="section_1"   style="overflow:visible;padding:15px 5px;">	              	
+				    <div class="row" >
+				    	<div class="col-md-8 col-sd-6 col-xs-6">				            
+				             <div class="fileinput fileinput-new" data-provides="fileinput">
+				                <span class="btn btn-default btn-file"><span>Choose file</span><input onchange='text = $(this).val();
+				                text = text.substring(text.lastIndexOf("\\") + 1, text.length);$("#shape-file-info").html(text);angular.element(this).scope().setIfSelectedFile(this)' type="file" shapefile-model="fileToUpload"/></span>
+				                <span id="shape-file-info" class="fileinput-filename">No file choosen</span>
+				            </div>
+				        </div>
+				        <div class="col-md-4 col-sd-6 col-xs-6">
+				          <!--<div class="btn btn-default btn-file" style="float: right" ng-click="uploadShapeFile()" title="Upload Shape File">Upload</div>-->
+				          <div class="btn btn-default btn-file" style="float: right;" ng-click="uploadShapeFile()" title="Upload Shape File">Upload</div>
+				        </div>			        
+				    </div>
+				    <div class="row" ng-if="isdragsupported">
+				       You can also drag &amp; drop shape file on map 
+				    </div>
+			  </div>
 	          <div class="panel-heading advanced-search-heading" role="tab" >
 	            <h4 class="panel-title advanced-search-panel-title">
 	              <a class="accordion-toggle " role="button" data-toggle="collapse"  data-parent="#accordion" aria-expanded="false" data-target="#section_2" aria-controls="section_2">
@@ -130,8 +206,34 @@
 	              </a>
 	              <span class="advanced-search-clear" ng-click="clearFilter()" title="Clear Search Filter">Clear</span>
 	            </h4>
-	          </div>
-	          <div id="section_2" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="section_2"   style="overflow:visible;padding:15px 5px;">	              	
+	          </div>                                   
+                    
+	          <div id="section_2" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="section_2"   style="overflow:visible;padding:15px 5px;">
+	          		<div class="row">
+		          		<div class="col-md-4 col-sd-12 col-xs-12 avanced-search-subtitle">&raquo; Sort By:</div>
+	                    <div class="col-md-8 col-sd-12 col-xs-12 advanced-calendar-label" style="padding-bottom: 20px;" >
+	                         <select class="form-control"
+	                                ng-change="sortedbyChange()"
+	                                ng-model="model.sortedby"
+	                                ng-options="item.value as item.name  for item in  model.options">
+	                            <option></option>
+	                        </select>
+	                    </div>
+	                    <div class="col-md-4 col-sd-12 col-xs-12 avanced-search-subtitle">&raquo; Order By:</div>
+	                    <div class="col-md-8 col-sd-12 col-xs-12 advanced-calendar-label" style="padding-bottom: 20px;" >
+	                        
+	                        
+	                         <select class="form-control"
+	                                ng-change="orderbyChange()"
+	                                ng-model="model.order"
+	                                ng-options="ord.value as ord.name  for ord in  model.orderOptions">
+	                            <option></option>
+	                        </select>
+	                        
+	                      
+	                        
+	                    </div>
+                    </div>	              	
 				    <div class="row" ng-if="showsensingfilter">
 				    	<div class="col-md-4 col-sd-12 col-xs-12 avanced-search-subtitle">&raquo; Sensing period</div>
 				    	<div class="col-md-1 col-sd-2 col-xs-4 advanced-calendar-label" >

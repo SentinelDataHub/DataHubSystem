@@ -79,7 +79,7 @@ public class ProductCartServiceTest extends AbstractTestNGSpringContextTests
       
       try
       {
-         pcs.addProductToCart(u.getId(), p.getId());
+         pcs.addProductToCart(u.getUUID (), p.getId());
       }
       catch (Exception e)
       {
@@ -92,7 +92,7 @@ public class ProductCartServiceTest extends AbstractTestNGSpringContextTests
   {
      try
      {
-        pcs.clearCart(1000L);
+        pcs.clearCart("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1000");
         Assert.fail("System remove cart of an unknown user ?");
      }
      catch (Exception e)
@@ -102,7 +102,7 @@ public class ProductCartServiceTest extends AbstractTestNGSpringContextTests
      
      try
      {
-        pcs.clearCart(3L);
+        pcs.clearCart("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3");
      }
      catch (Exception e)
      {
@@ -111,7 +111,7 @@ public class ProductCartServiceTest extends AbstractTestNGSpringContextTests
      
      try
      {
-        pcs.clearCart(1L);
+        pcs.clearCart("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1");
      }
      catch (Exception e)
      {
@@ -120,7 +120,7 @@ public class ProductCartServiceTest extends AbstractTestNGSpringContextTests
 
      try
      {
-        pcs.clearCart(2L);
+        pcs.clearCart("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2");
      }
      catch (Exception e)
      {
@@ -131,54 +131,54 @@ public class ProductCartServiceTest extends AbstractTestNGSpringContextTests
   @Test (priority=1)
   public void countProductsInCart()
   {
-     Assert.assertEquals(pcs.countProductsInCart(0L), 2);
-     Assert.assertEquals(pcs.countProductsInCart(1L), 0);
-     Assert.assertEquals(pcs.countProductsInCart(2L), 0);
-     Assert.assertEquals(pcs.countProductsInCart(3L), 1);
+     Assert.assertEquals(pcs.countProductsInCart("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0"), 2);
+     Assert.assertEquals(pcs.countProductsInCart("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1"), 0);
+     Assert.assertEquals(pcs.countProductsInCart("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2"), 0);
+     Assert.assertEquals(pcs.countProductsInCart("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3"), 1);
   }
   
   @Test (priority=1)
   public void getCartOfUser()
   {
      // Users #0 and #3: normal users with single cart
-     ProductCart cart = pcs.getCartOfUser(0L);
-     Assert.assertEquals (cart.getId(), new Long(0L));
-     cart = pcs.getCartOfUser(3L);
-     Assert.assertEquals (cart.getId(), new Long(1L));
+     ProductCart cart = pcs.getCartOfUser("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0");
+     Assert.assertEquals (cart.getUUID(), "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0");
+     cart = pcs.getCartOfUser("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3");
+     Assert.assertEquals (cart.getUUID(), "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1");
 
     
      // user #1 has no cart. The cart should be NULL.
-     cart = pcs.getCartOfUser(1L);
+     cart = pcs.getCartOfUser("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1");
      Assert.assertNull(cart);
     
      // User #2 has carts: first cart must be returned #2
-     cart = pcs.getCartOfUser(2L);
-     Assert.assertEquals (cart.getId(), new Long(2L));
+     cart = pcs.getCartOfUser("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2");
+     Assert.assertEquals (cart.getUUID(), "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2");
   }
 
   @Test (priority=1)
   public void getProductsIdOfCart()
   {
      // Users ID #0 -> CARD ID #0 -> PRODUCT IDs #0 and #5 
-     List<Long>products = pcs.getProductsIdOfCart(0L);
+     List<Long>products = pcs.getProductsIdOfCart("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0");
      Assert.assertEquals (products.size(), 2);
      Assert.assertEquals (products.get (0), new Long(5L));
      Assert.assertEquals (products.get (1), new Long(0L));
      
 
      // USER #1 -> no cart
-     products = pcs.getProductsIdOfCart(1L);
+     products = pcs.getProductsIdOfCart("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1");
      Assert.assertEquals (products.size(), 0);
 
      
      // USER #2 -> CART #2 -> no product 
      //            CART #3 -> product #0
      // DAO methods returns only first cart if multiple... 
-     products = pcs.getProductsIdOfCart(2L);
+     products = pcs.getProductsIdOfCart("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2");
      Assert.assertEquals (products.size(), 0);
 
      // Users ID #3 -> CARD ID #1 -> PRODUCT IDs #5
-     products = pcs.getProductsIdOfCart(3L);
+     products = pcs.getProductsIdOfCart("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3");
      Assert.assertEquals (products.size(), 1);
      Assert.assertEquals (products.get (0), new Long(5L));
   }
@@ -187,25 +187,25 @@ public class ProductCartServiceTest extends AbstractTestNGSpringContextTests
   public void getProductsOfCart()
   {
      // Users ID #0 -> CARD ID #0 -> PRODUCT IDs #0 and #5 
-     List<Product>products = pcs.getProductsOfCart(0L, 0, 100);
+     List<Product>products = pcs.getProductsOfCart("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0", 0, 100);
      Assert.assertEquals (products.size(), 2);
      Assert.assertEquals (products.get (0).getId(), new Long(5L));
      Assert.assertEquals (products.get (1).getId(), new Long(0L));
      
 
      // USER #1 -> no cart
-     products = pcs.getProductsOfCart(1L, 0 , 100);
+     products = pcs.getProductsOfCart("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1", 0 , 100);
      Assert.assertEquals (products.size(), 0);
 
      
      // USER #2 -> CART #2 -> no product 
      //            CART #3 -> product #0
      // DAO methods returns only first cart if multiple... 
-     products = pcs.getProductsOfCart(2L, 0, 100);
+     products = pcs.getProductsOfCart("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2", 0, 100);
      Assert.assertEquals (products.size(), 0);
 
      // Users ID #3 -> CARD ID #1 -> PRODUCT IDs #5
-     products = pcs.getProductsOfCart(3L, 0, 100);
+     products = pcs.getProductsOfCart("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3", 0, 100);
      Assert.assertEquals (products.size(), 1);
      Assert.assertEquals (products.get (0).getId(), new Long(5L));
   }
@@ -215,10 +215,10 @@ public class ProductCartServiceTest extends AbstractTestNGSpringContextTests
   {
      // Users ID #0 -> CARD ID #0 -> PRODUCT IDs #0 and #5
      // Remove product #0 
-     pcs.removeProductFromCart(0L, 0L);
+     pcs.removeProductFromCart("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0", 0L);
      
      // recheck it product list size is now 1
-     List<Long>products = pcs.getProductsIdOfCart(0L);
+     List<Long>products = pcs.getProductsIdOfCart("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0");
      Assert.assertEquals (products.size(), 1);
      Assert.assertEquals (products.get (0), new Long(5L));
   }
@@ -231,18 +231,18 @@ public class ProductCartServiceTest extends AbstractTestNGSpringContextTests
      u.setPassword ("TMPPASS##2");
      u = userDao.create(u);
      
-     ProductCart cart = pcs.createCartOfUser(u.getId());
+     ProductCart cart = pcs.createCartOfUser(u.getUUID());
      Assert.assertNotNull(cart);
      
-     ProductCart cart_new = pcs.createCartOfUser(u.getId());
+     ProductCart cart_new = pcs.createCartOfUser(u.getUUID());
      Assert.assertEquals(cart, cart_new);
   }
   
   @Test (priority=1000)
   public void deleteCartOfUser ()
   {
-     pcs.deleteCartOfUser(0L);
-     Assert.assertNull (pcs.getCartOfUser(0L));
+     pcs.deleteCartOfUser("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0");
+     Assert.assertNull (pcs.getCartOfUser("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0"));
   }
 
 }

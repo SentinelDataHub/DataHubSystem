@@ -23,8 +23,8 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import fr.gael.dhus.datastore.exception.BadLoginException;
 import fr.gael.drb.DrbAttribute;
@@ -38,7 +38,7 @@ import fr.gael.drb.impl.ftp.FtpNode;
  */
 public class FtpScanner extends AbstractScanner
 {
-   private static Log logger = LogFactory.getLog (FtpScanner.class);
+   private static final Logger LOGGER = LogManager.getLogger(FtpScanner.class);
 
    protected int scannedFiles = 0;
    protected int retrievedFile = 0;
@@ -90,10 +90,10 @@ public class FtpScanner extends AbstractScanner
       }
       catch (Exception e)
       {
-         logger.error("Cannot scan directory " +  ftpNode, e);
+         LOGGER.error("Cannot scan directory " +  ftpNode, e);
          throw new RuntimeException(e);
       }
-      logger.info ("FTP Scan done (" + total + ").");
+      LOGGER.info("FTP Scan done (" + total + ").");
       return total;
    }
 
@@ -108,7 +108,7 @@ public class FtpScanner extends AbstractScanner
       throws IOException, BadLoginException, InterruptedException
    {
       if (isStopped ()) throw new InterruptedException ();
-      logger.info ("LIST " + path);
+      LOGGER.info("LIST " + path);
       
       boolean accepted = checkIt (path);
       int total =0;

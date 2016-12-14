@@ -22,9 +22,10 @@
 
 -->
 <suite name="Sentinel2Utils" verbose="1">
-	<test name="Sentinel2Utils">
-		<classes>
-			<class name="fr.gael.drb.cortex.topic.sentinel2.Sentinel2UtilsTest" />
-		</classes>
-	</test>
+   <test name="Sentinel2Utils">
+      <classes>
+         <class name="fr.gael.drb.cortex.topic.sentinel2.Sentinel2UtilsTest" />
+         <class name="fr.gael.drb.cortex.topic.sentinel2.DrbImageManagerTest" />
+      </classes>
+   </test>
 </suite>

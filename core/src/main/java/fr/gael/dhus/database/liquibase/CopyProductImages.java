@@ -26,8 +26,8 @@ import liquibase.exception.CustomChangeException;
 import liquibase.exception.SetupException;
 import liquibase.exception.ValidationErrors;
 import liquibase.resource.ResourceAccessor;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import java.sql.Blob;
 import java.sql.PreparedStatement;
@@ -36,7 +36,7 @@ import java.sql.Statement;
 
 public class CopyProductImages implements CustomTaskChange
 {
-   private static Log logger = LogFactory.getLog (CopyProductImages.class);
+   private static final Logger LOGGER = LogManager.getLogger(CopyProductImages.class);
    @Override
    public String getConfirmationMessage ()
    {
@@ -105,7 +105,7 @@ public class CopyProductImages implements CustomTaskChange
                         }
                         catch (Exception e)
                         {
-                           logger.warn ("Cannot close Statement !");
+                           LOGGER.warn("Cannot close Statement !");
                         }
                   }
                   continue;
@@ -147,13 +147,13 @@ public class CopyProductImages implements CustomTaskChange
                         }
                      catch (Exception e)
                      {
-                        logger.warn ("Cannot close Statement !");
+                        LOGGER.warn("Cannot close Statement !");
                      }
                   }
                }
                else
                {
-                  logger.error ("Cannot retrieve Image primary key for " +
+                  LOGGER.error("Cannot retrieve Image primary key for " +
                         "product ID #" + products_res.getLong ("ID"));
                }
             }
@@ -166,7 +166,7 @@ public class CopyProductImages implements CustomTaskChange
                   }
                   catch (Exception e)
                   {
-                     logger.warn ("Cannot close ResultSet !");
+                     LOGGER.warn("Cannot close ResultSet !");
                   }
                if (copy_blob_stmt != null)
                   try
@@ -175,7 +175,7 @@ public class CopyProductImages implements CustomTaskChange
                   }
                   catch (Exception e)
                   {
-                     logger.warn ("Cannot close Statement !");
+                     LOGGER.warn("Cannot close Statement !");
                   }
             }
          }
@@ -194,7 +194,7 @@ public class CopyProductImages implements CustomTaskChange
             }
             catch (Exception e)
             {
-               logger.warn ("Cannot close ResultSet !");
+               LOGGER.warn("Cannot close ResultSet !");
             }
          }
          if (products!=null)
@@ -205,7 +205,7 @@ public class CopyProductImages implements CustomTaskChange
             }
             catch (Exception e)
             {
-               logger.warn ("Cannot close Statement !");
+               LOGGER.warn("Cannot close Statement !");
             }
          }
          //if (db_connection!=null) try { db_connection.close (); }

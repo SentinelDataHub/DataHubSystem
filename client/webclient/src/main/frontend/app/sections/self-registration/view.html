@@ -244,7 +244,7 @@ select:focus {
     <div class="col-md-12">
       <b>Sentinel data access is free and open to all.</b><br/><br/>
 On completion of the registration form below you will receive an e-mail with a link to validate your e-mail address. Following this you can start to download the data.<br/>
-Special chars are not allowed in the username field, i.e.: + - & || ! ( ) { } [ ] ^ " ~ * ? : \ $ ' &lt;blank space&gt;.
+Username field accepts only alphanumeric characters plus ".", "-", "_" and "-".
     </div>
   </div>
   <hr></hr>
@@ -272,11 +272,12 @@ Special chars are not allowed in the username field, i.e.: + - & || ! ( ) { } [ 
   <div class="row">
     <div class="group col-md-6">      
       <div > 
-        <input type="text" ng-model="user.username" value="user.username" ng-change="checkUsername()"  class="form-control" placeholder="Username">
+        <input type="text" ng-model="user.username" value="user.username" ng-change="checkUsername()"  class="form-control" placeholder="Username" ng-trim="false">
         <span class="highlight"></span>
         <span class="bar"></span>
         <label id="usernameLbl">Username</label>
         <span class="invalid-field" id="checkUsername">Username empty</span>
+        <span class="invalid-field" id="checkUsernameInvalid">Username contains illegal characters.</span>
       </div>
     </div>    
   </div>  

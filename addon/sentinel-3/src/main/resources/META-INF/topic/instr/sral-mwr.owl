@@ -72,7 +72,7 @@
       </rdfs:comment>      
       <rdfs:subClassOf rdf:resource="&s3;ipf_sral_level_1_2"/>
       <drb:signature rdf:parseType="Resource">
-         <drb:nameMatch>S3[AB_]_SR_[12]_(SRA___|LAN___|WAT___).*</drb:nameMatch>	  	 
+         <drb:nameMatch>S3[AB_]_SR_[12]_(SRA___|SRA_A_|SRA_BS|LAN___|WAT___).*</drb:nameMatch>	  	 
       </drb:signature>
    </owl:Class>   
    

@@ -33,7 +33,7 @@ import fr.gael.dhus.system.config.ConfigurationManager;
 /**
  * Product Bean. A product served by the DHuS.
  */
-public class NetworkStatistic extends V1Entity
+public class NetworkStatistic extends AbstractEntity
 {
    protected final AbuseMetrics abuseMetrics;
 

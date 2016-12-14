@@ -33,6 +33,7 @@ angular
     filescannerStartUrl: "api/stub/admin/filescanners/:fsid?start=true",
     filescannerStopUrl: "api/stub/admin/filescanners/:fsid?stop=true",
     lastfilescannerUrl: "api/stub/admin/filescannerschedulers?filter=last",
+    nextFilescannerDateUrl: "api/stub/admin/filescanners/next",
       	
   	getFileScanners: function(){              
        var self = this;
@@ -41,6 +42,15 @@ angular
         method: "GET"
         });   
     },
+
+    getNextFileScannerDate: function(){
+           var self = this;
+           return $http({
+            url: ApplicationConfig.baseUrl + self.nextFilescannerDateUrl,
+            method: "GET"
+            });
+        },
+
     getFileScannersCount: function(){              
        var self = this;
        return $http({

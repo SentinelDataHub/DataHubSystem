@@ -1,6 +1,6 @@
 /*
  * Data Hub Service (DHuS) - For Space data distribution.
- * Copyright (C) 2013,2014,2015 GAEL Systems
+ * Copyright (C) 2013,2014,2015,2016 GAEL Systems
  *
  * This file is part of DHuS software sources.
  *
@@ -19,62 +19,70 @@
  */
 package fr.gael.dhus.sync.impl;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Formatter;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import fr.gael.dhus.service.ISynchronizerService;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
-import org.apache.http.impl.nio.client.HttpAsyncClients;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-
-import org.apache.log4j.Logger;
-import org.apache.olingo.odata2.api.edm.EdmLiteralKind;
-import org.apache.olingo.odata2.api.edm.EdmSimpleTypeKind;
-import org.apache.olingo.odata2.api.ep.entry.ODataEntry;
-import org.apache.olingo.odata2.api.ep.feed.ODataFeed;
-import org.apache.olingo.odata2.api.exception.ODataException;
-import org.hibernate.exception.LockAcquisitionException;
-import org.hibernate.HibernateException;
-
 import fr.gael.dhus.database.object.MetadataIndex;
 import fr.gael.dhus.database.object.Product;
 import fr.gael.dhus.database.object.SynchronizerConf;
 import fr.gael.dhus.datastore.IncomingManager;
-import fr.gael.dhus.sync.Synchronizer;
 import fr.gael.dhus.olingo.ODataClient;
-import fr.gael.dhus.olingo.v1.V1Model;
+import fr.gael.dhus.olingo.v1.Model;
 import fr.gael.dhus.service.CollectionService;
+import fr.gael.dhus.service.ISynchronizerService;
 import fr.gael.dhus.service.MetadataTypeService;
 import fr.gael.dhus.service.ProductService;
 import fr.gael.dhus.service.SearchService;
 import fr.gael.dhus.service.metadata.MetadataType;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
+import fr.gael.dhus.sync.Synchronizer;
 import fr.gael.dhus.util.http.HttpAsyncClientProducer;
-import fr.gael.dhus.util.http.InterruptibleHttpClient;
+import fr.gael.dhus.util.http.ParallelizedDownloadManager;
+import fr.gael.dhus.util.http.ParallelizedDownloadManager.DownloadResult;
+import fr.gael.dhus.util.http.Timeouts;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.security.DigestException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.apache.http.impl.nio.client.HttpAsyncClients;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import org.apache.olingo.odata2.api.edm.EdmLiteralKind;
+import org.apache.olingo.odata2.api.edm.EdmSimpleTypeKind;
+import org.apache.olingo.odata2.api.ep.entry.ODataEntry;
+import org.apache.olingo.odata2.api.ep.feed.ODataDeltaFeed;
+import org.apache.olingo.odata2.api.ep.feed.ODataFeed;
+import org.apache.olingo.odata2.api.exception.ODataException;
+
+import org.hibernate.HibernateException;
+import org.hibernate.exception.LockAcquisitionException;
+
 import org.springframework.dao.CannotAcquireLockException;
+import org.springframework.security.crypto.codec.Hex;
 
 /**
  * A synchronizer using the OData API of another DHuS.
@@ -82,7 +90,7 @@ import org.springframework.dao.CannotAcquireLockException;
 public class ODataProductSynchronizer extends Synchronizer
 {
    /** Log. */
-   private static final Logger LOGGER = Logger.getLogger (ODataProductSynchronizer.class);
+   private static final Logger LOGGER = LogManager.getLogger(ODataProductSynchronizer.class);
 
    /** Synchronizer Service, to save the  */
    private static final ISynchronizerService SYNC_SERVICE =
@@ -121,7 +129,7 @@ public class ODataProductSynchronizer extends Synchronizer
    private final String remoteIncoming;
 
    /** Adds every new product in this collection. */
-   private final Long targetCollection;
+   private final String targetCollectionUUID;
 
    /** OData resource path to a remote source collection: "Collections('a')/.../Collections('z')" */
    private final String sourceCollection;
@@ -185,7 +193,7 @@ public class ODataProductSynchronizer extends Synchronizer
       }
 
       String dec_name = client.getSchema ().getDefaultEntityContainer ().getName ();
-      if (!dec_name.equals (V1Model.ENTITY_CONTAINER))
+      if (!dec_name.equals(Model.ENTITY_CONTAINER))
       {
          throw new IllegalStateException ("`service_uri` does not reference a DHuS odata service");
       }
@@ -248,11 +256,11 @@ public class ODataProductSynchronizer extends Synchronizer
       String target_collection = sc.getConfig ("target_collection");
       if (target_collection != null && !target_collection.isEmpty ())
       {
-         this.targetCollection = Long.parseLong (target_collection);
+         this.targetCollectionUUID = target_collection;
       }
       else
       {
-         this.targetCollection = null;
+         this.targetCollectionUUID = null;
       }
 
       String filter_param = sc.getConfig ("filter_param");
@@ -293,185 +301,498 @@ public class ODataProductSynchronizer extends Synchronizer
                     " query(" + query + ") done in " + delta_time + "ms");
    }
 
-   /** Result type for {@link #downloadValidateRename(InterruptibleHttpClient, Path, String)}. */
-   private class DownloadResult
-   {
-      /** Path to downloaded data. */
-      public final Path data;
-      /** Content-Type of downloaded data. */
-      public final String dataType;
-      /** Content-Length of downloaded data. */
-      public final long dataSize;
 
-      /** Create new instance, sets public fields. */
-      public DownloadResult(Path data, String dataType, long dataSize)
+   /**
+    * Downloads a product,
+    * returns 3 Futures, 1st is the product, 2nd is the quicklook and 3rd is the thumbnail.
+    * 2nd and 3rd Futures may be null!
+    */
+   private Future<DownloadResult>[] download(ParallelizedDownloadManager downloader, Product p)
+         throws IOException, InterruptedException
+   {
+      @SuppressWarnings("unchecked")
+      Future<DownloadResult>[] res = new Future[3];
+
+      res[0] = downloader.download(p.getOrigin());
+
+      // Downloads and sets the quicklook and thumbnail (if any)
+      if (p.getQuicklookFlag())
       {
-         this.data = data;
-         this.dataType = dataType;
-         this.dataSize = dataSize;
+         res[1] = downloader.download(p.getQuicklookPath());
       }
+      if (p.getThumbnailFlag())
+      {
+         res[2] = downloader.download(p.getThumbnailPath());
+      }
+
+      return res;
    }
 
    /**
-    * Uses the given `http_client` to download `url` into `out_tmp`.
-    * Renames `out_tmp` to the value of the filename param of the Content-Disposition header field.
-    * Returns a path to the renamed file.
-    *
-    * @param http_client synchronous interruptible HTTP client.
-    * @param out_tmp download destination file on disk (will be created if does not exist).
-    * @param url what to download.
-    * @return Path to file with its actual name.
-    * @throws IOException Anything went wrong (with IO or network, or if the HTTP header field
-    *       Content-Disposition is missing).
-    * @throws InterruptedException Thread has been interrupted.
+    * Gets `pageSize` products from the data source.
+    * @param optional_skip an optional $skip parameter, may be null.
+    * @param expand_navlinks if `true`, the query will contain: `$expand=Class,Attributes,Products`.
     */
-   private DownloadResult downloadValidateRename(InterruptibleHttpClient http_client, Path out_tmp,
-         String url) throws IOException, InterruptedException
+   private ODataFeed getPage(Integer optional_skip, boolean expand_navlinks)
+         throws ODataException, IOException, InterruptedException
    {
-      try (FileChannel output = FileChannel.open(out_tmp,
-            StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE))
+      // Makes the query parameters
+      Map<String, String> query_param = new HashMap<>();
+
+      String lup_s = EdmSimpleTypeKind.DateTime.getEdmSimpleTypeInstance()
+            .valueToString(lastCreated, EdmLiteralKind.URI, null);
+      // 'GreaterEqual' because of products with the same IngestionDate
+      String filter = "IngestionDate ge " + lup_s;
+
+      // Appends custom $filter parameter
+      if (filterParam != null)
       {
-
-         HttpResponse response = http_client.interruptibleGet(url, output);
-
-         // If the response's status code is not 200, something wrong happened
-         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK)
-         {
-            Formatter ff = new Formatter();
-            ff.format("Synchronizer#%d cannot download product at %s,"
-                  + " remote dhus returned message '%s' (HTTP%d)",
-                  getId(),
-                  url,
-                  response.getStatusLine().getReasonPhrase(),
-                  response.getStatusLine().getStatusCode());
-            throw new IOException(ff.out().toString());
-         }
-
-         // Gets the filename from the HTTP header field `Content-Disposition'
-         Pattern pat = Pattern.compile("filename=\"(.+?)\"", Pattern.CASE_INSENSITIVE);
-         String contdis = response.getFirstHeader("Content-Disposition").getValue();
-         Matcher m = pat.matcher(contdis);
-         if (!m.find())
-         {
-            throw new IOException("Synchronizer#" + getId()
-                  + " Missing HTTP header field `Content-Disposition` that determines the filename");
-         }
-         String filename = m.group(1);
-         if (filename == null || filename.isEmpty())
-         {
-            throw new IOException("Synchronizer#" + getId()
-                  + " Invalid filename in HTTP header field `Content-Disposition`");
-         }
-
-         // Renames the downloaded file
-         output.close();
-         Path dest = out_tmp.getParent().resolve(filename);
-         Files.move(out_tmp, dest, StandardCopyOption.ATOMIC_MOVE);
-
-         DownloadResult res = new DownloadResult(
-               dest,
-               response.getEntity().getContentType().getValue(),
-               response.getEntity().getContentLength());
-
-         return res;
+         filter += " and (" + filterParam + ")";
       }
-      finally
+
+      query_param.put("$filter", filter);
+
+      query_param.put("$top", String.valueOf(pageSize));
+
+      query_param.put("$orderby", "IngestionDate");
+
+      if (optional_skip != null && optional_skip > 0)
       {
-         if (Files.exists(out_tmp))
+         query_param.put("$skip", optional_skip.toString());
+      }
+
+      if (expand_navlinks)
+      {
+         query_param.put("$expand", "Class,Attributes,Products");
+      }
+
+      // Executes the query
+      long delta = System.currentTimeMillis();
+      ODataFeed pdf = client.readFeed(sourceCollection + "/Products", query_param);
+      logODataPerf("Products", System.currentTimeMillis() - delta);
+
+      return pdf;
+   }
+
+   /** Returns the IngestionDate of the given product entry. */
+   private Date getIngestionDate(ODataEntry entry) {
+      return ((GregorianCalendar) entry.getProperties().get("IngestionDate")).getTime();
+   }
+
+   /** Returns `true` if the given product entry already exists in the database. */
+   private boolean exists(ODataEntry entry)
+   {
+      String uuid = (String) entry.getProperties().get("Id");
+      // FIXME: might not be the same product
+      return PRODUCT_SERVICE.systemGetProduct(uuid) != null;
+   }
+
+   /** Creates and returns a new Product from the given entry. */
+   private Product entryToProducts(ODataEntry entry)
+         throws ODataException, IOException, InterruptedException
+   {
+      long delta;
+      Map<String, Object> props = entry.getProperties();
+
+      // (`UUID` and `PATH` have unique constraint), PATH references the UUID
+      String uuid = (String) props.get("Id");
+
+      // Makes the product resource path
+      String pdt_p = "/Products('" + uuid + "')";
+
+      Product product = new Product();
+      product.setUuid(uuid);
+
+      // Reads the properties
+      product.setIdentifier((String) props.get("Name"));
+      product.setIngestionDate(((GregorianCalendar) props.get("IngestionDate")).getTime());
+      product.setCreated(((GregorianCalendar) props.get("CreationDate")).getTime());
+      product.setFootPrint((String) props.get("ContentGeometry"));
+      product.setProcessed(Boolean.TRUE);
+      product.setSize((Long) props.get("ContentLength"));
+
+      // Reads the ContentDate complex type
+      Map contentDate = (Map) props.get("ContentDate");
+      product.setContentStart(((GregorianCalendar) contentDate.get("Start")).getTime());
+      product.setContentEnd(((GregorianCalendar) contentDate.get("End")).getTime());
+
+      // Sets the origin to the remote URI
+      product.setOrigin(client.getServiceRoot() + pdt_p + "/$value");
+      product.setPath(new URL(entry.getMetadata().getId() + "/$value"));
+
+      // Sets the size, ContentType and Checksum of product
+      Product.Download d = new Product.Download();
+      Map<String, String> checksum = (Map) props.get("Checksum");
+      d.setSize(product.getSize());
+      d.setType((String) props.get("ContentType"));
+      d.setChecksums(
+            Collections.singletonMap(
+                  checksum.get(Model.ALGORITHM),
+                  checksum.get(Model.VALUE)));
+      product.setDownload(d);
+
+      // Sets the download path to LocalPath (if LocalPaths are exposed)
+      if (this.remoteIncoming != null && !this.copyProduct)
+      {
+         String path = (String) props.get("LocalPath");
+         if (path != null && !path.isEmpty())
          {
-            Files.delete(out_tmp);
+            d.setPath(Paths.get(this.remoteIncoming, path).toString());
+
+            File f = new File(d.getPath());
+            if (!f.exists())
+            {
+               // The incoming path is probably false
+               // Throws an exception to notify the admin about this issue
+               throw new RuntimeException("ODataSynchronizer: Local file '" + path +
+                      "' not found in remote incoming '" + this.remoteIncoming + '\'');
+            }
+            product.setPath(new URL("file://" + d.getPath()));
+         }
+         else
+         {
+            throw new RuntimeException("RemoteIncoming is set" +
+                   " but the LocalPath property is missing in remote products");
+         }
+      }
+
+      // Retrieves the Product Class if not inlined
+      ODataEntry pdt_class_e;
+      if (entry.containsInlineEntry() && props.get("Class") != null)
+      {
+         pdt_class_e = ODataEntry.class.cast(props.get("Class"));
+      }
+      else
+      {
+         delta = System.currentTimeMillis();
+         pdt_class_e = client.readEntry(pdt_p + "/Class", null);
+         logODataPerf(pdt_p + "/Class", System.currentTimeMillis() - delta);
+      }
+      Map<String, Object> pdt_class_pm = pdt_class_e.getProperties();
+      String pdt_class = String.class.cast(pdt_class_pm.get("Uri"));
+      product.setItemClass(pdt_class);
+
+      // Retrieves Metadata Indexes (aka Attributes on odata) if not inlined
+      ODataFeed mif;
+      if (entry.containsInlineEntry() && props.get("Attributes") != null)
+      {
+         mif = ODataDeltaFeed.class.cast(props.get("Attributes"));
+      }
+      else
+      {
+         delta = System.currentTimeMillis();
+         mif = client.readFeed(pdt_p + "/Attributes", null);
+         logODataPerf(pdt_p + "/Attributes", System.currentTimeMillis() - delta);
+      }
+      List<MetadataIndex> mi_l = new ArrayList<>(mif.getEntries().size());
+      for (ODataEntry mie: mif.getEntries())
+      {
+         Map<String, Object> mi_pm = mie.getProperties();
+         MetadataIndex mi = new MetadataIndex();
+         String mi_name = (String) mi_pm.get("Name");
+         mi.setName(mi_name);
+         mi.setType((String) mi_pm.get("ContentType"));
+         mi.setValue((String) mi_pm.get("Value"));
+         MetadataType mt = METADATA_TYPE_SERVICE.getMetadataTypeByName(pdt_class, mi_name);
+         if (mt != null)
+         {
+            mi.setCategory(mt.getCategory());
+            if (mt.getSolrField() != null)
+            {
+               mi.setQueryable(mt.getSolrField().getName());
+            }
+         }
+         else if (mi_name.equals("Identifier"))
+         {
+            mi.setCategory("");
+            mi.setQueryable("identifier");
+         }
+         else if (mi_name.equals("Ingestion Date"))
+         {
+            mi.setCategory("product");
+            mi.setQueryable("ingestionDate");
+         }
+         else
+         {
+            mi.setCategory("");
+         }
+         mi_l.add(mi);
+
+      }
+      product.setIndexes(mi_l);
+
+      // Retrieves subProducts if not inlined
+      ODataFeed subp;
+      if (entry.containsInlineEntry() && props.get("Products") != null)
+      {
+         subp = ODataDeltaFeed.class.cast(props.get("Products"));
+      }
+      else
+      {
+         delta = System.currentTimeMillis();
+         subp = client.readFeed(pdt_p + "/Products", null);
+         logODataPerf(pdt_p + "/Products", System.currentTimeMillis() - delta);
+      }
+      for (ODataEntry subpe: subp.getEntries())
+      {
+         String id = (String) subpe.getProperties().get("Id");
+         Long content_len = (Long) subpe.getProperties().get("ContentLength");
+
+         String path = (String) subpe.getProperties().get("LocalPath");
+         if (this.remoteIncoming != null && !this.copyProduct &&
+                path != null && !path.isEmpty())
+         {
+            path = Paths.get(this.remoteIncoming, path).toString();
+         }
+         else
+         {
+            path = client.getServiceRoot() + pdt_p +
+                   "/Products('" + subpe.getProperties().get("Id") + "')/$value";
+         }
+
+         // Retrieves the Quicklook
+         if (id.equals("Quicklook"))
+         {
+            product.setQuicklookSize(content_len);
+            product.setQuicklookPath(path);
+         }
+
+         // Retrieves the Thumbnail
+         else if (id.equals("Thumbnail"))
+         {
+            product.setThumbnailSize(content_len);
+            product.setThumbnailPath(path);
+         }
+      }
+
+      // `processed` must be set to TRUE
+      product.setProcessed(Boolean.TRUE);
+
+      return product;
+   }
+
+   private void save(Product product)
+   {
+      List<MetadataIndex> metadatas = product.getIndexes();
+
+      // Stores `product` in the database
+      product = PRODUCT_SERVICE.addProduct(product);
+      product.setIndexes(metadatas); // DELME lazy loading not working atm ...
+
+      // Stores `product` in the index
+      try
+      {
+         long delta = System.currentTimeMillis();
+         SEARCH_SERVICE.index(product);
+         LOGGER.debug("Synchronizer#" + getId() + " indexed product " +
+               product.getIdentifier() + " in " + (System.currentTimeMillis() - delta) + "ms");
+      }
+      catch (Exception e)
+      {
+         // Solr errors are not considered fatal
+         LOGGER.error("Synchronizer#" + getId() + " Failed to index product " +
+               product.getIdentifier() + " in Solr's index", e);
+      }
+
+      // Sets the target collection both in the DB and Solr
+      if (this.targetCollectionUUID != null)
+      {
+         try
+         {
+            COLLECTION_SERVICE.systemAddProduct(this.targetCollectionUUID, product.getId(), false);
+         }
+         catch (HibernateException e)
+         {
+            LOGGER.error("Synchronizer#" + getId() + " Failed to set collection#" +
+                  this.targetCollectionUUID + " for product " + product.getIdentifier(), e);
+            // Reverting ...
+            PRODUCT_SERVICE.systemDeleteProduct(product.getId());
+            throw e;
+         }
+         catch (Exception e)
+         {
+            LOGGER.error("Synchronizer#" + getId() + " Failed to update product " +
+                  product.getIdentifier() + " in Solr's index", e);
          }
       }
    }
 
-   /** Downloads a product. */
-   private void downloadProduct(Product p) throws IOException, InterruptedException
+   /** move file at `path_to_file` to `path_to_dir`. Returns the resulting Path. */
+   private Path chDir(Path path_to_file, Path path_to_dir) throws IOException
    {
-      // Creates a client producer that produces HTTP Basic auth aware clients
-      HttpAsyncClientProducer cliprod = new HttpAsyncClientProducer ()
-      {
-         @Override
-         public CloseableHttpAsyncClient generateClient ()
-         {
-            CredentialsProvider credsProvider = new BasicCredentialsProvider();
-            credsProvider.setCredentials(new AuthScope (AuthScope.ANY),
-                    new UsernamePasswordCredentials(serviceUser, servicePass));
-            CloseableHttpAsyncClient res = HttpAsyncClients.custom ()
-                  .setDefaultCredentialsProvider (credsProvider)
-                  .build ();
-            res.start ();
-            return res;
-         }
-      };
+      Path res = path_to_dir.resolve(path_to_file.getFileName());
+      Files.move(path_to_file, res, StandardCopyOption.ATOMIC_MOVE);
+      return res;
+   }
 
-      // Asks the Incoming manager for a download path
-      Path dir = Paths.get(INCOMING_MANAGER.getNewIncomingPath().toURI());
-      Path tmp_pd = dir.resolve(p.getIdentifier() + ".part");    // Temporary names
-      Path tmp_ql = dir.resolve(p.getIdentifier() + "-ql.part");
-      Path tmp_tn = dir.resolve(p.getIdentifier() + "-tn.part");
-      // These files will be moved once download is complete
+   /** Retrieves and download new products, downloads are parallelized. */
+   private int getAndCopyNewProduct() throws InterruptedException
+   {
+      int res = 0;
+      int count = this.pageSize;
+      int skip = 0;
 
-      InterruptibleHttpClient http_client = new InterruptibleHttpClient(cliprod);
-      DownloadResult pd_res = null, ql_res = null, tn_res = null;
+      ParallelizedDownloadManager downloader = new ParallelizedDownloadManager(
+            this.pageSize, this.pageSize, 0, TimeUnit.SECONDS,
+            new BasicAuthHttpClientProducer(), INCOMING_MANAGER.getTempDir().toPath());
+
+      // Downloads are done asynchronously in another threads
+      List<Product> products = new ArrayList<>(this.pageSize);
+      List<Future<DownloadResult>[]> futures = new ArrayList<>(this.pageSize);
+
       try
       {
-         long delta = System.currentTimeMillis();
-         pd_res = downloadValidateRename(http_client, tmp_pd, p.getOrigin());
-         logODataPerf(p.getOrigin(), System.currentTimeMillis() - delta);
-
-         // Sets download info in the product (not written in the db here)
-         p.setPath(pd_res.data.toUri().toURL());
-         p.setDownloadablePath(pd_res.data.toString());
-         p.setDownloadableType(pd_res.dataType);
-         p.setDownloadableSize(pd_res.dataSize);
-
-         // Downloads and sets the quicklook and thumbnail (if any)
-         if (p.getQuicklookFlag())
+         // Downloads at least `pageSize` products
+         while (count > 0)
          {
-            // Failing at downloading a quicklook must not abort the download!
-            try
+            ODataFeed pdf = getPage(skip, false);
+            if (pdf.getEntries().isEmpty()) // No more products
             {
-               ql_res = downloadValidateRename(http_client, tmp_ql, p.getQuicklookPath());
-               p.setQuicklookPath(ql_res.data.toString());
-               p.setQuicklookSize(ql_res.dataSize);
+               break;
             }
-            catch (IOException ex)
+
+            skip += this.pageSize;
+
+            for (ODataEntry pdt: pdf.getEntries ())
             {
-               LOGGER.error("Failed to download quicklook at " + p.getQuicklookPath(), ex);
+               if (exists(pdt))
+               {
+                  continue;
+               }
+               count--;
+
+               Product product = entryToProducts(pdt);
+               Future<DownloadResult>[] future = download(downloader, product);
+               products.add(product);
+               futures.add(future);
             }
          }
-         if (p.getThumbnailFlag())
+
+         // Get download results from Futures, and create product entries in DB, Solr
+         boolean update_lid = true; // Controls whether we are updating LastIngestionDate or not
+         for (int it=0; it<products.size(); it++)
          {
-            // Failing at downloading a thumbnail must not abort the download!
+            Product product = products.get(it);
+            Future<DownloadResult>[] future = futures.get(it);
             try
             {
-               tn_res = downloadValidateRename(http_client, tmp_tn, p.getThumbnailPath());
-               p.setThumbnailPath(tn_res.data.toString());
-               p.setThumbnailSize(tn_res.dataSize);
+               DownloadResult prod_res = future[0].get();
+
+               String data_md5 = String.valueOf(Hex.encode(prod_res.md5sum)).toUpperCase();
+               String sync_md5 = product.getDownload().getChecksums().get("MD5").toUpperCase();
+               if (!data_md5.equals(sync_md5))
+               {
+                  throw new DigestException(data_md5 + " != " + sync_md5);
+               }
+
+               // Asks the Incoming manager for dest directory
+               Path dir = Paths.get(INCOMING_MANAGER.getNewIncomingPath().toURI());
+
+               // Sets download info in the product
+               Path prod_path = chDir(prod_res.data, dir);
+               product.setPath(prod_path.toUri().toURL());
+               product.setDownloadablePath(prod_path.toString());
+               product.setDownloadableType(prod_res.dataType);
+               product.setDownloadableSize(prod_res.dataSize);
+
+               // Sets its QuickLook image (if any)
+               if (product.getQuicklookFlag() && future[1] != null)
+               {
+                  DownloadResult ql_res = future[1].get();
+                  Path ql_path = chDir(ql_res.data, dir);
+                  product.setQuicklookPath(ql_path.toString());
+                  product.setQuicklookSize(ql_res.dataSize);
+               }
+
+               // Sets its Thumbnail image (if any)
+               if (product.getThumbnailFlag() && future[2] != null)
+               {
+                  DownloadResult tn_res = future[2].get();
+                  Path tn_path = chDir(tn_res.data, dir);
+                  product.setThumbnailPath(tn_path.toString());
+                  product.setThumbnailSize(tn_res.dataSize);
+               }
+
+               save(product);
+               if (update_lid)
+               {
+                  this.lastCreated = product.getIngestionDate();
+                  this.dateChanged = true;
+               }
+               res++;
+
+               LOGGER.info(String.format(
+                     "Synchronizer#%d Product %s (%d bytes compressed) successfully synchronized from %s",
+                     getId(), product.getIdentifier(), product.getSize(), this.client.getServiceRoot()));
             }
-            catch (IOException ex)
+            catch (DigestException | ExecutionException ex)
             {
-               LOGGER.error("Failed to download thumbnail at " + p.getThumbnailPath(), ex);
+
+               if (ex instanceof DigestException)
+               {
+                  LOGGER.error(String.format("Synchronizer#%d Product %s md5sum comparison failed",
+                     getId(), product.getIdentifier()), ex);
+               }
+               else
+               {
+
+                  LOGGER.error(String.format("Synchronizer#%d Product %s failed to download",
+                        getId(), product.getIdentifier()), ex);
+               }
+
+               // Remove temp files (cleaning up downloaded files)
+               for (int ju=0; ju<3; ju++) {
+                  if (future[ju] != null)
+                  {
+                     try
+                     {
+                        Files.delete(future[ju].get().data);
+                     }
+                     catch (ExecutionException | IOException none) {}
+                  }
+               }
+
+               if (update_lid)
+               {
+                  this.lastCreated = product.getIngestionDate();
+                  this.dateChanged = true;
+                  // Only update the lastIngestionDate to the first consecutive successful downloads
+                  update_lid = false;
+               }
             }
          }
+
       }
-      catch (Exception ex)
+      catch (IOException | ODataException ex)
       {
-         // Removes downloaded files if an error occured
-         if (pd_res != null)
-         {
-            Files.delete(pd_res.data);
-         }
-         if (ql_res != null)
-         {
-            Files.delete(ql_res.data);
-         }
-         if (tn_res != null)
-         {
-            Files.delete(tn_res.data);
-         }
-         throw ex;
+         LOGGER.error ("OData failure", ex);
       }
+      catch (InterruptedException ex)
+      {
+         // Interruption required, stopping downloads and cleaning temp files
+         for (Future<DownloadResult>[] future: futures)
+         {
+            for (Future<DownloadResult> f: future)
+            {
+               if (f != null)
+               {
+                  f.cancel(true);
+                  try
+                  {
+                     Files.delete(f.get().data);
+                  }
+                  catch (CancellationException | ExecutionException | IOException none) {}
+               }
+            }
+         }
+      }
+      finally
+      {
+         // Save the ingestionDate of the last created Product
+         this.syncConf.setConfig ("last_created", String.valueOf (this.lastCreated.getTime ()));
+         downloader.shutdownNow();
+      }
+      return res;
    }
 
    /**
@@ -483,246 +804,26 @@ public class ODataProductSynchronizer extends Synchronizer
       int res = 0;
       try
       {
-         // Makes the query parameters
-         Map<String, String> query_param = new HashMap<> ();
-
-         String lup_s =EdmSimpleTypeKind.DateTime.getEdmSimpleTypeInstance ()
-               .valueToString (lastCreated, EdmLiteralKind.URI, null);
-         // 'GreaterEqual' because of products with the same IngestionDate
-         String filter = "IngestionDate ge " + lup_s;
-
-         // Appends custom $filter parameter
-         if (filterParam != null) {
-            filter += " and (" + filterParam + ")";
-         }
-
-         query_param.put ("$filter", filter);
-
-         query_param.put ("$top", String.valueOf (pageSize));
-
-         query_param.put ("$orderby", "IngestionDate");
-
-         // Executes the query
-         long delta = System.currentTimeMillis ();
-         ODataFeed pdf = client.readFeed (sourceCollection + "/Products", query_param);
-         logODataPerf ("Products", System.currentTimeMillis () - delta);
+         ODataFeed pdf = getPage(null, true);
 
          // For each entry, creates a DataBase Object
          for (ODataEntry pdt: pdf.getEntries ())
          {
-            Map<String, Object> props = pdt.getProperties ();
-
-            // Checks if a product with the same UUID already exist
-            // (`UUID` and `PATH` have unique constraint), PATH references the UUID
-            String uuid = (String) props.get ("Id");
-            if (PRODUCT_SERVICE.systemGetProduct (uuid) != null)
+            if (exists(pdt))
             {
-               // FIXME: might not be the same product
-               this.lastCreated = (((GregorianCalendar) props.get ("IngestionDate")).getTime ());
+               this.lastCreated = getIngestionDate(pdt);
                this.dateChanged = true;
                continue;
             }
 
-            // Makes the product resource path
-            String pdt_p = "/Products('" + uuid + "')";
-
-            Product product = new Product ();
-            product.setUuid (uuid);
-
-            // Reads the properties
-            product.setIdentifier ((String) props.get ("Name"));
-            product.setIngestionDate (((GregorianCalendar) props.get ("IngestionDate")).getTime ());
-            product.setCreated (((GregorianCalendar) props.get ("CreationDate")).getTime ());
-            product.setFootPrint ((String) props.get ("ContentGeometry"));
-            product.setProcessed (Boolean.TRUE);
-            product.setSize ((Long) props.get ("ContentLength"));
-
-            // Reads the ContentDate complex type
-            Map contentDate = (Map)props.get ("ContentDate");
-            product.setContentStart (((GregorianCalendar) contentDate.get ("Start")).getTime ());
-            product.setContentEnd (((GregorianCalendar) contentDate.get ("End")).getTime ());
-
-            // Sets the origin to the remote URI
-            product.setOrigin (client.getServiceRoot() + pdt_p + "/$value");
-            product.setPath (new URL (pdt.getMetadata ().getId () + "/$value"));
-
-            // Sets the download path to LocalPath (if LocalPaths are exposed)
-            if (this.remoteIncoming != null && !this.copyProduct)
-            {
-               String path = (String) props.get ("LocalPath");
-               if (path != null && !path.isEmpty ())
-               {
-                  Map<String, String> checksum = (Map)props.get ("Checksum");
-
-                  Product.Download d = new Product.Download ();
-                  d.setPath (Paths.get(this.remoteIncoming, path).toString());
-                  d.setSize (product.getSize ());
-                  d.setType ((String) props.get ("ContentType"));
-                  d.setChecksums (
-                        Collections.singletonMap (
-                              checksum.get (V1Model.ALGORITHM),
-                              checksum.get (V1Model.VALUE)));
-                  product.setDownload (d);
-
-                  File f = new File (d.getPath ());
-                  if (!f.exists ())
-                  {
-                     // The incoming path is probably false
-                     // Throws an exception to notify the admin about this issue
-                     throw new RuntimeException("ODataSynchronizer: Local file '" + path
-                           + "' not found in remote incoming '" + this.remoteIncoming + '\'');
-                  }
-                  product.setPath (new URL("file://" + d.getPath ()));
-               }
-               else
-               {
-                  throw new RuntimeException("RemoteIncoming is set"
-                        + " but the LocalPath property is missing in remote products");
-               }
-            }
-
-            // Retrieves the Product Class
-            delta = System.currentTimeMillis ();
-            ODataEntry pdt_class_e = client.readEntry (pdt_p + "/Class", null);
-            logODataPerf (pdt_p + "/Class", System.currentTimeMillis () - delta);
-
-            Map<String, Object> pdt_class_pm = pdt_class_e.getProperties ();
-            String pdt_class = (String) pdt_class_pm.get ("Uri");
-            product.setItemClass(pdt_class);
-
-            // Retrieves Metadata Indexes (aka Attributes on odata)
-            delta = System.currentTimeMillis ();
-            ODataFeed mif = client.readFeed (pdt_p + "/Attributes", null);
-            logODataPerf (pdt_p + "/Attributes", System.currentTimeMillis () - delta);
-
-            List<MetadataIndex> mi_l = new ArrayList<> (mif.getEntries ().size ());
-            for (ODataEntry mie: mif.getEntries ())
-            {
-               props = mie.getProperties ();
-               MetadataIndex mi = new MetadataIndex ();
-               String mi_name = (String) props.get ("Name");
-               mi.setName (mi_name);
-               mi.setType ((String) props.get ("ContentType"));
-               mi.setValue ((String) props.get ("Value"));
-               MetadataType mt = METADATA_TYPE_SERVICE.getMetadataTypeByName (pdt_class, mi_name);
-               if (mt != null)
-               {
-                  mi.setCategory (mt.getCategory ());
-                  if (mt.getSolrField () != null)
-                  {
-                     mi.setQueryable (mt.getSolrField ().getName ());
-                  }
-               }
-               else if (mi_name.equals ("Identifier"))
-               {
-                  mi.setCategory ("");
-                  mi.setQueryable ("identifier");
-               }
-               else if (mi_name.equals ("Ingestion Date"))
-               {
-                  mi.setCategory ("product");
-                  mi.setQueryable ("ingestionDate");
-               }
-               else
-               {
-                  mi.setCategory ("");
-               }
-               mi_l.add (mi);
-            }
-            product.setIndexes (mi_l);
-
-            // Retrieves subProducts
-            delta = System.currentTimeMillis ();
-            ODataFeed subp = client.readFeed (pdt_p + "/Products", null);
-            logODataPerf (pdt_p + "/Products", System.currentTimeMillis () - delta);
-
-            for (ODataEntry subpe: subp.getEntries ())
-            {
-               String id = (String) subpe.getProperties ().get ("Id");
-               Long content_len = (Long) subpe.getProperties ().get ("ContentLength");
-
-               String path = (String) subpe.getProperties ().get ("LocalPath");
-               if (this.remoteIncoming != null && !this.copyProduct
-                     && path != null && !path.isEmpty ())
-               {
-                  path = Paths.get(this.remoteIncoming, path).toString();
-               }
-               else
-               {
-                  path = client.getServiceRoot() + pdt_p
-                        + "/Products('" + subpe.getProperties().get("Id") + "')/$value";
-               }
-
-               // Retrieves the Quicklook
-               if (id.equals ("Quicklook"))
-               {
-                  product.setQuicklookSize (content_len);
-                  product.setQuicklookPath (path);
-               }
-
-               // Retrieves the Thumbnail
-               else if (id.equals ("Thumbnail"))
-               {
-                  product.setThumbnailSize (content_len);
-                  product.setThumbnailPath (path);
-               }
-            }
-
-            // `processed` must be set to TRUE
-            product.setProcessed (Boolean.TRUE);
-
-            // Downloads the product if required
-            if (this.copyProduct)
-            {
-               downloadProduct(product);
-            }
-
-            // Stores `product` in the database
-            product = PRODUCT_SERVICE.addProduct (product);
-            product.setIndexes (mi_l); // DELME lazy loading not working atm ...
-
-            // Sets the target collection both in the DB and Solr
-            if (this.targetCollection != null)
-            {
-               try
-               {
-                  COLLECTION_SERVICE.systemAddProduct (this.targetCollection, product.getId (), false);
-               }
-               catch (HibernateException e)
-               {
-                  LOGGER.error ("Synchronizer#" + getId () + " Failed to set collection#" +
-                        this.targetCollection + " for product " + product.getIdentifier (), e);
-                  // Reverting ...
-                  PRODUCT_SERVICE.systemDeleteProduct (product.getId ());
-                  throw e;
-               }
-               catch (Exception e)
-               {
-                  LOGGER.error ("Synchronizer#" + getId () + " Failed to update product " +
-                        product.getIdentifier () + " in Solr's index", e);
-               }
-            }
-
-            // Stores `product` in the index
-            try
-            {
-               delta = System.currentTimeMillis();
-               SEARCH_SERVICE.index (product);
-               LOGGER.debug("Synchronizer#" + getId() + " indexed product " +
-                     product.getIdentifier() + " in " + (System.currentTimeMillis() - delta) + "ms");
-            }
-            catch (Exception e)
-            {
-               // Solr errors are not considered fatal
-               LOGGER.error ("Synchronizer#" + getId () + " Failed to index product " +
-                     product.getIdentifier () + " in Solr's index", e);
-            }
+            Product product = entryToProducts(pdt);
+            save(product);
 
             this.lastCreated = product.getIngestionDate ();
             this.dateChanged = true;
 
             LOGGER.info("Synchronizer#" + getId () + " Product " + product.getIdentifier () +
-                  " ("+ product.getSize () + " bytes compressed) " +
+                  " ("+ product.getDownloadableSize() + " bytes compressed) " +
                   "successfully synchronized from " + this.client.getServiceRoot ());
 
             res++;
@@ -777,7 +878,14 @@ public class ODataProductSynchronizer extends Synchronizer
       LOGGER.info("Synchronizer#" + getId () + " started");
       try
       {
-         retrieved = getNewProducts ();
+         if (this.copyProduct)
+         {
+            retrieved = getAndCopyNewProduct();
+         }
+         else
+         {
+            retrieved = getNewProducts();
+         }
          if (Thread.interrupted ())
          {
             throw new InterruptedException ();
@@ -821,5 +929,29 @@ public class ODataProductSynchronizer extends Synchronizer
    public String toString ()
    {
       return "OData Product Synchronizer on " + syncConf.getConfig("service_uri");
+   }
+
+   /** Creates a client producer that produces HTTP Basic auth aware clients. */
+   private class BasicAuthHttpClientProducer implements HttpAsyncClientProducer
+   {
+      @Override
+      public CloseableHttpAsyncClient generateClient ()
+      {
+         CredentialsProvider credsProvider = new BasicCredentialsProvider();
+         credsProvider.setCredentials(new AuthScope (AuthScope.ANY),
+                 new UsernamePasswordCredentials(serviceUser, servicePass));
+         RequestConfig rqconf = RequestConfig.custom()
+               .setCookieSpec(CookieSpecs.DEFAULT)
+               .setSocketTimeout(Timeouts.SOCKET_TIMEOUT)
+               .setConnectTimeout(Timeouts.CONNECTION_TIMEOUT)
+               .setConnectionRequestTimeout(Timeouts.CONNECTION_REQUEST_TIMEOUT)
+               .build();
+         CloseableHttpAsyncClient res = HttpAsyncClients.custom ()
+               .setDefaultCredentialsProvider (credsProvider)
+               .setDefaultRequestConfig(rqconf)
+               .build ();
+         res.start ();
+         return res;
+      }
    }
 }

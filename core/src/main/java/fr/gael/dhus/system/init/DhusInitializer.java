@@ -19,8 +19,8 @@
  */
 package fr.gael.dhus.system.init;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,7 +37,7 @@ import fr.gael.dhus.database.object.User;
 @Component
 public class DhusInitializer implements InitializingBean
 {
-   private static Log logger = LogFactory.getLog (DhusInitializer.class);
+   private static final Logger LOGGER = LogManager.getLogger(DhusInitializer.class);
    
    @Autowired
    private UserDao userDao;
@@ -49,7 +49,7 @@ public class DhusInitializer implements InitializingBean
    @Override
    public void afterPropertiesSet () throws Exception
    {
-      logger.debug ("Adding USER listeners.");
+      LOGGER.debug("Adding USER listeners.");
       userDao.addListener (listener);
    }
 

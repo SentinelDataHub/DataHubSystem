@@ -56,7 +56,7 @@ public class BasicAuthFilter extends BasicAuthenticationFilter
       }
       catch (Exception e)
       {
-         logger.warn ("Unsuccessful process handler after authentication", e);
+         logger.warn("Unsuccessful process handler after authentication", e);
       }
    }
 }

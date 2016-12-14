@@ -36,6 +36,21 @@ var AdminCollectionTree = {
 		}	  	
 	},
 
+	getODataCollections: function(name) {
+		if(!name) {
+			return http({
+		      url: ApplicationConfig.baseUrl + 'odata/v1/Collections?$format=json',
+		      method: "GET"
+		      })
+		}
+		else {
+			return http({
+		      url: ApplicationConfig.baseUrl + 'odata/v1/Collections('+name+')/Collections?$format=json',
+		      method: "GET"
+		      })
+		}	  	
+	},
+
 	getCollectionDetails: function(){},    
 	setCollectionDetails: function(method){this.getCollectionDetails = method;},	
 };
@@ -84,7 +99,7 @@ angular
 	    updateCollection: function(coll) {
 	      var self = this; 	       
 	      return $http({
-	        url: ApplicationConfig.baseUrl + self.collectionUpdateDeleteUrl.replace(":id",coll.id),
+	        url: ApplicationConfig.baseUrl + self.collectionUpdateDeleteUrl.replace(":id",coll.uuid),
 	        method: "PUT", 
 	        contentType: 'application/json',         
 	        data: JSON.stringify(coll),       

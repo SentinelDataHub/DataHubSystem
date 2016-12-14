@@ -26,8 +26,9 @@ import liquibase.exception.CustomChangeException;
 import liquibase.exception.SetupException;
 import liquibase.exception.ValidationErrors;
 import liquibase.resource.ResourceAccessor;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import java.io.File;
 import java.sql.PreparedStatement;
@@ -37,9 +38,8 @@ import java.util.Date;
 
 public class ExtractProductDatesAndDownloadSize implements CustomTaskChange
 {
-   private static final Log LOGGER = LogFactory.getLog (
-      ExtractProductDatesAndDownloadSize.class);
-   
+   private static final Logger LOGGER = LogManager.getLogger(ExtractProductDatesAndDownloadSize.class);
+
    @Override
    public String getConfirmationMessage ()
    {

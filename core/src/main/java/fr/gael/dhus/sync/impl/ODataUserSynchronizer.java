@@ -31,6 +31,7 @@ import fr.gael.dhus.service.ISynchronizerService;
 import fr.gael.dhus.service.UserService;
 import fr.gael.dhus.service.exception.RequiredFieldMissingException;
 import fr.gael.dhus.service.exception.RootNotModifiableException;
+import fr.gael.dhus.service.exception.UsernameBadCharacterException;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
 import fr.gael.dhus.sync.Synchronizer;
 
@@ -45,9 +46,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.SetUtils;
-import org.apache.log4j.Level;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import org.apache.olingo.odata2.api.ep.entry.ODataEntry;
 import org.apache.olingo.odata2.api.ep.feed.ODataFeed;
@@ -64,7 +66,7 @@ import org.springframework.web.util.UriUtils;
 public class ODataUserSynchronizer extends Synchronizer
 {
    /** Log. */
-   private static final Logger LOGGER = Logger.getLogger(ODataUserSynchronizer.class);
+   private static final Logger LOGGER = LogManager.getLogger(ODataUserSynchronizer.class);
 
    /** Synchronizer Service, to save the  */
    private static final ISynchronizerService SYNC_SERVICE =
@@ -88,7 +90,7 @@ public class ODataUserSynchronizer extends Synchronizer
 
    /** Size of a Page (number of users to retrieve at once, $top parameter). */
    private int pageSize;
-   
+
    /** Force user synchronizer, without checking creation date. */
    private boolean force;
 
@@ -167,10 +169,11 @@ public class ODataUserSynchronizer extends Synchronizer
 
    /** Logs how much time an OData command consumed. */
    private ODataFeed readFeedLogPerf(String query, Map<String, String>params)
-         throws IOException, ODataException
+         throws IOException, ODataException, InterruptedException
    {
       long delta_time = System.currentTimeMillis();
       ODataFeed feed = client.readFeed(query, params);
+      delta_time = System.currentTimeMillis() - delta_time;
       log(Level.DEBUG, "query(" + query + ") done in " + delta_time + "ms");
       return feed;
    }
@@ -178,6 +181,7 @@ public class ODataUserSynchronizer extends Synchronizer
    @Override
    public boolean synchronize() throws InterruptedException
    {
+      log(Level.INFO, "started");
       int created = 0, updated = 0;
       try
       {
@@ -191,7 +195,7 @@ public class ODataUserSynchronizer extends Synchronizer
 
          query_param.put("$top", String.valueOf(pageSize));
 
-         log(Level.DEBUG, "Querying users from " + skip + " to " + skip + pageSize);
+         log(Level.DEBUG, "Querying users from " + skip + " to " + (skip + pageSize));
          ODataFeed userfeed = readFeedLogPerf("/Users", query_param);
 
          // For each entry, creates a DataBase Object
@@ -321,9 +325,8 @@ public class ODataUserSynchronizer extends Synchronizer
                   {
                      if (hash == null)
                         hash = PasswordEncryption.NONE.getAlgorithmKey ();
-                     
                      user.setEncryptedPassword(password,
-                         User.PasswordEncryption.valueOf(hash));
+                         User.PasswordEncryption.fromAlgorithm (hash));
                      changed = true;
                   }
 
@@ -371,8 +374,12 @@ public class ODataUserSynchronizer extends Synchronizer
                   user.setSubUsage(subusage);
                   user.setPhone(phone);
                   user.setAddress(address);
-                  user.setPassword(password);
-                  //user.setPasswordEncryption(User.PasswordEncryption.valueOf(hash));
+
+                  if (hash == null)
+                     hash = PasswordEncryption.NONE.getAlgorithmKey ();
+                  user.setEncryptedPassword(password,
+                      User.PasswordEncryption.fromAlgorithm (hash));
+
                   user.setCreated(creation);
                   user.setRoles(new_roles);
                   if (has_restriction)
@@ -390,7 +397,7 @@ public class ODataUserSynchronizer extends Synchronizer
                }
             }
             catch (RootNotModifiableException e) { } // Ignored exception
-            catch (RequiredFieldMissingException ex)
+            catch (RequiredFieldMissingException | UsernameBadCharacterException ex)
             {
                log(Level.ERROR, "Cannot create user '" + username + "'", ex);
             }

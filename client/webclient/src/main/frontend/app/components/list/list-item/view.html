@@ -68,7 +68,7 @@
 			
 		}
 		.logo{
-			width:60px;
+			min-width:60px;
 			height:60px;
 			opacity: 1;
 		}
@@ -88,12 +88,15 @@
 			position:absolute;
 			bottom:10px;
 			right: 20px;
+			font-size: 16px;
 	
 		}
 
 		.item-button{
 			margin-left: 15px;
 			cursor: pointer;
+			height: 18px;
+			width: 18px;
 		}
 
 		.item-title{
@@ -164,6 +167,11 @@
 		.selected-item{
 			color:green;
 		}
+
+		.list-thumbnail{
+			max-height: 64px;
+			max-width: 64px;
+		}
     </style>
     
     <div 
@@ -195,7 +203,7 @@
 		    		<div class="header" style="overflow:hidden;text-overflow:ellipsis;">
 					    <div ng-show="showquicklook"><a class="logo" >
 					        <img ng-if="!product.quicklook" style="opacity:1;" src="images/placeholder.png" alt="quicklook"/>
-					        <img ng-if="product.quicklook" alt="quicklook" ng-src="{{quicklooksrc}}">
+					        <img class="list-thumbnail" ng-if="product.quicklook" alt="quicklook" ng-src="{{quicklooksrc}}">
 					    </a></div>
 					    <div class="attributes" style="overflow:hidden;text-overflow:ellipsis;">
 					      	<div class="list-link">Download URL: <a class="list-link" style="overflow:hidden;text-overflow:ellipsis;" href="{{link}}">{{link}}</a></div>
@@ -207,7 +215,7 @@
 		    </div>
 	    </div>
 	    <!-- buttons -->
-		<div class="item-buttons" ng-show="visibleItemButton">			
+		<div class="item-buttons" ng-show="visibleItemButton">
 			
 			<!-- <input class=" item-checkbox " ng-model="product.selected"  type="checkbox"> </input> -->
 			<div class="glyphicon" ng-class="{ ' glyphicon-unchecked': !product.selected, 'glyphicon-check': product.selected, 'selected-item': product.selected }"  ng-click="selectProduct(); $event.stopPropagation();" title="Select product"></div>
@@ -215,8 +223,8 @@
 			
 			<div class="glyphicon glyphicon glyphicon-screenshot item-button" ng-click="zoomTo(product)" title="Zoom to product"></div>
 			<div class="glyphicon glyphicon-eye-open item-button" ng-click="showProductDetails()" title="View Product Details"></div>
-			<div class="glyphicon glyphicon-plus item-button" title="Add Product to Cart" ng-click="addProductToCart()" ng-show="!product.isincart" ng-if="showcart"></div>
-			<div class="glyphicon glyphicon-minus item-button" title="Remove Product from Cart" ng-click="removeProductFromCart()" ng-show="product.isincart" ng-if="showcart"></div>			
+			<div class="glyphicon item-button" title="Add Product to Cart" ng-click="addProductToCart()" ng-show="!product.isincart" ng-if="showcart"> <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" height="18" width="18" fill="#333" version="1.0" x="0px" y="0px" viewBox="0 0 32 32" enable-background="new 0 0 32 32" xml:space="preserve"><g><circle cx="25" cy="29" r="3"></circle><circle cx="11" cy="29" r="3"></circle><path d="M30,6H8.602L8,2C7.703,0.734,7.105,0,6,0H2C0.895,0,0,0.895,0,2s0.895,2,2,2h2.301L7,22c0.203,1.203,0.895,2,2,2h18   c1.105,0,1.75-0.906,2-2c0,0,2.835-13.227,2.94-13.66C32.28,6.891,31.104,6,30,6z M24,16h-4v4h-4v-4h-4v-4h4V8h4v4h4V16z"></path></g></svg></div>
+			<div class="glyphicon item-button" title="Remove Product from Cart" ng-click="removeProductFromCart()" ng-show="product.isincart" ng-if="showcart"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" height="18" width="18" fill="#333" version="1.0" x="0px" y="0px" viewBox="0 0 32 32" enable-background="new 0 0 32 32" xml:space="preserve"><g><circle cx="25.001" cy="29" r="3"></circle><circle cx="11" cy="29" r="3"></circle><path d="M30,6H8.602L8,2C7.703,0.734,7.105,0,6,0H2C0.895,0,0,0.895,0,2s0.895,2,2,2h2.301L7,22c0.203,1.203,0.895,2,2,2h18.001   c1.104,0,1.749-0.906,1.999-2c0,0,2.835-13.227,2.94-13.66C32.28,6.891,31.104,6,30,6z M24,16H12v-4h12V16z"></path></g></svg></div>
 			<div class="glyphicon glyphicon-download-alt item-button" ng-click="downloadProduct()" title="Download Product"></div>
 			<!-- delete product -->
 			<div ng-if="showDeleteButton" class="glyphicon glyphicon-remove item-button" ng-click="deleteProduct()" title="Delete Product"></div>

@@ -1,29 +1,3 @@
-/**
- * Copyright (c) 2015, Serco S.P.A. All rights reserved.
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
- *
- * This code is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Affero  General Public License version 3 only, as
- * published by the Free Software Foundation.  Serco designates this
- * particular file as subject to the "Classpath" exception as provided
- * by Serco in the LICENSE file that accompanied this code.
- *
- * This code is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License
- * version 3 for more details (a copy is included in the LICENSE file that
- * accompanied this code).
- *
- * You should have received a copy of the GNU Affero General Public License
- * version 3 along with this work; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Please contact Serco, www.serco.com if you need additional information or
- * have any questions.
- */
-package fr.gael.drb.cortex.topic.sentinel3;
-
-import org.apache.log4j.Logger;
 /*
  * Data HUb Service (DHuS) - For Space data distribution.
  * Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
@@ -45,6 +19,10 @@ import org.apache.log4j.Logger;
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+package fr.gael.drb.cortex.topic.sentinel3;
+
+import org.apache.log4j.Logger;
+
 public class MetadataBuilder {
 	
 	static private Logger logger = Logger.getLogger(MetadataBuilder.class);

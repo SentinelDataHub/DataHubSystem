@@ -1,16 +1,16 @@
-/* 
+/*
  * Data HUb Service (DHuS) - For Space data distribution.
  * Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
  * Copyright (C) 2013,2014,2015,2016 GAEL Systems
  * Copyright (C) 2013,2014,2015,2016 Serco Spa
- * 
+ *
  * This file is part of DHuS software sources.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
@@ -21,7 +21,7 @@
  */
 'use strict';
 
-var Product = {    
+var Product = {
     create: function(product, footprint) {
         return {
             name: product.identifier,
@@ -97,7 +97,8 @@ var DHuSMapConfig = {
     events: {
         changedModel: 'changed-model',
         newModel: 'new-model'
-    }
+    },
+
 };
 
 
@@ -155,15 +156,15 @@ angular.module('DHuS-webclient').factory('OLMap', function(Logger, SearchModel, 
         var self = this;
         var format = new ol.format.WKT();
         var features = [];
-        for (var i = 0; i < products.length; i++) {            
+        for (var i = 0; i < products.length; i++) {
             var feature = format.readFeature(products[i].footprint);
             feature.getGeometry().transform(DHuSMapConfig.map.transformation.source, DHuSMapConfig.map.transformation.destination);
             feature.product = products[i];
             //self.model[i].style=style;
             feature.setStyle(feature.product.default_style);
             features.push(feature);
-        }        
-        
+        }
+
         this.map.getLayers().item(this.mapModel.footprintLayerId).setSource(new ol.source.Vector({
             features: features,
             wrapX: false
@@ -249,22 +250,159 @@ angular.module('DHuS-webclient').factory('OLMap', function(Logger, SearchModel, 
             self.externalInterface.sendSelectionCoordinates(null);
         });
 
+
+
     },
+    /* DRAG AND DROP FEATURE BEGIN */
+
+    loadShapeFile: function(shapefile) {
+        //manage only one file
+        var file = shapefile;
+        var self=this;
+        //console.log('this is the file', file);
+        if((file.name.toLowerCase().indexOf('.shp', file.name.length - 4)) == -1) {
+
+            AlertManager.warn("Unsupported shape file", "Only files with extension .shp are supported");
+            SpinnerManager.off();
+            return;
+        }
+        try {
+
+            var reader = new FileReader();
+
+            reader.onloadend = function () {
+
+                //console.log('onloadend',reader.result);
+                var binary = "";
+                var bytes = new Uint8Array(reader.result);
+                var length = bytes.byteLength;
+                for (var i = 0; i < length; i++) {
+                   binary += String.fromCharCode(bytes[i]);
+                }
+                var binaryFile = binary;
+                var features = [];
+                getOpenLayersFeatures(file.name, binaryFile, function (fs) {
+                    //console.log('FEATURES',fs);
+                    if(!fs) {
+                        AlertManager.warn("Unexpected Error", "Error Loading Shapefile ");
+                        SpinnerManager.off();
+                    }
+                    var format = new ol.format.WKT();
+                    
+                    var feature = format.readFeature(fs);
+                    
+                    feature.getGeometry().transform(DHuSMapConfig.map.transformation.source, DHuSMapConfig.map.transformation.destination);
+                    feature.setStyle(new ol.style.Style({
+                        fill: new ol.style.Fill({
+                            color: [220, 142, 2, 0.5]
+                        }),
+                        stroke: new ol.style.Stroke({
+                            color: [220, 142, 2, 1]
+                        })
+                    }));
+                    // var geo = feature.getGeometry();
+                    // //geo = geo.simplify(0.7);
+                    // var wktgeom = format.writeGeometry(geo);
+                    // console.warn("wktgeom",wktgeom);
+                    features.push(feature);
+                    var vectorSource = new ol.source.Vector({
+
+                        features: features,
+                        wrapX: false
+                    });
+                    self.map.getLayers().item(self.mapModel.selectionLayerId).setSource(vectorSource);
+                    self.setCurrentSelection(self.processSelection(feature,true));
+                    var view = self.map.getView();
+                    view.fitExtent(
+                        vectorSource.getExtent(), /** @type {ol.Size} */ (self.map.getSize()));
+                    SpinnerManager.off();
+
+                });
+            }
+
+
+            // Read in the image file as a data URL.
+            reader.readAsArrayBuffer(file);
+        }
+        catch (err) {
+            AlertManager.warn("Unexpected Error", "Error Loading Shapefile ");
+            console.error(err);
+            SpinnerManager.off();
+        }
+
+    },
+
+    setupDragAndDrop: function() {
+
+        //var binaryFile;
+        var self=this;
+        function handleFileSelect(evt) {
+            SpinnerManager.on();
+            evt.stopPropagation();
+            evt.preventDefault();
+
+            var files = evt.dataTransfer.files; // FileList object.
+            if(files && files.length > 0)
+            {
+                self.loadShapeFile(files[0]);
+            }
+            // files is a FileList of File objects. List some properties.
+
+        }
+
+        function handleDragOver(evt) {
+            evt.stopPropagation();
+            evt.preventDefault();
+            evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
+        }
+
+        document.getElementById('map').addEventListener('dragover', handleDragOver, false);
+        document.getElementById('map').addEventListener('drop', handleFileSelect, false);
+    },
+
+
+
+    /* DRAG AND DROP FEATURE END */
+
+    displayFeatureInfo: function(pixel) {
+      var self = this;
+      var features = [];
+      self.map.forEachFeatureAtPixel(pixel, function(feature, layer) {
+        features.push(feature);
+      });
+      if (features.length > 0) {
+        var info = [];
+        var i, ii;
+        for (i = 0, ii = features.length; i < ii; ++i) {
+          info.push(features[i].get('name'));
+        }
+        document.getElementById('info').innerHTML = info.join(', ') || '&nbsp';
+      } else {
+        document.getElementById('info').innerHTML = '&nbsp;';
+      }
+    },
+
+
     setCurrentSelection: function(coords) {
+        //console.log('coords',coords);
         if (this.externalInterface.sendSelectionCoordinates){
             this.externalInterface.sendSelectionCoordinates(coords);
         }
         else{
             Logger.error("map", "[MAP] - sendSelectionCoordinates not implemented");
+             //console.error( "[MAP] - sendSelectionCoordinates not implemented");
         }
     },
 
     initMap: function(mapDomNode, model) {
-        if(!ConfigurationService.isLoaded())       
+        var self=this;
+        if(!ConfigurationService.isLoaded())
           ConfigurationService.getConfiguration().then(function(data) {
               if (data)
-                ApplicationService=data;                    
-        });        
+                ApplicationService=data;
+        });
+        //Added service for shape file loading
+        //MapServiceManager.setLoadShapeFile(function(file){self.loadShapeFile(shapefile)});
 
         var bounds = [-180,-80,180,80];
         Logger.log("map", "initMap()");
@@ -277,22 +415,34 @@ angular.module('DHuS-webclient').factory('OLMap', function(Logger, SearchModel, 
         var generateLayer = function(model){
             var layersX = [];
             for(var i =  0; i < model.sources.length; i++)
-                layersX.push(new ol.layer.Tile({ 
+                layersX.push(new ol.layer.Tile({
                         source:new ol.source[model.sources[i].class](model.sources[i].params)
-                    }));  
+                    }));
 
-            return new ol.layer.Group({ 
-                title: model.title,   
-                type: model.type,  
-                visible: model.visible,                 
+            return new ol.layer.Group({
+                title: model.title,
+                type: model.type,
+                visible: model.visible,
                 layers: layersX,
                 wrapX: false
             });
 
         };
 
+        var mousePositionControl = new ol.control.MousePosition({
+          coordinateFormat: ol.coordinate.createStringXY(4),
+          projection: 'EPSG:4326',
+          // comment the following two lines to have the mouse position
+          // be placed within the map.
+          // className: 'custom-mouse-position',
+          // target: document.getElementById('mouse-position'),
+          undefinedHTML: '&nbsp;'
+        });
 
         this.map = new ol.Map({
+
+
+            /*interactions: ol.interaction.defaults().extend([dragAndDropInteraction]),*/
             target: mapDomNode,
             layers: [
                     generateLayer(ApplicationService.settings.map.Satellite),
@@ -303,8 +453,8 @@ angular.module('DHuS-webclient').factory('OLMap', function(Logger, SearchModel, 
                         source: new ol.source.Vector({wrapX: false})
                     })
                 ],
-            
-                          
+
+
         view: new ol.View({
             center: ol.proj.transform(DHuSMapConfig.map.defaultCenter.coordinates, DHuSMapConfig.map.transformation.source, DHuSMapConfig.map.transformation.destination),
             zoom: DHuSMapConfig.map.defaultZoom,
@@ -316,7 +466,7 @@ angular.module('DHuS-webclient').factory('OLMap', function(Logger, SearchModel, 
             attributionOptions: ({
                 collapsible: false
             })
-        })
+        }).extend([mousePositionControl])
         });
         if(ApplicationService.settings.isMapLayerSwitcherVisible){
             var layerSwitcher = new ol.control.LayerSwitcher({
@@ -324,10 +474,12 @@ angular.module('DHuS-webclient').factory('OLMap', function(Logger, SearchModel, 
             });
             self.map.addControl(layerSwitcher);
         }
-        
+
         self.setupBoxSelection();
+        if(ApplicationService.settings.enable_shapefile)
+            self.setupDragAndDrop();
         self.setActivedSelection(true); //todo to check
-        $(document).on('zoom-to', function(event,product) {           
+        $(document).on('zoom-to', function(event,product) {
              for (var i = 0; i < SearchModel.model.list.length; i++) {
                 if (SearchModel.model.list[i]) {
                     if (SearchModel.model.list[i].uuid == product.uuid) {
@@ -337,7 +489,7 @@ angular.module('DHuS-webclient').factory('OLMap', function(Logger, SearchModel, 
                                 .item(self.mapModel.footprintLayerId).getSource().getFeatures(),
                                 function(element) {
                                     return (self.model[i].uuid == element.product.id)
-                                })];                    
+                                })];
                         var duration = 800;
                         var start = +new Date();
                         var pan = ol.animation.pan({
@@ -358,123 +510,11 @@ angular.module('DHuS-webclient').factory('OLMap', function(Logger, SearchModel, 
                     }
                 }
             }
-            
-        });
-        
-
-
-
-        // ---------------------------- //
-
-/*
-        var hoverInteraction = new ol.interaction.Select({
-            condition: ol.events.condition.pointerMove,
-            layers: [ 
-                self.footprintLayer
-
-            ]
-        });
-        this.map.addInteraction(hoverInteraction);
-
-        var featureOverlay = new ol.FeatureOverlay({
-            map: self.map,
-            style: geometryStyle
-        });
-
-        hoverInteraction.on('select', function(evt){
-
-               
-
-            var updateSelection = function(uuid){
-
-
-                //console.warn("product: ", evt.selected[0].product);
-                if (SearchModel.model.list) {
-                    console.warn("------------------------------------------------loop");
-                    for (var i = 0; i < SearchModel.model.list.length; i++) {
-                        
-                        if (SearchModel.model.list[i]) {
-                            SearchModel.highlightProduct({uuid:uuid, sender:"OLMap"});
-                            console.warn("----");                            
-                            console.log("-)self.map.getLayers().item(self.mapModel.footprintLayerId).getSource().getFeatures(): ",self.map.getLayers().item(self.mapModel.footprintLayerId).getSource().getFeatures() );                           
-                            var index = _.findIndex(self.map.getLayers()
-                                    .item(self.mapModel.footprintLayerId).getSource().getFeatures(),
-                                    function(element) {
-                                        return (SearchModel.model.list[i].uuid == element.product.id)
-                                    });
-                            console.log(index);
-                            var feature =  self.map.getLayers()
-                                .item(self.mapModel.footprintLayerId).getSource()
-                                .getFeatures()[index];
-
-                            console.log("feature: ", feature);
-                            var style = (SearchModel.model.list[i].selected) ?self.selectionStyle:
-                                    ((SearchModel.model.list[i].highlight)?self.highlightStyle:self.defaultStyle);
-                            console.log("style: ", style);
-                            feature.setStyle(style);
-                            self.map.getLayers()
-                                .item(self.mapModel.footprintLayerId).getSource()
-                                .getFeatures()[index]
-                                .setStyle(style);
-                        }                                    
-                    }
-                }
-            }
-
-            if(evt.deselected.length > 0){
-                SearchModel.nohighlightProduct({uuid:evt.deselected[0].product.id, sender:"OLMap"});
-                updateSelection(evt.deselected[0].product.id);
-            }
-            if(evt.selected.length > 0){
-                SearchModel.highlightProduct({uuid:evt.selected[0].product.id, sender:"OLMap"});
-                updateSelection(evt.selected[0].product.id)
-            }
-        });
-
-        this.map.on('pointermove', function(e) {
-            if (e.dragging) return;
-               
-            var pixel = self.map.getEventPixel(e.originalEvent);
-            var hit = self.map.hasFeatureAtPixel(pixel);
-            
 
         });
-
-        function geometryStyle(feature){
-            var
-                style = [],
-                geometry_type = feature.getGeometry().getType(),
-                white = [255, 255, 255, 1],
-                blue = [0, 153, 255, 1],
-                width = 3;
-                
-            style['Polygon'] = [
-                new ol.style.Style({
-                    fill: new ol.style.Fill({ color: [255, 255, 255, 0.5] })
-                }),
-                new ol.style.Style({
-                    stroke: new ol.style.Stroke({
-                        color: white, width: 3.5
-                    })
-                }),
-                new ol.style.Style({
-                    stroke: new ol.style.Stroke({
-                        color: blue, width: 2.5
-                    })
-                })
-            ];
-            
-            return style[geometry_type];
-        }
-
-        // ---------------------------- //
-
-
-*/
-
 
     },
-    
+
     setupSelection: function() {
         Logger.log("map", "setupSelection()");
         var self = this;
@@ -483,14 +523,14 @@ angular.module('DHuS-webclient').factory('OLMap', function(Logger, SearchModel, 
             // here rbua
             self.clearSelection();
             self.setCurrentSelection(null);
-            
+
             if (selectedFeature){
                 selectedFeature.setStyle(null);
             }
             selectedFeature = self.map.forEachFeatureAtPixel(e.pixel, function(feature, layer) {
                 return feature;
             });
-            
+
             if (selectedFeature && selectedFeature.product) {
                 //selectSingleProduct
                     SearchModel.selectSingleProduct({uuid:selectedFeature.product.id, sender:'OLMap'});
@@ -501,7 +541,7 @@ angular.module('DHuS-webclient').factory('OLMap', function(Logger, SearchModel, 
         });
     },
 
-    
+
     setupMap: function(mapDomNode) {
         Logger.log("map", "setupMap()");
         this.initMap(mapDomNode);
@@ -520,27 +560,27 @@ angular.module('DHuS-webclient').factory('OLMap', function(Logger, SearchModel, 
         {
             var poly = multipoly[i];
             jtsmultipoly+='((';
-            var ycoord; 
-            var y0coord;    
+            var ycoord;
+            var y0coord;
             for(var j=0; j<poly.length-1; j++)
-            {                
+            {
                 if(poly[j][1] > 85.05)
                     ycoord=85.05;
                 else if(poly[j][1] < -85.05)
                     ycoord=-85.05;
-                else                     
+                else
                     ycoord=poly[j][1];
                 jtsmultipoly+=poly[j][0]+' '+ycoord+',';
             }
-            if(poly[0][1] > 85.05)                
-                y0coord=85.05;            
+            if(poly[0][1] > 85.05)
+                y0coord=85.05;
             else if(poly[0][1] < -85.05)
                 y0coord=-85.05;
-            else                     
+            else
                 y0coord=poly[0][1];
             jtsmultipoly+=(poly[0][0])+' '+y0coord+')),';
         }
-        jtsmultipoly = jtsmultipoly.substring(0,jtsmultipoly.length-1)+')';        
+        jtsmultipoly = jtsmultipoly.substring(0,jtsmultipoly.length-1)+')';
         return jtsmultipoly;
     },
     setModel: function(model) {
@@ -548,7 +588,7 @@ angular.module('DHuS-webclient').factory('OLMap', function(Logger, SearchModel, 
         var newValue = model;
         this.model = model;
         var products = [];
-        //console.warn("model::::    ");    
+        //console.warn("model::::    ");
         //console.warn(model);
         for (var i = 0; i < model.length; i++) {
             var productIndex = _.findIndex(
@@ -565,12 +605,12 @@ angular.module('DHuS-webclient').factory('OLMap', function(Logger, SearchModel, 
                 //console.log("model[i]", model[i]);
                 products.push(
                 Product.create(model[i],jtsFootprint));
-            }            
+            }
         }
         this.renderFootprintLayer(products);
     },
     updateHighlightProducts: function() {
-        
+
         var self = this;
         if (SearchModel.model.list) {
             for (var i = 0; i < SearchModel.model.list.length; i++) {
@@ -587,10 +627,10 @@ angular.module('DHuS-webclient').factory('OLMap', function(Logger, SearchModel, 
                             ((SearchModel.model.list[i].highlight)?(SearchModel.model.list[i].highlighted_style):(SearchModel.model.list[i].default_style))
                             );
                     }
-                }                                    
+                }
             }
         }
-        
+
     },
     updateModel: function(performZoom) {
         Logger.log("map", "updateModel()  " + performZoom);
@@ -598,7 +638,7 @@ angular.module('DHuS-webclient').factory('OLMap', function(Logger, SearchModel, 
         if (SearchModel.model.list) {
             for (var i = 0; i < SearchModel.model.list.length; i++) {
                 if (SearchModel.model.list[i]) {
-                    var elem = 
+                    var elem =
                     self.map.getLayers()
                         .item(self.mapModel.footprintLayerId).getSource()
                         .getFeatures()[_.findIndex(self.map.getLayers()
@@ -612,7 +652,7 @@ angular.module('DHuS-webclient').factory('OLMap', function(Logger, SearchModel, 
                             SearchModel.model.list[i].default_style);
                     }
                 }
-               
+
                 if (SearchModel.model.list[i].selected && performZoom) {
                     var selectedFeature = self.map.getLayers()
                         .item(self.mapModel.footprintLayerId).getSource()
@@ -620,7 +660,7 @@ angular.module('DHuS-webclient').factory('OLMap', function(Logger, SearchModel, 
                             .item(self.mapModel.footprintLayerId).getSource().getFeatures(),
                             function(element) {
                                 return (self.model[i].uuid == element.product.id)
-                            })];                    
+                            })];
                     var duration = 800;
                       var start = +new Date();
                       var pan = ol.animation.pan({
@@ -628,7 +668,7 @@ angular.module('DHuS-webclient').factory('OLMap', function(Logger, SearchModel, 
                         source: /** @type {ol.Coordinate} */ (self.map.getView().getCenter()),
                         start: start
                       });
-                      
+
                       var zoom = ol.animation.zoom({
                         duration: duration,
                         resolution:  self.map.getView().getResolution(),
@@ -641,27 +681,29 @@ angular.module('DHuS-webclient').factory('OLMap', function(Logger, SearchModel, 
                     if(selectedFeature){
                         var extentCoords = selectedFeature.getGeometry().getExtent();
                         var centerCoordinate = ol.extent.getCenter(extentCoords);
-                        self.map.getView().setCenter(centerCoordinate);  
+                        self.map.getView().setCenter(centerCoordinate);
                     }
 
 
                 }
-            
+
             }
         }
     },
     polygon2String: function(polygon) {
         var polygonString = 'POLYGON(('
-        for(var i=0;i<polygon.length;i++) polygonString+=((polygon[i][0])+' '+(polygon[i][1])+',');        
+        for(var i=0;i<polygon.length;i++) polygonString+=((polygon[i][0])+' '+(polygon[i][1])+',');
         return polygonString + (polygon[0][0])+' '+(polygon[0][1])+'))';
     },
     // from old dhus
-    processSelection: function(feature) {
+    /* added parameter isShape to be used for selection after having fixed simplified WKT from shapefile*/
+    processSelection: function(feature, isShape ) {
         var self = this;
+                
         var featureX = feature.clone();
         var geometry = featureX.getGeometry();
-        geometry = geometry.transform(DHuSMapConfig.map.transformation.destination, DHuSMapConfig.map.transformation.source);
-        var extent = geometry.getExtent();
+        geometry = geometry.transform(DHuSMapConfig.map.transformation.destination, DHuSMapConfig.map.transformation.source);               
+        var extent = geometry.getExtent();        
         var top = extent[3] ;
         var bottom = extent[1];
         var left = extent[0];
@@ -688,7 +730,7 @@ angular.module('DHuS-webclient').factory('OLMap', function(Logger, SearchModel, 
                     currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([[0,bottom],[180,bottom],[180,top],[0,top]]) + ')" )';
                 } else {
                     currentPolygonSearchString = "( ";
-                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([[left,bottom],[right,bottom],[right,top],[left,top]]) + ')" )';                    
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([[left,bottom],[right,bottom],[right,top],[left,top]]) + ')" )';
                 }
             } else {
                 if (left < 0) {
@@ -702,7 +744,7 @@ angular.module('DHuS-webclient').factory('OLMap', function(Logger, SearchModel, 
                     currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([[-180,bottom],[0,bottom],[0,top],[-180,top]]) + ')" OR ';
                     currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([[0,bottom],[right,bottom],[right,top],[0,top]]) + ')" )';
                 } else {
-                    currentPolygonSearchString = "( ";                    
+                    currentPolygonSearchString = "( ";
                     currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([[left,bottom],[180,bottom],[180,top],[left,top]]) + ')" OR ';
                     currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([[-180,bottom],[right,bottom],[right,top],[-180,top]]) + ')" )';
                 }
@@ -711,7 +753,7 @@ angular.module('DHuS-webclient').factory('OLMap', function(Logger, SearchModel, 
         return currentPolygonSearchString;
     },
     init: function(mapDomNode) {
-        Logger.log("map", "init()");       
+        Logger.log("map", "init()");
         var self = this;
         this.setupMap(mapDomNode);
         if (DHuSMapConfig.map3dActive)
@@ -767,33 +809,33 @@ angular.module('DHuS-webclient').directive('dhusMap', function(OLMap,$window, $d
                 setTimeout(function(){
                     OLMap.map.updateSize();
                     },0);
-            });            
+            });
 
           },
-          post: function(scope, iElem, iAttrs){        
-            if(!ConfigurationService.isLoaded())       
+          post: function(scope, iElem, iAttrs){
+            if(!ConfigurationService.isLoaded())
               ConfigurationService.getConfiguration().then(function(data) {
                   if (data)
-                    ApplicationService=data;                    
-            });     
-            
-            scope.model = SearchBoxService.model;            
-            scope.toggleBtnMap = false;                                   
-            function init(){                    
-                OLMap.init("map");               
+                    ApplicationService=data;
+            });
+
+            scope.model = SearchBoxService.model;
+            scope.toggleBtnMap = false;
+            function init(){
+                OLMap.init("map");
                 OLMap.externalInterface.sendSelectionCoordinates = function(coords) {
                     scope.model.geoselection = coords;
-                } 
+                }
                 /** SearchModel Protocol implementation **/
                 self.createdSearchModel = function(){
-                    OLMap.setModel(SearchModel.model.list);                    
-                };  
+                    OLMap.setModel(SearchModel.model.list);
+                };
                 self.productDidSelected = function(param){
                     OLMap.updateModel(false);
-                };  
+                };
                 self.productDidDeselected = function(param){
                     OLMap.updateModel(false);
-                };  
+                };
                 self.singleProductDidSelected = function(param){
                     OLMap.updateModel(false);
                 };
@@ -822,7 +864,7 @@ angular.module('DHuS-webclient').directive('dhusMap', function(OLMap,$window, $d
 
             scope.toggleActivedSelection =  function() {
                 Logger.log("map", "toggleActivedSelection()");
-                OLMap.setActivedSelection(!OLMap.activedSelection);                                                
+                OLMap.setActivedSelection(!OLMap.activedSelection);
                 scope.toggleBtnMap = !OLMap.activedSelection;
             };
 
@@ -839,4 +881,3 @@ angular.module('DHuS-webclient').directive('dhusMap', function(OLMap,$window, $d
       }
   };
 });
-

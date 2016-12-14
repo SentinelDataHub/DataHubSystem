@@ -18,6 +18,7 @@
          <class name="fr.gael.dhus.service.TestCacheNetworkService" />
          <class name="fr.gael.dhus.service.TestCacheProductService" />
          <class name="fr.gael.dhus.service.TestCacheUserService" />
+         <class name="fr.gael.dhus.server.http.webapp.symmetricDS.TestCacheSymDS" />
       </classes>
    </test>
 </suite>

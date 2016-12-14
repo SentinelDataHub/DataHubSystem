@@ -19,11 +19,16 @@
  */
 package fr.gael.dhus.olingo.v1.entityset;
 
+import fr.gael.dhus.database.object.Role;
+import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.olingo.v1.entity.UserSynchronizer;
+import fr.gael.dhus.olingo.v1.entity.AbstractEntity;
+import fr.gael.dhus.olingo.v1.map.impl.UserSynchronizerMap;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.olingo.odata2.api.edm.EdmSimpleTypeKind;
 import org.apache.olingo.odata2.api.edm.EdmTargetPath;
@@ -34,11 +39,12 @@ import org.apache.olingo.odata2.api.edm.provider.Key;
 import org.apache.olingo.odata2.api.edm.provider.Property;
 import org.apache.olingo.odata2.api.edm.provider.PropertyRef;
 import org.apache.olingo.odata2.api.edm.provider.SimpleProperty;
+import org.apache.olingo.odata2.api.uri.KeyPredicate;
 
 /**
  * UserSynchronizer OData EntitySet.
  */
-public class UserSynchronizerEntitySet extends V1EntitySet<UserSynchronizer>
+public class UserSynchronizerEntitySet extends AbstractEntitySet<UserSynchronizer>
 {
    public static final String ENTITY_NAME = "UserSynchronizer";
 
@@ -152,5 +158,30 @@ public class UserSynchronizerEntitySet extends V1EntitySet<UserSynchronizer>
       Key key = new Key().setKeys(Collections.singletonList(new PropertyRef().setName(ID)));
 
       return new EntityType().setName(ENTITY_NAME).setProperties(properties).setKey(key);
+   }
+
+   @Override
+   public Map getEntities()
+   {
+      return new UserSynchronizerMap();
+   }
+
+   @Override
+   public AbstractEntity getEntity(KeyPredicate kp)
+   {
+      Long key = Long.parseLong(kp.getLiteral());
+      return (new UserSynchronizerMap()).get(key);
+   }
+
+   @Override
+   public boolean hasManyEntries()
+   {
+      return false;
+   }
+
+   @Override
+   public boolean isAuthorized(User user)
+   {
+      return user.getRoles().contains(Role.USER_MANAGER);
    }
 }

@@ -71,8 +71,8 @@ public class DaoUtils
 
       User pData = ApplicationContextProvider.getBean (
             UserDao.class).getPublicData ();
-      return "(" + u.getId () + " in elements(" + pattern + "authorizedUsers"
-         + ")" + " OR " + pData.getId () + " in elements(" +
+      return "('" + u.getUUID () + "' in elements(" + pattern + "authorizedUsers"
+         + ")" + " OR '" + pData.getUUID () + "' in elements(" +
          pattern + "authorizedUsers))";
    }
    

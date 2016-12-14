@@ -1,6 +1,6 @@
 /*
  * Data Hub Service (DHuS) - For Space data distribution.
- * Copyright (C) 2013,2014,2015 GAEL Systems
+ * Copyright (C) 2013,2014,2015,2016 GAEL Systems
  *
  * This file is part of DHuS software sources.
  *
@@ -19,54 +19,45 @@
  */
 package fr.gael.dhus.service;
 
-import fr.gael.dhus.database.dao.ActionRecordWritterDao;
+import java.io.IOException;
+import java.util.AbstractList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.Suggestion;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.SolrInputDocument;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+
 import fr.gael.dhus.database.object.Collection;
 import fr.gael.dhus.database.object.MetadataIndex;
 import fr.gael.dhus.database.object.Product;
-import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.search.DHusSearchException;
 import fr.gael.dhus.search.SolrDao;
 import fr.gael.dhus.service.metadata.MetadataType;
 import fr.gael.dhus.service.metadata.SolrField;
 
-import java.io.IOException;
-import java.util.AbstractList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
-
-import org.apache.log4j.Logger;
-
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.client.solrj.response.Suggestion;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.SolrDocumentList;
-import org.apache.solr.common.SolrInputDocument;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-
 @Service
 public class SearchService extends WebService
 {
    /** Logger. */
-   private static final Logger LOGGER = Logger.getLogger(SearchService.class);
+   private static final Logger LOGGER = LogManager.getLogger(SearchService.class);
 
    /** Autowired dependency. */
    @Autowired
    private SolrDao solrDao;
-
-   /** Autowired dependency. */
-   @Autowired
-   private SecurityService securityService;
-
-   /** Autowired dependency. */
-   @Autowired
-   private ActionRecordWritterDao actionRecordWritterDao;
 
    /** Autowired dependency. */
    @Autowired
@@ -92,71 +83,8 @@ public class SearchService extends WebService
       {
          long start = System.currentTimeMillis();
 
-         String path = product.getPath().toString();
-         if (path.startsWith("/")) // FIXME: should be done by the ingestion process!
-         {
-            path="file:/" + path;
-         }
-         LOGGER.debug("Indexing product '" + path + "'");
-
-         SolrInputDocument doc = new SolrInputDocument();
-         doc.setField("path", path);
-         doc.setField("id", product.getId());
-         doc.setField("uuid", product.getUuid());
-
-         // Metadatas
-         List<MetadataIndex> indices = product.getIndexes();
-         if (indices != null && !indices.isEmpty())
-         {
-            for (MetadataIndex index : indices)
-            {
-               String type = index.getType();
-
-               // Only textual information stored in field contents (full-text search)
-               if ((type == null) || type.isEmpty() || "text/plain".equals(type))
-               {
-                  doc.addField("contents", index.getValue());
-               }
-
-               // next line is considered bad practice:
-               //doc.addField("contents", index.getQueryable());
-
-               MetadataType mt = metadataTypeService
-                     .getMetadataTypeByName(product.getItemClass(), index.getName());
-               SolrField sf = (mt != null)? mt.getSolrField(): null;
-
-               if (sf != null || index.getQueryable() != null)
-               {
-                  Boolean is_multivalued = (sf != null)? sf.isMultiValued(): null;
-                  String field_name = (sf != null)? sf.getName(): index.getQueryable().toLowerCase();
-
-                  if (is_multivalued != null && is_multivalued)
-                  {
-                     doc.addField(field_name, index.getValue());
-                  }
-                  else
-                  {
-                     doc.setField(field_name, index.getValue());
-                  }
-
-                  LOGGER.debug("Added " + field_name + ":" + index.getValue());
-               }
-            }
-         }
-         else
-         {
-            LOGGER.warn("Product '" + product.getIdentifier() + "' contains no metadata");
-         }
-
-         // Collections
-         List<Collection> collections = collectionService.getCollectionsOfProduct(product);
-         if (collections != null && !collections.isEmpty())
-         {
-            for (Collection collection : collections)
-            {
-               doc.addField("collection", collection.getName());
-            }
-         }
+         SolrInputDocument doc = toInputDocument(product);
+         LOGGER.debug("Indexing product '" + product.getPath() + "'");
 
          try
          {
@@ -187,7 +115,7 @@ public class SearchService extends WebService
       {
          solrDao.remove(product.getId());
       }
-      catch (IOException|SolrServerException ex)
+      catch (Exception ex)
       {
          LOGGER.error("Cannot remove product " + product.getIdentifier() + "from index", ex);
       }
@@ -257,11 +185,7 @@ public class SearchService extends WebService
    {
       Objects.requireNonNull(query);
 
-      User u = securityService.getCurrentUser();
-      actionRecordWritterDao.search(query.getQuery(), query.getStart(), query.getRows(), u);
-
       query.setQuery(solrDao.updateQuery(query.getQuery()));
-
       try
       {
          return solrDao.search(query).getResults();
@@ -282,58 +206,6 @@ public class SearchService extends WebService
    {
       Long pid = Long.class.cast(doc.get("id"));
       return productService.getProduct(pid);
-   }
-
-   /**
-    * Paginated search.
-    * @param query Solr query `q` parameter.
-    * @param start_index offset.
-    * @param num_element length.
-    * @return a list of found products.
-    * @deprecated use {@link #search(SolrQuery)}.
-    */
-   @Deprecated
-   @PreAuthorize("hasRole('ROLE_SEARCH')")
-   public List<Product> search(String query, int start_index, int num_element)
-   {
-      if (start_index < 0 || num_element <= 0)
-      {
-         throw new IllegalArgumentException();
-      }
-
-      User u = securityService.getCurrentUser();
-      actionRecordWritterDao.search(query, start_index, num_element, u);
-
-      query = solrDao.updateQuery(query);
-
-      SolrQuery squery = new SolrQuery(query);
-      squery.setStart(start_index);
-      squery.setRows(num_element);
-
-      try
-      {
-         final QueryResponse qr = solrDao.search(squery);
-         return new AbstractList<Product>()
-         {
-            @Override
-            public Product get(int index)
-            {
-               Long pid = (Long) qr.getResults().get(index).get("id");
-               return productService.getProduct(pid);
-            }
-
-            @Override
-            public int size()
-            {
-               return qr.getResults().size();
-            }
-         };
-      }
-      catch (SolrServerException | IOException ex)
-      {
-         LOGGER.error(ex);
-         throw new DHusSearchException("An exception occured while searching", ex);
-      }
    }
 
    /**
@@ -450,5 +322,149 @@ public class SearchService extends WebService
       {
          LOGGER.error("Cannot optimize index", ex);
       }
+   }
+
+   /**
+    * Wipes the current index and reindex everything from the DataBase.
+    */
+   public void fullReindex()
+   {
+      try
+      {
+         solrDao.removeAll();
+
+         long start = System.currentTimeMillis();
+
+         final Iterator<Product> products = productService.systemGetProducts(null, null, 0);
+
+         if (!products.hasNext())
+         {
+            LOGGER.warn("Reindex: table PRODUCTS is empty, aborting...");
+            return;
+         }
+
+         // Makes an adaptor for SolrDao#batchIndex(...)
+         Iterator<SolrInputDocument> it = new Iterator<SolrInputDocument>()
+         {
+            @Override
+            public boolean hasNext()
+            {
+               return products.hasNext();
+            }
+
+            @Override
+            public SolrInputDocument next()
+            {
+               Product product = products.next();
+               product.setIndexes(productService.getIndexes(product.getId()));
+               return toInputDocument(product);
+            }
+
+            @Override
+            public void remove()
+            {
+               throw new UnsupportedOperationException("Do not use remove().");
+            }
+         };
+
+         // Best config for bulk reindex
+         // see: http://lucidworks.com/blog/2013/08/23/understanding-transaction-logs-softcommit-and-commit-in-sorlcloud/
+         Map<String, String> config = new HashMap<>();
+         config.put("updateHandler.autoSoftCommit.maxDocs", "-1");     // Opens a new searcher (the slowest operation).
+         config.put("updateHandler.autoSoftCommit.maxTime", "-1");     // Opens a new searcher (the slowest operation).
+         config.put("updateHandler.autoCommit.maxDocs", "-1");         // Time based autocommit is better.
+         config.put("updateHandler.autoCommit.maxTime", "60000");      // 1 minute, controls the size of tlog files.
+         config.put("updateHandler.autoCommit.openSearcher", "false"); // Opens a new searcher (the slowest operation).
+         solrDao.setProperties(config);
+
+         solrDao.batchIndex(it);
+         solrDao.optimize();
+
+         solrDao.unsetProperties(config.keySet());
+
+         LOGGER.info("Full reindex done in " + (System.currentTimeMillis() - start) + "ms");
+      }
+      catch (IOException | SolrServerException ex)
+      {
+         LOGGER.error("Failed to reindex", ex);
+      }
+   }
+
+   /**
+    * Makes a SolrInputDocument from a Product database object.
+    * The returned document can be indexed as is.
+    * @param product to convert.
+    * @return an indexable solr document.
+    */
+   private SolrInputDocument toInputDocument(Product product)
+   {
+      String path = product.getPath().toString();
+      if (path.startsWith("/")) // FIXME: should be done by the ingestion process!
+      {
+         path="file:/" + path;
+      }
+
+      SolrInputDocument doc = new SolrInputDocument();
+
+      // Metadatas
+      List<MetadataIndex> indices = product.getIndexes();
+      if (indices != null && !indices.isEmpty())
+      {
+         for (MetadataIndex index : indices)
+         {
+            String type = index.getType();
+
+            // Only textual information stored in field contents (full-text search)
+            if ((type == null) || type.isEmpty() || "text/plain".equals(type))
+            {
+               doc.addField("contents", index.getValue());
+            }
+
+            // next line is considered bad practice:
+            //doc.addField("contents", index.getQueryable());
+
+            MetadataType mt = metadataTypeService
+                  .getMetadataTypeByName(product.getItemClass(), index.getName());
+            SolrField sf = (mt != null)? mt.getSolrField(): null;
+
+            if (sf != null || index.getQueryable() != null)
+            {
+               Boolean is_multivalued = (sf != null)? sf.isMultiValued(): null;
+               String field_name = (sf != null)? sf.getName(): index.getQueryable().toLowerCase();
+
+               if (is_multivalued != null && is_multivalued)
+               {
+                  doc.addField(field_name, index.getValue());
+               }
+               else
+               {
+                  doc.setField(field_name, index.getValue());
+               }
+
+               //LOGGER.debug("Added " + field_name + ":" + index.getValue());
+            }
+         }
+      }
+      else
+      {
+         LOGGER.warn("Product '" + product.getIdentifier() + "' contains no metadata");
+      }
+
+      // DHuS Attributes
+      doc.setField("id", product.getId());
+      doc.setField("uuid", product.getUuid());
+      doc.setField("path", path);
+
+      // Collections
+      List<Collection> collections = collectionService.getCollectionsOfProduct(product);
+      if (collections != null && !collections.isEmpty())
+      {
+         for (Collection collection : collections)
+         {
+            doc.addField("collection", collection.getName());
+         }
+      }
+
+      return doc;
    }
 }

@@ -22,28 +22,33 @@
    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
 
-    <include file="changelog-creation.xml" relativeToChangelogFile="true"/>
-    <include file="changelog-0.3.4.xml" relativeToChangelogFile="true"/>
-    <include file="changelog-0.3.5.xml" relativeToChangelogFile="true"/>
-    <include file="changelog-0.3.7.xml" relativeToChangelogFile="true"/>
-    <include file="changelog-0.3.8.xml" relativeToChangelogFile="true"/>
-    <include file="changelog-0.3.82.xml" relativeToChangelogFile="true"/>
-    <include file="changelog-0.3.83.xml" relativeToChangelogFile="true"/>
-    <include file="changelog-0.3.85.xml" relativeToChangelogFile="true"/>
-    <include file="changelog-0.3.87.xml" relativeToChangelogFile="true"/>
-    <include file="changelog-0.3.813.xml" relativeToChangelogFile="true"/>
-    <include file="changelog-0.3.817.xml" relativeToChangelogFile="true"/>
-    <include file="changelog-0.3.818.xml" relativeToChangelogFile="true"/>
-    <include file="changelog-0.4.0.xml" relativeToChangelogFile="true"/>
-    <include file="changelog-0.4.33.xml" relativeToChangelogFile="true"/>
-    <include file="changelog-0.4.4.xml" relativeToChangelogFile="true"/>
-    <include file="changelog-0.4.5.xml" relativeToChangelogFile="true"/>
-    <include file="changelog-0.5.0.xml" relativeToChangelogFile="true"/>
-    <include file="changelog-0.5.1.xml" relativeToChangelogFile="true"/>
-    <include file="changelog-0.7.1.xml" relativeToChangelogFile="true"/>
-    <include file="changelog-0.8.4.xml" relativeToChangelogFile="true"/>
-    <include file="changelog-0.9.0.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-creation.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-0.3.4.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-0.3.5.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-0.3.7.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-0.3.8.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-0.3.82.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-0.3.83.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-0.3.85.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-0.3.87.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-0.3.813.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-0.3.817.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-0.3.818.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-0.4.0.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-0.4.33.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-0.4.4.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-0.4.5.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-0.5.0.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-0.5.1.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-0.7.1.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-0.8.4.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-0.9.0.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-0.10.3.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-0.11.5.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-scala-0.1.0.xml" relativeToChangelogFile="true"/>
+   <include file="changelog-0.11.3.xml" relativeToChangelogFile="true"/>
+
 
 </databaseChangeLog>

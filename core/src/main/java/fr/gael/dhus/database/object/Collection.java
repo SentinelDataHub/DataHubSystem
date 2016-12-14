@@ -22,18 +22,15 @@ package fr.gael.dhus.database.object;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
@@ -50,55 +47,45 @@ public class Collection implements Serializable
    private static final long serialVersionUID = 6480328554272776667L;
 
    @Id
-   @GeneratedValue (strategy = GenerationType.AUTO)
-   @Column (name = "ID")
-   private Long id;
+   @Column (name = "UUID", nullable = false)
+   private String uuid = UUID.randomUUID ().toString ();
 
-   @Column (name = "NAME", nullable = false)
+   @Column (name = "NAME", nullable = false, unique = true)
    private String name;
 
-   @Column (name = "DESCRIPTION", nullable = true, length = 1024)
+   @Column (name = "DESCRIPTION", length = 1024)
    private String description;
 
    @ManyToMany (fetch = FetchType.LAZY)
    @JoinTable(
       name="COLLECTION_PRODUCT",
-      joinColumns={@JoinColumn(name="COLLECTIONS_ID", table="COLLECTIONS")}, 
+      joinColumns={@JoinColumn(name="COLLECTIONS_UUID", table="COLLECTIONS")},
       inverseJoinColumns={@JoinColumn(name="PRODUCTS_ID", table="PRODUCTS")})
    @OrderBy ("identifier")
    private Set<Product> products = new HashSet<> ();
 
-   @ManyToOne (fetch = FetchType.EAGER)
-   @JoinColumn (name = "PARENT_COLLECTION_ID")
-   private Collection parent;
-
-   @OneToMany(mappedBy="parent", fetch = FetchType.EAGER)
-   @OrderBy ("name")
-   private Set<Collection>subCollections;
-   
-   
    @ManyToMany (fetch = FetchType.LAZY)
    @JoinTable (
       name="COLLECTION_USER_AUTH",
-      joinColumns={@JoinColumn(name="COLLECTIONS_ID", table="COLLECTIONS")},
-      inverseJoinColumns={@JoinColumn(name="USERS_ID", table="USERS")})
+      joinColumns={@JoinColumn(name="COLLECTIONS_UUID", table="COLLECTIONS")},
+      inverseJoinColumns={@JoinColumn(name="USERS_UUID", table="USERS")})
    @OrderBy ("username")
-   private Set<User> authorizedUsers = new HashSet<User> ();
+   private Set<User> authorizedUsers = new HashSet<> ();
 
    /**
-    * @return the id
+    * @return the uuid
     */
-   public Long getId ()
+   public String getUUID ()
    {
-      return id;
+      return uuid;
    }
 
    /**
-    * @param id the id to set
+    * @param uuid the uuid to set
     */
-   public void setId (Long id)
+   public void setUUID (String uuid)
    {
-      this.id = id;
+      this.uuid = uuid;
    }
 
    /**
@@ -150,30 +137,6 @@ public class Collection implements Serializable
    }
 
    /**
-    * @return the parent
-    */
-   public Collection getParent ()
-   {
-      return parent;
-   }
-
-   /**
-    * @param parent the parent to set
-    */
-   public void setParent (Collection parent)
-   {
-      this.parent = parent;
-   }
-
-   /**
-    * @return the subCollections
-    */
-   public Set<Collection> getSubCollections ()
-   {
-      return this.subCollections;
-   }
-
-   /**
     * @param authorized_users the authorizedUsers to set
     */
    public void setAuthorizedUsers (Set<User> authorized_users)
@@ -200,7 +163,7 @@ public class Collection implements Serializable
    {
       final int prime = 31;
       int result = 1;
-      result = prime * result + ( (id == null) ? 0 : id.hashCode ());
+      result = prime * result + ( (uuid == null) ? 0 : uuid.hashCode ());
       return result;
    }
 
@@ -211,12 +174,12 @@ public class Collection implements Serializable
       if (obj == null) return false;
       if (getClass () != obj.getClass ()) return false;
       Collection other = (Collection) obj;
-      if (id == null)
+      if (uuid == null)
       {
-         if (other.id != null) return false;
+         if (other.uuid != null) return false;
       }
       else
-         if ( !id.equals (other.id)) return false;
+         if ( !uuid.equals (other.uuid)) return false;
       return true;
    }
 }

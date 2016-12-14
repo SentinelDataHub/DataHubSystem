@@ -1,16 +1,16 @@
-/* 
+/*
  * Data HUb Service (DHuS) - For Space data distribution.
  * Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
  * Copyright (C) 2013,2014,2015,2016 GAEL Systems
  * Copyright (C) 2013,2014,2015,2016 Serco Spa
- * 
+ *
  * This file is part of DHuS software sources.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
@@ -21,8 +21,8 @@
  */
 angular.module('DHuS-webclient')
 
-.directive('userDetails', function($location,$document, $window, 
-  ConfigurationService, AdminUserService) {  
+.directive('userDetails', function($location,$document, $window,
+  ConfigurationService, AdminUserService) {
   var countries = null;
   return {
     restrict: 'AE',
@@ -35,13 +35,13 @@ angular.module('DHuS-webclient')
         return {
           pre: function(scope, iElem, iAttrs){
           },
-          post: function(scope, iElem, iAttrs){            
+          post: function(scope, iElem, iAttrs){
             scope.user = {};
-            scope.users = {}; 
-            scope.checkFields = true;            
+            scope.users = {};
+            scope.checkFields = true;
             scope.nextbutton = {};
-            scope.prevbutton = {}; 
-            scope.isNew = false;           
+            scope.prevbutton = {};
+            scope.isNew = false;
 
             scope.domains = [
               'Atmosphere',
@@ -58,25 +58,23 @@ angular.module('DHuS-webclient')
               'Education',
               'Other'
             ];
-            AdminUserDetailsManager.setUserDetails(function(userId, userList, isNew){scope.getUserDetails(userId, userList, isNew)});                             
+            AdminUserDetailsManager.setUserDetails(function(userId, userList, isNew){scope.getUserDetails(userId, userList, isNew)});
 
-            function initUser(userId, model, isNew) { 
-              if(isNew) {       
-                scope.user = {};      
+            function initUser(userId, model, isNew) {
+              if(isNew) {
+                scope.user = {};
                 scope.resetFields();
-              }   
-              getCountries(userId, model, isNew);          
+              }
+              getCountries(userId, model, isNew);
             }
-            
+
             function init(){
-              scope.availableRoles = ApplicationService.settings.availableRoles;              
-              if(!ConfigurationService.isLoaded()) {              
+              scope.availableRoles = ApplicationService.settings.availableRoles;
+              if(!ConfigurationService.isLoaded()) {
                 ConfigurationService.getConfiguration().then(function(data) {
-                        // promise fulfilled
                     if (data) {
                         ApplicationService=data;
-                        //console.log('called');
-                        scope.availableRoles = ApplicationService.settings.availableRoles; 
+                        scope.availableRoles = ApplicationService.settings.availableRoles;
                     } else {
                         console.log("fail");
                     }
@@ -84,7 +82,7 @@ angular.module('DHuS-webclient')
                     // promise rejected, could log the error with: console.log('error', error);
                     console.log("fail",error);
                 });
-              }              
+              }
             };
 
             function cleanRoles() {
@@ -93,7 +91,7 @@ angular.module('DHuS-webclient')
               {
                   scope.availableRoles.forEach(function(entry) {
                       //console.log(entry);
-                      role =  "#userRole_"+entry.id;                      
+                      role =  "#userRole_"+entry.id;
 
                       $(role).prop('checked',false);
                   });
@@ -106,7 +104,7 @@ angular.module('DHuS-webclient')
               {
                   scope.availableRoles.forEach(function(entry) {
                       //console.log(entry);
-                      role =  "#userRole_"+entry.id;                      
+                      role =  "#userRole_"+entry.id;
 
                       $(role).prop('checked',true);
                   });
@@ -124,33 +122,33 @@ angular.module('DHuS-webclient')
                       $(role).prop('checked',true);
                   });
               }
-            };   
+            };
 
             function getCountries(userId, model, isNew) {
               if(!scope.countries)
-              {                
+              {
                 AdminUserService.getCountries()
-                .then( function(result){  
-                              
+                .then( function(result){
+
                   if(result.status==200)
                   {
-                    countries = result.data;                    
-                    scope.countries = countries;                        
-                    scope.loadUserInfo(userId, model, isNew);                               
-                  }                
-                  else {                  
+                    countries = result.data;
+                    scope.countries = countries;
+                    scope.loadUserInfo(userId, model, isNew);
+                  }
+                  else {
                     ToastManager.error("error getting countries list");
                     scope.loadUserInfo(userId, model, isNew);
                   }
-                                           
+
                 }, function(result){
-                  ToastManager.error("error getting countries list");   
-                  scope.loadUserInfo(userId, model, isNew);       
-                }); 
+                  ToastManager.error("error getting countries list");
+                  scope.loadUserInfo(userId, model, isNew);
+                });
               }
               else
-                scope.loadUserInfo(userId, model, isNew);                
-            };         
+                scope.loadUserInfo(userId, model, isNew);
+            };
 
             scope.selectUnselectAll = function() {
               if(scope.selected) {
@@ -158,84 +156,84 @@ angular.module('DHuS-webclient')
               }
               else {
                 cleanRoles();
-              }              
-            };            
+              }
+            };
 
-            scope.loadUserInfo = function(userId, model, isNew) {              
+            scope.loadUserInfo = function(userId, model, isNew) {
               if(isNew) {
                 console.log("isNew");
                 scope.nextbutton.disabled=true;
-                scope.prevbutton.disabled=true; 
-                return;                           
-              } 
-              
-              scope.currentUuid=userId;                                  
+                scope.prevbutton.disabled=true;
+                return;
+              }
+
+              scope.currentUuid=userId;
               if(model)
               {
-                scope.currentList=model; 
-                scope.users.list = model; 
-              }                  
-              
-              if(scope.currentList) {              
-              
+                scope.currentList=model;
+                scope.users.list = model;
+              }
+
+              if(scope.currentList) {
+
                 for(var i = 0 ; i < scope.currentList.length; i++){
-                  if(scope.currentList[i].id == userId)
+                  if(scope.currentList[i].uuid == userId)
                   {
                     var user = scope.currentList[i];
-                    
+
                     scope.user=user;
                     //console.log("scope.user",scope.user);
                     if(scope.user.lockedReason)
                       scope.isLocked = true;
                     else
-                      scope.isLocked = false;                    
+                      scope.isLocked = false;
                     selectUserRoles(scope.user.roles);
-                                       
-                    if ((i+1)<scope.currentList.length) {  
 
-                      scope.nextUuid = scope.currentList[i+1].id;
+                    if ((i+1)<scope.currentList.length) {
+
+                      scope.nextUuid = scope.currentList[i+1].uuid;
                       scope.nextbutton.disabled=false;
                     }else{
                       scope.nextbutton.disabled=true;
                     };
                     if ((i-1)>=0) {
                       scope.prevbutton.disabled=false;
-                      scope.prevUuid = scope.currentList[i-1].id;
+                      scope.prevUuid = scope.currentList[i-1].uuid;
                     }else{
-                      
+
                       scope.prevbutton.disabled=true;
                     };
-                            
+
                   }
                 }
               }
-              
+
             };
 
-            scope.showNextUser = function() {              
+            scope.showNextUser = function() {
               scope.getUserDetails(scope.nextUuid, null, false);
-            };            
+            };
 
             scope.showPrevUser = function() {
               scope.getUserDetails(scope.prevUuid, null, false);
             };
 
             scope.getUserDetails = function(userId, model, isNew) {
-              cleanRoles(); 
+              cleanRoles();
               console.log("userId",userId);
               console.log("model",model);
               scope.isNew = isNew;
               initUser(userId, model, isNew);
 
-                               
+
               if(!$('#userView').hasClass('in'))
-                $('#userView').modal('show');                      
-              
+                $('#userView').modal('show');
+
             };
 
-            scope.checkUsage = function(){    
+            scope.checkUsage = function(){
             var check = true;
-            if(!scope.user.usage || scope.user.usage=='unknown' 
+            if(!scope.user.usage || scope.user.usage=='unknown'
               || scope.user.usage.trim()=='')
             {
               $('#admincheckUsage').css('display','inline-block');
@@ -246,8 +244,8 @@ angular.module('DHuS-webclient')
             {
               $('#admincheckUsage').css('display','none');
               $('#adminusageLbl').css('display','inline-block');
-            }  
-            if (scope.user.usage == "Other") {          
+            }
+            if (scope.user.usage == "Other") {
               //$('#usageLabel').show();
               $('#adminusageDesc').show();
             }
@@ -256,12 +254,12 @@ angular.module('DHuS-webclient')
               $('#adminusageDesc').hide();
               $('#admincheckSubUsage').hide();
             }
-            scope.checkFields = scope.checkFields && check;    
+            scope.checkFields = scope.checkFields && check;
           };
-          
+
           scope.checkDomain = function(){
             var check = true;
-            if(!scope.user.domain || scope.user.domain=='unknown' 
+            if(!scope.user.domain || scope.user.domain=='unknown'
               || scope.user.domain.trim()=='')
             {
               $('#admincheckDomain').css('display','inline-block');
@@ -272,8 +270,8 @@ angular.module('DHuS-webclient')
             {
               $('#admincheckDomain').css('display','none');
               $('#admindomainLbl').css('display','inline-block');
-            }       
-            if (scope.user.domain == "Other") {          
+            }
+            if (scope.user.domain == "Other") {
                   //$('#domainLabel').show();
                   $('#admindomainDesc').show();
             }
@@ -282,48 +280,48 @@ angular.module('DHuS-webclient')
               $('#admindomainDesc').hide();
               $('#admincheckSubDomain').hide();
             }
-            scope.checkFields = scope.checkFields && check;    
+            scope.checkFields = scope.checkFields && check;
 
           };
-            
+
             scope.checkUsername = function(){
-               
-              var check = true; 
+
+              var check = true;
               if(!scope.user.username || scope.user.username.trim() == "")
               {
                 $('#admincheckUsername').css('display','inline-block');
                 $('#adminusernameLbl').css('display','none');
-                check = false; 
+                check = false;
               }
               else
               {
                 $('#admincheckUsername').css('display','none');
                 $('#adminusernameLbl').css('display','inline-block');
-              } 
-              scope.checkFields = scope.checkFields && check;        
-                
+              }
+              scope.checkFields = scope.checkFields && check;
+
             };
 
             scope.checkName = function(){
-               
-              var check = true; 
+
+              var check = true;
               if(!scope.user.firstname || scope.user.firstname.trim() == "")
               {
                 $('#admincheckName').css('display','inline-block');
                 $('#adminfirstnameLbl').css('display','none');
-                check = false; 
+                check = false;
               }
               else
               {
                 $('#admincheckName').css('display','none');
                 $('#adminfirstnameLbl').css('display','inline-block');
-              } 
-              scope.checkFields = scope.checkFields && check;        
-                
+              }
+              scope.checkFields = scope.checkFields && check;
+
             };
             scope.checkLastname = function(){
-              
-              var check = true; 
+
+              var check = true;
               if(!scope.user.lastname || scope.user.lastname.trim() == "")
               {
                 $('#admincheckLastname').css('display','inline-block');
@@ -334,37 +332,37 @@ angular.module('DHuS-webclient')
               {
                 $('#admincheckLastname').css('display','none');
                 $('#adminlastnameLbl').css('display','inline-block');
-              }  
-              scope.checkFields = scope.checkFields && check;        
-                
+              }
+              scope.checkFields = scope.checkFields && check;
+
             };
             scope.checkEmail = function(){
-              
-              var check = true;   
-              var email = new RegExp('^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$');  
-              var useremail = $('#adminemail').val();           
+
+              var check = true;
+              var email = new RegExp('^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$');
+              var useremail = $('#adminemail').val();
               if(!scope.user.email || scope.user.email.trim() == "" )
               {
                 $('#admincheckEmail').css('display','inline-block');
-                $('#adminemailLbl').css('display','none');        
+                $('#adminemailLbl').css('display','none');
                 check = false;
               }
               else if(!email.test(useremail.toUpperCase()))
               {
                 $('#admincheckEmail').css('display','inline-block');
                 $('#adminemailLbl').css('display','inline-block');
-                check = false;        
-              } 
+                check = false;
+              }
               else
               {
                 $('#admincheckEmail').css('display','none');
-                $('#adminemailLbl').css('display','inline-block');        
-              }     
-              scope.checkFields = scope.checkFields && check;     
-            };            
-         
+                $('#adminemailLbl').css('display','inline-block');
+              }
+              scope.checkFields = scope.checkFields && check;
+            };
+
             scope.checkSubDomain = function(){
-               
+
               var check = true;
               if($('#admindomainDesc').is(':visible'))
               {
@@ -379,12 +377,12 @@ angular.module('DHuS-webclient')
                   $('#admincheckSubDomain').css('display','none');
                   $('#admindomailLabel').css('display','inline-block');
                 }
-              }      
-              scope.checkFields = scope.checkFields && check;    
-            }; 
+              }
+              scope.checkFields = scope.checkFields && check;
+            };
 
             scope.checkSubUsage = function(){
-               
+
               var check = true;
               if($('#adminusageDesc').is(':visible'))
               {
@@ -398,35 +396,35 @@ angular.module('DHuS-webclient')
                 {
                   $('#admincheckSubUsage').css('display','none');
                   $('#adminusageLabel').css('display','inline-block');
-                }  
-              }    
-              scope.checkFields = scope.checkFields && check;     
-            }; 
+                }
+              }
+              scope.checkFields = scope.checkFields && check;
+            };
 
 
             scope.checkCountry = function(){
-               
+
               var check = true;
               console.log("scope.user.country",scope.user.country)
               if(!scope.user.country || scope.user.country=='unknown' || scope.user.country=='')
               {
                 $('#admincheckCountry').css('display','inline-block');
                 $('#admincountryLbl').css('display','none');
-                check = false;                
+                check = false;
               }
               else
               {
                 $('#checkCountry').css('display','none');
-                $('#countryLbl').css('display','inline-block');                
-              } 
-              scope.checkFields = scope.checkFields && check;       
-                
+                $('#countryLbl').css('display','inline-block');
+              }
+              scope.checkFields = scope.checkFields && check;
+
             };
 
             scope.clearReason = function() {
-              if(!scope.isLocked)   { 
-                scope.user.lockedReason=''; 
-              }              
+              if(!scope.isLocked)   {
+                scope.user.lockedReason='';
+              }
             };
 
             scope.checkIsLocked = function() {
@@ -441,22 +439,22 @@ angular.module('DHuS-webclient')
               scope.checkUsername();
               scope.checkName();
               scope.checkLastname();
-              scope.checkEmail();              
+              scope.checkEmail();
               scope.checkDomain();
               scope.checkSubDomain();
               scope.checkUsage();
               scope.checkSubUsage();
-              scope.checkCountry();              
-              if(!scope.isLocked)   { 
-                //console.log('not locked');  
-                delete scope.user['lockedReason']; 
+              scope.checkCountry();
+              if(!scope.isLocked)   {
+                //console.log('not locked');
+                delete scope.user['lockedReason'];
               }
               else {
                 if(scope.user.lockedReason == null)
                   scope.user.lockedReason="";
                 //console.log('locked',scope.user.lockedReason);
 
-              }              
+              }
 
             };
 
@@ -473,7 +471,7 @@ angular.module('DHuS-webclient')
                   scope.createUser();
                 else
                   scope.updateUser();
-              }                
+              }
             };
 
             function updateUserRoles() {
@@ -491,20 +489,20 @@ angular.module('DHuS-webclient')
                         scope.user.roles.push(entry.id);
                   });
               }
-            };  
+            };
 
             scope.createUser = function() {
               AdminUserService.createUser(scope.user)
-              .then( function(result){  
-                console.log("directive result",result);               
+              .then( function(result){
+                console.log("directive result",result);
                 if(result.status == 200)
                 {
                   AdminUserService.getUsersList();
-                  ToastManager.success("user creation succeeded.");                  
+                  ToastManager.success("user creation succeeded.");
                 }
                 else if(result.data && result.data.code == "email_not_sent") {
                   AdminUserService.getUsersList();
-                  var msg = 'User ' + scope.user.username + ' has been created, but there was an error while sending an email to user' 
+                  var msg = 'User ' + scope.user.username + ' has been created, but there was an error while sending an email to user'
                   + '. Please contact an administrator. Cannot send email to ' + scope.user.email;
                   AlertManager.error("User Creation Error", msg);
                 }
@@ -517,29 +515,29 @@ angular.module('DHuS-webclient')
                   ToastManager.error("user creation failed");
                 }
                 scope.close();
-                                         
+
               }, function(result){
                 console.log("directive error result", result);
-                AdminUserService.getUsersList();  
-                ToastManager.error("user creation failed"); 
-                scope.close();         
-              });              
+                AdminUserService.getUsersList();
+                ToastManager.error("user creation failed");
+                scope.close();
+              });
             };
 
-            
 
-            scope.updateUser = function() {              
+
+            scope.updateUser = function() {
               AdminUserService.updateUser(scope.user)
-              .then( function(result){  
-                console.log("directive result",result);               
+              .then( function(result){
+                console.log("directive result",result);
                 if(result.status==200)
                 {
                   AdminUserService.getUsersList();
-                  ToastManager.success("user update succeeded.");                  
+                  ToastManager.success("user update succeeded.");
                 }
                 else if(result.data && result.data.code == "email_not_sent") {
                   AdminUserService.getUsersList();
-                  var msg = 'User ' + scope.user.username + ' has been updated, but there was an error while sending an email to user' 
+                  var msg = 'User ' + scope.user.username + ' has been updated, but there was an error while sending an email to user'
                   + '. Please contact an administrator. Cannot send email to ' + scope.user.email;
                   AlertManager.error("User Update Error", msg);
                 }
@@ -551,13 +549,13 @@ angular.module('DHuS-webclient')
                   AdminUserService.getUsersList();
                   ToastManager.error("user update failed");
                 }
-                scope.close(); 
-                                         
+                scope.close();
+
               }, function(result){
                 console.log("directive error result", result);
-                AdminUserService.getUsersList();  
-                ToastManager.error("user update failed");  
-                scope.close();         
+                AdminUserService.getUsersList();
+                ToastManager.error("user update failed");
+                scope.close();
               });
             };
 
@@ -574,7 +572,7 @@ angular.module('DHuS-webclient')
               scope.user.username='';
               scope.user.firstname='';
               scope.user.lastname='';
-              scope.user.email='';              
+              scope.user.email='';
               scope.user.subDomain='';
               scope.user.subUsage='';
               scope.user.lockedReason='';
@@ -582,19 +580,18 @@ angular.module('DHuS-webclient')
               scope.selected = false;
               cleanRoles();
             };
-            
-            scope.close = function() {   
-                                                                    
+
+            scope.close = function() {
+
               $('#userView').modal('hide');
             };
 
-                       
 
-            init();                       
-            
+
+            init();
+
         }
       }
       }
     };
 })
-

@@ -533,7 +533,7 @@
                drb:Iso8601DateFormatter(
                   data (manifest.safe/XFDU/metadataSection/
                   metadataObject[@ID="acquisitionPeriod"]/metadataWrap/xmlData/
-                  acquisitionPeriod/startTime), "yyyy-MM-dd'T'hh:mm:ss.SSSSSS")
+                  acquisitionPeriod/startTime), "yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
             }
          </metadata>,
 
@@ -545,7 +545,7 @@
                drb:Iso8601DateFormatter(
                   data(manifest.safe/XFDU/metadataSection/
                   metadataObject[@ID="acquisitionPeriod"]/metadataWrap/xmlData/
-                  acquisitionPeriod/stopTime), "yyyy-MM-dd'T'hh:mm:ss.SSSSSS")
+                  acquisitionPeriod/stopTime), "yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
             }
          </metadata>,
 
@@ -684,7 +684,7 @@
                drb:Iso8601DateFormatter(
                   data (manifest.safe/XFDU/metadataSection/
                   metadataObject[@ID="acquisitionPeriod"]/metadataWrap/xmlData/
-                  acquisitionPeriod/startTime), "yyyy-MM-dd'T'hh:mm:ss.SSSSSS")
+                  acquisitionPeriod/startTime), "yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
             }
          </metadata>
       ]]>

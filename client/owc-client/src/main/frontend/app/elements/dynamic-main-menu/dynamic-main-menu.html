@@ -1,0 +1,288 @@
+<!--
+  @license
+
+ 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/color.html">
+<link rel="import" href="../../bower_components/paper-styles/demo-pages.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<!-- <link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/classes/iron-flex-layout.html"> -->
+<!--
+This components is the OWC Main Menu
+
+
+@demo demo/index.html
+-->
+<dom-module id="dynamic-main-menu">
+    <!-- VIEW  CODE HERE -->
+    <template>
+        <style is="custom-style">
+        .container {
+            @apply(--layout-horizontal);
+        }
+        
+        .containerVertical {
+            @apply(--layout-vertical);
+            @apply(--layout-center-justified);
+        }
+        
+        .menu-container {
+            @apply(--layout-horizontal);
+            @apply(--layout-center-justified);
+            margin-top: 0px;
+        }
+        
+        .disabled {
+            color: gray !important;
+        }
+        
+        .main-logo {
+            width: 204.5px;
+            height: 130px;
+        }
+        
+        .main-logo:hover {
+            background: var(--paper-light-blue-50);
+            border-radius: 10%;
+            cursor: pointer;
+        }
+        
+        paper-icon-button.menu-item {
+            color: #002664;
+            margin-left: 0px;
+            width: 70px;
+            height: 70px;
+        }
+        
+        paper-icon-button.menu-item:hover {
+            background: var(--paper-light-blue-50);
+            border-radius: 50%;
+        }
+        
+        #dynamic-menu-container {
+            height: var(--menuheight, 500px);
+            width: var(--menuwidth, 300px);
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            width: 100%!important;
+            /*height: 10px;*/
+        }
+        
+        #dynamic-menu-title {
+            height: 70px!important;
+            overflow-y: hidden !important;
+            overflow-x: hidden !important;
+            width: 100%!important;
+            /*height: 10px;*/
+        }
+        </style>
+        <div id="dynamic-menu-container">
+            <div class="menu-container">
+                <img on-click="dashboard" title="Logo" class="main-logo" alt="Logo" src="{{logo_url}}"></img>
+            </div>
+            <br>
+            <br>
+            <template is="dom-repeat" items="{{sections}}">
+                <div class="menu-container">
+                    <paper-icon-button icon="{{item.icon}}" title="{{item.title}}" data-item="{{item}}" on-click="clickedMenuItemD" alt="{{item.title}}" class="menu-item ">
+                    </paper-icon-button>
+                </div>
+                <br>
+                <br>
+                <br>
+            </template>
+        </div>
+    </template>
+    <!-- MODEL-CONTROLLER CODE -->
+    <script>
+    (function() {
+        'use strict';
+        class DynamicMainMenu extends HTMLElement {
+
+            constructor() {
+                super();
+                this.beforeRegister();
+                this.attached();
+            }
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'dynamic-main-menu';
+                this.dashboard_component = 'info-container';
+                this.dashboard_component_url = 'elements/info-container/info-container.html';
+                this.owcApp = document.querySelector('#owc-app');
+
+                this.properties = {
+
+                    /* --- PUBLIC PROPERTIES --- */
+
+                    /**
+                     * Contains configueration menu model
+                     *
+                     * @type {Object}
+                     */
+                    sections: {
+                        type: Array,
+                        value: [],
+                        notify: true
+                    },
+                    logo_url: {
+                        type: String,
+                        value: "/images/logo_esa.png",
+                        notify: true
+                    }
+
+                };
+            }
+
+        
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+                var self = this;
+                this.navigationManager = document.getElementById('navigation-manager');
+                this.initMenuManager();                
+
+                owcApp.messageBroker.subscribe('loaded-configurations', function(eventName, sections) {
+                    setTimeout(function() {
+                        _loadMenuItems();
+                        self.logo_url = (self.owcApp.theme.logourl) ? self.owcApp.theme.logourl : "./images/logo_esa.png";
+                    }, 0);
+                    self.sections = sections;
+
+                });
+                owcApp.messageBroker.subscribe('update-theme', function(model) {
+                    setTimeout(function() {
+                        console.log('update-theme sub self.parentPanel', self.parentPanel)
+                        self.logo_url = model.logourl;
+                        if (self.parentPanel && self.parentPanel.title) {
+                            self.parentPanel.title = model.title;
+                        }
+                    }, 0);
+
+
+                });
+                Polymer.dom(self.root).querySelector('#dynamic-menu-container').addEventListener("resize", function() {});
+                window.addEventListener("resize", function() {
+                    self.resize();
+
+                });
+
+            }
+
+            /**             
+             *   This method is used to create dynamic main menu manager and to            
+             *   load menu items
+             * 
+             * @return {null}
+             */
+            initMenuManager() {
+                var self = this;
+                self.dynamicMenuManager = new eu.serco.Owc.DynamicMenuManager();
+                self.dynamicMenuManager.loadConfiguration()
+                    .then(function(response) {
+                        if (response.status == 200) {
+                            self.sections = response.data.sections;
+                            self._loadMenuItems();
+                            self.logo_url = (self.owcApp.theme.logourl) ? self.owcApp.theme.logourl : "./images/logo_esa.png";
+                            self.resize();
+                        }
+                    });
+
+            }
+
+            /**             
+             *   This method is used to create dynamic main menu manager and to            
+             *   load menu items
+             * 
+             * @return {null}
+             */
+            _loadMenuItems() {
+                var self = this;
+                for (var i = 0; i < self.sections.length; i++)
+                    if ((self.sections[i].remoteUrl != '') || (self.sections[i].remoteUrl != null))
+                        self.importHref(self.sections[i].remoteUrl, function(e) {
+
+                        });
+
+            }
+
+
+            /**             
+             *   This method is used to push the component corresponding to a menu item            
+             *
+             * @param {?Object} event: event triggering the action
+             *                  target: event target
+             *                  options: method option
+             * @return {null}
+             */
+            clickedMenuItemD(event, target, options) {
+                var item = event.model.__data__.item;
+                var component = document.createElement(item.component);
+                this.navigationManager.pushComponent(component, item.width, item.title);
+
+            }
+
+            /**             
+             *   This method is used to push the info component when clicking on application logo            
+             *
+             * 
+             * @return {null}
+             */
+            dashboard() {
+                var dashboardComponent = document.createElement(this.dashboard_component);
+                this.navigationManager.pushComponent(dashboardComponent, "500px")
+            }
+
+            resize() {
+                var self = this;
+                self.customStyle['--menuheight'] = parseInt(self.parentPanel.getSize().height - $("#dynamic-menu-title").height()) + "px";
+                self.updateStyles();
+                self.customStyle['--menuwidth'] = parseInt(self.parentPanel.getSize().width - 50) + "px";
+                self.updateStyles();                
+            }
+        };
+
+
+        Polymer(DynamicMainMenu);
+
+    })();
+    </script>
+</dom-module>

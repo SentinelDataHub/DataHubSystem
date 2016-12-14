@@ -1,6 +1,6 @@
 /*
  * Data Hub Service (DHuS) - For Space data distribution.
- * Copyright (C) 2013,2014,2015 GAEL Systems
+ * Copyright (C) 2013,2014,2015,2016 GAEL Systems
  *
  * This file is part of DHuS software sources.
  *
@@ -19,33 +19,6 @@
  */
 package fr.gael.dhus.database;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.RejectedExecutionException;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.stereotype.Component;
-
-import com.hp.hpl.jena.reasoner.IllegalParameterException;
-
-import fr.gael.dhus.database.dao.ActionRecordReaderDao;
 import fr.gael.dhus.database.dao.CollectionDao;
 import fr.gael.dhus.database.dao.CountryDao;
 import fr.gael.dhus.database.dao.FileScannerDao;
@@ -61,24 +34,54 @@ import fr.gael.dhus.database.object.Product;
 import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.datastore.HierarchicalDirectoryBuilder;
 import fr.gael.dhus.datastore.IncomingManager;
+import fr.gael.dhus.datastore.exception.DataStoreException;
 import fr.gael.dhus.datastore.exception.DataStoreLocalArchiveNotExistingException;
 import fr.gael.dhus.datastore.processing.ProcessingUtils;
-import fr.gael.dhus.server.http.web.WebPostProcess;
 import fr.gael.dhus.service.ProductService;
 import fr.gael.dhus.service.SearchService;
 import fr.gael.dhus.system.config.ConfigurationManager;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
+
+import org.apache.commons.io.FileUtils;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.stereotype.Component;
 
 /**
  * Initialization to be executed of database when all the service started
  */
 @Component
-public class DatabasePostInit extends WebPostProcess
+public class DatabasePostInit
 {
-   private static Log logger = LogFactory.getLog (DatabasePostInit.class);
+   private static final Logger LOGGER = LogManager.getLogger(DatabasePostInit.class);
 
    @Autowired
    private CountryDao countryDao;
-   
+
    @Autowired
    private ProductService productService;
 
@@ -93,35 +96,31 @@ public class DatabasePostInit extends WebPostProcess
 
    @Autowired
    private UserDao userDao;
-   
+
    @Autowired
    private FileScannerDao fileScannerDao;
-   
+
    @Autowired
    private NetworkUsageDao networkUsageDao;
 
    @Autowired
-   private ActionRecordReaderDao actionRecordDao;
-
-   @Autowired
    private SearchDao searchDao;
-   
+
    @Autowired
    private ProductCartDao cartDao;
 
    @Autowired
    private TaskExecutor taskExecutor;
-   
+
    @Autowired
    private IncomingManager incomingManager;
-   
+
    @Autowired
    private ConfigurationManager cfgManager;
 
-   @Override
-   public void launch ()
+   public void init()
    {
-      initDefaultArchiveSettings ();
+      initDefaultArchiveSettings();
    }
 
    /**
@@ -131,246 +130,298 @@ public class DatabasePostInit extends WebPostProcess
     * available, it is removed and a new archive is created. If the archive path
     * was changed, is is upgraded accordingly.
     */
-   private void initDefaultArchiveSettings ()
+   private void initDefaultArchiveSettings()
    {
       // Update User table with countries synonyms
-      updateUserCountries ();
+      updateUserCountries();
       // Reset the file scanners
-      fileScannerDao.resetAll ();
+      fileScannerDao.resetAll();
       // Displays database raws statistics
-      printDatabaseRowCounts ();
-      
+      printDatabaseRowCounts();
+
       // Not processed product management: when ingestion has been stopped
-      // software stop, reprocessed products...  
-      processUnprocessed ();
+      // software stop, reprocessed products...
+      processUnprocessed();
 
       // User startup commands
-      doIncomingRepopulate ();
-      if ( !doForceReset ())
-         doProductReindex ();
+      doIncomingRepopulate();
+      if (!doForceReset())
+      {
+         doProductReindex();
+      }
 
       // Reload the archive on user request
-      doSynchronizeLocalArchive ();
-      doArchiveCheck ();
+      doSynchronizeLocalArchive();
+      doArchiveCheck();
 
       // delete old search queries
-      inactiveOldSearchQueries ();
+      inactiveOldSearchQueries();
 
-      doforcePublic ();
+      doforcePublic();
+
+      doReindex();
    }
 
-   private void printDatabaseRowCounts ()
+   private void printDatabaseRowCounts()
    {
-      logger.info ("Database tables rows :");
-      logger.info ("  Products       = " + productDao.count() + " rows.");
-      logger.info ("  Collections    = " + collectionDao.count() + " rows.");
-      logger.info ("  Users          = " + userDao.count() + " rows.");
-      logger.info ("  Network Usage  = " + networkUsageDao.count() + " rows.");
-      logger.info ("  Logs           = " + actionRecordDao.count() + " rows.");
-      logger.info ("    Logons    = " + actionRecordDao.countLogons ()
-            + " rows.");
-      logger.info ("    Downloads = " + actionRecordDao.countDownloads ()
-            + " rows.");
-      logger.info ("    Searches  = " + actionRecordDao.countSearches ()
-            + " rows.");
-      logger.info ("    Uploads   = " + actionRecordDao.countUploads ()
-            + " rows.");
-      logger.info ("  File scanners  = " + fileScannerDao.count() + " rows.");
-      logger.info ("  Saved searches = " + searchDao.count() + " rows.");
-      logger.info ("  User carts     = " + cartDao.count() + " rows.");
+      LOGGER.info("Database tables rows :");
+      LOGGER.info("  Products       = " + productDao.count()      + " rows.");
+      LOGGER.info("  Collections    = " + collectionDao.count()   + " rows.");
+      LOGGER.info("  Users          = " + userDao.count()         + " rows.");
+      LOGGER.info("  Network Usage  = " + networkUsageDao.count() + " rows.");
+      LOGGER.info("  File scanners  = " + fileScannerDao.count()  + " rows.");
+      LOGGER.info("  Saved searches = " + searchDao.count()       + " rows.");
+      LOGGER.info("  User carts     = " + cartDao.count()         + " rows.");
    }
 
    /**
     * Run recovery of stopped scanners.
-    * WARNING: do never perform Archive.check when recovery is expected. This 
-    *    may cause data lost.
+    * WARNING: do never perform Archive.check when recovery is expected. This
+    * may cause data lost.
     */
-   private void processUnprocessed ()
+   private void processUnprocessed()
    {
-      boolean clean_processings = Boolean.getBoolean (
-         "Archive.processings.clean");
-      
-      logger.info ("Archives processing clean instead of recovery " +
-         "(Archive.processings.clean) requested by user (" + 
-               clean_processings + ")");
-      productService.processUnprocessed (!clean_processings);
+      boolean clean_processings = Boolean.getBoolean("Archive.processings.clean");
+
+      boolean reindex = Boolean.getBoolean("dhus.solr.reindex");
+
+      LOGGER.info("Archives processing clean instead of recovery (Archive.processings.clean) " +
+            "requested by user (" + clean_processings + ")");
+
+      if (clean_processings)
+      {
+         productService.removeUnprocessed();
+      }
+      else
+      {
+         Iterator<Product> products = productService.getUnprocessedProducts();
+         List<Future<Object>> futures = new LinkedList<>();
+         while (products.hasNext())
+         {
+            Product product = products.next();
+            // Do reporcess only already transfered products
+            if (product.getPath().toString().equals(product.getOrigin()))
+            {
+               products.remove();
+            }
+            else
+            {
+               try
+               {
+                  String path = product.getPath().getPath();
+                  LOGGER.info("Recovering product from " + path);
+                  // Check if product is still present in repository
+                  if (!new File(path).exists())
+                  {
+                     throw new DataStoreException("Product " + path + " not present locally.");
+                  }
+                  // Retrieve owner if any
+                  User owner = productDao.getOwnerOfProduct(product);
+
+                  // Retrieve collections
+                  List<Collection> collections = collectionDao.getCollectionsOfProduct(product.getId());
+
+                  futures.add(productService.processProduct(product, owner, collections, null, null));
+               }
+               catch (Exception e)
+               {
+                  LOGGER.error("Error while processing: " +
+                        e.getMessage() + " - abort reprocessing.");
+                  products.remove();
+               }
+            }
+         }
+         if (reindex)
+         {
+            for (Future<Object> future: futures)
+            {
+               if (future != null)
+               {
+                  try
+                  {
+                     future.get();
+                  }
+                  catch (InterruptedException | ExecutionException | CancellationException ex) {}
+               }
+            }
+         }
+      }
    }
 
-   private boolean doIncomingRepopulate ()
+   private boolean doIncomingRepopulate()
    {
-      boolean force_relocate = Boolean.getBoolean ("Archive.incoming.relocate");
+      boolean force_relocate = Boolean.getBoolean("Archive.incoming.relocate");
 
-      logger.info ("Archives incoming relocate (Archive.incoming.relocate)" +
-         " requested by user (" + force_relocate + ")");
+      LOGGER.info("Archives incoming relocate (Archive.incoming.relocate)"
+            + " requested by user (" + force_relocate + ")");
 
-      if ( !force_relocate) return false;
-      
-      String incoming_path = System.getProperty (
+      if (!force_relocate)
+      {
+         return false;
+      }
+
+      String incoming_path = System.getProperty(
             "Archive.incoming.relocate.path",
-            incomingManager.getIncomingBuilder ().getRoot ().getPath ());
+            incomingManager.getIncomingBuilder().getRoot().getPath());
 
       // Force reset the counter.
-      HierarchicalDirectoryBuilder output_builder = 
-        new HierarchicalDirectoryBuilder (new File(incoming_path), cfgManager.
-        getArchiveConfiguration ().getIncomingConfiguration ().getMaxFileNo ());
+      HierarchicalDirectoryBuilder output_builder
+            = new HierarchicalDirectoryBuilder(new File(incoming_path), cfgManager.
+                  getArchiveConfiguration().getIncomingConfiguration().getMaxFileNo());
 
-      Iterator<Product> products = productDao.getAllProducts ();
-      while (products.hasNext ())
+      Iterator<Product> products = productDao.getAllProducts();
+      while (products.hasNext())
       {
-         Product product = products.next ();
+         Product product = products.next();
          boolean shared_path = false;
 
          // Copy the product path
-         File old_path = new File (product.getPath ().getPath ());
+         File old_path = new File(product.getPath().getPath());
          File new_path = null;
 
          // Check is same products are use for path and download
-         if (product.getDownloadablePath ().equals(old_path.getPath()))
-            shared_path = true;
-
-         if (incomingManager.isInIncoming (old_path))
+         if (product.getDownloadablePath().equals(old_path.getPath()))
          {
-            new_path = getNewProductPath (output_builder);
+            shared_path = true;
+         }
+
+         if (incomingManager.isInIncoming(old_path))
+         {
+            new_path = getNewProductPath(output_builder);
             try
             {
-               logger.info ("Relocate " + old_path.getPath () + " to " +
-                  new_path.getPath ());
-               FileUtils.moveToDirectory (old_path, new_path, true);
+               LOGGER.info("Relocate " + old_path.getPath() + " to " +new_path.getPath());
+               FileUtils.moveToDirectory(old_path, new_path, true);
 
                File path = old_path;
-               while ( !incomingManager.isAnIncomingElement (path))
+               while (!incomingManager.isAnIncomingElement(path))
                {
-                  path = path.getParentFile ();
+                  path = path.getParentFile();
                }
-               FileUtils.cleanDirectory (path);
+               FileUtils.cleanDirectory(path);
             }
             catch (IOException e)
             {
-               logger.error ("Cannot move directory " + old_path.getPath () +
-                  " to " + new_path.getPath (), e);
-               logger.error ("Aborting relocation process.");
+               LOGGER.error("Cannot move directory " + old_path.getPath()
+                     + " to " + new_path.getPath(), e);
+               LOGGER.error("Aborting relocation process.");
                return false;
             }
 
-            URL product_path = null;
+            URL product_path;
             try
             {
-               product_path =
-                  new File (new_path, old_path.getName ()).toURI ().toURL ();
+               product_path= new File(new_path, old_path.getName()).toURI().toURL();
             }
             catch (MalformedURLException e)
             {
-               logger.error ("Unrecoverable error : aboting relocate.", e);
+               LOGGER.error("Unrecoverable error : aboting relocate.", e);
                return false;
             }
-            product.setPath (product_path);
+            product.setPath(product_path);
             // Commit this change
-            productDao.update (product);
+            productDao.update(product);
             searchService.index(product);
          }
 
          // copy the downloadable path
-         if (product.getDownload ().getPath () != null)
+         if (product.getDownload().getPath() != null)
          {
             if (shared_path)
             {
-               product.getDownload ().setPath (product.getPath ().getPath());
+               product.getDownload().setPath(product.getPath().getPath());
             }
             else
             {
-               new_path = getNewProductPath (output_builder);
-               old_path = new File (product.getDownload ().getPath ());
+               new_path = getNewProductPath(output_builder);
+               old_path = new File(product.getDownload().getPath());
                try
                {
-                  logger.info ("Relocate " + old_path.getPath () + " to " +
-                     new_path.getPath ());
-                  FileUtils.moveFileToDirectory (old_path, new_path, false);
+                  LOGGER.info("Relocate " + old_path.getPath() + " to " +new_path.getPath());
+                  FileUtils.moveFileToDirectory(old_path, new_path, false);
                }
                catch (IOException e)
                {
-                  logger.error (
-                     "Cannot move downloadable file " + old_path.getPath () +
-                        " to " + new_path.getPath (), e);
-                  logger.error ("Aborting relocation process.");
+                  LOGGER.error("Cannot move downloadable file " + old_path.getPath()
+                        + " to " + new_path.getPath(), e);
+                  LOGGER.error("Aborting relocation process.");
                   return false;
                }
-               product.getDownload ().setPath (
-                  new File (new_path, old_path.getName ()).getPath ());
+               product.getDownload().setPath(new File(new_path, old_path.getName()).getPath());
                // Commit this change
             }
-            productDao.update (product);
+            productDao.update(product);
          }
 
          // Copy Quicklooks
          new_path = null;
-         if (product.getQuicklookFlag ())
+         if (product.getQuicklookFlag())
          {
-            old_path = new File (product.getQuicklookPath ());
+            old_path = new File(product.getQuicklookPath());
             if (new_path == null)
-               new_path = output_builder.getDirectory ();
+            {
+               new_path = output_builder.getDirectory();
+            }
             try
             {
-               logger.info ("Relocate " + old_path.getPath () + " to " +
-                  new_path.getPath ());
-               FileUtils.moveToDirectory (old_path, new_path, false);
+               LOGGER.info("Relocate " + old_path.getPath() + " to " +new_path.getPath());
+               FileUtils.moveToDirectory(old_path, new_path, false);
             }
             catch (IOException e)
             {
-               logger.error (
-                  "Cannot move quicklook file " + old_path.getPath () +
-                  " to " + new_path.getPath (), e);
-               logger.error ("Aborting relocation process.");
+               LOGGER.error("Cannot move quicklook file " + old_path.getPath()
+                     + " to " + new_path.getPath(), e);
+               LOGGER.error("Aborting relocation process.");
                return false;
             }
-            File f = new File (new_path, old_path.getName ());
-            product.setQuicklookPath (f.getPath ());
-            product.setQuicklookSize (f.length ());
-            productDao.update (product);
+            File f = new File(new_path, old_path.getName());
+            product.setQuicklookPath(f.getPath());
+            product.setQuicklookSize(f.length());
+            productDao.update(product);
          }
          // Copy Thumbnails in the same incoming path as quicklook
-         if (product.getThumbnailFlag ())
+         if (product.getThumbnailFlag())
          {
-            old_path = new File (product.getThumbnailPath ());
+            old_path = new File(product.getThumbnailPath());
             if (new_path == null)
-               new_path = output_builder.getDirectory ();
+            {
+               new_path = output_builder.getDirectory();
+            }
             try
             {
-               logger.info ("Relocate " + old_path.getPath () + " to " +
-                  new_path.getPath ());
+               LOGGER.info("Relocate " + old_path.getPath() + " to " + new_path.getPath());
 
-               FileUtils.moveToDirectory (old_path, new_path, false);
+               FileUtils.moveToDirectory(old_path, new_path, false);
             }
             catch (IOException e)
             {
-               logger.error (
-                  "Cannot move thumbnail file " + old_path.getPath () +
-                  " to " + new_path.getPath (), e);
-               logger.error ("Aborting relocation process.");
+               LOGGER.error("Cannot move thumbnail file " + old_path.getPath()
+                     + " to " + new_path.getPath(), e);
+               LOGGER.error("Aborting relocation process.");
                return false;
             }
-            File f = new File (new_path, old_path.getName ());
-            product.setThumbnailPath (f.getPath ());
-            product.setThumbnailSize (f.length ());
-            productDao.update (product);
+            File f = new File(new_path, old_path.getName());
+            product.setThumbnailPath(f.getPath());
+            product.setThumbnailSize(f.length());
+            productDao.update(product);
          }
       }
       // Remove unused directories
       try
       {
-         cleanupIncoming (incomingManager.getIncomingBuilder ().getRoot ());
+         cleanupIncoming(incomingManager.getIncomingBuilder().getRoot());
       }
       catch (Exception e)
       {
-         logger.error ("Cannot cleanup incoming folder", e);
+         LOGGER.error("Cannot cleanup incoming folder", e);
       }
       return true;
    }
-   
-   private File getNewProductPath (HierarchicalDirectoryBuilder builder)
+
+   private File getNewProductPath(HierarchicalDirectoryBuilder builder)
    {
-      File file = new File (builder.getDirectory (), 
-         IncomingManager.INCOMING_PRODUCT_DIR);
-      file.mkdirs ();
+      File file = new File(builder.getDirectory(), IncomingManager.INCOMING_PRODUCT_DIR);
+      file.mkdirs();
       return file;
    }
 
@@ -380,390 +431,423 @@ public class DatabasePostInit extends WebPostProcess
     *
     * @param aStartingDir is a valid directory, which can be read.
     */
-   private void cleanupIncoming (File starting_dir)
+   private void cleanupIncoming(File starting_dir)
    {
-      if ( !starting_dir.isDirectory () && !starting_dir.canWrite ())
+      if (!starting_dir.isDirectory() && !starting_dir.canWrite())
       {
-         throw new IllegalParameterException (
-            "starting dir shall be a writable directory.");
+         throw new IllegalArgumentException("starting dir shall be a writable directory.");
       }
-      File[] files = starting_dir.listFiles ();
-      for (File file : files)
-      {
+      File[] files = starting_dir.listFiles();
 
-         if (incomingManager.isAnIncomingElement (file)) cleanupIncoming (file);
+      for (File file: files)
+      {
+         if (incomingManager.isAnIncomingElement(file))
+         {
+            cleanupIncoming(file);
+         }
       }
       // recheck the children list to know if this direct can be removed.
-      files = starting_dir.listFiles ();
+      files = starting_dir.listFiles();
       if (files.length == 0)
       {
-         logger.info ("deleting empty folder :" + starting_dir.getPath ());
-         starting_dir.delete ();
+         LOGGER.info("deleting empty folder :" + starting_dir.getPath());
+         starting_dir.delete();
       }
    }
 
-   private boolean doForceReset ()
+   private boolean doForceReset()
    {
       // Case of user force reset requested.
-      boolean force_reset = Boolean.getBoolean ("Archive.forceReset");
-      logger.info ("Archives Reset (Archive.forceReset) " +
-         "requested by user (" + force_reset + ")");
-      if ( !force_reset)
+      boolean force_reset = Boolean.getBoolean("Archive.forceReset");
+
+      LOGGER.info("Archives Reset (Archive.forceReset) "
+            + "requested by user (" + force_reset + ")");
+      if (!force_reset)
       {
          return false;
       }
+      // It's too dangerous to process products while performing actions on the index!
+      boolean reindex = Boolean.getBoolean("dhus.solr.reindex");
+      if (reindex)
+      {
+         LOGGER.error("Cannot do ArchiveForceReset because reindex is required");
+         return false;
+      }
 
-      productDao.deleteAll ();
+      productDao.deleteAll();
       return true;
    }
 
-   private boolean doProductReindex ()
+   private boolean doProductReindex()
    {
-      boolean force_reindex = Boolean.getBoolean ("Archive.forceReindex");
+      boolean force_reindex = Boolean.getBoolean("Archive.forceReindex");
 
-      logger.info ("Archives Reindex (Archive.forceReindex) " +
-         "requested by user (" + force_reindex + ")");
-      if ( !force_reindex)
+      LOGGER.info("Archives Reindex (Archive.forceReindex) "
+            + "requested by user (" + force_reindex + ")");
+      if (!force_reindex)
       {
          return false;
       }
+      // It's too dangerous to process products while performing actions on the index!
+      boolean reindex = Boolean.getBoolean("dhus.solr.reindex");
+      if (reindex)
+      {
+         LOGGER.error("Cannot do ArchiveForceReindex because reindex is required");
+         return false;
+      }
 
-        Iterator<Product> products = productDao.getAllProducts ();
-         while (products.hasNext ())
+      Iterator<Product> products = productDao.getAllProducts();
+      while (products.hasNext())
+      {
+         Product product = products.next();
+         int retry = 10;
+         while (retry > 0)
          {
-            Product product = products.next ();
-            int retry = 10;
-            while (retry > 0)
+            try
             {
+               // Must read the product again because
+               // ScrollableResultsIterator
+               // use its own session.
+               taskExecutor.execute(new IndexProductTask(productDao.read(product.getId())));
+               retry = 0;
+            }
+            catch (RejectedExecutionException ree)
+            {
+               retry--;
+               if (retry <= 0)
+               {
+                  throw ree;
+               }
                try
                {
-                  // Must read the product again because
-                  // ScrollableResultsIterator
-                  // use its own session.
-                  taskExecutor.execute (new IndexProductTask (productDao
-                     .read (product.getId ())));
-                  retry = 0;
+                  Thread.sleep(5000);
                }
-               catch (RejectedExecutionException ree)
+               catch (InterruptedException e)
                {
-                  retry--;
-                  if (retry <= 0) throw ree;
-                  try
-                  {
-                     Thread.sleep (5000);
-                  }
-                  catch (InterruptedException e)
-                  {
-                     logger.warn (
-                           "Current thread has interrupted by another", e);
-                  }
+                  LOGGER.warn("Current thread has interrupted by another", e);
                }
             }
          }
+      }
       return true;
    }
 
-   private void doSynchronizeLocalArchive ()
+   private void doSynchronizeLocalArchive()
    {
-      boolean synchronizeLocal = Boolean.getBoolean (
-            "Archive.synchronizeLocal");
+      boolean synchronizeLocal = Boolean.getBoolean("Archive.synchronizeLocal");
 
-      logger.info ("Local archive synchronization " +
-         "(Archive.synchronizeLocal) requested by user (" + synchronizeLocal
-            + ")");
-      if ( !synchronizeLocal) return;
+      LOGGER.info("Local archive synchronization (Archive.synchronizeLocal) "
+            + "requested by user (" + synchronizeLocal + ")");
+      if (!synchronizeLocal)
+      {
+         return;
+      }
+      // It's too dangerous to process products while performing actions on the index!
+      boolean reindex = Boolean.getBoolean("dhus.solr.reindex");
+      if (reindex)
+      {
+         LOGGER.error("Cannot do ArchiveSynchroniseLocal because reindex is required");
+         return;
+      }
       try
       {
-         productService.processArchiveSync ();
+         productService.processArchiveSync();
       }
       catch (DataStoreLocalArchiveNotExistingException e)
       {
-         logger.warn (e.getMessage ());
+         LOGGER.warn(e.getMessage());
       }
       catch (InterruptedException e)
       {
-         logger.info ("Process interrupted by user.");
+         LOGGER.info("Process interrupted by user.");
       }
    }
 
-   private void doArchiveCheck ()
+   private void doArchiveCheck()
    {
-      boolean force_check = Boolean.getBoolean ("Archive.check");
+      boolean force_check = Boolean.getBoolean("Archive.check");
 
-      logger.info ("Archives check (Archive.check) requested by user (" +
-         force_check + ")");
-      if ( !force_check) return;
+      LOGGER.info("Archives check (Archive.check) requested by user (" +force_check + ")");
+      if (!force_check)
+      {
+         return;
+      }
+      // It's too dangerous to process products while performing actions on the index!
+      boolean reindex = Boolean.getBoolean("dhus.solr.reindex");
+      if (reindex)
+      {
+         LOGGER.error("Cannot do ArchiveCheck because reindex is required");
+         return;
+      }
 
       try
       {
-         logger.info ("Control of Database coherence...");
-         long start = new Date ().getTime ();
-         productService.checkDBProducts ();
-         logger.info ("Control of Database coherence spent " +
-            (new Date ().getTime () - start) + " ms");
+         LOGGER.info("Control of Database coherence...");
+         long start = new Date().getTime();
+         productService.checkDBProducts();
+         LOGGER.info("Control of Database coherence spent "
+               + (new Date().getTime() - start) + " ms");
 
-         logger.info ("Control of Indexes coherence...");
-         start = new Date ().getTime ();
+         LOGGER.info("Control of Indexes coherence...");
+         start = new Date().getTime();
          searchService.checkIndex();
-         logger.info ("Control of Indexes coherence spent " +
-            (new Date ().getTime () - start) + " ms");
+         LOGGER.info("Control of Indexes coherence spent "
+               + (new Date().getTime() - start) + " ms");
 
-         logger.info ("Control of incoming folder coherence...");
-         start = new Date ().getTime ();
-         incomingManager.checkIncomming ();
-         logger.info ("Control of incoming folder coherence spent " +
-            (new Date ().getTime () - start) + " ms");
+         LOGGER.info("Control of incoming folder coherence...");
+         start = new Date().getTime();
+         incomingManager.checkIncomming();
+         LOGGER.info("Control of incoming folder coherence spent "
+               + (new Date().getTime() - start) + " ms");
 
-         logger.info ("Optimizing database...");
-         DaoUtils.optimize ();
+         LOGGER.info("Optimizing database...");
+         DaoUtils.optimize();
       }
       catch (Exception e)
       {
-         logger.error ("Cannot check DHus Archive.", e);
+         LOGGER.error("Cannot check DHus Archive.", e);
       }
    }
 
-   private void doforcePublic ()
+   private void doforcePublic()
    {
-      boolean force_public = Boolean.getBoolean ("force.public");
+      boolean force_public = Boolean.getBoolean("force.public");
 
-      logger.info ("Force public (force.public) requested by user (" +
-         force_public + ")");
-      if ( !force_public) return;
+      LOGGER.info("Force public (force.public) requested by user (" + force_public + ")");
+      if (!force_public)
+      {
+         return;
+      }
+      // It's too dangerous to process products while performing actions on the index!
+      boolean reindex = Boolean.getBoolean("dhus.solr.reindex");
+      if (reindex)
+      {
+         LOGGER.error("Cannot do ForcePublic because reindex is required");
+         return;
+      }
 
-      Thread t = new Thread (new Runnable()
+      Thread t = new Thread(new Runnable()
       {
          @Override
-         public void run ()
+         public void run()
          {
-            Iterator<Collection> collections = collectionDao.getAllCollectons ();
+            Iterator<Collection> collections = collectionDao.getAllCollections ();
             while (collections.hasNext ())
             {
-               Collection collection = collectionDao.read(collections.next ().getId ());
+               Collection collection = collectionDao.read(collections.next ().getUUID ());
                List<User> authUsers = collectionDao.getAuthorizedUsers (collection);
-               if (collection.getId () == collectionDao.getRootCollection ().getId ())
+
+               if (!authUsers.contains (userDao.getPublicData ()))
                {
-                  if (authUsers.contains (userDao.getPublicData ()))
-                  {
-                     authUsers.remove (userDao.getPublicData ());
-                  }
-                  else
-                  {
-                     continue;
-                  }
+                  authUsers.add (userDao.getPublicData ());
                }
                else
                {
-                  if (!authUsers.contains (userDao.getPublicData ()))
-                  {
-                     authUsers.add (userDao.getPublicData ());
-                  }
-                  else
-                  {
-                     continue;
-                  }
+                  continue;
                }
-               collection.setAuthorizedUsers (new HashSet<User> (authUsers));
+
+               collection.setAuthorizedUsers (new HashSet<> (authUsers));
                collectionDao.update (collection);
             }
-            logger.info ("Force public (force.public) ended.");
+            LOGGER.info("Force public (force.public) ended.");
          }
       });
-      t.start ();
+      t.start();
    }
 
    private class IndexProductTask implements Runnable
    {
-      private Product product;
+      private final Product product;
 
-      public IndexProductTask (Product product)
+      public IndexProductTask(Product product)
       {
          this.product = product;
       }
 
-      public void run ()
+      @Override
+      public void run()
       {
-         logger.info ("Re-indexing Product " + product.getPath ().getFile () +
-            "...");
+         LOGGER.info("Re-indexing Product " + product.getPath().getFile() +"...");
          // retrieve ingestion Date
          MetadataIndex ingestion_date = null;
-         for (MetadataIndex idx : productService.getIndexes (product.getId ()))
+         for (MetadataIndex idx: productService.getIndexes(product.getId()))
          {
-            if ("ingestionDate".equals (idx.getQueryable ()))
+            if ("ingestionDate".equals(idx.getQueryable()))
             {
-               ingestion_date = new MetadataIndex (idx);
+               ingestion_date = new MetadataIndex(idx);
                break;
             }
          }
          if (ingestion_date == null)
          {
-            SimpleDateFormat df =
-               new SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
             ingestion_date =
-               new MetadataIndex ("Ingestion Date", null, "product",
-                  "ingestionDate",
-                  df.format (product.getUpdated () != null ? product
-                     .getUpdated () : new Date ()));
+                  new MetadataIndex("Ingestion Date", null, "product", "ingestionDate",
+                        df.format(product.getUpdated() != null ?
+                                  product.getUpdated() : new Date()));
          }
-         MetadataIndex identifier = new MetadataIndex ("Identifier",
-            null, "", "identifier", product.getIdentifier ());
-         List<MetadataIndex> indexes =
-                  ProcessingUtils.getIndexesFrom (product.getPath ());
+         MetadataIndex identifier =
+               new MetadataIndex("Identifier", null, "", "identifier", product.getIdentifier());
+         List<MetadataIndex> indexes = ProcessingUtils.getIndexesFrom(product.getPath());
+
          if (indexes == null)
          {
-            logger.error ("Index cannot be extracted from " +
-               product.getPath ());
-            logger.error ("Removing Product from database...");
+            LOGGER.error("Index cannot be extracted from " + product.getPath());
+            LOGGER.error("Removing Product from database...");
             try
             {
-               productService.systemDeleteProduct (product.getId ());
+               productService.systemDeleteProduct(product.getId());
             }
             catch (Exception e)
             {
-               logger.error ("Cannot remove product " + product.getPath (), e);
+               LOGGER.error("Cannot remove product " + product.getPath(), e);
             }
             return;
          }
-         indexes.add (ingestion_date);
-         indexes.add (identifier);
+         indexes.add(ingestion_date);
+         indexes.add(identifier);
 
-         product.setIndexes (indexes);
+         product.setIndexes(indexes);
 
          // Footprint shall also be re-processed.
-
-         for (MetadataIndex index : indexes)
-         {  
+         for (MetadataIndex index: indexes)
+         {
             // Check GML footprint
-            if (index.getName ().equalsIgnoreCase ("footprint"))
+            if (index.getName().equalsIgnoreCase("footprint"))
             {
-               String gml_footprint = index.getValue ();
-               if ( (gml_footprint != null) && ProcessingUtils.checkGMLFootprint (gml_footprint))
+               String gml_footprint = index.getValue();
+               if ((gml_footprint != null) && ProcessingUtils.checkGMLFootprint(gml_footprint))
                {
-                  product.setFootPrint (gml_footprint);
+                  product.setFootPrint(gml_footprint);
                }
                else
                {
-                  logger.error ("Incorrect on empty footprint for product " + 
-                     product.getPath ());
+                  LOGGER.error("Incorrect on empty footprint for product " + product.getPath());
                }
             }
 
             // Check JTS footprint
-            if (index.getName ().equalsIgnoreCase ("jts footprint"))
+            if (index.getName().equalsIgnoreCase("jts footprint"))
             {
-               String jts_footprint = index.getValue ();
-               if ( (jts_footprint != null) && !ProcessingUtils.checkJTSFootprint (jts_footprint))
+               String jts_footprint = index.getValue();
+               if ((jts_footprint != null) && !ProcessingUtils.checkJTSFootprint(jts_footprint))
                {
                   // If JTS footprint is wrong; remove the corrupted footprint.
                   product.getIndexes().remove(index);
                }
             }
          }
-         
-         productDao.update (product);
+
+         productDao.update(product);
 
          // save the reprocessed index
          searchService.index(product);
       }
    }
-   
+
    private void updateUserCountries()
    {
-      String synonymsFile = System.getProperty ("country.synonyms");
+      String synonymsFile = System.getProperty("country.synonyms");
       if (synonymsFile == null)
       {
          // TODO test it
          return;
       }
-      logger.info("Loading country synonyms from '"+synonymsFile+"'");
-      List<String> countriesNames = countryDao.readAllNames ();
-      HashMap<String, List<String>> synonyms = 
-         new HashMap<String, List<String>> ();
-      
-      try
+      LOGGER.info("Loading country synonyms from '" + synonymsFile + "'");
+      List<String> countriesNames = countryDao.readAllNames();
+      HashMap<String, List<String>> synonyms = new HashMap<>();
+
+      try (BufferedReader br =
+               new BufferedReader(
+                     new InputStreamReader(
+                           new FileInputStream(synonymsFile), "UTF-8")))
       {
-         BufferedReader br = new BufferedReader(
-            new InputStreamReader(new FileInputStream(synonymsFile), "UTF-8"));
          String sCurrentLine;
-         while ((sCurrentLine = br.readLine()) != null) 
+         while ((sCurrentLine = br.readLine()) != null)
          {
-            if (sCurrentLine.startsWith ("#"))
+            if (sCurrentLine.startsWith("#"))
             {
                // comments
                continue;
             }
-            String[] split1 = sCurrentLine.split (": ");
+            String[] split1 = sCurrentLine.split(": ");
             if (split1.length > 1)
             {
                String[] split2 = split1[1].split(", ");
-               List<String> syns = new ArrayList<String> ();
-               for (String s : split2)
+               List<String> syns = new ArrayList<>();
+               for (String s: split2)
                {
-                  syns.add(s.toLowerCase ());
+                  syns.add(s.toLowerCase());
                }
-               if (countriesNames.contains (split1[0]))
+               if (countriesNames.contains(split1[0]))
                {
-                  synonyms.put (split1[0], syns);
+                  synonyms.put(split1[0], syns);
                }
             }
          }
-         br.close ();
       }
       catch (FileNotFoundException e)
       {
-         logger.error("Can not load country synonyms");
+         LOGGER.error("Can not load country synonyms");
          return;
       }
       catch (IOException e)
       {
-         logger.error("Can not load country synonyms");
+         LOGGER.error("Can not load country synonyms");
          return;
       }
 
-      Iterator<User> users = userDao.getAllUsers ();
-      while (users.hasNext ())
+      Iterator<User> users = userDao.getAllUsers();
+      while (users.hasNext())
       {
-         User u = users.next ();
-         if (cfgManager.getAdministratorConfiguration ().getName ().equals (
-               u.getUsername ())
-               || userDao.getPublicData ().getUsername ().equals (
-               u.getUsername ()))
+         User u = users.next();
+         if (cfgManager.getAdministratorConfiguration().getName().equals(u.getUsername())
+               || userDao.getPublicData().getUsername().equals(u.getUsername()))
          {
             continue;
          }
-         if (!countriesNames.contains (u.getCountry ()))
+         if (!countriesNames.contains(u.getCountry()))
          {
             boolean found = false;
-            for (String country: synonyms.keySet ())
+            for (String country: synonyms.keySet())
             {
-               if (synonyms.get (country).contains (u.getCountry ().toLowerCase ()))
+               if (synonyms.get(country).contains(u.getCountry().toLowerCase()))
                {
-                  u.setCountry (country);
-                  userDao.update (u);
+                  u.setCountry(country);
+                  userDao.update(u);
                   found = true;
                   break;
                }
             }
             if (!found)
             {
-               logger.warn("Unknown country for '"+u.getUsername ()+"' : "+u.getCountry ());
+               LOGGER.warn("Unknown country for '" + u.getUsername() + "' : " + u.getCountry());
             }
          }
       }
    }
 
-   private void inactiveOldSearchQueries ()
+   private void inactiveOldSearchQueries()
    {
-      boolean inactiveSearchNotification = Boolean.parseBoolean (
-            System.getProperty (
-                  "users.search.notification.force.inactive", "false"));
-      logger.info ("Inactive all saved search notifications (" +
-                   "users.search.notification.force.inactive) requested by " +
-                   "user ("+ inactiveSearchNotification + ")");
+      boolean deactivate_notif = Boolean.getBoolean("users.search.notification.force.inactive");
+      LOGGER.info("Deactivate all saved search notifications (users.search.notification.force.inactive)"
+            + "requested by user (" + deactivate_notif + ")");
 
-      if (inactiveSearchNotification)
+      if (deactivate_notif)
       {
-         searchDao.disableAllSearchNotifications ();
+         searchDao.disableAllSearchNotifications();
       }
+   }
+
+   private void doReindex()
+   {
+      boolean reindex = Boolean.getBoolean("dhus.solr.reindex");
+      LOGGER.info("Full solr reindex (dhus.reindex) requested by user (" + reindex + ")");
+
+      if (!reindex)
+      {
+         return;
+      }
+      searchService.fullReindex();
    }
 }

@@ -25,6 +25,7 @@ import java.util.List;
 
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -32,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import fr.gael.dhus.database.dao.ProductDao;
 import fr.gael.dhus.database.dao.interfaces.IEvictionDao;
+import fr.gael.dhus.database.object.Eviction;
 import fr.gael.dhus.database.object.Product;
 import fr.gael.dhus.datastore.eviction.EvictionManager;
 import fr.gael.dhus.datastore.eviction.EvictionStrategy;
@@ -94,15 +96,17 @@ public class EvictionService extends WebService
    
    @PreAuthorize ("isAuthenticated ()")
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
+   @Cacheable (value = "product_eviction_date", key = "#pid")
    public Date getEvictionDate (Long pid)
    {
-      if (evictionDao.getEviction ().getStrategy () == EvictionStrategy.NONE)
+      Eviction eviction = evictionDao.getEviction (); 
+      if (eviction.getStrategy () == EvictionStrategy.NONE)
       {
          return null;
       }
       Product p = productDao.read (pid);
       DateTime dt = new DateTime (p.getIngestionDate ());
-      DateTime res = dt.plusDays (evictionDao.getEviction ().getKeepPeriod ());
+      DateTime res = dt.plusDays (eviction.getKeepPeriod ());
       return res.toDate ();
    }
 

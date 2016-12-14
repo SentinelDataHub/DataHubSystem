@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.hibernate.HibernateException;
 import org.hibernate.Query;
@@ -15,10 +16,11 @@ import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.Assert;
+import org.testng.annotations.Test;
 
 import fr.gael.dhus.database.dao.interfaces.HibernateDao;
+import fr.gael.dhus.database.object.FileScanner;
 import fr.gael.dhus.database.object.Preference;
-import fr.gael.dhus.database.object.Quota;
 import fr.gael.dhus.database.object.Role;
 import fr.gael.dhus.database.object.Search;
 import fr.gael.dhus.database.object.User;
@@ -35,14 +37,16 @@ import fr.gael.dhus.util.TestContextLoader;
  */
 @ContextConfiguration (locations = "classpath:fr/gael/dhus/spring/context-test.xml", loader = TestContextLoader.class)
 @DirtiesContext (classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestUserDao extends TestAbstractHibernateDao<User, Long>
-{
-
+public class TestUserDao extends TestAbstractHibernateDao<User, String>
+{   
+   @Autowired
+   private FileScannerDao fsDao;
+   
    @Autowired
    private UserDao dao;
 
    @Override
-   protected HibernateDao<User, Long> getHibernateDao ()
+   protected HibernateDao<User, String> getHibernateDao ()
    {
       return dao;
    }
@@ -61,10 +65,6 @@ public class TestUserDao extends TestAbstractHibernateDao<User, Long>
          Arrays.asList (Role.SEARCH, Role.DOWNLOAD, Role.UPLOAD);
       AccessRestriction lock = new LockedAccessRestriction ();
       lock.setBlockingReason ("Max connection exceeded !");
-      Quota quota = new Quota ();
-      quota.setMaxConnectionCount (BigInteger.TEN);
-      quota.setMaxDownload (BigInteger.valueOf (3));
-      quota.setMaxUpload (BigInteger.ZERO);
 
       User user = new User ();
       user.setUsername (username);
@@ -72,7 +72,6 @@ public class TestUserDao extends TestAbstractHibernateDao<User, Long>
       user.setRoles (roles);
       user.setDeleted (false);
       user.setEmail ("usertest@gael.fr");
-      user.setQuota (quota);
       user.addRestriction (lock);
 
       user = dao.create (user);
@@ -81,23 +80,19 @@ public class TestUserDao extends TestAbstractHibernateDao<User, Long>
       Assert.assertTrue (user.getRoles ().containsAll (roles));
       Assert.assertFalse (user.isDeleted ());
       Assert.assertTrue (user.getUsername ().equalsIgnoreCase (username));
-      Assert.assertEquals (user.getRestrictions ().size (), 1);
-      Assert.assertEquals (user.getQuota ().getMaxConnectionCount ()
-         .intValue (), 10);
+      Assert.assertEquals (user.getRestrictions ().size (), 1);      
    }
 
    @Override
    public void read ()
    {
-      User user = dao.read (0L);
+      User user = dao.read ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0");
       Assert.assertNotNull (user);
 
       Set<AccessRestriction> restrictions = user.getRestrictions ();
       Preference preferences = user.getPreferences ();
 
       Assert.assertTrue (user.getUsername ().equalsIgnoreCase ("koko"));
-      Assert.assertEquals (user.getQuota ().getMaxUpload (),
-         BigInteger.valueOf (5));
       Assert.assertEquals (restrictions.size (), 1);
       Assert.assertEquals (preferences.getFileScanners ().size (), 2);
       Assert.assertEquals (preferences.getSearches ().size (), 2);
@@ -106,8 +101,7 @@ public class TestUserDao extends TestAbstractHibernateDao<User, Long>
    @Override
    public void update ()
    {
-      Long uid = Long.valueOf (0);
-      BigInteger uploadQuota = BigInteger.valueOf (50);
+      String uid = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0";
       String lastname = "Lambert";
       String advancedSearchKey = "advanceKey";
       String advancedSearchValue = "France";
@@ -115,7 +109,6 @@ public class TestUserDao extends TestAbstractHibernateDao<User, Long>
       User user = dao.read (uid);
       Assert.assertNotNull (user);
       user.setLastname (lastname);
-      user.getQuota ().setMaxUpload (uploadQuota);
       user.getRestrictions ().clear ();
       for (Search search : user.getPreferences ().getSearches ())
       {
@@ -126,7 +119,6 @@ public class TestUserDao extends TestAbstractHibernateDao<User, Long>
       user = dao.read (uid);
       Assert.assertEquals (user.getLastname (), lastname);
       Assert.assertTrue (user.getRestrictions ().isEmpty ());
-      Assert.assertEquals (user.getQuota ().getMaxUpload (), uploadQuota);
       for (Search search : user.getPreferences ().getSearches ())
       {
          Assert.assertEquals (search.getAdvanced ().get (advancedSearchKey),
@@ -137,7 +129,7 @@ public class TestUserDao extends TestAbstractHibernateDao<User, Long>
    @Override
    public void delete ()
    {
-      Long uid = Long.valueOf (0);
+      String uid = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0";
       User user = dao.read (uid);
       Assert.assertNotNull (user);
 
@@ -147,21 +139,30 @@ public class TestUserDao extends TestAbstractHibernateDao<User, Long>
       Assert.assertEquals (countRestriction (user), 0);
       Assert
          .assertEquals (
-            countInTable ("PREFERENCES", "ID", user.getPreferences ().getId ()),
+            countInTable ("PREFERENCES", "UUID", user.getPreferences ().getUUID ()),
             0);
-      Assert.assertEquals (
-         countInTable ("QUOTAS", "ID", user.getQuota ().getId ()), 0);
-      Assert.assertEquals (countInTable ("USER_ROLES", "USER_ID", uid), 0);
+      Assert.assertEquals (countInTable ("USER_ROLES", "USER_UUID", uid), 0);
 
       Assert.assertEquals (
-         countInTable ("SEARCH_PREFERENCES", "PREFERENCE_ID", 0L), 0);
+         countInTable ("SEARCH_PREFERENCES", "PREFERENCE_UUID", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0"), 0);
       Assert.assertEquals (
-         countInTable ("FILE_SCANNER_PREFERENCES", "PREFERENCE_ID", 0L), 0);
+         countInTable ("FILE_SCANNER_PREFERENCES", "PREFERENCE_UUID", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0"), 0);
       
-      Assert.assertEquals (countInTable ("SEARCHES", "ID", 0L), 0);
-      Assert.assertEquals (countInTable ("SEARCHES", "ID", 2L), 0);
+      Assert.assertEquals (countInTable ("SEARCHES", "UUID", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0"), 0);
+      Assert.assertEquals (countInTable ("SEARCHES", "UUID", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2"), 0);
       Assert.assertEquals (countInTable ("FILE_SCANNER", "ID", 0L), 0);
       Assert.assertEquals (countInTable ("FILE_SCANNER", "ID", 2L), 0);
+   }
+   
+   @Test
+   public void removeFileScanner()
+   {
+      Assert.assertEquals (countInTable ("FILE_SCANNER_PREFERENCES", "PREFERENCE_UUID", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0"), 2);
+      Assert.assertEquals (countInTable ("FILE_SCANNER", "ID", 0L), 1);
+      User user = dao.read ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1");
+      dao.removeFileScanner (user, 0L);
+      Assert.assertEquals (countInTable ("FILE_SCANNER_PREFERENCES", "PREFERENCE_UUID", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0"), 1);
+      Assert.assertEquals (fsDao.read (0L), null);
    }
 
    private int countInTable (final String table, final String IdName,
@@ -183,6 +184,39 @@ public class TestUserDao extends TestAbstractHibernateDao<User, Long>
          });
    }
 
+   private int countInTable (final String table, final String IdName,
+      final String uuid)
+   {
+      return dao.getHibernateTemplate ().execute (
+         new HibernateCallback<Integer> ()
+         {
+            @Override
+            public Integer doInHibernate (Session session)
+               throws HibernateException, SQLException
+            {
+               String sql =
+                  "SELECT count(*) FROM " + table + " WHERE " + IdName + " = ?";
+               Query query = session.createSQLQuery (sql);
+               query.setString (0, uuid);
+               return ((BigInteger) query.uniqueResult ()).intValue ();
+            }
+         });
+   }
+   
+   @Test
+   public void getUserSearches ()
+   {
+      List<Search> s = dao.getUserSearches (dao.read ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0"));
+      Assert.assertEquals (s.size (), 2);
+   }
+
+   @Test
+   public void getFileScanners ()
+   {
+      Set<FileScanner> s = dao.getFileScanners (dao.read ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0"));
+      Assert.assertEquals (s.size (), 2);
+   }
+   
    private int countRestriction (final User user)
    {
       return dao.getHibernateTemplate ().execute (
@@ -194,12 +228,26 @@ public class TestUserDao extends TestAbstractHibernateDao<User, Long>
             {
                String sql =
                   "SELECT count(*) FROM ACCESS_RESTRICTION "
-                     + "WHERE ID IN (:restriction)";
+                     + "WHERE UUID IN (:restriction)";
                Query query = session.createSQLQuery (sql);
                query.setParameterList ("restriction", user.getRestrictions ());
                return ((BigInteger) query.uniqueResult ()).intValue ();
             }
          });
+   }
+   
+   @Test
+   public void userCode ()      
+   {
+      User u = new User ();
+      u.setUsername ("testCode");
+      dao.create (u);
+      String code = dao.computeUserCode (u);
+      System.out.println (code);
+      User u2 = dao.getUserFromUserCode (code);
+      Assert.assertNotEquals (u2, null);
+      System.out.println (u2.getUUID ());
+      Assert.assertEquals (u2.getUUID (), u.getUUID ());
    }
 
    @Override

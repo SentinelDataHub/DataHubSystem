@@ -19,19 +19,10 @@
  */
 package fr.gael.dhus.spring.context;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import fr.gael.dhus.database.object.Role;
-import fr.gael.dhus.database.object.User;
 
 public class SecurityContextProvider
 {
@@ -96,7 +87,7 @@ public class SecurityContextProvider
 
    public static void logout (String key)
    {
-      if (context == null || sessions == null)
+      if (key == null || context == null || sessions == null)
       {
          return;
       }
@@ -111,6 +102,10 @@ public class SecurityContextProvider
    
    public static void forceLogout (String userName)
    {
+      if (userName == null || context == null)
+      {
+         return;
+      }
       for (String key : context.keySet ())
       {
          SecurityContext securityContext = context.get (key);

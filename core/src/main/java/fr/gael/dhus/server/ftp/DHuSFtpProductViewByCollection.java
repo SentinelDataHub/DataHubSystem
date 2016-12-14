@@ -18,95 +18,137 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- * 
+ *
  */
 package fr.gael.dhus.server.ftp;
 
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.ftpserver.ftplet.FileSystemView;
-import org.apache.ftpserver.ftplet.FtpException;
-import org.apache.ftpserver.ftplet.FtpFile;
-import org.apache.ftpserver.ftplet.User;
 
 import fr.gael.dhus.database.object.Collection;
 import fr.gael.dhus.database.object.Product;
-import fr.gael.dhus.server.ftp.service.DHuSFtpFile;
-import fr.gael.dhus.server.ftp.service.DHuSFtpFile.DHuSFtpFileType;
-import fr.gael.dhus.server.ftp.service.DHuSVFSService;
+import fr.gael.dhus.database.object.User;
+import fr.gael.dhus.service.CollectionService;
+import fr.gael.dhus.service.ProductService;
+import fr.gael.dhus.service.UserService;
+import fr.gael.dhus.spring.context.ApplicationContextProvider;
+
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
+import org.apache.ftpserver.ftplet.FileSystemView;
+import org.apache.ftpserver.ftplet.FtpException;
+import org.apache.ftpserver.ftplet.FtpFile;
 
 /**
  * @author pidancier
  */
 public class DHuSFtpProductViewByCollection implements FileSystemView
 {
-   private static Log logger = LogFactory
-      .getLog (DHuSFtpProductViewByCollection.class);
-   private static String CONTENT_DATE = ".contentDate";
+   private static final Logger LOGGER = LogManager.getLogger(DHuSFtpProductViewByCollection.class);
 
-   private User user;
-   private DHuSVFSService vfsService;
+   static final String CONTENT_DATE = ".contentDate";
+   static final String OWNER_NAME = "DHuS";
+   static final String GROUP_NAME = "DHuS";
+
+   private static final String COLLECTION_NAME = "collection";
+   private static final String DATE_YEAR = "year";
+   private static final String DATE_MONTH = "month";
+   private static final String DATE_DAY = "day";
+
+   private final User user;
    private Collection workingCol;
-   private String date;
    private String currentPath;
+   private CollectionService collectionService;
+   private ProductService productService;
+   private final Map<String,String> pathInfo;
 
-   public DHuSFtpProductViewByCollection (User user, DHuSVFSService vfs_service)
+   public DHuSFtpProductViewByCollection (org.apache.ftpserver.ftplet.User user)
    {
-      this.user = user;
-      this.vfsService = vfs_service;
-      this.workingCol = vfs_service.getCollectionDao ().getRootCollection ();
+      this.user = ApplicationContextProvider.getBean (
+            UserService.class).getUserNoCheck (user.getName ());
+      this.workingCol = null;
       this.currentPath = "/";
+      this.pathInfo = new HashMap<> ();
+
+      this.collectionService =
+            ApplicationContextProvider.getBean (CollectionService.class);
+      this.productService =
+            ApplicationContextProvider.getBean (ProductService.class);
    }
 
-   /*
-    * (non-Javadoc)
-    * @see
-    * org.apache.ftpserver.ftplet.FileSystemView#changeWorkingDirectory(java
-    * .lang.String)
+   /**
+    * Allows to change the current working directory.
+    *
+    * @param wd path of the new working directory.
+    * @return true if the working directory is successfully changed,
+    * otherwise false.
+    * @throws FtpException
     */
    @Override
    public boolean changeWorkingDirectory (String wd) throws FtpException
    {
-      if (!wd.startsWith("/"))
+      if (wd.equals ("/"))
       {
-         String prefix = currentPath;
-         //vfsService.getVPathByCollection(workingCol);
-         if (!prefix.endsWith("/")) prefix+="/";
-         wd =  prefix + wd;
+         workingCol = null;
+         currentPath = wd;
+         pathInfo.clear ();
+         return true;
       }
 
-      wd = vfsService.normalizePath(wd);
-      
-      int index = wd.indexOf (CONTENT_DATE);
-      String requestedDate = null;
-      Collection c = null;
-
-      if (index != -1)
+      // Build asked path
+      String path;
+      if (wd.startsWith ("/"))
       {
-         String collectionPath = wd.substring (0, index);
-         c = vfsService.getCollectionByVPath (collectionPath, user);
-         requestedDate = wd.substring (index + CONTENT_DATE.length ());
-         if (requestedDate.startsWith ("/") || requestedDate.startsWith ("\\"))
+         path = wd;
+      }
+      else if (wd.equals (".."))
+      {
+         path = currentPath.substring (0, currentPath.lastIndexOf ("/"));
+         // if return to racine
+         if (path.isEmpty ())
          {
-            this.date = requestedDate.substring (1);
+            workingCol = null;
+            currentPath = "/";
+            pathInfo.clear ();
+            return true;
+         }
+      }
+      else
+      {
+         if (currentPath.charAt (currentPath.length () - 1) == '/')
+         {
+            path = currentPath.concat (wd);
          }
          else
          {
-            this.date = requestedDate;
+            path = currentPath.concat ("/").concat (wd);
          }
-         if (this.date.endsWith ("/") || this.date.endsWith ("\\"))
-            this.date = this.date.substring (0, this.date.length ()-1);
+      }
+
+      // extract info from path
+      extractInfoFromPath (path);
+
+      // set working collection
+      String collectionName = pathInfo.get (COLLECTION_NAME);
+      if (collectionName == null)
+      {
+         workingCol = null;
       }
       else
-         c = vfsService.getCollectionByVPath (wd, user);
+      {
+         Collection c = collectionService.getAuthorizedCollectionByName (
+               collectionName, user);
+         if (c == null)
+         {
+            return false;
+         }
+         workingCol = c;
+      }
 
-      if (c == null) return false;
+      // set current path
+      currentPath = path;
 
-      this.workingCol = c;
-      this.currentPath = wd;
       return true;
    }
 
@@ -119,63 +161,6 @@ public class DHuSFtpProductViewByCollection implements FileSystemView
    {
    }
 
-   private FtpFile getContentDateFile ()
-   {
-      logger.debug ("CONTENT_DATE --> path : '" + currentPath + "'; date : '" +
-         date + "'");
-      String path = currentPath;
-      fr.gael.dhus.database.object.User u =
-         vfsService.getDhusUserFromFtpUser (user);
-      List<Product> products;
-      FtpFile file = null;
-
-      if (vfsService.getCollectionDao ().isRoot (workingCol))
-      {
-         products = vfsService.getProductDao ().getNoCollectionProducts (u);
-      }
-      else
-      {
-         products =
-            vfsService.getViewableProductOfCollection (workingCol, user);
-      }
-
-      if (date.isEmpty ())
-      {
-         return new DHuSFtpFile (path, products,
-            DHuSFtpFileType.CONTENT_DATE, vfsService, user);
-      }
-
-      Map<String, List<Product>> map;
-      List<Product> productList;
-      switch (date.length ())
-      {
-         case 4: // YEARS
-            map = vfsService.groupProductBy (products, DHuSFtpFileType.YEAR);
-            productList = map.get (date);
-            file =
-               new DHuSFtpFile (path, productList, DHuSFtpFileType.YEAR,
-                  vfsService, user);
-            break;
-         case 7: // YEAR-MONTHS
-            map = vfsService.groupProductBy (products, DHuSFtpFileType.MONTH);
-            productList = map.get (date);
-            file =
-               new DHuSFtpFile (path, productList, DHuSFtpFileType.MONTH,
-                  vfsService, user);
-            break;
-         case 10: // YEAR-MONTH-DAYS
-            map = vfsService.groupProductBy (products, DHuSFtpFileType.DAY);
-            productList = map.get (date);
-            file =
-               new DHuSFtpFile (path, productList, DHuSFtpFileType.DAY,
-                  vfsService, user);
-            break;
-         default:
-            break;
-      }
-      return file;
-   }
-
    /*
     * (non-Javadoc)
     * @see org.apache.ftpserver.ftplet.FileSystemView#getFile(java.lang.String)
@@ -184,52 +169,13 @@ public class DHuSFtpProductViewByCollection implements FileSystemView
    public FtpFile getFile (String name) throws FtpException
    {
       if (name.equals ("./"))
+      {
          return getWorkingDirectory ();
+      }
 
-      String path;
-      if (name.startsWith("/"))
-      {
-         path = name;
-      }
-      else
-      {
-         path = vfsService.getVPathByCollection(this.workingCol);
-         path += ((path.endsWith ("/") || path.endsWith ("\\")) ? "" : "/") +
-               name;
-      }
-      
-      path = vfsService.normalizePath(path);
-      
-      logger.debug ("Rebuilt path " + path);
-      String product_name =
-               name.substring (name.lastIndexOf ("/") + 1, name.length ());
-      Product product =
-               vfsService.getProductDao ().getProductByDownloadableFilename (
-                     product_name, workingCol);
-      Collection collection = vfsService.getCollectionByVPath(path, user);
-      if (product == null)
-      {
-         // Is a collection
-         if (collection != null)
-         {
-            logger.debug("Found collection : " + collection.getName());
-            return new DHuSFtpCollection (path, vfsService, user);
-         }
-         else
-         {
-            logger.error ("Cannot find collection/product of " + path);
-            throw new UnsupportedOperationException(
-               "Cannot find collection/product of path " + path);
-         }
-      }
-      else
-      { // Case of product found
-         logger.debug("Found Product : " + product.getDownloadablePath());
-         String collection_vpath   = path.substring(0, path.lastIndexOf("/"));
-         product.setOwner (vfsService.getProductDao ().getOwnerOfProduct (
-               product));
-         return new DHuSFtpProduct(collection_vpath, product, vfsService, user);
-      }
+      String identifier = name.substring (0, (name.length () - 4));
+      Product p = productService.getProductIdentifier (identifier);
+      return new FtpProductFile (user, workingCol, p);
    }
 
    /*
@@ -239,11 +185,7 @@ public class DHuSFtpProductViewByCollection implements FileSystemView
    @Override
    public FtpFile getHomeDirectory () throws FtpException
    {
-      String path =
-         vfsService.getVPathByCollection (vfsService.getCollectionDao ()
-            .getRootCollection ());
-
-      return new DHuSFtpCollection (path, vfsService, user);
+      return new FtpRootFile (user);
    }
 
    /*
@@ -253,9 +195,21 @@ public class DHuSFtpProductViewByCollection implements FileSystemView
    @Override
    public FtpFile getWorkingDirectory () throws FtpException
    {
-      if (currentPath.contains (CONTENT_DATE)) return getContentDateFile ();
-      String path = vfsService.getVPathByCollection(this.workingCol);
-      return new DHuSFtpCollection (path, vfsService, user);
+      if (currentPath.contains (CONTENT_DATE))
+      {
+         return new FtpContentDateFile (user, workingCol,
+               pathInfo.get (DATE_YEAR), pathInfo.get(DATE_MONTH),
+               pathInfo.get(DATE_DAY));
+      }
+
+      if (workingCol == null)
+      {
+         return getHomeDirectory ();
+      }
+      else
+      {
+         return new FtpCollectionFile (user, workingCol);
+      }
    }
 
    /*
@@ -268,4 +222,55 @@ public class DHuSFtpProductViewByCollection implements FileSystemView
       return true;
    }
 
+   /**
+    * Extracts information from path.
+    * <p>Following a pattern
+    * /(collectionName/)[.contentDate][year][month][day]</p>
+    * @param path
+    */
+   private void extractInfoFromPath (String path)
+   {
+      pathInfo.clear ();
+
+      if (path.equals ("/"))
+      {
+         return;
+      }
+
+      String[] tokens = path.split ("/");
+      if (tokens != null)
+      {
+         // token[0] is always the em
+         if (tokens[1].equals (CONTENT_DATE))
+         {
+            switch (tokens.length)
+            {
+               case 5:
+                  pathInfo.put (DATE_DAY, tokens[4]);
+               case 4:
+                  pathInfo.put (DATE_MONTH, tokens[3]);
+               case 3:
+                  pathInfo.put (DATE_YEAR, tokens[2]);
+                  break;
+            }
+         }
+         else
+         {
+            switch (tokens.length)
+            {
+               case 6:
+                  pathInfo.put (DATE_DAY, tokens[5]);
+               case 5:
+                  pathInfo.put (DATE_MONTH, tokens[4]);
+               case 4:
+                  pathInfo.put (DATE_YEAR, tokens[3]);
+               case 3:
+               case 2:
+                  pathInfo.put (COLLECTION_NAME, tokens[1]);
+                  break;
+
+            }
+         }
+      }
+   }
 }

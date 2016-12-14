@@ -23,7 +23,9 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Produce hierarchical directories in depth and limiting occurrences in
@@ -32,8 +34,7 @@ import org.apache.log4j.Logger;
 public class HierarchicalDirectoryBuilder implements DirectoryBuilder
 {
    public static final String DHUS_ENTRY_NAME = "dhus_entry";
-   private static Logger logger = Logger.getLogger (
-      HierarchicalDirectoryBuilder.class);
+   private static final Logger LOGGER = LogManager.getLogger(HierarchicalDirectoryBuilder.class);
    private static Long counter = 0L;
 
    private File root;
@@ -179,7 +180,7 @@ public class HierarchicalDirectoryBuilder implements DirectoryBuilder
       } while (isUsed (unused));
       // place the counter to the fee position.
       counter--;
-      logger.info ("Computed incoming counter to " + counter);
+      LOGGER.info ("Computed incoming counter to " + counter);
    }
    
    private static boolean isHookInstalled = false;
@@ -206,17 +207,17 @@ public class HierarchicalDirectoryBuilder implements DirectoryBuilder
          }
          catch(IOException e)
          {
-            logger.error("Counter file " + counter_file.getPath() + 
+            LOGGER.error("Counter file " + counter_file.getPath() +
                " cannot be accessed", e);
          }
          catch(NumberFormatException nfe)
          {
-            logger.error("Counter file " + counter_file.getPath() + 
+            LOGGER.error("Counter file " + counter_file.getPath() +
                " malformed: " + nfe.getMessage ());
          }
          catch(NullPointerException npe)
          {
-            logger.error("Counter file " + counter_file.getPath() + 
+            LOGGER.error("Counter file " + counter_file.getPath() +
                      "is empty.");
          }
       }
@@ -252,8 +253,7 @@ public class HierarchicalDirectoryBuilder implements DirectoryBuilder
                }
                catch (IOException e)
                {
-                  logger.error ("Unable to save Incoming counter: " + 
-                     e.getMessage ());
+                  LOGGER.error("Unable to save Incoming counter: " + e.getMessage());
                }
             }
          }));

@@ -34,9 +34,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class ReplaceSystemByConfigurationObject implements CustomTaskChange
-{   
-   private static Logger logger = LogManager.getLogger ();
-   
+{
+   private static final Logger LOGGER = LogManager.getLogger(ReplaceSystemByConfigurationObject.class);
+
    @Override
    public String getConfirmationMessage ()
    {
@@ -139,7 +139,7 @@ public class ReplaceSystemByConfigurationObject implements CustomTaskChange
       }
       catch (Exception e)
       {
-         logger.error ("Error during liquibase update " +
+         LOGGER.error("Error during liquibase update " +
                "'ReplaceSystemByConfigurationObject'", e);
       }
    }

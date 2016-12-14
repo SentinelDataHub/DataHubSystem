@@ -1,6 +1,6 @@
 /*
  * Data Hub Service (DHuS) - For Space data distribution.
- * Copyright (C) 2013,2014,2015 GAEL Systems
+ * Copyright (C) 2013,2014,2015,2016 GAEL Systems
  *
  * This file is part of DHuS software sources.
  *
@@ -19,33 +19,39 @@
  */
 package fr.gael.dhus.search;
 
-import fr.gael.dhus.database.object.config.search.GeocoderConfiguration;
-import fr.gael.dhus.search.geocoder.CachedGeocoder;
-import fr.gael.dhus.search.geocoder.Geocoder;
-import fr.gael.dhus.search.geocoder.impl.NominatimGeocoder;
-import fr.gael.dhus.system.config.ConfigurationManager;
-
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Set;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.apache.solr.client.solrj.request.GenericSolrRequest;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.SuggesterResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.util.ContentStream;
+import org.apache.solr.common.util.ContentStreamBase;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
+import fr.gael.dhus.database.object.config.search.GeocoderConfiguration;
+import fr.gael.dhus.search.geocoder.CachedGeocoder;
+import fr.gael.dhus.search.geocoder.Geocoder;
+import fr.gael.dhus.search.geocoder.impl.NominatimGeocoder;
+import fr.gael.dhus.system.config.ConfigurationManager;
 
 /**
  * Low level Solr interface.
@@ -53,13 +59,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class SolrDao
 {
    /** Logger. */
-   private static final Logger LOGGER = Logger.getLogger(SolrDao.class);
+   private static final Logger LOGGER = LogManager.getLogger(SolrDao.class);
+
+   /**
+    * Inner connections timeouts to the private solr service.
+    */
+   public static final int INNER_TIMEOUT = 
+      Integer.getInteger("dhus.search.innerTimeout", 5000);
 
    /** URL path to solr service. */
    private static final String SOLR_SVC = "/solr/dhus";
-
-   /** Special chars to replacements table. */
-   private final Map<String, String> specialChars = new HashMap<>();
 
    /** SolrJ client. */
    private final HttpSolrClient solrClient;
@@ -77,13 +86,10 @@ public class SolrDao
     */
    public SolrDao(GeocoderConfiguration geocoder_conf)
    {
-       specialChars.put(":", "<colon>");
-       specialChars.put("$", "<dollar>");
-       specialChars.put("(", "<lpar>");
-       specialChars.put(")", "<rpar>");
-
        geocoder = new CachedGeocoder(new NominatimGeocoder(geocoder_conf));
        solrClient = new HttpSolrClient("");
+       solrClient.setConnectionTimeout(INNER_TIMEOUT);
+       solrClient.setSoTimeout(INNER_TIMEOUT);
    }
 
    /**
@@ -92,7 +98,7 @@ public class SolrDao
     */
    public void initServerStarted()
    {
-      String dhus_url = configurationManager.getServerConfiguration().getUrl();
+      String dhus_url = configurationManager.getServerConfiguration().getLocalUrl();
       solrClient.setBaseURL(dhus_url + SOLR_SVC);
    }
 
@@ -134,6 +140,24 @@ public class SolrDao
    }
 
    /**
+    * Performs a batch index of _many_ documents, uses the ConcurrentUpdateSolrClient.
+    * <p>If you want faster indexing, disable the autoCommit and autoSoftCommit functionalities,
+    * see {@link #disableAutoCommit()}.
+    * @param source of document to index.
+    * @throws IOException network error.
+    * @throws SolrServerException solr error.
+    */
+   public void batchIndex(Iterator<SolrInputDocument> source) throws SolrServerException, IOException
+   {
+      String dhus_url = configurationManager.getServerConfiguration().getUrl() + SOLR_SVC;
+      try (ConcurrentUpdateSolrClient client = new ConcurrentUpdateSolrClient(dhus_url, 1000, 10))
+      {
+         client.add(source);
+         client.commit(true, true);
+      }
+   }
+
+   /**
     * Get one document by its unique Id.
     * @param id unique identifier.
     * @return a doc or null if does not exist.
@@ -157,6 +181,21 @@ public class SolrDao
       UpdateResponse res = solrClient.deleteById(String.valueOf(id));
       solrClient.commit(false, true, true); // mandatory explicit soft-commit.
       return res;
+   }
+
+   /**
+    * Deletes all document, commit and optimizes the index.
+    * @throws IOException network error.
+    * @throws SolrServerException solr error.
+    */
+   public void removeAll() throws IOException, SolrServerException
+   {
+      // FIXME is it faster/more efficient to create a new empty core?
+      long etimedelete = solrClient.deleteByQuery("*:*").getElapsedTime();
+      long etimecommit = solrClient.commit(true, true, true).getElapsedTime();
+      long etimeoptimi = solrClient.optimize().getElapsedTime();
+      LOGGER.debug(String.format("removeAll:  delete: %dms    commit: %dms    optimize: %dms",
+                                              etimedelete,     etimecommit,     etimeoptimi));
    }
 
    /**
@@ -191,35 +230,50 @@ public class SolrDao
    }
 
    /**
-    * Removes Solr special characters (such as the colon ':') from the given string.
-    * @param str to mangle.
-    * @return mangled path.
+    * Set the given properties and values using the config API.
+    * @param props properties to set.
+    * @throws IOException network error.
+    * @throws SolrServerException solr error.
     */
-   public String mangleString(String str)
+   public void setProperties(Map<String, String> props) throws SolrServerException, IOException
    {
-      LOGGER.debug("Converting " + str);
-      for (String spec: specialChars.keySet())
+      // Solrj does not support the config API yet.
+      StringBuilder command = new StringBuilder("{\"set-property\": {");
+      for (Map.Entry<String, String> entry: props.entrySet())
       {
-         str = str.replace(spec, specialChars.get(spec));
+         command.append('"').append(entry.getKey()).append('"').append(':');
+         command.append(entry.getValue()).append(',');
       }
-      LOGGER.debug("   to " + str);
-      return str;
+      command.setLength(command.length()-1); // remove last comma
+      command.append("}}");
+
+      GenericSolrRequest rq = new GenericSolrRequest(SolrRequest.METHOD.POST, "/config", null);
+      ContentStream content = new ContentStreamBase.StringStream(command.toString());
+      rq.setContentStreams(Collections.singleton(content));
+      rq.process(solrClient);
    }
 
    /**
-    * Unmangles a previously mangled string.
-    * @param str to unmangle.
-    * @return unmangled path.
+    * Unset the given properties that have been previously set with {@link #setProperties(Map)}.
+    * @param props properties to unset.
+    * @throws IOException network error.
+    * @throws SolrServerException solr error.
     */
-   public String unmangleString(String str)
+   public void unsetProperties(Set<String> props) throws SolrServerException, IOException
    {
-      LOGGER.debug("Converting " + str);
-      for (String spec: specialChars.keySet())
+      // Solrj does not support the config API yet.
+      StringBuilder command = new StringBuilder("{\"unset-property\": [");
+      for (String prop: props)
       {
-         str = str.replace(specialChars.get(spec), spec);
+         command.append('"').append(prop).append('"').append(',');
       }
-      LOGGER.debug("   to " + str);
-      return str;
+      command.setLength(command.length()-1); // remove last comma
+      command.append("]}");
+
+      GenericSolrRequest rq = new GenericSolrRequest(SolrRequest.METHOD.POST, "/config", null);
+      ContentStream content = new ContentStreamBase.StringStream(command.toString());
+      rq.setContentStreams(Collections.singleton(content));
+      rq.process(solrClient);
    }
 
    /**
@@ -240,16 +294,6 @@ public class SolrDao
             query = query.replace(key, key.toLowerCase());
          }
 
-         boolean suggestions_empty = true;
-         try
-         {
-            suggestions_empty = getSuggestions(token).getSuggestions().get("suggest").isEmpty();
-         }
-         catch (IOException | SolrServerException e)
-         {
-            // Ignored.
-         }
-
          if (!(!"".equals(key) ||
                token.startsWith("{") ||
                token.startsWith("[") ||
@@ -259,9 +303,21 @@ public class SolrDao
                token.contains("TO") ||
                token.contains("OR") ||
                token.contains("AND") ||
-               token.matches(".*\\d.*") ||
-               !suggestions_empty))
+               token.matches(".*\\d.*")))
          {
+            try
+            {
+               // If suggester knows the token: it is probably not a 
+               // place location.
+               if (!getSuggestions(token).getSuggestions().get("suggest").
+                     isEmpty())
+                  throw new Exception();
+            }
+            catch (Exception e)
+            {
+               return query;
+            }
+
             String wtk_boundaries = geocoder.getBoundariesWKT(token);
 
             if (wtk_boundaries != null)
@@ -281,7 +337,7 @@ public class SolrDao
    private static class IterableSearchResult implements Iterator<SolrDocument>
    {
       /** Logger. */
-      private static final Logger LOGGER = Logger.getLogger(IterableSearchResult.class);
+      private static final Logger LOGGER = LogManager.getLogger(IterableSearchResult.class);
       /** Default fetch size of 50 solr documents. */
       private static final int FETCH_SIZE = 50;
 

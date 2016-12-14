@@ -1,0 +1,350 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<!--
+product details
+
+
+@demo demo/index.html
+-->
+<dom-module id="product-details">
+    <template>
+        <style>
+        .container {
+            @apply(--layout-vertical);
+            height: var(--detailsheight, 500px);
+            width: var(--detailswidth, 100%);
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+        
+        .catContainer {
+            @apply(--layout-vertical);
+            width: var(--detailswidth, 100%);
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+        
+        .attribute {
+            @apply(--layout-vertical);
+            display: block;
+            margin-bottom: 20px;
+            align-self: center;
+            font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            overflow-y: auto;
+            padding-left: 10px;
+        }
+        
+        .fieldContainer {
+            @apply(--layout-horizontal);
+        }
+        
+        .flexchild {
+            @apply(--layout-flex);
+        }
+        
+        .flex10child {
+            @apply(--layout-flex-8);
+        }
+        
+        .flex2child {
+            @apply(--layout-flex-2);
+        }
+        
+        .title {
+            font-size: 14px;
+            margin-top: 5px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .product-title {
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        
+        .quicklook {
+            max-width: 300px;
+            text-align: center;
+        }
+        
+        img {
+            width: var(--quicklookwidth, 100%);
+        }
+        
+        paper-button {
+            background: #002664;
+            color: white;
+            width: 98%;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 5px;
+            padding: 5px 5px;
+            margin-bottom: 10px;
+        }
+        
+        paper-button[toggles][active].colorful {
+            background-color: #002664;
+        }
+        
+        paper-button[toggles][active][raised].colorful {
+            background-color: rgba(66, 133, 244, 0.75);
+        }
+        </style>
+        <div class="container">
+            <div>
+                <div class="title product-title" title="{{productname}} "> {{productname}} </div>
+                <div class="title product-title"><a href="{{productLink}}">{{productLink}}</a></div>
+            </div>
+            <div>
+                <br>
+                <paper-button raised class="colorful" on-click="odataSynch" disabled title="Quicklook">Quicklook</paper-button>
+                <br>
+                <div class="fieldContainer">
+                    <div class="flexchild"></div>
+                    <div class="flex10child"><img id="image" src="{{quicklooklink}}" on-error="imageError" height="100"></div>
+                    <div class="flexchild"></div>
+                </div>
+            </div>
+            <div class="flexchild">
+                <template is="dom-repeat" items="{{categories}}" as="cat">
+                    <paper-button raised class="colorful"  disabled on-click="odataSynch" title="{{cat}}" hidden="{{!cat}}">{{cat}}</paper-button>
+                    <template is="dom-repeat" items="{{product}}" as="prod">
+                        <template is="dom-repeat" items="{{prod}}">
+                            <template is="dom-if" if="{{filter(item.Category,cat)}}">
+                                <div class="attribute"><b>{{item.Name}}</b> : {{item.Value}}</div>
+                            </template>
+                        </template>
+                    </template>
+                </template>
+            </div>
+        </div>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class ProductDetails {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'product-details';
+                this._url = "/odata/v1/Products";
+                this._jsonParameter = "$format=json";
+                this._requestHeaders = {
+                    'Content-Type': 'application/atom+xml',
+                    'Accept': 'application/json'
+                };
+                this.options = {
+                    headers: [{
+                        name: "Accept",
+                        value: "application/json"
+                    }, {
+                        name: "Content-Type",
+                        value: "application/atom+xml"
+                    }]
+
+                };
+                this.owcApp = document.querySelector('#owc-app');
+                this.properties = {
+                    /**
+                     * This property contains the product name from which ADF list needs to be retrieved
+                     *
+                     * @type {Object}
+                     */
+                    productname: {
+                        type: String,
+                        notify: true
+                    },
+
+                    productLink: {
+                        type: String,
+                        notify: true
+                    },
+                    quicklooklink: {
+                        type: String,
+                        notify: true
+                    },
+
+                    /**
+                     * This property contains the product name from which ADF list needs to be retrieved
+                     *
+                     * @type {Object}
+                     */
+                    productuuid: {
+                        type: String,
+                        notify: true
+                    },
+                    productModel: {
+                        type: Object,
+                        value: {}
+                    },
+                    product: {
+                        type: Array,
+                        value: [],
+                        notify: true
+                    },
+                    categories: {
+                        type: Array,
+                        value: [],
+                        notify: true
+                    }
+
+                };
+
+
+            }
+
+
+
+
+            attached() {
+                var self = this;
+                var event = document.createEvent('Event');
+                event.initEvent('resize', true, true);
+                document.dispatchEvent(event);
+                window.addEventListener("resize", function() {
+                    self.resize();
+                });
+
+                self.processModel();
+
+                self.productLink = self.owcApp.config.baseUrl + self._url + '(' + "'" + self.productuuid + "'" + ')/$value';
+                self.quicklooklink = self.owcApp.config.baseUrl + self._url + '(' + "'" + self.productuuid + "'" + ')/Products(\'Quicklook\')/$value';
+            }
+
+            filter(String1, String2) {
+                if (String1 && (String1 == String2))
+                    return true;
+                else return false;
+            }
+
+            // READ
+            getProduct() {
+                var self = this;
+                return self.owcApp.httpManager.sendRequest(
+                    'GET', self.owcApp.config.baseUrl + self._url + '(' + "'" + self.productuuid + "'" + ')/Attributes?' + self._jsonParameter,
+                    self.options
+                ).then(function(productModel) {
+
+                    self.productModel = productModel.data.d.results;
+
+
+                    return self.productModel;
+
+                });
+            }
+
+            processModel() {
+                var self = this;
+                var productAttr = [];
+
+                return self.getProduct().then(function(model) {
+                    setTimeout(function() {
+                        for (var i = 0; i < model.length; i++) {
+                            if (model[i].Category == "product") {
+
+                                productAttr.push(model[i].Name + ":" + model[i].Value);
+
+
+                            }
+
+                        }
+                        var catModel = _.groupBy(model, "Category");
+                        var k = Object.keys(catModel);
+                        var vals = Object.keys(catModel).map(function(key) {
+                            return catModel[key];
+                        });
+
+                        self.set('product', []);
+                        self.set('product', vals);
+                        self.notifyPath('product', vals);
+                        self.set('categories', []);
+                        self.set('categories', k);
+                        self.notifyPath('categories', k);
+                    }, 0);
+
+
+
+                    //return self.product;
+                });
+
+
+                /*var model = self.getProduct();
+              
+                for(var i = 0;i < model.length ; i++){
+                  console.log("model[i].Category",model[i].Category);
+                  if(model[i].Category = "product"){
+                    console.log("ciao");
+                  }
+                }
+                console.log("@@@ product @@@",product);*/
+            }
+
+
+            resize() {
+                    var self = this;
+                    self.customStyle['--detailsheight'] = parseInt(self.parentPanel.getSize().height) + "px";
+                    self.updateStyles();
+                    self.customStyle['--detailswidth'] = parseInt(self.parentPanel.getSize().width) + "px";
+                    self.updateStyles();
+                    self.customStyle['--quicklookwidth'] = parseInt(self.parentPanel.getSize().width) - 50 + "px";
+                    self.updateStyles();
+                    self.customStyle['--attrwidth'] = parseInt(self.parentPanel.getSize().width) - 10 + "px";
+                    self.updateStyles();
+
+
+                }
+                /**
+                 * Callback for on error thumb event.
+                 * 
+                 * @return {null}
+                 */
+            imageError() {
+                var IMAGE_PLACE_HOLDER_URL = this.owcApp.config.clientUrl + '/images/bigplaceholder.png';
+                Polymer.dom(this.root).querySelector("#image").src = IMAGE_PLACE_HOLDER_URL;
+            }
+
+        };
+
+        Polymer(ProductDetails);
+
+    })();
+    </script>
+</dom-module>

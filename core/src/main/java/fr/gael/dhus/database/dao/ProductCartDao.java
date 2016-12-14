@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Set;
 
 @Repository
-public class ProductCartDao extends HibernateDao<ProductCart, Long>
+public class ProductCartDao extends HibernateDao<ProductCart, String>
 {
    /**
     * Returns the first result of a Collection.
@@ -177,7 +177,7 @@ public class ProductCartDao extends HibernateDao<ProductCart, Long>
       long start = new Date ().getTime ();
       List<Long>ret = toId(scrollCartOfUser (user, 0, -1));
       long end = new Date ().getTime ();
-      logger.info ("Query getProductsIdOfCart spent " + (end-start) + "ms");
+      logger.info("Query getProductsIdOfCart spent " + (end-start) + "ms");
       return ret;
    }
 

@@ -20,14 +20,13 @@ import fr.gael.dhus.util.TestContextLoader;
 
 @ContextConfiguration (locations = "classpath:fr/gael/dhus/spring/context-test.xml", loader = TestContextLoader.class)
 @DirtiesContext (classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestSearchDao extends TestAbstractHibernateDao<Search, Long>
-{
-
+public class TestSearchDao extends TestAbstractHibernateDao<Search, String>
+{   
    @Autowired
    private SearchDao dao;
 
    @Override
-   protected HibernateDao<Search, Long> getHibernateDao ()
+   protected HibernateDao<Search, String> getHibernateDao ()
    {
       return dao;
    }
@@ -37,7 +36,7 @@ public class TestSearchDao extends TestAbstractHibernateDao<Search, Long>
    {
       return 4;
    }
-
+   
    @Override
    public void create ()
    {
@@ -66,7 +65,7 @@ public class TestSearchDao extends TestAbstractHibernateDao<Search, Long>
    @Override
    public void read ()
    {
-      Search s = dao.read (0L);
+      Search s = dao.read ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0");
       Assert.assertNotNull (s);
       Assert.assertEquals (s.getValue (), "value0");
       Assert.assertEquals (s.getAdvanced ().get ("advanceKey"), "advanceValue");
@@ -75,7 +74,7 @@ public class TestSearchDao extends TestAbstractHibernateDao<Search, Long>
    @Override
    public void update ()
    {
-      Long id = 1L;
+      String id = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1";
       Search s = dao.read (id);
       boolean notify = !s.isNotify ();
       String advancedKey = "toto";
@@ -90,7 +89,7 @@ public class TestSearchDao extends TestAbstractHibernateDao<Search, Long>
       Assert.assertEquals (s.getAdvanced ().get (advancedKey), advancedValue);
    }
 
-   private int countAdvanced (final Long sid)
+   private int countAdvanced (final String sid)
    {
       return dao.getHibernateTemplate ().execute (
          new HibernateCallback<Integer> ()
@@ -100,9 +99,9 @@ public class TestSearchDao extends TestAbstractHibernateDao<Search, Long>
                throws HibernateException, SQLException
             {
                String hql =
-                  "SELECT count(*) FROM SEARCH_ADVANCED WHERE SEARCH_ID = ?";
+                  "SELECT count(*) FROM SEARCH_ADVANCED WHERE SEARCH_UUID = ?";
                SQLQuery query = session.createSQLQuery (hql);
-               query.setLong (0, sid);
+               query.setString (0, sid);
                return ((BigInteger) query.uniqueResult ()).intValue ();
             }
          });
@@ -111,7 +110,7 @@ public class TestSearchDao extends TestAbstractHibernateDao<Search, Long>
    @Override
    public void delete ()
    {
-      Long sid = Long.valueOf (0);
+      String sid = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0";
       Search search = dao.read (sid);
       Assert.assertNotNull (search);
       Assert.assertFalse (search.getAdvanced ().isEmpty ());
@@ -133,10 +132,10 @@ public class TestSearchDao extends TestAbstractHibernateDao<Search, Long>
    @Override
    public void first ()
    {
-      String hql = "FROM Search WHERE notify IS TRUE ORDER BY id DESC";
+      String hql = "FROM Search WHERE notify IS TRUE ORDER BY uuid DESC";
       Search search = dao.first (hql);
       Assert.assertNotNull (search);
-      Assert.assertEquals (search.getId ().intValue (), 2);
+      Assert.assertEquals (search.getUUID (), "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2");
    }
 
    // TODO merge others test

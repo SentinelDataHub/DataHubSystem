@@ -19,27 +19,27 @@
  */
 package fr.gael.dhus.datastore.eviction;
 
-import java.io.File;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import fr.gael.dhus.database.dao.EvictionDao;
 import fr.gael.dhus.database.dao.ProductDao;
 import fr.gael.dhus.database.object.Eviction;
 import fr.gael.dhus.database.object.Product;
 import fr.gael.dhus.database.object.config.system.ArchiveConfiguration;
-import fr.gael.dhus.datastore.DefaultDataStore;
 import fr.gael.dhus.datastore.exception.DataStoreException;
+import fr.gael.dhus.service.ProductService;
 import fr.gael.dhus.system.config.ConfigurationManager;
+
+import java.io.File;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * Manages eviction functions
@@ -48,7 +48,7 @@ import fr.gael.dhus.system.config.ConfigurationManager;
 @Service
 public class EvictionManager
 {
-   private static Log logger = LogFactory.getLog (EvictionManager.class);
+   private static final Logger LOGGER = LogManager.getLogger(EvictionManager.class);
 
    @Autowired
    private ProductDao productDao;
@@ -57,10 +57,10 @@ public class EvictionManager
    private EvictionDao evictionDao;
 
    @Autowired
-   private DefaultDataStore dataStore;
+   private ConfigurationManager cfgManager;
 
    @Autowired
-   private ConfigurationManager cfgManager;
+   private ProductService productService;
 
    private EvictionManager(){}
 
@@ -89,7 +89,7 @@ public class EvictionManager
    {
       Calendar cal = Calendar.getInstance();
       cal.add(Calendar.DAY_OF_YEAR, -days);
-      logger.info ("Eviction Max date : " + cal.getTime());
+      LOGGER.info("Eviction Max date : " + cal.getTime());
       return cal.getTime();
    }
 
@@ -184,7 +184,7 @@ public class EvictionManager
       Eviction eviction = evictionDao.getEviction ();
       if (eviction == null)
       {
-         logger.warn ("No Eviction setting found.");
+         LOGGER.warn("No Eviction setting found.");
          return;
       }
       Set<Product>products = eviction.getStrategy ().getProductsToEvict (
@@ -216,7 +216,7 @@ public class EvictionManager
       }
       if (evicted == 0)
       {
-         logger.info ("No product Evicted.");
+         LOGGER.info("No product Evicted.");
       }
    }
 
@@ -248,18 +248,18 @@ public class EvictionManager
          {
             String path = ProductDao.getPathFromProduct (product);
             path = path.replaceAll ("file://?", "/");
-            logger.info ("Trying to evict product \"" + path + "\".");
+            LOGGER.info("Trying to evict product \"" + path + "\".");
 
             try
             {
-               dataStore.removeProduct (product.getId ());
-               logger.info ("Evicted " + product.getIdentifier () + " (" +
+               productService.systemDeleteProduct (product.getId ());
+               LOGGER.info("Evicted " + product.getIdentifier () + " (" +
                   product.getSize () + " bytes, " +
                   product.getDownloadableSize () + " bytes compressed)");
             }
             catch (DataStoreException e)
             {
-               logger.error ("Unable to delete product at path \"" + path +
+               LOGGER.error("Unable to delete product at path \"" + path +
                   "\": " + e.getMessage (), e);
             }
          }

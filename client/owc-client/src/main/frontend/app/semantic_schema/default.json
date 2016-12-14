@@ -1,0 +1,127 @@
+{
+	"productsExtractor": {
+		"absolutePath": "/"
+	},
+	"model": {
+		"@type": "Array",
+		"valuesExtractor": [{
+			"@id": "id",
+			"@type": "Object",
+			"valueExtractor": {
+				"relativePath": "id"
+			}
+		}, {
+			"@id": "uuid",
+			"@type": "Object",
+			"valueExtractor": {
+				"relativePath": "uuid"
+			}
+		}, {
+			"@id": "title",
+			"@type": "String",
+			"valueExtractor": {
+				"relativePath": "identifier"
+			}
+		}, {
+			"@id": "footprintGml",
+			"@type": "Object",
+			"valueExtractor": {
+				"relativePath": "footprint"
+			}
+		}, {
+			"@id": "quicklook",
+			"@type": "Object",
+			"valueExtractor": {
+				"relativePath": "quicklook"
+			}
+		}, {
+			"@id": "type",
+			"@type": "Object",
+			"valueExtractor": {
+				"@type": "Array",
+				"relativePath": "indexes",
+				"findWhere": {
+					"name": "product"
+				},
+				"valueExtractor": {
+					"@type": "Array",
+					"relativePath": "children",
+					"findWhere": {
+						"name": "Product type"
+					},
+					"valueExtractor": {
+
+						"relativePath": "value"
+					}
+				}
+			}
+		}, {
+			"@id": "attributes",
+			"@type": "Array",
+			"valuesExtractor": [{
+				"@id": "Date",
+				"@type": "Object",
+				"valueExtractor": {
+					"@type": "Array",
+					"relativePath": "indexes",
+					"findWhere": {
+						"name": "summary"
+					},
+					"valueExtractor": {
+						"@type": "Array",
+						"relativePath": "children",
+						"findWhere": {
+							"name": "Date"
+						},
+						"valueExtractor": {
+
+							"relativePath": "value"
+						}
+					}
+				}
+			}, {
+				"@id": "Instrument",
+				"@type": "Object",
+				"valueExtractor": {
+					"@type": "Array",
+					"relativePath": "indexes",
+					"findWhere": {
+						"name": "summary"
+					},
+					"valueExtractor": {
+						"@type": "Array",
+						"relativePath": "children",
+						"findWhere": {
+							"name": "Instrument"
+						},
+						"valueExtractor": {
+
+							"relativePath": "value"
+						}
+					}
+				}
+			}, {
+				"@id": "Size",
+				"@type": "Object",
+				"valueExtractor": {
+					"@type": "Array",
+					"relativePath": "indexes",
+					"findWhere": {
+						"name": "summary"
+					},
+					"valueExtractor": {
+						"@type": "Array",
+						"relativePath": "children",
+						"findWhere": {
+							"name": "Size"
+						},
+						"valueExtractor": {
+
+							"relativePath": "value"
+						}
+					}
+				}
+			}    ]
+		}]
+	}
+}

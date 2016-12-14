@@ -1,0 +1,103 @@
+<!--
+  @license
+
+ 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!-- test -->
+<link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+
+<!--
+Toast system for owc
+
+
+@demo demo/index.html
+-->
+
+<dom-module id="toast-manager">
+
+<style>
+  #toast{
+    --paper-toast-background-color: #1E364E;
+    --paper-toast-color: white;
+    right: 0px !important;
+    left: inherit;
+  }
+
+  #toastwarn{
+    --paper-toast-background-color: #d35400;
+    --paper-toast-color: white;
+    right: 0px !important;
+    left: inherit;
+  }
+</style>
+
+<template>
+    <paper-toast id="toast" horizontal-align="right" text=""></paper-toast>
+    <paper-toast id="toastwarn" horizontal-align="right" text=""></paper-toast>
+</template>
+
+
+<script>
+    (function() {
+       'use strict';
+       class ToastManager {
+           
+
+          /**
+           * BeforeRegister method Polymer calls before creating the element.
+           * This method is where you shoud define the is property (element's name) and
+           * properties  object.
+           *
+           * @return {null}
+           */
+          beforeRegister() {
+               this.is = 'toast-manager';  
+               this.toast = document.querySelector('#toast');
+          }          
+
+          info(message){
+            var toast = document.querySelector('#toast');
+            toast.horizontalAlign = "right";
+            toast.text = message;
+            toast.open();
+          }
+
+          warn(message){
+            var toast = document.querySelector('#toastwarn');            
+            toast.horizontalAlign = "right";
+            toast.text = message;
+            toast.open();
+          }
+
+       };
+
+      Polymer(ToastManager);
+
+    })();
+  </script>
+
+</dom-module>

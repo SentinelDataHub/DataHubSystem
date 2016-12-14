@@ -31,14 +31,15 @@ import java.nio.file.StandardOpenOption;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Manages a {@link FileLock} asynchronously.
  */
 public class AsyncFileLock implements AutoCloseable, Closeable
 {
-   private static final Logger LOGGER = Logger.getLogger(AsyncFileLock.class);
+   private static final Logger LOGGER = LogManager.getLogger(AsyncFileLock.class);
 
    /** An FileChannel backing up our AsyncFileLock. */
    private final FileChannel fileToLock;

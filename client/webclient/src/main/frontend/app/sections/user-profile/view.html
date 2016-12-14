@@ -99,8 +99,8 @@ input:invalid ~ .invalid-field{
   font-size: 9px;
 }
 
-.select-label {
-  display:none;  
+  #user-profile .select-label {
+  /*display:none;*/
   top: -20px;
   color: rgb(55, 59, 80);
   font-size: 13px;
@@ -166,7 +166,7 @@ select:focus {
 }
 
 /* Hide label */
-.mdl-selectfield label {display:none;}
+  #user-profile .mdl-selectfield label {/*display:none;*/}
 /* Use custom arrow */
 
 .mdl-selectfield {
@@ -214,7 +214,7 @@ select:focus {
   top: 20px;
 }
 </style>
-<div class="container">
+<div id="user-profile" class="container">
   <div class="row">
     <div class="col-md-1 "></div>
     <div class="col-md-10 col-sd-8 col-xs-8">
@@ -312,11 +312,11 @@ select:focus {
   <div class="row">
 
     <div class="group col-md-6">    
-      <div class="mdl-selectfield">  
-        <label id="countryLbl" class="select-label">Select Country</label>  
+      <div class="mdl-selectfield">
+        <label id="countryLbl" class="select-label">Select Country</label>
         <select id="country" class="browser-default" ng-model="user.country" ng-change="checkCountry()">
           <option value="unknown" disabled selected >Select Country</option>
-          <option value="{{country.name}}" ng-repeat="country in countries">{{country.name}}</option>          
+          <option value="{{country}}" ng-repeat="country in countries">{{country}}</option>          
         </select>
       </div>
       <label class="invalid-field" id="checkCountry">Country empty</label>

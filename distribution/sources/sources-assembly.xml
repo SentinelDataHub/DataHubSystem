@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2
+            http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+
+   <id>sources</id>
+   <formats>
+      <format>zip</format>
+      <format>dir</format>
+   </formats>
+   <includeBaseDirectory>false</includeBaseDirectory>
+
+   <!-- TBC: Use dependency set with sources distribritions to generate de source packaging.-->
+   <moduleSets>
+      <moduleSet>
+         <includes>
+            <include>fr.gael.dhus:dhus-core</include>
+         </includes>
+         <sources>
+            <fileSets>
+               <fileSet>
+                  <outputDirectory>sources/${artifactId}</outputDirectory>
+                  <includes>
+                     <include>pom.xml</include>
+                     <include>src/**</include>
+                  </includes>
+               </fileSet>
+            </fileSets>
+         </sources>
+      </moduleSet>
+
+      <moduleSet>
+         <includes>
+            <include>fr.gael.dhus:dhus-webclient</include>
+         </includes>
+         <sources>
+            <fileSets>
+               <fileSet>
+                  <outputDirectory>sources/${artifactId}</outputDirectory>
+                  <includes>
+                     <include>pom.xml</include>
+                     <include>src/**</include>
+                  </includes>
+               </fileSet>
+            </fileSets>
+         </sources>
+      </moduleSet>
+
+      <moduleSet>
+         <includes>
+            <include>fr.gael.dhus:dhus-addon-sentinel-1</include>
+         </includes>
+         <sources>
+            <fileSets>
+               <fileSet>
+                  <outputDirectory>sources/${artifactId}</outputDirectory>
+                  <includes>
+                     <include>pom.xml</include>
+                     <include>src/**</include>
+                  </includes>
+               </fileSet>
+            </fileSets>
+         </sources>
+      </moduleSet>
+
+      <moduleSet>
+         <includes>
+            <include>fr.gael.dhus:dhus-addon-sentinel-2</include>
+         </includes>
+         <sources>
+            <fileSets>
+               <fileSet>
+                  <outputDirectory>sources/${artifactId}</outputDirectory>
+                  <includes>
+                     <include>pom.xml</include>
+                     <include>src/**</include>
+                  </includes>
+               </fileSet>
+            </fileSets>
+         </sources>
+      </moduleSet>
+
+      <moduleSet>
+         <includes>
+            <include>fr.gael.dhus:dhus-addon-sentinel-3</include>
+         </includes>
+         <sources>
+            <fileSets>
+               <fileSet>
+                  <outputDirectory>sources/${artifactId}</outputDirectory>
+                  <includes>
+                     <include>pom.xml</include>
+                     <include>src/**</include>
+                  </includes>
+               </fileSet>
+            </fileSets>
+         </sources>
+      </moduleSet>
+   </moduleSets>
+
+</assembly>

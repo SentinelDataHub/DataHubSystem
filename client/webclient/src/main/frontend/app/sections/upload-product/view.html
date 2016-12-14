@@ -1,25 +1,25 @@
 <div>
-<!-- 
+<!--
   Data HUb Service (DHuS) - For Space data distribution.
   Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
   Copyright (C) 2013,2014,2015,2016 GAEL Systems
   Copyright (C) 2013,2014,2015,2016 Serco Spa
-  
+
   This file is part of DHuS software sources.
- 
+
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as
   published by the Free Software Foundation, either version 3 of the
   License, or (at your option) any later version.
-  
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
   GNU Affero General Public License for more details.
- 
+
   You should have received a copy of the GNU Affero General Public License
   along with this program. If not, see <http://www.gnu.org/licenses/>.
- 
+
 -->
 <style>
 .borderdiv{
@@ -35,21 +35,21 @@
         margin-bottom: 20px;
         line-height: 20px;
         font-weight: bold;
-        position: relative;                  
+        position: relative;
         text-decoration: none;
         text-align: center;
         background-color: rgb(55, 59, 80);
         color: white;
         cursor: pointer;
-        margin-top: 10px;  
-        font-size: 1.5vw;     
+        margin-top: 10px;
+        font-size: 1.5vw;
 }
 .icon{
   float: right;
   margin-right: 10px;
   padding: 7px;
 }
-.icon:hover {                
+.icon:hover {
         /*background-color: rgb(55, 59, 80) !important;
         color: white !important;*/
         cursor: pointer !important;
@@ -112,9 +112,9 @@
     cursor: inherit;
     display: block;
 }
-.fab-cart-disabled 
+.fab-cart-disabled
 {
-    background-color: #afb1b9 !important;        
+    background-color: #afb1b9 !important;
     cursor: default !important;
     color: black !important;
 }
@@ -125,12 +125,25 @@
 
 #upload-management-page header {
   width: 100%;
-  height: 60px;  
+  height: 60px;
   text-align: center;
   font-size: 22px;
   font-weight: bold;
   padding-top: 15px;
 }
+
+    @media screen and (max-width: 992px) {
+
+    #showPassword {
+    display: none;
+    }
+    }
+
+    .next-filescanner-box{
+        background-color: #C8C8C8;
+        margin: 20px;
+
+    }
 
 
 </style>
@@ -142,9 +155,9 @@
     </div>
     <div id="gotomap" class="col-md-1 col-sd-3 col-xs-3">
       <gotomap-button></gotomap-button>
-    </div>        
+    </div>
   </header>
-  <div style="width: 70%;float:left;">    
+  <div style="width: 70%;float:left;">
       <div class="row" style="margin-top: auto">
         <div class="col-md-12 col-sd-12 col-xs-12">
              <h3>
@@ -168,36 +181,56 @@
            File scanners
           </h3>
           <label>Url to scan</label>
-          <input 
+          <input
             id="urltoscan"
-            type="text" 
-            class="form-control page-selector-input" 
+            type="text"
+            class="form-control page-selector-input"
             ng-model="urltoscan"
             >
           <label>Username</label>
-          <input 
+          <input
             id="username"
-            type="text" 
-            class="form-control page-selector-input" 
+            type="text"
+            class="form-control page-selector-input"
             ng-model="username"
             >
-          <label>Password</label>
-          <input 
+
+            <div class="row">
+                <div class="col-md-10 col-sd-10 col-xs-10" style="padding-left:0px;">
+                    <label>Password</label>
+                </div>
+                <div class="col-md-1 col-sd-1 col-xs-1" style="text-align: right;padding-left: 35px;padding-right:0px!important;">
+                    <label id="showPassword">Show</label>
+                </div>
+                <div class="col-md-1 col-sd-2 col-xs-2" style="text-align: leftt;padding-left: 25px;padding-right:0px!important;">
+                    <input type="checkbox" ng-model="showpassword" ng-checked="false" title="Show Password">
+                </div>
+            </div>
+            <input
             id="password"
-            type="text" 
-            class="form-control page-selector-input" 
+            type="{{showpassword ? 'text' : 'password'}}"
+            class="form-control page-selector-input"
+            placeholder="*********"
             ng-model="password"
             >
+
           <label>Pattern</label>
-          <input 
+          <input
             id="pattern"
-            type="text" 
-            class="form-control page-selector-input" 
+            type="text"
+            class="form-control page-selector-input"
             ng-model="pattern"
             >
           <label>Scanning information</label>
           <textarea disabled class="bordertextarea form-control" ng-model="scanninginfo" rows="5" id="comment"></textarea>
         </div>
+      </div>
+      <!--<div class="row" ng-init="nextFileScannerDate=false">-->
+      <div class="row" ng-init="nextFileScannerDate=false" >
+          <!--<div  ng-if="{{nextFileScannerDate}}" class="list-group-item next-filescanner-box" >-->
+          <div  ng-if="(nextFileScannerDate)" class="list-group-item next-filescanner-box" >
+              The next file scanner is going to run on {{nextFileScannerDate}}
+          </div>
       </div>
       <div class="row" style="margin-top: auto">
         <div class="col-md-12 col-sd-12 col-xs-12">
@@ -216,7 +249,7 @@
               </li>
               <a href="" ng-click="getScanningInfo(x)" ng-mouseover="setIdFileScannerHovered(x)" ng-mouseleave="resetIdFileScannerHovered()" data-ng-repeat="x in names" ng-class="{'notActive': x.toggle==false, 'active': x.toggle==true}" class="list-group-item" style="height: 60px;">
               <div id="infoFileScanner">
-                <span class="{{x.classicon}}"></span> 
+                <span class="{{x.classicon}}"></span>
                 {{ x.url }}
               </div>
               <div id="buttons" ng-class="{'notVisible': (x.toggleHover || x.toggle)==false, 'visible': (x.toggleHover || x.toggle)==true}">
@@ -232,9 +265,9 @@
       </div>
     </div>
     <div style="width: 30%;float: right;margin-top:2%;">
-      <collection-upload collections-ids="{{collections}}"></collection-upload>      
+      <collection-upload collections-ids="{{collections}}"></collection-upload>
     </div>
-    
+
 
 </div>
 </div>

@@ -1,0 +1,145 @@
+<!--
+  @license
+
+ 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+This component is used to get the Semantic Schema from Server
+
+
+@demo demo/index.html
+-->
+<dom-module id="calendar-semantic-manager">
+    <!-- MODEL-CONTROLLER CODE -->
+    <script>
+    (function() {
+        'use strict';
+        class CalendarSemanticManager {
+
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'calendar-semantic-manager';
+                this.properties = {};
+            }
+
+
+
+            _formatDate(inputDate) {
+
+                    var dateappo = inputDate.replace("/Date(", "").replace(")/", "");
+
+                    var date = new Date(parseInt(dateappo,10)).toISOString();
+
+                    return date.substring(0,10);
+                }
+                /**
+                 *  Private method of semantic manager to process model from server
+                 * 
+                 * @param {Object} modelFromServer: the response from server 
+                 * @return {Promise}
+                 */
+            
+            _processModel(modelFromServer, mission) {
+
+                var genericModel = {},
+                    products = modelFromServer,
+                    self = this;
+                // console.log("create model products",products);
+                var date1 = new Date();
+                var date2 = new Date();
+                var maxnumprodperdate = 0;
+                var totalproducts = 0;
+                if (products) {
+                    var obj = {};
+                    var appo = [];
+                    for (var i = 0; i < products.length; i++) {
+                        var entry = products[i];                        
+                        if(entry) {
+                        var sensingDate = entry.date;
+                        totalproducts += parseInt(entry.amount);
+                        //console.log("sensingDate",sensingDate)
+                        if (sensingDate) {
+                            //start = start.Value.substring(0,10);
+                            var startdate = new Date(sensingDate);
+                            if (startdate < date1)
+                                date1 = startdate;
+                                
+                            
+                                obj[sensingDate] = {};
+                                obj[sensingDate].amount = parseInt(entry.amount);
+
+                            
+                            if (parseInt(obj[sensingDate].amount) > maxnumprodperdate) {
+                                maxnumprodperdate = parseInt(obj[sensingDate].amount);
+                            }
+                        }
+                      }
+
+                    }
+                    appo.push(obj);                    
+                    genericModel.data = appo[0];
+                    genericModel.mindate = date1.getFullYear() + "-" + ("0" + (date1.getMonth() + 1)).slice(-2) + '-01';
+                    if(date2.getMonth()==11)
+                      genericModel.maxdate = date2.getFullYear()+1 + "-01-01";
+                    else
+                      genericModel.maxdate = date2.getFullYear() + "-" + ("0" + (date2.getMonth() + 1)).slice(-2) + '-01';
+                    genericModel.startdate = date1.getFullYear() + "-" + ("0" + (date1.getMonth() + 1)).slice(-2) + '-' + ("0" + date1.getDate()).slice(-2);
+                    genericModel.enddate = date2.getFullYear() + "-" + ("0" + (date2.getMonth() + 1)).slice(-2) + '-' + ("0" + date2.getDate()).slice(-2);
+                    genericModel.mission = mission;
+                    genericModel.maxnumprodperdate = maxnumprodperdate;  
+                    genericModel.totalproducts =  totalproducts;                                   
+
+                }
+                return genericModel;
+
+            }
+
+            /**
+             *  Public method of semantic manager to process model from server
+             * 
+             * @param {Object} modelFromServer: the response from server 
+             * @return {Promise}
+             */
+            processModel(modelFromServer) {
+                var self = this;
+                return new Promise(function(resolve, reject) {
+                    resolve(self._processModel(modelFromServer));
+                });
+            }
+
+        };
+
+        Polymer(CalendarSemanticManager);
+
+    })();
+    </script>
+</dom-module>

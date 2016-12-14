@@ -66,7 +66,7 @@
       </rdfs:comment>	
       <rdfs:subClassOf rdf:resource="&drb;item" />
       <drb:signature rdf:parseType="Resource">
-	  <drb:nameMatch>S3[AB_]_(OL|SL|SR|DO|MW|GN|SY|TM)_[012]_(SRA___|CAL___|MWR___|SLT___|EFR___|CR0___|CR1___|GNS___|NAV___|DOP___|HKM___|NAT___|HKM2__|ERR___|RAC___|SPC___|EFR_BW|ERR_BW|RBT___|RBT_BW|MISR__|LAN___|WAT___|WFR___|LFR___|WRR___|LRR___|WRR_BW|LFR_BW|WFR_BW|LRR_BW|WCT___|WST___|LST___|LST_BW|SYN___|VGP___|VGK___|VG1___|V10___|SYN_BW|VGP_BW|VG1_BW|V10_BW)_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_\w{8}.SEN3</drb:nameMatch>
+	  <drb:nameMatch>S3[AB_]_(OL|SL|SR|DO|MW|GN|SY|TM)_[012]_(SRA___|SRA_A_|SRA_BS|CAL___|MWR___|SLT___|EFR___|CR0___|CR1___|GNS___|NAV___|DOP___|HKM___|NAT___|HKM2__|ERR___|RAC___|SPC___|EFR_BW|ERR_BW|RBT___|RBT_BW|MISR__|LAN___|WAT___|WFR___|LFR___|WRR___|LRR___|WRR_BW|LFR_BW|WFR_BW|LRR_BW|WCT___|WST___|LST___|LST_BW|SYN___|VGP___|VGK___|VG1___|V10___|SYN_BW|VGP_BW|VG1_BW|V10_BW)_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_\w{8}.SEN3</drb:nameMatch>
 	  <drb:xqueryTest>
          <![CDATA[
             exists (*[name() = "xfdumanifest.xml"])

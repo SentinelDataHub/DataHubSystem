@@ -1,0 +1,282 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/color.html">
+<link rel="import" href="../../bower_components/paper-styles/demo-pages.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<!--
+    This component is used to perform full text search on the DHuS
+
+    @demo demo/index.html
+-->
+<dom-module id="search-component">
+    <!-- VIEW  CODE HERE -->
+    <template>
+        <!-- view code here -->
+        <style is="custom-style">
+        :host {
+            height: 180px;
+            float: left;
+            width: 100%;
+        }
+        
+        #search-container {
+            @apply(--layout-vertical);
+            height: var(--searchheight, 500px);
+            width: var(--searchwidth, 100%);
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+        
+        .element-container {
+            @apply(--layout-horizontal);
+            @apply(--layout-center-justified);
+        }
+        
+        textarea {
+            resize: vertical;
+            overflow-y: auto;
+        }
+        
+        #search-box-input {
+            display: block;
+            min-height: 80px;
+            width: 98%;
+            margin-bottom: 20px;
+            align-self: center;
+            font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            resize: vertical;
+            overflow-y: auto;
+        }
+        
+        paper-button {
+            color: white;
+            padding: 5px 5px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        paper-button.colorful {
+            background: #002664;
+        }
+        
+        paper-button[toggles][active].colorful {
+            background-color: #002664;
+        }
+        
+        paper-button[toggles][active][raised].colorful {
+            background-color: rgba(66, 133, 244, 0.75);
+        }
+        
+        paper-button.greyscale {
+            background-color: rgb(100, 100, 100);
+        }
+        
+        paper-button[toggles][active].greyscale {
+            background-color: rgba(100, 100, 100, 0.75);
+        }
+        </style>
+        <div id="search-container">
+            <textarea id="search-box-input" class="element-container" placeholder="Query"></textarea>
+            <div class="element-container">
+                <paper-button raised class="colorful" on-click="search" title="{{i18n('search')}}">{{i18n("search")}}</paper-button>
+                <paper-button raised class="greyscale " on-click="clearSearch" title="{{i18n('clearButton')}}">{{i18n("clear")}}</paper-button>
+            </div>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class SearchComponent {
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'search-component';
+                this.owcApp = document.querySelector('#owc-app');
+                this.properties = {
+
+                    /**
+                     * Public property description
+                     *
+                     * @type {Object}
+                     */
+                    owcMap: {
+                        type: Object,
+                        value: {},
+                        notify: true
+
+                    },
+
+                    /**
+                     * Public property description
+                     *
+                     * @type {Object}
+                     */
+                    owcList: {
+                        type: Object,
+                        value: {},
+                        notify: true
+
+                    },
+                    /**
+                     * Public property description
+                     *
+                     * @type {Object}
+                     */
+                    genericModel: {
+                        type: Object,
+                        value: {},
+                        notify: true
+
+                    },
+
+                    /**
+                     * Public property description
+                     *
+                     * @type {Object}
+                     */
+                    datasource: {
+                        type: Object,
+                        value: {},
+                        notify: true
+
+                    },
+
+                    /**
+                     * Public property description
+                     *
+                     * @type {Object}
+                     */
+                    owcquery: {
+                        type: Object,
+                        value: {},
+                        notify: true
+
+                    }
+
+                };
+            }
+
+            /**             
+             *  Called when the element has created, but before property values are set
+             *  and local DOM is initialized.
+             *
+             * @return {null}
+             */
+            created() {
+                this.navigationManager = document.getElementById('navigation-manager');
+            }
+
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+                var self = this;
+                this.query = Polymer.dom(self.root).querySelector('#search-box-input');
+                var event = document.createEvent('Event');
+                event.initEvent('resize', true, true);
+                document.dispatchEvent(event);
+                window.addEventListener("resize", function() {
+                    self.resize();
+                });
+            }
+
+            /**
+             *   This method is used to resize panel content on panel container resize
+             *
+             * @return {null}
+             */
+            resize() {
+
+            }
+
+            search() {
+                if (!this.owcApp.authenticationManager.isLogged()) {
+                    this.owcApp.authenticationManager.showLogin();
+                    return;
+                }
+                // var list = document.createElement('list-container');
+                // var map = document.createElement('map-container');
+                // var combo = document.createElement('combo-search-container');
+                // var datasource = document.createElement('data-source');
+                this.owcMap.mapmodel = null;
+                this.owcList.listmodel = null;
+                //this.owcList.genericModel = null;
+                this.genericModel.setModel(null);
+                var query = (this.query.value.trim() == '') ? '*' : this.query.value;
+                this.owcquery.setText(query);
+                this.datasource.updateQuery();
+                // list.setQuery(query); 
+                // map.setQuery(query); 
+                // combo.setQuery(query);
+                this.datasource.loadDataFromServer();
+                // this.navigationManager.pushComponent(list, '500px', 'products list');
+                // this.navigationManager.pushComponent(map, '500px', 'Map products list');
+            }
+
+
+            /**             
+             *   Clear the query in the search box
+             *           
+             * @return {null}
+             */
+            clearSearch() {
+                this.query.value = "";
+            }
+
+            setDataSource(datasource) {
+                this.datasource = datasource;
+            }
+            setOwcQuery(owcquery) {
+                this.owcquery = owcquery;
+            }
+            setOwcMap(owcMap) {
+                this.owcMap = owcMap;
+            }
+            setOwcList(owcList) {
+                this.owcList = owcList;
+            }
+            setGenericModel(genericModel) {
+                this.genericModel = genericModel;
+            }
+        };
+        Polymer(SearchComponent);
+    })();
+    </script>
+</dom-module>

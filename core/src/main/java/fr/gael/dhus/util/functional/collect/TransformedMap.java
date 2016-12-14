@@ -22,11 +22,9 @@ package fr.gael.dhus.util.functional.collect;
 import fr.gael.dhus.util.functional.tuple.Duo;
 
 import java.util.AbstractMap;
-import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.AbstractSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 

@@ -19,52 +19,65 @@
  */
 package fr.gael.dhus.olingo.v1.entity;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import fr.gael.dhus.olingo.v1.V1Util;
-import fr.gael.dhus.util.DownloadStreamCloserListener;
-import org.apache.commons.net.io.CopyStreamAdapter;
-import org.apache.commons.net.io.CopyStreamListener;
-import org.apache.log4j.Logger;
-import org.apache.olingo.odata2.api.exception.ODataException;
-import org.apache.olingo.odata2.api.processor.ODataResponse;
-import org.apache.olingo.odata2.api.processor.ODataSingleProcessor;
-
 import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.datastore.processing.ProcessingUtils;
 import fr.gael.dhus.network.RegulatedInputStream;
 import fr.gael.dhus.network.TrafficDirection;
+import fr.gael.dhus.olingo.Security;
+import fr.gael.dhus.olingo.v1.Expander;
+import fr.gael.dhus.olingo.v1.ExpectedException.InvalidTargetException;
+import fr.gael.dhus.olingo.v1.Model;
+import fr.gael.dhus.olingo.v1.MediaResponseBuilder;
 import fr.gael.dhus.olingo.v1.entityset.NodeEntitySet;
 import fr.gael.dhus.olingo.v1.map.impl.NodesMap;
 import fr.gael.dhus.util.DownloadActionRecordListener;
+import fr.gael.dhus.util.DownloadStreamCloserListener;
+
 import fr.gael.drb.DrbAttribute;
 import fr.gael.drb.DrbAttributeList;
 import fr.gael.drb.DrbFactory;
 import fr.gael.drb.DrbNode;
+import fr.gael.drb.impl.DrbNodeImpl;
 import fr.gael.drb.impl.spi.DrbNodeSpi;
 import fr.gael.drb.impl.xml.XmlFactory;
 import fr.gael.drb.value.Value;
 import fr.gael.drbx.cortex.DrbCortexModel;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.net.io.CopyStreamAdapter;
+import org.apache.commons.net.io.CopyStreamListener;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import org.apache.olingo.odata2.api.exception.ODataException;
+import org.apache.olingo.odata2.api.processor.ODataResponse;
+import org.apache.olingo.odata2.api.processor.ODataSingleProcessor;
+import org.apache.olingo.odata2.api.uri.NavigationSegment;
+
 /**
  * The OData representation of a DRB Node.
  */
-public class Node extends Item
+public class Node extends Item implements Closeable
 {
-   private static Logger logger = Logger.getLogger (Node.class);
+   private static final Logger LOGGER = LogManager.getLogger(Node.class);
 
    private final long ONE_YEAR_MS = (long)365.25*24*60*60*1000;
 
-   private DrbNode drbNode;
+   protected DrbNode drbNode;
    private String path;
    private String contentType;
    private Long contentLength;
@@ -103,7 +116,7 @@ public class Node extends Item
             throw new NullPointerException ("Node path cannot be null.");
          }
          this.drbNode = DrbFactory.openURI (path);
-         logger.debug("Initialized node : " + path);
+         LOGGER.debug("Initialized node : " + path);
       }
       if (this.drbNode==null)
          throw new NullPointerException ("Node cannot be null");
@@ -183,6 +196,41 @@ public class Node extends Item
       return contentLength;
    }
 
+   @Override
+   public Object navigate(NavigationSegment ns) throws ODataException
+   {
+      Object res;
+
+      if (ns.getEntitySet().getName().equals(Model.NODE.getName()))
+      {
+         res = getNodes();
+         if (!ns.getKeyPredicates().isEmpty())
+         {
+            res = ((NodesMap)res).get(
+               ns.getKeyPredicates().get(0).getLiteral());
+         }
+      }
+      else if (ns.getEntitySet().getName().equals(Model.ATTRIBUTE.getName()))
+      {
+         res = getAttributes();
+         if (!ns.getKeyPredicates().isEmpty())
+         {
+            res = Map.class.cast(res).get(
+               ns.getKeyPredicates().get(0).getLiteral());
+         }
+      }
+      else if (ns.getEntitySet().getName().equals(Model.CLASS.getName()))
+      {
+         res = getItemClass();
+      }
+      else
+      {
+         throw new InvalidTargetException(this.getClass().getSimpleName(), ns.getEntitySet().getName());
+      }
+
+      return res;
+   }
+
    public Integer getChildrenNumber ()
    {
       initNode ();
@@ -238,7 +286,7 @@ public class Node extends Item
                String value =
                   (attr.getValue () == null) ? "" : attr.getValue ()
                      .toString ();
-               Attribute attribute = new Attribute (attr.getName (), value);
+               Attribute attribute = new Attribute(attr.getName(), value, null);
                attributes.put (attr.getName (), attribute);
             }
          }
@@ -322,10 +370,10 @@ public class Node extends Item
       {
          try
          {
-            User u = V1Util.getCurrentUser ();
+            User u = Security.getCurrentUser();
             String user_name = (u == null ? null : u.getUsername ());
             
-            InputStream is = new BufferedInputStream(getStream());
+            InputStream is = new BufferedInputStream (getStream());
             
             RegulatedInputStream.Builder builder = 
                new RegulatedInputStream.Builder (is, TrafficDirection.OUTBOUND);
@@ -338,6 +386,7 @@ public class Node extends Item
             adapter.addCopyStreamListener (recorder);
             adapter.addCopyStreamListener (closer);
             builder.copyStreamListener (adapter);
+            if (getContentLength ()>0) builder.streamSize(getContentLength());
             is = builder.build();
 
             String etag = getName () + "-" + getContentLength ();
@@ -350,7 +399,7 @@ public class Node extends Item
             // As a stream exists, this control is probably obsolete.
             long content_length = getContentLength ()==0?-1:getContentLength ();
 
-            return V1Util.prepareMediaResponse (etag, getName (),
+            return MediaResponseBuilder.prepareMediaResponse(etag, getName(),
                getContentType (), last_modified, content_length,
                processor.getContext (), is);
          }
@@ -412,7 +461,7 @@ public class Node extends Item
       {
          id = id.substring (id.lastIndexOf ("/") + 1);
       }
-      if ( (id == null) || "".equals (id)) id = (new File(path)).getName ();
+      if ( (id == null) || "".equals (id)) id = (new File (path)).getName ();
       return id;
    }
    
@@ -435,5 +484,41 @@ public class Node extends Item
       String re =
          "[^\\x09\\x0A\\x0D\\x20-\\xD7FF\\xE000-\\xFFFD\\x10000-x10FFFF]";
       return text.replaceAll (re, replacement);
+   }
+
+   @Override
+   public void close () throws IOException
+   {
+      if (this.drbNode == null)
+         return;
+
+      if (this.drbNode instanceof DrbNodeImpl)
+      {
+         DrbNodeImpl.class.cast(this.drbNode).close(true);
+      }
+   }
+
+   @Override
+   public List<String> getExpandableNavLinkNames()
+   {
+      // Node inherits from Item
+      List<String> res = new ArrayList<>(super.getExpandableNavLinkNames());
+      res.add("Attributes");
+      res.add("Nodes");
+      return res;
+   }
+
+   @Override
+   public List<Map<String, Object>> expand(String navlink_name, String self_url)
+   {
+      switch(navlink_name)
+      {
+         case "Attributes":
+            return Expander.mapToData(getAttributes(), self_url);
+         case "Nodes":
+            return Expander.mapToData(getNodes(), self_url);
+         default:
+            return super.expand(navlink_name, self_url);
+      }
    }
 }

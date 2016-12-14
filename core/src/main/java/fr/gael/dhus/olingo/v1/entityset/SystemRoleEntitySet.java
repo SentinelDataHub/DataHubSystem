@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class SystemRoleEntitySet extends V1EntitySet<SystemRole>
+public class SystemRoleEntitySet extends AbstractEntitySet<SystemRole>
 {
    public static final String ENTITY_NAME = "SystemRole";
    public static final String NAME = "Name";
@@ -76,5 +76,17 @@ public class SystemRoleEntitySet extends V1EntitySet<SystemRole>
       entityType.setKey (key);
 
       return entityType;
+   }
+
+   @Override
+   public boolean isTopLevel()
+   {
+      return false;
+   }
+
+   @Override
+   public boolean hasManyEntries()
+   {
+      return false;
    }
 }

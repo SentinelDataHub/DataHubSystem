@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Data Hub Service (DHuS) - For Space data distribution.
+   Copyright (C) 2013,2014,2015 GAEL Systems
+
+   This file is part of DHuS software sources.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+   GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License
+   along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+   <changeSet id="removeQuota" author="nico">
+      <dropColumn tableName="USERS" columnName="QUOTA_ID"/>
+      <dropTable tableName="QUOTAS" />
+   </changeSet>
+   
+   <changeSet author="nico" id="replaceSearchIDbyUUID">
+      <addColumn tableName="SEARCH_ADVANCED">
+         <column name="SEARCH_UUID" type="VARCHAR(36)" defaultValue="" >
+         	<constraints nullable="false"/>
+         </column>
+      </addColumn>
+        
+      <addColumn tableName="SEARCH_PREFERENCES">
+         <column name="SEARCHES_UUID" type="VARCHAR(36)" defaultValue="" >
+         	<constraints nullable="false"/>
+         </column>
+      </addColumn>
+      
+      <addColumn tableName="SEARCHES">
+         <column name="UUID" type="VARCHAR(36)" defaultValue="" />
+      </addColumn>
+      
+      <customChange class="fr.gael.dhus.database.liquibase.GenerateSearchUUIDs"></customChange>
+      
+      <dropPrimaryKey tableName="SEARCH_ADVANCED"/>
+      <dropForeignKeyConstraint baseTableName="SEARCH_ADVANCED" constraintName="FKB838C8B9C0F90E3B"/>
+   	  <dropColumn tableName="SEARCH_ADVANCED" columnName="SEARCH_ID" />
+   	  
+      <dropPrimaryKey tableName="SEARCH_PREFERENCES"/>
+      <dropForeignKeyConstraint baseTableName="SEARCH_PREFERENCES" constraintName="FK8B26EEC1372BA4CD"/>
+   	  <dropColumn tableName="SEARCH_PREFERENCES" columnName="SEARCHES_ID" />
+   	  
+   	  <dropColumn tableName="SEARCHES" columnName="ID"/>
+   	  <addPrimaryKey tableName="SEARCHES" columnNames="UUID"/>
+      <addPrimaryKey columnNames="SEARCH_UUID, ADVANCED_KEY" constraintName="SYS_PK_10279" tableName="SEARCH_ADVANCED"/>
+      <addPrimaryKey columnNames="PREFERENCE_ID, SEARCHES_UUID" constraintName="SYS_PK_10270" tableName="SEARCH_PREFERENCES"/>
+      <addForeignKeyConstraint baseColumnNames="SEARCH_UUID" baseTableName="SEARCH_ADVANCED" constraintName="FKB838C8B9C0F90E3B" 
+      deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="UUID" referencedTableName="SEARCHES"/>
+      <addForeignKeyConstraint baseColumnNames="SEARCHES_UUID" baseTableName="SEARCH_PREFERENCES" constraintName="FK8B26EEC1372BA4CD" 
+      deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="UUID" referencedTableName="SEARCHES"/>
+   </changeSet>
+      
+   <changeSet author="nico" id="replacePreferenceIDbyUUID">
+      <addColumn tableName="FILE_SCANNER_PREFERENCES">
+         <column name="PREFERENCE_UUID" type="VARCHAR(36)" defaultValue="" >
+         	<constraints nullable="false"/>
+         </column>
+      </addColumn>
+        
+      <addColumn tableName="SEARCH_PREFERENCES">
+         <column name="PREFERENCE_UUID" type="VARCHAR(36)" defaultValue="" >
+         	<constraints nullable="false"/>
+         </column>
+      </addColumn>
+      
+      <addColumn tableName="PREFERENCES">
+         <column name="UUID" type="VARCHAR(36)" defaultValue="" />
+      </addColumn>
+      
+      <addColumn tableName="USERS">
+         <column name="PREFERENCES_UUID" type="VARCHAR(36)" defaultValue="" />
+      </addColumn>
+      
+      <customChange class="fr.gael.dhus.database.liquibase.GeneratePreferenceUUIDs"></customChange>
+      
+      <dropPrimaryKey tableName="FILE_SCANNER_PREFERENCES"/>
+      <dropForeignKeyConstraint baseTableName="FILE_SCANNER_PREFERENCES" constraintName="FK2A015AB42E8034DB"/>
+   	  <dropColumn tableName="FILE_SCANNER_PREFERENCES" columnName="PREFERENCE_ID" />
+   	  
+      <dropPrimaryKey tableName="SEARCH_PREFERENCES"/>
+      <dropForeignKeyConstraint baseTableName="SEARCH_PREFERENCES" constraintName="FK8B26EEC12E8034DB"/>
+   	  <dropColumn tableName="SEARCH_PREFERENCES" columnName="PREFERENCE_ID" />
+   	  
+      <dropForeignKeyConstraint baseTableName="USERS" constraintName="FK4D495E823A4019E"/>
+   	  <dropColumn tableName="USERS" columnName="PREFERENCES_ID" />
+   	  
+   	  <dropColumn tableName="PREFERENCES" columnName="ID"/>
+   	  <addPrimaryKey tableName="PREFERENCES" columnNames="UUID"/>
+      <addPrimaryKey columnNames="PREFERENCE_UUID, FILE_SCANNER_ID" constraintName="SYS_PK_10208" tableName="FILE_SCANNER_PREFERENCES"/>
+      <addPrimaryKey columnNames="PREFERENCE_UUID, SEARCHES_UUID" constraintName="SYS_PK_10270" tableName="SEARCH_PREFERENCES"/>
+      <addForeignKeyConstraint baseColumnNames="PREFERENCE_UUID" baseTableName="FILE_SCANNER_PREFERENCES" constraintName="FK2A015AB42E8034DB" 
+      deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="UUID" referencedTableName="PREFERENCES"/>
+      <addForeignKeyConstraint baseColumnNames="PREFERENCE_UUID" baseTableName="SEARCH_PREFERENCES" constraintName="FK8B26EEC12E8034DB" 
+      deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="UUID" referencedTableName="PREFERENCES"/>
+      <addForeignKeyConstraint baseColumnNames="PREFERENCES_UUID" baseTableName="USERS" constraintName="FK4D495E823A4019E" 
+      deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="UUID" referencedTableName="PREFERENCES"/>    
+   </changeSet>
+   
+   <changeSet author="nico" id="replaceCartIDbyUUID">
+      <addColumn tableName="CART_PRODUCTS">
+         <column name="CART_UUID" type="VARCHAR(36)" defaultValue="" >
+         	<constraints nullable="false"/>
+         </column>
+      </addColumn>
+      
+      <addColumn tableName="PRODUCTCARTS">
+         <column name="UUID" type="VARCHAR(36)" defaultValue="" />
+      </addColumn>
+      
+      <customChange class="fr.gael.dhus.database.liquibase.GenerateCartUUIDs"></customChange>
+      
+      <dropPrimaryKey tableName="CART_PRODUCTS"/>
+      <dropForeignKeyConstraint baseTableName="CART_PRODUCTS" constraintName="FK31F703A3C28D3A68"/>
+   	  <dropColumn tableName="CART_PRODUCTS" columnName="CART_ID" />
+   	     	  
+   	  <dropColumn tableName="PRODUCTCARTS" columnName="ID"/>
+   	  <addPrimaryKey tableName="PRODUCTCARTS" columnNames="UUID"/>
+      <addPrimaryKey columnNames="CART_UUID, PRODUCT_ID" constraintName="SYS_PK_10159" tableName="CART_PRODUCTS"/>
+      <addForeignKeyConstraint baseColumnNames="CART_UUID" baseTableName="CART_PRODUCTS" constraintName="FK31F703A3C28D3A68" 
+      deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="UUID" referencedTableName="PRODUCTCARTS"/>
+   </changeSet>
+      
+   <changeSet author="nico" id="replaceRestrictionIDbyUUID">
+      <addColumn tableName="USER_RESTRICTIONS">
+         <column name="RESTRICTION_UUID" type="VARCHAR(36)" defaultValue="" >
+         	<constraints nullable="false"/>
+         </column>
+      </addColumn>
+      
+      <addColumn tableName="ACCESS_RESTRICTION">
+         <column name="UUID" type="VARCHAR(36)" defaultValue="" />
+      </addColumn>
+      
+      <customChange class="fr.gael.dhus.database.liquibase.GenerateRestrictionUUIDs"></customChange>
+      
+      <dropPrimaryKey tableName="USER_RESTRICTIONS"/>
+      <dropForeignKeyConstraint baseTableName="USER_RESTRICTIONS" constraintName="FK442C961B534F0DBD"/>
+   	  <dropColumn tableName="USER_RESTRICTIONS" columnName="RESTRICTION_ID" />
+   	     	  
+   	  <dropColumn tableName="ACCESS_RESTRICTION" columnName="ID"/>
+   	  <addPrimaryKey tableName="ACCESS_RESTRICTION" columnNames="UUID"/>
+      <addPrimaryKey columnNames="USER_ID, RESTRICTION_UUID" constraintName="SYS_PK_10311" tableName="USER_RESTRICTIONS"/>
+      <addForeignKeyConstraint baseColumnNames="RESTRICTION_UUID" baseTableName="USER_RESTRICTIONS" constraintName="FK442C961B534F0DBD" 
+      deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="UUID" referencedTableName="ACCESS_RESTRICTION"/>
+   </changeSet>
+      
+   <changeSet author="nico" id="replaceCollectionIDbyUUID">      
+      <addColumn tableName="COLLECTIONS">
+         <column name="UUID" type="VARCHAR(36)" defaultValue="" />
+         <column name="PARENT_COLLECTION_UUID" type="VARCHAR(36)" defaultValue="null" />
+      </addColumn>
+            
+      <addColumn tableName="COLLECTION_PRODUCT">
+         <column name="COLLECTIONS_UUID" type="VARCHAR(36)" defaultValue="" >
+         	<constraints nullable="false"/>
+         </column>
+      </addColumn>
+            
+      <addColumn tableName="COLLECTION_USER_AUTH">
+         <column name="COLLECTIONS_UUID" type="VARCHAR(36)" defaultValue="" >
+         	<constraints nullable="false"/>
+         </column>
+      </addColumn>
+            
+      <addColumn tableName="FILESCANNER_COLLECTIONS">
+         <column name="COLLECTIONS_UUID" type="VARCHAR(36)" defaultValue="" >
+         	<constraints nullable="false"/>
+         </column>
+      </addColumn>
+            
+      <customChange class="fr.gael.dhus.database.liquibase.GenerateCollectionUUIDs"></customChange>
+      
+      <dropPrimaryKey tableName="COLLECTION_PRODUCT"/>
+      <dropPrimaryKey tableName="COLLECTION_USER_AUTH"/>
+      <dropPrimaryKey tableName="FILESCANNER_COLLECTIONS"/>
+            
+      <dropForeignKeyConstraint baseTableName="COLLECTION_PRODUCT" constraintName="FK780B1C2EF4F14BA4"/>
+      <dropForeignKeyConstraint baseTableName="FILESCANNER_COLLECTIONS" constraintName="FK99128598F4F14BA4"/>
+      <dropForeignKeyConstraint baseTableName="COLLECTIONS" constraintName="FKEED3B975C726A326"/>
+      <dropForeignKeyConstraint baseTableName="COLLECTION_USER_AUTH" constraintName="FKF65DB93BF4F14BA4"/>
+        	     	  
+   	  <dropColumn tableName="COLLECTIONS" columnName="ID"/>
+   	  <dropColumn tableName="COLLECTIONS" columnName="PARENT_COLLECTION_ID"/>
+   	  <dropColumn tableName="COLLECTION_PRODUCT" columnName="COLLECTIONS_ID"/>
+   	  <dropColumn tableName="COLLECTION_USER_AUTH" columnName="COLLECTIONS_ID"/>
+   	  <dropColumn tableName="FILESCANNER_COLLECTIONS" columnName="COLLECTIONS_ID"/>
+   	  
+   	  <addPrimaryKey tableName="COLLECTIONS" columnNames="UUID"/>
+      <addPrimaryKey columnNames="COLLECTIONS_UUID, PRODUCTS_ID" constraintName="SYS_PK_10172" tableName="COLLECTION_PRODUCT"/>
+      <addPrimaryKey columnNames="COLLECTIONS_UUID, USERS_ID" constraintName="SYS_PK_10178" tableName="COLLECTION_USER_AUTH"/>
+      <addPrimaryKey columnNames="FILE_SCANNER_ID, COLLECTIONS_UUID" constraintName="SYS_PK_10194" tableName="FILESCANNER_COLLECTIONS"/>      
+      
+      <addForeignKeyConstraint baseColumnNames="COLLECTIONS_UUID" baseTableName="COLLECTION_PRODUCT" constraintName="FK780B1C2EF4F14BA4" 
+      deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="UUID" referencedTableName="COLLECTIONS"/>
+	  <addForeignKeyConstraint baseColumnNames="COLLECTIONS_UUID" baseTableName="FILESCANNER_COLLECTIONS" constraintName="FK99128598F4F14BA4" 
+	  deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="UUID" referencedTableName="COLLECTIONS"/>
+	  <addForeignKeyConstraint baseColumnNames="PARENT_COLLECTION_UUID" baseTableName="COLLECTIONS" constraintName="FKEED3B975C726A326" 
+	  deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="UUID" referencedTableName="COLLECTIONS"/>
+	  <addForeignKeyConstraint baseColumnNames="COLLECTIONS_UUID" baseTableName="COLLECTION_USER_AUTH" constraintName="FKF65DB93BF4F14BA4" 
+	  deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="UUID" referencedTableName="COLLECTIONS"/>	  
+   </changeSet>
+   
+   <changeSet author="nico" id="replaceUserIDbyUUID">      
+      <addColumn tableName="USERS">
+         <column name="UUID" type="VARCHAR(36)" defaultValue="" />
+      </addColumn>            
+   	     	              
+      <addColumn tableName="NETWORK_USAGE">
+         <column name="USER_UUID" type="VARCHAR(36)" defaultValue="" >
+         	<constraints nullable="false"/>
+         </column>
+      </addColumn>
+            
+      <addColumn tableName="PRODUCTS">
+         <column name="OWNER_UUID" type="VARCHAR(36)" defaultValue="null" />
+      </addColumn>
+            
+      <addColumn tableName="COLLECTION_USER_AUTH">
+         <column name="USERS_UUID" type="VARCHAR(36)" defaultValue="" >
+         	<constraints nullable="false"/>
+         </column>
+      </addColumn>
+            
+      <addColumn tableName="PRODUCTCARTS">
+         <column name="USER_UUID" type="VARCHAR(36)" defaultValue="" >
+         	<constraints nullable="false"/>
+         </column>
+      </addColumn>
+            
+      <addColumn tableName="PRODUCT_USER_AUTH">
+         <column name="USERS_UUID" type="VARCHAR(36)" defaultValue="" >
+         	<constraints nullable="false"/>
+         </column>
+      </addColumn>
+            
+      <addColumn tableName="USER_RESTRICTIONS">
+         <column name="USER_UUID" type="VARCHAR(36)" defaultValue="" >
+         	<constraints nullable="false"/>
+         </column>
+      </addColumn>
+            
+      <addColumn tableName="USER_ROLES">
+         <column name="USER_UUID" type="VARCHAR(36)" defaultValue="" >
+         	<constraints nullable="false"/>
+         </column>
+      </addColumn>
+                  
+      <customChange class="fr.gael.dhus.database.liquibase.GenerateUserUUIDs"></customChange>
+
+      <dropPrimaryKey tableName="COLLECTION_USER_AUTH"/>
+      <dropPrimaryKey tableName="PRODUCT_USER_AUTH"/>
+      <dropPrimaryKey tableName="USER_RESTRICTIONS"/>
+            
+      <dropForeignKeyConstraint baseTableName="NETWORK_USAGE" constraintName="FKC6C7C1C4947EA3BB"/>
+      <dropForeignKeyConstraint baseTableName="PRODUCTS" constraintName="FK2DE06158D6F7C3F"/>
+      <dropForeignKeyConstraint baseTableName="COLLECTION_USER_AUTH" constraintName="FKF65DB93B8D6F7C3E"/>
+      <dropForeignKeyConstraint baseTableName="PRODUCTCARTS" constraintName="FKC6C7C1C4947EA39B"/>
+      <dropForeignKeyConstraint baseTableName="PRODUCT_USER_AUTH" constraintName="FKA2C82E2C8D6F7C3E"/>
+      <dropForeignKeyConstraint baseTableName="USER_RESTRICTIONS" constraintName="FK442C961B947EA39B"/>
+      <dropForeignKeyConstraint baseTableName="USER_ROLES" constraintName="FKC6C79929947EA39B"/>
+      
+   	  <dropColumn tableName="USERS" columnName="ID"/>
+   	  <dropColumn tableName="NETWORK_USAGE" columnName="USER_ID"/>
+   	  <dropColumn tableName="PRODUCTS" columnName="OWNER_ID"/>
+   	  <dropColumn tableName="COLLECTION_USER_AUTH" columnName="USERS_ID"/>
+   	  <dropColumn tableName="PRODUCTCARTS" columnName="USER_ID"/>
+   	  <dropColumn tableName="PRODUCT_USER_AUTH" columnName="USERS_ID"/>
+   	  <dropColumn tableName="USER_RESTRICTIONS" columnName="USER_ID"/>
+   	  <dropColumn tableName="USER_ROLES" columnName="USER_ID"/>
+   	  
+   	  <addPrimaryKey tableName="USERS" columnNames="UUID"/>    
+      <addPrimaryKey columnNames="COLLECTIONS_UUID, USERS_UUID" constraintName="SYS_PK_10178" tableName="COLLECTION_USER_AUTH"/>
+   	  <addPrimaryKey columnNames="PRODUCTS_ID, USERS_UUID" constraintName="SYS_PK_10260" tableName="PRODUCT_USER_AUTH"/>
+   	  <addPrimaryKey columnNames="USER_UUID, RESTRICTION_UUID" constraintName="SYS_PK_10311" tableName="USER_RESTRICTIONS"/>
+      
+   	  <addForeignKeyConstraint baseColumnNames="USER_UUID" baseTableName="NETWORK_USAGE" constraintName="FKC6C7C1C4947EA3BB" 
+   	  deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="UUID" referencedTableName="USERS"/>
+   	  
+   	  <addForeignKeyConstraint baseColumnNames="OWNER_UUID"
+			baseTableName="PRODUCTS" constraintName="FK2DE06158D6F7C3F"
+			deferrable="false" initiallyDeferred="false" onDelete="NO ACTION"
+			onUpdate="NO ACTION" referencedColumnNames="UUID" referencedTableName="USERS" />
+   	   
+   	  <addForeignKeyConstraint baseColumnNames="USERS_UUID" baseTableName="COLLECTION_USER_AUTH" constraintName="FKF65DB93B8D6F7C3E"
+   	    deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="UUID" referencedTableName="USERS"/>
+   	   
+   	  <addForeignKeyConstraint baseColumnNames="USER_UUID" baseTableName="PRODUCTCARTS" constraintName="FKC6C7C1C4947EA39B"
+   	    deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="UUID" referencedTableName="USERS"/>
+   	   
+   	  <addForeignKeyConstraint baseColumnNames="USERS_UUID" baseTableName="PRODUCT_USER_AUTH" constraintName="FKA2C82E2C8D6F7C3E" 
+   	   deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="UUID" referencedTableName="USERS"/>
+   	    
+   	  <addForeignKeyConstraint baseColumnNames="USER_UUID" baseTableName="USER_RESTRICTIONS" constraintName="FK442C961B947EA39B" 
+   	   deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="UUID" referencedTableName="USERS"/>
+   	   
+   	  <addForeignKeyConstraint baseColumnNames="USER_UUID" baseTableName="USER_ROLES" constraintName="FKC6C79929947EA39B" 
+   	   deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="UUID" referencedTableName="USERS"/>   	  
+   </changeSet>
+   
+   <changeSet author="nico" id="addUUIDindexes">
+	<createIndex indexName="INDEX_USERS_UUID" tableName="USERS"
+		unique="false">
+		<column name="UUID" />
+		<column name="LOGIN" />
+	</createIndex>
+   </changeSet>
+
+</databaseChangeLog>

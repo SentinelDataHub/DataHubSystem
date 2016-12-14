@@ -38,7 +38,7 @@ import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.olingo.v1.entity.Network;
 import fr.gael.dhus.server.http.valve.AccessValve;
 
-public class NetworkStatisticEntitySet extends V1EntitySet<Network>
+public class NetworkStatisticEntitySet extends AbstractEntitySet<Network>
 {
    public static final String ENTITY_NAME = "NetworkStatistic";
 
@@ -93,5 +93,17 @@ public class NetworkStatisticEntitySet extends V1EntitySet<Network>
    public boolean isAuthorized (User user)
    {
       return user.getRoles ().contains (Role.STATISTICS);
+   }
+
+   @Override
+   public boolean isTopLevel()
+   {
+      return false;
+   }
+
+   @Override
+   public boolean hasManyEntries()
+   {
+      return false;
    }
 }

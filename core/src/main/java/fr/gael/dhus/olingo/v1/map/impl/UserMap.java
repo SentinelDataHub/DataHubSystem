@@ -24,15 +24,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.olingo.odata2.api.uri.expression.FilterExpression;
 import org.apache.olingo.odata2.api.uri.expression.OrderByExpression;
 import org.apache.olingo.odata2.core.exception.ODataRuntimeException;
 
 import fr.gael.dhus.database.object.Role;
-import fr.gael.dhus.olingo.OlingoManager;
-import fr.gael.dhus.olingo.v1.V1Util;
+import fr.gael.dhus.olingo.v1.OlingoManager;
+import fr.gael.dhus.olingo.Security;
 import fr.gael.dhus.olingo.v1.entity.User;
 import fr.gael.dhus.olingo.v1.map.AbstractDelegatingMap;
 import fr.gael.dhus.olingo.v1.map.SubMap;
@@ -48,8 +48,7 @@ import fr.gael.dhus.spring.context.ApplicationContextProvider;
 public class UserMap extends AbstractDelegatingMap<String, User> 
    implements SubMap<String, User>
 {
-   private static Logger logger = LogManager.getLogger (UserMap.class
-      .getName ());
+   private static final Logger LOGGER = LogManager.getLogger(UserMap.class);
    private final OlingoManager olingoManager = ApplicationContextProvider
       .getBean (OlingoManager.class);
    private final UserService userService = ApplicationContextProvider
@@ -77,9 +76,8 @@ public class UserMap extends AbstractDelegatingMap<String, User>
       this.orderBy = order;
       this.skip = skip;
       this.top = top;
-      fr.gael.dhus.database.object.User u = V1Util.getCurrentUser ();
-      hasRole = u.getRoles ().contains (Role.SYSTEM_MANAGER) ||
-         u.getRoles ().contains (Role.USER_MANAGER);
+
+      hasRole = Security.currentUserHasRole(Role.SYSTEM_MANAGER, Role.USER_MANAGER);
    }
 
    @Override
@@ -89,7 +87,7 @@ public class UserMap extends AbstractDelegatingMap<String, User>
       {
          if (!hasRole)
          {
-            fr.gael.dhus.database.object.User u = V1Util.getCurrentUser ();
+            fr.gael.dhus.database.object.User u = Security.getCurrentUser();
             fr.gael.dhus.database.object.User user = userService.getUserNoCheck 
                (u.getUsername ());
 
@@ -131,7 +129,7 @@ public class UserMap extends AbstractDelegatingMap<String, User>
       }
       catch (Exception e)
       {
-         logger.error ("Error when getting Products number", e);
+         LOGGER.error("Error when getting Products number", e);
       }
       return -1;
    }
@@ -141,7 +139,7 @@ public class UserMap extends AbstractDelegatingMap<String, User>
    {
       if (!hasRole)
       {
-         fr.gael.dhus.database.object.User u = V1Util.getCurrentUser ();
+         fr.gael.dhus.database.object.User u = Security.getCurrentUser();
          if (key != null && u.getUsername ().equals (key))
          {
             fr.gael.dhus.database.object.User user = userService.getUserNoCheck (key);
@@ -156,7 +154,7 @@ public class UserMap extends AbstractDelegatingMap<String, User>
       fr.gael.dhus.database.object.User u = userService.getUserNoCheck (key);
       if (u == null)
       {
-         logger.error ("User '" + key + "' not found");
+         LOGGER.error("User '" + key + "' not found");
          return null;
       }
       return new User (u);

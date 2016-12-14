@@ -1,0 +1,358 @@
+<!--
+  @license
+
+ 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!-- <link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html"> -->
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+
+<!--
+list with button
+
+
+@demo demo/index.html
+-->
+
+<dom-module id="button-list-item">
+
+<!-- VIEW  CODE HERE -->
+<template>
+    <style>
+    .item.button-list-item {
+      width: auto!important;
+    }
+
+    .container {
+      @apply(--layout-horizontal);
+      @apply(--layout-wrap);
+      height: var(--container-height, 100px !important);
+    }
+
+    .containerbis {
+      @apply(--layout-horizontal);
+      @apply(--layout-wrap);
+      height: auto!important);
+    }
+
+    .flexchild {
+      text-align: left;
+      /*top:50px!important;*/
+      @apply(--layout-flex-4);
+      margin-top: 20px;
+      
+    }
+    .flex2child {
+      @apply(--layout-flex-8);
+      @apply(--layout-horizontal);
+      @apply(--layout-self-end);
+       
+    }
+    .flex3child {
+      @apply(--layout-flex-12);
+      @apply(--layout-vertical);
+    }
+
+ 
+    iron-list {
+      background-color: var(--paper-grey-200, #eee);
+    }
+
+    .item {             
+      @apply(--layout-horizontal);
+      @apply(--layout-wrap);
+      padding: 20px;
+      border-radius: 8px;
+      background-color: white;
+      width: 96%;
+      margin: 16px !important;
+      border: solid 1px #ecf0f1;
+    }
+
+    .title {
+      font-size: 14px;
+      font-weight: bold;
+      text-overflow: ellipsis; 
+      white-space: nowrap; 
+      overflow: hidden;
+    }
+
+    .attribute {
+      font-size: 12px!important;
+      text-overflow: ellipsis; 
+      white-space: nowrap; 
+      overflow: hidden;
+      
+    }
+
+    .thumb{
+      margin-right: 5px;
+      max-width: 65px;
+      /*width: 60px;
+      height: 60px;*/
+    }
+
+    .owc-list-item{
+      margin-top:5px !important; 
+      margin-right:10px!important;    
+    }
+
+    .item.button-list-item.button-list-item{
+      
+    }
+
+    .owc-list-item-thumb{
+      /*position:absolute;*/ 
+      top:var(--owc-list-item-thumb-top,100px);
+      left:var(--owc-list-item-thumb-left, 30px);
+      display:inline-block;
+    }
+
+    .owc-list-item-title{
+      position:absolute; 
+      top:var(--owc-list-item-title-top, 20px);           
+      left:var(--owc-list-item-title-left,30px);
+      width:var(--owc-list-item-title-width, calc(100% - 50px));
+    }
+
+    .owc-list-item-attributes-container{
+      position:absolute; 
+      top:var(--owc-list-item-attributes-container-top,50px); 
+      left:105px;
+      width:100%;
+    }
+
+    .owc-list-item-attribute{
+      width:calc(100% - 120px);
+    }
+
+    .owc-list-item-buttons{
+      position:absolute;
+      bottom:15px;
+      right:15px
+    }
+
+    paper-icon-button {
+
+    }
+
+  </style>
+
+    <div class="item owc-list-item" id="{{model.uuid}}" hidden="{{!model.showAdf}}">
+    
+   
+      <div class="container">
+      <div class="title owc-list-item-title" hidden="{{!model.title}}" title="{{model.title}}">
+          {{model.title}}
+    </div>
+ 
+      <div class="flexchild" hidden="{{!model.thumb}}">
+        <img id="image" on-error="imageError" class="thumb owc-list-item-thumb"   src="{{model.thumb}}">
+      </div> 
+      <div class="flex2child">
+      <div class="owc-list-item-attributes-container" hidden="{{!model.attributes}}">
+          <template is="dom-repeat" items="{{model.attributes}}" hidden="{{!model.attributes}}" >
+            <div class="attribute owc-list-item-attribute">{{item}}</div>
+          </template> 
+        </div> 
+      </div>
+      </div>
+
+      <div class="owc-list-item-buttons" hidden="{{!model.showAdf}}" >
+      <paper-icon-button icon="visibility" on-click="details" title="View Product Details"></paper-icon-button>
+        <paper-icon-button icon="file-download" on-click="download" title="Download Product"></paper-icon-button>
+        <paper-icon-button icon="list" on-click="adfList" title="Show Auxiliary Data File List" hidden="{{!model.showAdf}}"></paper-icon-button>
+        <paper-icon-button icon="settings-applications" on-click="adfSearch" title="Show Auxiliary Data File Search" hidden="{{!isAdfVisible}}"></paper-icon-button>
+      </div>  
+    </div>
+
+    <div class="containerbis item owc-list-item" id="{{model.uuid}}" hidden="{{model.showAdf}}">
+      <div class="title owc-list-item-title" hidden="{{!model.title}}" title="{{model.title}}">
+          {{model.title}}
+        </div>
+
+      <div class="flexchild" hidden="{{!model.thumb}}">
+        <img id="image" on-error="imageError" class="thumb owc-list-item-thumb"   src="{{model.thumb}}">
+      </div> 
+      <div class="flex2child">
+        <div  class="owc-list-item-attributes-container" hidden="{{!model.attributes}}">
+          <template is="dom-repeat" items="{{model.attributes}}" hidden="{{!model.attributes}}" >
+            <div class="attribute owc-list-item-attribute">{{item}}</div>
+          </template> 
+        </div> 
+      </div>
+      <div class="owc-list-item-buttons" hidden="{{!model.showAdf}}" >
+      <paper-icon-button icon="visibility" on-click="details" title="View Product Details"></paper-icon-button>
+        <paper-icon-button icon="file-download" on-click="download" title="Download Product"></paper-icon-button>
+        <paper-icon-button icon="list" on-click="adfList" title="Show Auxiliary Data File List" hidden="{{!model.showAdf}}"></paper-icon-button>
+        <paper-icon-button icon="settings-applications" on-click="adfSearch" title="Show Auxiliary Data File Search"  hidden="{{!isAdfVisible}}"></paper-icon-button>
+      </div>  
+    </div>
+
+</template>
+
+<script>
+    (function() {
+      'use strict';
+      class ButtonListItem extends HTMLElement{
+
+        beforeRegister() {
+          this.is = 'button-list-item';
+          this.owcApp = document.querySelector('#owc-app');
+
+          this.properties = {
+
+            /**
+             * Model of list item
+             *
+             * @type {Object}
+             */
+            model: {
+              type: Object,
+              value: {}
+            },
+
+            /**
+             * Parent reference. The parent is the container list.
+             *
+             * @type {object}
+             */
+            parent: {
+              type: Object,
+              value: {},
+              notify: true
+            },            
+
+            /**
+             * Property indicating if buttons on list are hidden or shown.
+             *
+             * @type {Boolean}
+             */
+            showButtons: {
+              type: Boolean,
+              notify: true
+            }
+          };
+        }
+
+        /**             
+         *  Called when the element has created, but before property values are set
+         *  and local DOM is initialized.
+         *
+         * @return {null}
+         */
+        created() {
+          this.navigationManager = document.getElementById('navigation-manager');          
+          
+        }
+
+        attached(){
+          /*
+          var self = this;
+          setTimeout(function(){
+            var attributesHeight = self.$$('.owc-list-item-attributes-container').offsetHeight;
+            var thumbHeight = self.$$('.owc-list-item-thumb').offsetHeight;
+            var titleHeight = self.$$('.owc-list-item-title').offsetHeight;          
+            var THUMB_MARGIN_TOP = 35;
+            var TITLE_TOP = 2000;
+            var THUMB_TOP = parseInt(TITLE_TOP) + parseInt(titleHeight) + parseInt(THUMB_MARGIN_TOP);            
+            var ATTRIBUTES_TOP = parseInt(THUMB_TOP);
+            var FOOTER_HEIGHT = 50;
+
+            self.customStyle['--owc-list-item-title-top'] = (TITLE_TOP);
+            
+            console.log("TITLE_TOP: ", TITLE_TOP);
+            
+            self.customStyle['--owc-list-item-thumb-top'] = (THUMB_TOP );
+            
+            self.customStyle['--owc-list-item-attributes-container-top'] = (ATTRIBUTES_TOP );
+            var ITEM_HEIGHT = TITLE_TOP + titleHeight + THUMB_MARGIN_TOP + Math.max(thumbHeight, attributesHeight) + FOOTER_HEIGHT;            
+            self.customStyle['--pippo'] = '800px !important';             
+            self.updateStyles();               
+          },0);
+          */
+          if(this.owcApp.appconfig) {
+            this.isAdfVisible = this.owcApp.appconfig.adf;
+            console.log('this.owcApp.appconfig.adf',this.owcApp.appconfig.adf);
+          }
+        }
+
+        /**
+         * Callback for on error thumb event.
+         * 
+         * @return {null}
+         */ 
+        imageError(){          
+          var IMAGE_PLACE_HOLDER_URL = this.owcApp.config.clientUrl + '/images/placeholder.png';                     
+          Polymer.dom(this.root).querySelector("#image").src = IMAGE_PLACE_HOLDER_URL;
+        }
+
+        /**
+         * Download product button onclick callback
+         * 
+         * @return {null}
+         */ 
+        download() {
+          window.location = this.owcApp.config.baseUrl +
+            "/odata/v1/Products('" + this.model.uuid + "')/$value";
+
+        }
+
+        details(){
+          var product = document.createElement('product-details');
+          product.productuuid=this.model.uuid;
+          product.productname=this.model.title;
+          this.navigationManager.pushComponent(product, '500px', 'Product Details');
+        }
+
+        /**
+         * ADF List button onclick callback
+         * 
+         * @return {null}
+         */ 
+        adfList() {
+          var list = document.createElement('auxiliary-list-container');          
+          list.productuuid=this.model.uuid;
+          list.productname=this.model.title; 
+          this.showButtons = list.showButtons;   
+          this.navigationManager.pushComponent(list, '500px', 'Auxiliary Data Files List');
+        }
+
+        adfSearch() {
+          var list = document.createElement('auxiliary-search-container');          
+          list.producttype=this.model.type;
+          list.productname=this.model.title; 
+          this.showButtons = list.showButtons;   
+          this.navigationManager.pushComponent(list, '500px', 'Auxiliary Data Files Search');
+        }
+
+      };
+
+      Polymer(ButtonListItem);
+
+    })();
+  </script>
+
+</dom-module>

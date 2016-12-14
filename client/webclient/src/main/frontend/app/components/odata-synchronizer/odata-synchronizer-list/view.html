@@ -197,16 +197,15 @@
                 Your ODATA synchronizer contains {{synchronizerCount}} synchronizers. 
             </div>
             <div class="col-md-1 col-sd-3 col-xs-3"><gotomap-button></gotomap-button></div>
-        </header>  
+        </header> 
         <div id="content"> 
 	     <div ng-repeat="synchronizer in list ">
 
-	        <odata-synchronizer-item 
-	        	synchronizer="synchronizer"
-	        	>
+	        <odata-synchronizer-item synchronizer="synchronizer">
 	      	</odata-synchronizer-item>
 	     </div>
 	    </div>
+         
 	    <footer>
             <div> 
               <button  class="btn btn-default cart-button" ng-click="createOdataSynchronizer()">CREATE SYNCHRONIZER</button>      

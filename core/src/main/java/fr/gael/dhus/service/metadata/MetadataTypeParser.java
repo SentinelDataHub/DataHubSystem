@@ -1,29 +1,46 @@
+/*
+ * Data Hub Service (DHuS) - For Space data distribution.
+ * Copyright (C) 2015,2016 GAEL Systems
+ *
+ * This file is part of DHuS software sources.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 package fr.gael.dhus.service.metadata;
 
-import java.io.StringReader;
-import java.util.List;
-import java.util.Vector;
+import fr.gael.dhus.messaging.jms.Message;
+import fr.gael.dhus.messaging.jms.Message.MessageType;
+import fr.gael.dhus.service.metadata.xml.MetadataTypes;
 
+import java.io.StringReader;
+import java.util.LinkedList;
+import java.util.List;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.ValidationEvent;
 import javax.xml.bind.ValidationEventHandler;
-import javax.xml.transform.stream.StreamSource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import fr.gael.dhus.messaging.jms.Message;
-import fr.gael.dhus.messaging.jms.Message.MessageType;
-import fr.gael.dhus.service.metadata.xml.MetadataTypes;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class MetadataTypeParser
 {
    /**
     * A logger for this class.
     */
-   private static Log logger = LogFactory.getLog(MetadataTypeParser.class);
+   private static final Logger LOGGER = LogManager.getLogger(MetadataTypeParser.class);
    private final Unmarshaller unmarshaller;
 
    public MetadataTypeParser() throws JAXBException
@@ -44,14 +61,14 @@ public class MetadataTypeParser
                case ValidationEvent.WARNING:
                case ValidationEvent.ERROR:
                case ValidationEvent.FATAL_ERROR:
-                  logger.error(new Message(MessageType.SYSTEM,
+                  LOGGER.error(new Message(MessageType.SYSTEM,
                         "XML Matadata Type parsing failure at line "
                               + event.getLocator().getLineNumber() + ", column "
                               + event.getLocator().getColumnNumber() + ": "
                               + event.getMessage()));
                   break;
                default:
-                  logger.warn("Invalid configuration validation event!");
+                  LOGGER.warn("Invalid configuration validation event!");
                   break;
             }
             return false;
@@ -81,8 +98,7 @@ public class MetadataTypeParser
                xml_metadata_types_string));
 
       // Build output list of metadata types
-      final List<MetadataType> parsed_metadata_types =
-         new Vector<MetadataType>();
+      final List<MetadataType> parsed_metadata_types = new LinkedList<>();
 
       for (final MetadataTypes.MetadataType xml_metadata_type : xml_metadata_types
             .getMetadataType())
@@ -110,9 +126,9 @@ public class MetadataTypeParser
 
          parsed_metadata_types.add(metadata_type);
 
-         if (logger.isDebugEnabled())
+         if (LOGGER.isDebugEnabled())
          {
-            logger.debug("Parsed \"" + metadata_type.getName() + "\" ("
+            LOGGER.debug("Parsed \"" + metadata_type.getName() + "\" ("
                   + metadata_type.getId() + ") metadata type.");
          }
       }

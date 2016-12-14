@@ -1,0 +1,136 @@
+<script>
+
+(function(){
+
+// constructor(){
+
+//     this.config = {
+//         defaultCenter: {
+//             coordinates: [13.707047, 51.060086]
+//         },
+//         transformation: {
+//             source: 'EPSG:4326',
+//             destination: 'EPSG:3857'
+//         },
+//         bounds : [-180,-80,180,80],
+//        // target: 'map',
+//         defaultZoom: 4,
+//         minZoom: 1.3,
+//         maxZoom: 19,
+//         layers:{"Road":{
+//                 "sources":[{
+//                     "class":"OSM",
+//                     "params":{
+//                         "wrapX": false
+//                     }
+//                 }],
+//                 "title": "Road",
+//                 "type":"base",
+//                 "visible":true
+//             }
+//         },
+//         externalInterface: {
+//             sendSelectionCoordinates: null
+//         }
+
+
+//     }
+
+
+// }
+
+
+let singleton = Symbol();
+      let singletonEnforcer = Symbol();
+ 
+/* owc reference in owc-app
+  this.Owc = eu.serco.Owc;
+*/
+ 
+/* usage example
+var test = this.owcApp.Owc.Test.instance;
+*/
+ 
+ 
+ 
+ 
+ 
+      class DefaultMapConfig{
+ 
+          /**
+           *  Semantic manager singleton constructor
+           */
+          constructor(enforcer) {
+            this.is = "DefaultMapConfig";
+            if(enforcer != singletonEnforcer)
+              throw "Cannot construct singleton; use DefaultMapConfig.instance";
+          }
+ 
+          beforeRegister() {
+            this.is = "DefaultMapConfig";
+          }
+ 
+          /**
+           * @returns Singleton
+           */
+          static get instance() {
+              if (!this[singleton]) {
+                  this[singleton] = new DefaultMapConfig(singletonEnforcer);
+                  this[singleton].init();
+              }
+              return this[singleton];
+          }
+ 
+ 
+          /**
+           *  SchemaProvider initialization
+           *
+           * @param {} :
+           * @return {}
+           */
+          init() {
+
+            this.config = {
+        defaultCenter: {
+            coordinates: [13.707047, 51.060086]
+        },
+        transformation: {
+            source: 'EPSG:4326',
+            destination: 'EPSG:3857'
+        },
+        bounds : [-180,-80,180,80],
+       // target: 'map',
+        defaultZoom: 4,
+        minZoom: 1.3,
+        maxZoom: 19,
+        layers:{"Road":{
+                "sources":[{
+                    "class":"OSM",
+                    "params":{
+                        "wrapX": false
+                    }
+                }],
+                "title": "Road",
+                "type":"base",
+                "visible":true
+            }
+        },
+        externalInterface: {
+            sendSelectionCoordinates: null
+        }
+
+ 
+          }
+ 
+        eu.serco.Owc.DefaultMapConfig = DefaultMapConfig;
+ 
+      }
+ 
+
+
+
+}
+
+})();
+
+</script>

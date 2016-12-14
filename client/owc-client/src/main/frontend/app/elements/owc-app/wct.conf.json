@@ -1,0 +1,8 @@
+{
+  "suites": ["./test"],
+  "webserver": {
+    "pathMappings": [
+      {"/elements/owc-app/bower_components": "bower_components"}
+    ]
+  }
+}

@@ -19,25 +19,20 @@
  */
 package fr.gael.dhus.datastore;
 
-import java.net.URL;
-import java.util.List;
-
-import fr.gael.dhus.database.object.Collection;
-import fr.gael.dhus.database.object.User;
-import fr.gael.dhus.datastore.scanner.FileScannerWrapper;
-import fr.gael.dhus.datastore.scanner.Scanner;
-
 /**
- * DataStore class provides the methods used to access the stores, download data
- * and upload data. 
- * It manages all the configured archives.
- *
+ * Provides methods to manage all binaries data persistence of entity E.
  */
-public interface DataStore
+public interface DataStore<E>
 {
-   public void addProduct (URL path, User owner,
-      List<Collection>collections, String origin, Scanner scanner,
-      FileScannerWrapper wrapper);
-   
-   public void removeProduct (Long p_id);
+   /**
+    * Adds binaries data of the given element.
+    * @param element the
+    */
+   public void add (E element);
+
+   /**
+    * Removes binaries data of the given element.
+    * @param element the element whose him data will be deleted.
+    */
+   public void remove (E element, Destination destination);
 }

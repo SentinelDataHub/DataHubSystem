@@ -46,7 +46,7 @@ public class CorrectsIngestionDate implements CustomTaskChange
    /**
     * Logger of this class.
     */
-   private final Logger logger = LogManager.getLogger ();
+   private static final Logger LOGGER = LogManager.getLogger(CorrectsIngestionDate.class);
 
    @Override
    public void execute (Database database) throws CustomChangeException
@@ -83,7 +83,7 @@ public class CorrectsIngestionDate implements CustomTaskChange
                      connection.prepareStatement (sb.toString ());
                if (update.executeUpdate () != 1)
                {
-                  logger.warn ("Cannot change ingestion date for product#" +
+                  LOGGER.warn("Cannot change ingestion date for product#" +
                         result.getLong (1));
                }
             }

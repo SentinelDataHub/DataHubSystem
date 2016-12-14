@@ -1,0 +1,145 @@
+<!--
+  @license
+
+ 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<!--
+authentication manager element
+
+
+@demo demo/index.html
+-->
+
+<dom-module id="authentication-manager">
+ 
+
+<script>
+    (function() {
+       'use strict';
+       class AuthenticationManager{           
+
+        /**
+         * BeforeRegister method Polymer calls before creating the element.
+         * This method is where you shoud define the is property (element's name) and
+         * properties  object.
+         *
+         * @return {null}
+         */
+        beforeRegister() {
+          this.is = 'authentication-manager';
+          this.owcApp = document.querySelector('#owc-app');
+          this.logged = false;  
+          this.username = "";
+          this.password = "";             
+        }
+
+        /**             
+         *   This method verify user's status(loggedIn or loggedOut)           
+         *
+         * @return {Boolean}
+         */
+        isLogged(){                           
+          return this.logged;        
+        }
+
+        /**             
+         *   This method set user's status to loggedOut and username 
+         *   and password to null          
+         *
+         * @return {null}
+         */
+        logout(){
+          var self = this;
+          var logoutURL = self.owcApp.config.baseUrl + "/logout";
+          return self.owcApp.httpManager.sendRequest('POST', logoutURL)
+          .then(
+            function (response) {
+                if(response.status == 200){
+                    self.logged = false;
+                    self.username = null;
+                    self.password = null;
+                    self.basicAuthentication = null;
+                    self.owcApp.toastManager.info(self.i18n("logged_out_message"));
+                  }              
+            },
+            function (reject) {
+            });                      
+        }
+
+        /**
+          * This method is devoted to verify user credential sending an http request 
+          * and set user status,username and password
+          *
+          * @param {?String} username: user's identifier
+          * @param {?String} password: user's password
+          * @return {null}
+          */
+        login(username,password){        
+          var self = this;
+          var loginURL = self.owcApp.config.baseUrl + "/login";
+          var options = {
+            headers: [
+              {name:"Content-Type", value:"application/x-www-form-urlencoded"},
+              {name:"Authorization", value: ("Basic " + window.btoa(username+':'+password) )}
+            ],
+            body: $.param({"login_username":username, "login_password": password})
+          }
+          return self.owcApp.httpManager.sendRequest('POST', loginURL,options)
+            .then(
+              function (response) {
+                if(response.status == 200){
+                  self.logged = true;
+                  self.username = username;
+                  self.password = password;                                                
+                  self.basicAuthentication = "Basic " + window.btoa(username+':'+password);
+                  self.owcApp.toastManager.info(self.i18n("logged_in_message"));
+                }              
+              },
+              function (reject) {
+              });
+        }
+
+        /**             
+         *   This method shows the menu container          
+         *
+         * @return {null}
+         */
+        showLogin() {
+          var login = document.createElement('login-container');                  
+          document.getElementById('navigation-manager').pushComponent(login, '500px', 'login');
+        }                
+      };     
+                    
+      
+
+      Polymer(AuthenticationManager);
+      eu.serco.Owc.AuthenticationManager = AuthenticationManager;
+
+    })();
+</script>
+
+</dom-module>

@@ -19,10 +19,14 @@
  */
 package fr.gael.dhus.service;
 
+import fr.gael.dhus.database.dao.UserDao;
 import fr.gael.dhus.database.object.Role;
 import fr.gael.dhus.database.object.User;
+import fr.gael.dhus.service.exception.EmailNotSentException;
+import fr.gael.dhus.service.exception.MalformedEmailException;
 import fr.gael.dhus.service.exception.RequiredFieldMissingException;
 import fr.gael.dhus.service.exception.RootNotModifiableException;
+import fr.gael.dhus.service.exception.UsernameBadCharacterException;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
 import fr.gael.dhus.util.TestContextLoader;
 import org.springframework.cache.Cache;
@@ -50,29 +54,18 @@ import java.util.Set;
 public class TestCacheUserService
       extends AbstractTransactionalTestNGSpringContextTests
 {
-   private UserService userService;
+   private fr.gael.dhus.service.UserService userService;
 
    private CacheManager cacheManager;
-
-   private User userTest;
 
    @BeforeClass
    public void setUp ()
    {
-      this.userService = ApplicationContextProvider.getBean (UserService.class);
+      this.userService = ApplicationContextProvider.getBean (
+            fr.gael.dhus.service.UserService.class);
       this.cacheManager =
             ApplicationContextProvider.getBean (CacheManager.class);
-      initUserTest ();
       authenticate ();
-   }
-
-   private void initUserTest ()
-   {
-      this.userTest = new User ();
-      this.userTest.setPassword ("test");
-      this.userTest.setUsername ("userTest");
-      this.userTest.setEmail ("test@test.com");
-      this.userTest.setCountry ("France");
    }
 
    private void authenticate ()
@@ -97,55 +90,165 @@ public class TestCacheUserService
          RequiredFieldMissingException
    {
       String cache_name = "user";
+      String cache2_name = "userByName";
       String username;
-      Long uid;
+      String uid;
       User user;
 
       // getUser (Long)
-      uid = 0L;
+      uid = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0";
       user = userService.getUser (uid);
       Cache cache = cacheManager.getCache (cache_name);
+      Cache cache2 = cacheManager.getCache (cache2_name);
       Assert.assertEquals (cache.get (uid, User.class), user);
 
-      // getUser (String)
+      // getUserByName (String)
       username = "babar";
-      user = userService.getUser (username);
-      Assert.assertEquals (cache.get (username, User.class), user);
+      user = userService.getUserByName (username);
+      Assert.assertEquals (cache2.get (username, User.class), user);
 
       // getUserNoCheck (String)
       user = userService.getUserNoCheck (username);
-      Assert.assertEquals (user, cache.get (username, User.class));
+      Assert.assertEquals (user, cache2.get (username, User.class));
 
       // updateUser (User)
       user.setEmail ("test@test.com");
       userService.updateUser (user);
-      Assert.assertNull (cache.get (user.getId (), User.class));
-      Assert.assertNull (cache.get (user.getUsername (), User.class));
+      Assert.assertNull (cache.get (user.getUUID (), User.class));
+      Assert.assertNull (cache2.get (user.getUsername (), User.class));
 
       // selfUpdateUser (User)
-      uid = 0L;
+      uid = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0";
       user = userService.getUser (uid);
       user = userService.getUserNoCheck (user.getUsername ());
       user.setPhone ("+336******45");
       userService.selfUpdateUser (user);
-      Assert.assertNull (cache.get (user.getId (), User.class));
-      Assert.assertNull (cache.get (user.getUsername (), User.class));
+      Assert.assertNull (cache.get (user.getUUID (), User.class));
+      Assert.assertNull (cache2.get (user.getUsername (), User.class));
 
       // selfChangePassword (Long, String, String)
-      uid = 0L;
+      uid = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0";
       username = userService.getUser (uid).getUsername ();
-      userService.getUser (username);
+      userService.getUserByName (username);
       userService.selfChangePassword (uid, "koko", "password");
       Assert.assertNull (cache.get (uid, User.class));
-      Assert.assertNull (cache.get (username, User.class));
+      Assert.assertNull (cache2.get (username, User.class));
 
       // deleteUser (Long)
-      uid = 0L;
+      uid = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0";
       username = userService.getUser (uid).getUsername ();
-      userService.getUser (username);
+      Assert.assertNotNull (userService.getUserByName (username));
       userService.deleteUser (uid);
       Assert.assertNull (cache.get (uid, User.class));
-      Assert.assertNull (cache.get (username, User.class));
+      Assert.assertNull (cache2.get (username, User.class));
 
    }
+
+   @Test
+   public void MalformedUserCreateTest() throws EmailNotSentException,
+      RequiredFieldMissingException, RootNotModifiableException
+   {
+      // Case of well formed...
+      User u = new User();
+      u.setPassword ("test001");
+      u.setUsername ("test001");
+      u.setEmail ("test@test.com");
+      u.setCountry ("France");
+      userService.createUser(u);
+      
+      // Case of well formed...
+      u = new User();
+      u.setPassword ("test001");
+      u.setUsername ("_.-");
+      u.setEmail ("test@test.com");
+      u.setCountry ("France");
+      userService.createUser(u);
+      
+      // Case of malformed...
+      u = new User();
+      u.setPassword ("test001");
+      u.setUsername ("toto.A{}\\01");
+      u.setEmail ("test@test.com");
+      u.setCountry ("France");
+      try
+      {
+         userService.createUser(u);
+         Assert.fail("Malformed username created.");
+      }
+      catch (UsernameBadCharacterException e)
+      {
+         // Expected result
+      }
+      
+      // Case of malformed...
+      u = new User();
+      u.setPassword ("test001");
+      u.setUsername ("toto002");
+      u.setEmail (".+@test.com");
+      u.setCountry ("France");
+      try
+      {
+         userService.createUser(u);
+         // No mail characters restrictions...
+         Assert.fail("User created with malformed email.");
+      }
+      catch (MalformedEmailException e)
+      {
+         // Expected result
+      }
+   }
+   
+   @Test (dependsOnMethods="MalformedUserCreateTest")
+   public void MalformedUserUpdateTest() throws EmailNotSentException,
+      RequiredFieldMissingException, RootNotModifiableException
+   {
+      UserDao udao = ApplicationContextProvider.getBean (UserDao.class);
+      // Normal update
+      User u = new User ();
+      u.setUsername ("test001");
+      u.setPassword ("test001");
+      u.setEmail ("test@test.com");
+      u.setCountry ("France");
+      udao.create(u);
+      
+      // Normal update
+      u = userService.getUserByName("test001");
+      u.setUsername("test0001");
+      userService.updateUser (u);
+      u.setUsername("test001{}\\;+");
+      try
+      {
+         userService.updateUser (u);
+         Assert.fail("User created with malformed email.");
+      }
+      catch (UsernameBadCharacterException e) {}
+      
+      User u1 = userService.getUserByName("babar");
+      u1.setEmail("azaza");
+      try
+      {
+         userService.updateUser (u1);
+         Assert.fail("User created with malformed email.");
+      }
+      catch (MalformedEmailException e) {}
+   }
+   
+   @Test
+   public void ExtendedMalformedUserTest() throws EmailNotSentException,
+      RequiredFieldMissingException, RootNotModifiableException
+   {
+      UserDao udao = ApplicationContextProvider.getBean (UserDao.class);
+      // Normal update
+      User u = new User ();
+      u.setUsername ("toto.A{}\\01");
+      u.setPassword ("test001");
+      u.setEmail ("test@test.com");
+      u.setCountry ("France");
+      udao.create(u);
+      
+      u = userService.getUserByName("toto.A{}\\01");
+      u.setUsername("correctedUsername001");
+      userService.updateUser(u);
+   }
+
 }

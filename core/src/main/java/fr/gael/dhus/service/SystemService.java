@@ -19,6 +19,17 @@
  */
 package fr.gael.dhus.service;
 
+import fr.gael.dhus.DHuS;
+import fr.gael.dhus.database.dao.ConfigurationDao;
+import fr.gael.dhus.database.dao.UserDao;
+import fr.gael.dhus.database.dao.interfaces.DHusDumpException;
+import fr.gael.dhus.database.object.User;
+import fr.gael.dhus.database.object.User.PasswordEncryption;
+import fr.gael.dhus.database.object.config.Configuration;
+import fr.gael.dhus.database.object.config.search.SolrConfiguration;
+import fr.gael.dhus.service.exception.UserBadEncryptionException;
+import fr.gael.dhus.system.config.ConfigurationManager;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
@@ -33,31 +44,31 @@ import java.security.MessageDigest;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
-import fr.gael.dhus.database.object.config.system.SupportConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.comparator.NameFileComparator;
-import org.apache.log4j.Logger;
-import org.apache.solr.client.solrj.SolrRequest;
-import org.apache.solr.client.solrj.SolrResponse;
-import org.apache.solr.client.solrj.SolrServer;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
-import org.apache.solr.client.solrj.response.SolrResponseBase;
-import org.apache.solr.common.params.SolrParams;
-import org.apache.solr.common.util.ContentStream;
-import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.CoreContainer;
+
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
+
 import org.hsqldb.lib.tar.DbBackupMain;
 import org.hsqldb.lib.tar.TarMalformatException;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.codec.Hex;
@@ -65,24 +76,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import fr.gael.dhus.DHuS;
-import fr.gael.dhus.database.dao.ConfigurationDao;
-import fr.gael.dhus.database.dao.UserDao;
-import fr.gael.dhus.database.dao.interfaces.DHusDumpException;
-import fr.gael.dhus.database.object.User;
-import fr.gael.dhus.database.object.User.PasswordEncryption;
-import fr.gael.dhus.database.object.config.Configuration;
-import fr.gael.dhus.database.object.config.search.SolrConfiguration;
-import fr.gael.dhus.service.exception.UserBadEncryptionException;
-import fr.gael.dhus.system.config.ConfigurationManager;
-import org.apache.solr.client.solrj.SolrQuery;
-
 @Service
 public class SystemService extends WebService
 {
    private static final String BACKUP_DATABASE_NAME = "database";
    private static final String BACKUP_INDEX_NAME = "index";
-   private static Logger logger = Logger.getLogger (SystemService.class);
+   private static final Logger LOGGER = LogManager.getLogger(SystemService.class);
    
    public static final String RESTORATION_PROPERTIES = 
       "dhus-restoration-system.properties";
@@ -135,6 +134,9 @@ public class SystemService extends WebService
 
    @PreAuthorize ("hasRole('ROLE_SYSTEM_MANAGER')")
    @Transactional (readOnly=false, propagation=Propagation.REQUIRED)
+   @Caching (evict = {
+      @CacheEvict (value = "user", allEntries = true),
+      @CacheEvict (value = "userByName", allEntries = true)})
    public void changeRootPassword (String new_pwd, String old_pwd)
    {
       User root =
@@ -254,7 +256,7 @@ public class SystemService extends WebService
       }
       catch (IOException e)
       {
-         logger.warn ("Can not perform restoration.", e);
+         LOGGER.warn("Can not perform restoration.", e);
          return;
       }
 
@@ -282,21 +284,21 @@ public class SystemService extends WebService
             cfgManager.getDatabaseConfiguration ().getDumpPath (), dirName);
       if ( !(dir.mkdirs ()))
       {
-         logger.error ("Can not create directory to save backup system.");
+         LOGGER.error("Can not create directory to save backup system.");
          return;
       }
 
       String path = dir.getAbsolutePath ();
       if ( !(backupDatabase (path) && backupSolr (path)))
       {
-         logger.warn ("Deleting invalid backup system...");
+         LOGGER.warn("Deleting invalid backup system...");
          try
          {
             FileUtils.deleteDirectory (dir);
          }
          catch (IOException e)
          {
-            logger.error ("Can not delete invalid backup system: " +
+            LOGGER.error("Can not delete invalid backup system: " +
             path + ". Please delete it manually.");
          }
       }
@@ -361,7 +363,7 @@ public class SystemService extends WebService
          }
          input.close ();
          con.disconnect ();
-         logger.debug (response.toString ());
+         LOGGER.debug(response.toString ());
       }
       catch (IOException e)
       {
@@ -395,12 +397,12 @@ public class SystemService extends WebService
             {
                Date date = new Date (Long.parseLong (dir.getName ()
                      .replaceAll ("dump-(.*)", "$1")));
-               logger.info ("Cleaned dump of " + date); 
+               LOGGER.info("Cleaned dump of " + date);
                FileUtils.deleteDirectory(dir);
             }
             catch (IOException e)
             {
-               logger.warn ("Cannot delete directory " + dir.getPath() + " (" +
+               LOGGER.warn("Cannot delete directory " + dir.getPath() + " (" +
                   e.getMessage() + ")");
             }
          }
@@ -415,7 +417,7 @@ public class SystemService extends WebService
       File restoreConfig = new File (RESTORATION_PROPERTIES);
       if (restoreConfig.exists () && restoreConfig.isFile ())
       {
-         logger.info ("Performing restoration DHuS system...");
+         LOGGER.info("Performing restoration DHuS system...");
          try (FileInputStream stream = new FileInputStream (restoreConfig))
          {
             Properties properties = new Properties ();
@@ -426,13 +428,13 @@ public class SystemService extends WebService
          }
          catch (UnsupportedOperationException e)
          {
-            logger.error ("Incomplete DHuS restoration file.", e);
+            LOGGER.error("Incomplete DHuS restoration file.", e);
             // DHuS integrity database and Solr index
             System.setProperty ("Archive.check", "true");
          }
          catch (Exception e)
          {
-            logger.fatal ("Restoration failure.", e);
+            LOGGER.fatal("Restoration failure.", e);
             return false;
          }
          finally
@@ -463,7 +465,7 @@ public class SystemService extends WebService
       FileUtils.deleteDirectory (new File(location));
       String[] args = {"--extract", backup, location};
       DbBackupMain.main (args);
-      logger.info("Database restored.");
+      LOGGER.info("Database restored.");
    }
 
    private static void restoreSolrIndex (Properties properties) throws
@@ -497,17 +499,24 @@ public class SystemService extends WebService
       System.setProperty ("solr.solr.home", solrHome);
       CoreContainer core = new CoreContainer (solrHome);
       EmbeddedSolrServer server = new EmbeddedSolrServer (core, coreName);
-      server.getCoreContainer ().load ();
+      try
+      {
+         server.getCoreContainer ().load ();
 
-      SolrQuery query = new SolrQuery();
-      query.setRequestHandler("/replication");
-      query.set("command", "restore");
-      query.set("name", name);
-      query.set("location", location);
+         SolrQuery query = new SolrQuery();
+         query.setRequestHandler("/replication");
+         query.set("command", "restore");
+         query.set("name", name);
+         query.set("location", location);
 
-      server.query(query);
-      server.shutdown ();
-      logger.info("SolR indexes restored.");
+         server.query(query);
+         LOGGER.info("SolR indexes restored.");
+      }
+      finally
+      {
+         server.close();
+      }
+      
    }
    
    /**
@@ -541,6 +550,6 @@ public class SystemService extends WebService
      FileUtils.cleanDirectory(target_path);
      FileUtils.copyDirectory(index_path, target_path);
      
-     logger.info("SolR indexes restored.");
+     LOGGER.info("SolR indexes restored.");
   }
 }

@@ -1,6 +1,6 @@
 /*
  * Data Hub Service (DHuS) - For Space data distribution.
- * Copyright (C) 2013,2014,2015 GAEL Systems
+ * Copyright (C) 2013,2014,2015,2016 GAEL Systems
  *
  * This file is part of DHuS software sources.
  *
@@ -19,6 +19,65 @@
  */
 package fr.gael.dhus.datastore.processing;
 
+import com.google.common.io.Closer;
+
+import fr.gael.dhus.database.object.MetadataIndex;
+import fr.gael.dhus.database.object.Product;
+import fr.gael.dhus.datastore.IncomingManager;
+import fr.gael.dhus.datastore.exception.DataStoreException;
+import fr.gael.dhus.datastore.scanner.AsynchronousLinkedList.Event;
+import fr.gael.dhus.datastore.scanner.AsynchronousLinkedList.Listener;
+import fr.gael.dhus.datastore.scanner.Scanner;
+import fr.gael.dhus.datastore.scanner.ScannerFactory;
+import fr.gael.dhus.datastore.scanner.URLExt;
+import fr.gael.dhus.service.ProductService;
+import fr.gael.dhus.system.config.ConfigurationManager;
+import fr.gael.dhus.util.AsyncFileLock;
+import fr.gael.dhus.util.JTSFootprintParser;
+import fr.gael.dhus.util.MultipleDigestInputStream;
+import fr.gael.dhus.util.MultipleDigestOutputStream;
+import fr.gael.dhus.util.UnZip;
+
+import fr.gael.drb.DrbAttribute;
+import fr.gael.drb.DrbFactory;
+import fr.gael.drb.DrbNode;
+import fr.gael.drb.DrbSequence;
+import fr.gael.drb.impl.DrbNodeImpl;
+import fr.gael.drb.impl.ftp.Transfer;
+import fr.gael.drb.impl.spi.DrbNodeSpi;
+import fr.gael.drb.impl.xml.XmlWriter;
+import fr.gael.drb.query.ExternalVariable;
+import fr.gael.drb.query.Query;
+import fr.gael.drb.value.Value;
+import fr.gael.drbx.cortex.DrbCortexItemClass;
+import fr.gael.drbx.image.ImageFactory;
+import fr.gael.drbx.image.impl.sdi.SdiImageFactory;
+import fr.gael.drbx.image.jai.RenderingFactory;
+
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+
+import org.apache.commons.io.FileExistsException;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
+import org.geotools.gml2.GMLConfiguration;
+import org.geotools.xml.Configuration;
+import org.geotools.xml.Parser;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import org.xml.sax.InputSource;
+
+import javax.activation.MimeType;
+import javax.activation.MimeTypeParseException;
+import javax.imageio.ImageIO;
+import javax.media.jai.RenderedImageList;
 import java.awt.image.RenderedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -47,64 +106,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-import javax.activation.MimeType;
-import javax.activation.MimeTypeParseException;
-import javax.imageio.ImageIO;
-import javax.media.jai.RenderedImageList;
-
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
-import org.apache.commons.io.FileExistsException;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
-import org.geotools.gml2.GMLConfiguration;
-import org.geotools.xml.Configuration;
-import org.geotools.xml.Parser;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.xml.sax.InputSource;
-
-import com.spatial4j.core.context.jts.JtsSpatialContext;
-import com.spatial4j.core.context.jts.JtsSpatialContextFactory;
-import com.spatial4j.core.io.jts.JtsWKTReaderShapeParser;
-
-import fr.gael.dhus.database.dao.ProductDao;
-import fr.gael.dhus.database.object.MetadataIndex;
-import fr.gael.dhus.database.object.Product;
-import fr.gael.dhus.datastore.IncomingManager;
-import fr.gael.dhus.datastore.exception.DataStoreException;
-import fr.gael.dhus.datastore.scanner.AsynchronousLinkedList.Event;
-import fr.gael.dhus.datastore.scanner.AsynchronousLinkedList.Listener;
-import fr.gael.dhus.datastore.scanner.Scanner;
-import fr.gael.dhus.datastore.scanner.ScannerFactory;
-import fr.gael.dhus.datastore.scanner.URLExt;
-import fr.gael.dhus.system.config.ConfigurationManager;
-import fr.gael.dhus.util.AsyncFileLock;
-import fr.gael.dhus.util.MultipleDigestInputStream;
-import fr.gael.dhus.util.MultipleDigestOutputStream;
-import fr.gael.dhus.util.UnZip;
-import fr.gael.drb.DrbAttribute;
-import fr.gael.drb.DrbFactory;
-import fr.gael.drb.DrbNode;
-import fr.gael.drb.DrbSequence;
-import fr.gael.drb.impl.ftp.Transfer;
-import fr.gael.drb.impl.spi.DrbNodeSpi;
-import fr.gael.drb.impl.xml.XmlWriter;
-import fr.gael.drb.query.Query;
-import fr.gael.drb.value.Value;
-import fr.gael.drbx.cortex.DrbCortexItemClass;
-import fr.gael.drbx.image.ImageFactory;
-import fr.gael.drbx.image.impl.sdi.SdiImageFactory;
-import fr.gael.drbx.image.jai.RenderingFactory;
-
 /**
  * Manages product processing.
  */
 @Component
 public class ProcessingManager
 {
-   private static final Logger LOGGER = Logger.getLogger (ProcessingManager.class);
+   private static final Logger LOGGER = LogManager.getLogger(ProcessingManager.class);
 
    private static final int EOF = -1;
 
@@ -116,8 +124,10 @@ public class ProcessingManager
    private static final String MIME_PLAIN_TEXT = "plain/text";
    private static final String MIME_APPLICATION_GML = "application/gml+xml";
 
+   private static final String SIZE_QUERY=loadResourceFile("size.xql");
+
    @Autowired
-   private ProductDao productDao;
+   private ProductService productService;
 
    @Autowired
    private ConfigurationManager cfgManager;
@@ -131,17 +141,19 @@ public class ProcessingManager
    /**
     * Process product to finalize its ingestion
     */
+   @Transactional
    public Product process (Product product)
    {
       long allStart = System.currentTimeMillis ();
       LOGGER.info ("* Ingestion started.");
       long start = System.currentTimeMillis ();
       LOGGER.info (" - Product transfer started");
-      URL transferPath = transfer (product.getOrigin (),product.getPath ().toString ());
+      URL transferPath = transfer (
+            product.getOrigin (),product.getPath ().toString ());
       if (transferPath != null)
       {
          product.setPath (transferPath);
-         productDao.update (product);
+         productService.update (product);
       }
       LOGGER.info (" - Product transfer done in " +
          (System.currentTimeMillis () - start) + "ms.");
@@ -154,64 +166,67 @@ public class ProcessingManager
       File productFile = new File (productPath.getPath ());
       DrbNode productNode =
          ProcessingUtils.getNodeFromPath (productPath.getPath ());
-      DrbCortexItemClass productClass;
       try
       {
-         productClass = ProcessingUtils.getClassFromNode (productNode);
-      }
-      catch (IOException e)
-      {
-         throw new UnsupportedOperationException ("Cannot compute item class.",
-            e);
-      }
+         DrbCortexItemClass productClass;
+         try
+         {
+            productClass = ProcessingUtils.getClassFromNode (productNode);
+         }
+         catch (IOException e)
+         {
+            throw new UnsupportedOperationException (
+                  "Cannot compute item class.", e);
+         }
 
-      if ( !productFile.exists ())
-         throw new UnsupportedOperationException ("File not found (" +
-            productFile.getPath () + ").");
+         if (!productFile.exists ())
+            throw new UnsupportedOperationException ("File not found (" +
+                  productFile.getPath () + ").");
 
-      // Set the product size
-      product.setSize (size (productFile));
+         // Set the product size
+         product.setSize (size (productFile));
 
-      // Set the product itemClass
-      product.setItemClass (productClass.getOntClass ().getURI ());
+         // Set the product itemClass
+         product.setItemClass (productClass.getOntClass ().getURI ());
 
-      // Set the product identifier
-      String identifier = extractIdentifier (productNode, productClass);
-      if (identifier != null)
-      {
-         LOGGER.debug ("Found product identifier " + identifier);
-         product.setIdentifier (identifier);
-      }
-      else
-      {
-         LOGGER.warn ("No defined identifier - using filename");
-         product.setIdentifier (productFile.getName ());
-      }
-      LOGGER.info (" - Product information extraction done in " +
-         (System.currentTimeMillis () - start) + "ms.");
-
-      // Extract images
-      start = System.currentTimeMillis ();
-      LOGGER.info (" - Product images extraction started");
-      product = extractImages (productNode, product);
-      LOGGER.info (" - Product images extraction done in " +
+         // Set the product identifier
+         String identifier = extractIdentifier (productNode, productClass);
+         if (identifier != null)
+         {
+            LOGGER.debug ("Found product identifier " + identifier);
+            product.setIdentifier (identifier);
+         }
+         else
+         {
+            LOGGER.warn ("No defined identifier - using filename");
+            product.setIdentifier (productFile.getName ());
+         }
+         LOGGER.info (" - Product information extraction done in " +
                (System.currentTimeMillis () - start) + "ms.");
 
-      // Generate download File
-      start = System.currentTimeMillis ();
-      LOGGER.info (" - Product downloadable file creation started");
-      product = generateDownloadFile (product);
-      LOGGER.info (" - Product downloadable file creation done in " +
+         // Extract images
+         start = System.currentTimeMillis ();
+         LOGGER.info (" - Product images extraction started");
+         product = extractImages (productNode, product);
+         LOGGER.info (" - Product images extraction done in " +
                (System.currentTimeMillis () - start) + "ms.");
 
-      // Set the product indexes
-      start = System.currentTimeMillis ();
-      LOGGER.info (" - Product indexes and footprint extraction started");
-      List<MetadataIndex> indexes = extractIndexes (productNode, productClass);
-      SimpleDateFormat df =
+         // Generate download File
+         start = System.currentTimeMillis ();
+         LOGGER.info (" - Product downloadable file creation started");
+         product = generateDownloadFile (product);
+         LOGGER.info (" - Product downloadable file creation done in " +
+               (System.currentTimeMillis () - start) + "ms.");
+
+         // Set the product indexes
+         start = System.currentTimeMillis ();
+         LOGGER.info (" - Product indexes and footprint extraction started");
+         List<MetadataIndex> indexes =
+               extractIndexes (productNode, productClass);
+         SimpleDateFormat df =
                new SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-      indexes.add (new MetadataIndex ("Identifier",
-         null, "", PROPERTY_IDENTIFIER, product.getIdentifier ()));
+         indexes.add (new MetadataIndex ("Identifier",
+               null, "", PROPERTY_IDENTIFIER, product.getIdentifier ()));
 
       if (indexes == null || indexes.isEmpty ())
       {
@@ -226,57 +241,73 @@ public class ProcessingManager
          {
             MetadataIndex index = iterator.next ();
 
-            // Save content dates
-            if (index.getName ().equalsIgnoreCase ("Sensing start"))
+            // Extracts queryable informations to be stored into database.
+            if (index.getQueryable() != null)
             {
-               try
+               // Begin position ("sensing start" or "validity start")
+               if (index.getQueryable().equalsIgnoreCase ("beginposition"))
                {
-               product.setContentStart (df.parse (index.getValue ()));
-               }
-               catch (ParseException e)
-               {
-                  LOGGER.warn ("Cannot set correctly product 'content start' " +
-                        "from indexes", e);
-               }
-            }
-
-            if (index.getName ().equalsIgnoreCase ("Sensing stop"))
-            {
-               try
-               {
-               product.setContentEnd (df.parse (index.getValue ()));
-               }
-               catch (ParseException e)
-               {
-                  LOGGER.warn ("Cannot set correctly product 'content end' " +
-                        "from indexes", e);
-               }
-            }
-
-            // Check GML footprint
-            if (index.getName ().equalsIgnoreCase ("footprint"))
-            {
-               String gml_footprint = index.getValue ();
-               if ( (gml_footprint != null) && checkGMLFootprint (gml_footprint))
-               {
-                  product.setFootPrint (gml_footprint);
+                  try
+                  {
+                     product.setContentStart (df.parse (index.getValue ()));
+                  }
+                  catch (ParseException e)
+                  {
+                     LOGGER.warn ("Cannot set correctly product " +
+                        "'content start' from indexes", e);
+                  }
                }
                else
+               // End position ("sensing stop" or "validity stop")
+               if (index.getQueryable().equalsIgnoreCase ("endposition"))
                {
-                  LOGGER.error ("Incorrect on empty footprint for product " +
-                     product.getPath ());
+                  try
+                  {
+                     product.setContentEnd (df.parse (index.getValue ()));
+                  }
+                  catch (ParseException e)
+                  {
+                     LOGGER.warn ("Cannot set correctly product " +
+                        "'content end' from indexes", e);
+                  }
                }
             }
-
-            // Check JTS footprint
-            if (index.getName ().equalsIgnoreCase ("jts footprint"))
+            /**
+             * Extract the footprints according to its types (GML or JTS)
+             */
+            if (index.getType() != null)
             {
-               String jts_footprint = index.getValue ();
-               jtsValid = checkJTSFootprint (jts_footprint);
-               if (jts_footprint != null && !jtsValid)
+               if (index.getType().equalsIgnoreCase("application/gml+xml"))
                {
-                  // If JTS footprint is wrong; remove the corrupted footprint.
-                  iterator.remove ();
+                  String gml_footprint = index.getValue ();
+                  if ((gml_footprint != null) &&
+                      checkGMLFootprint (gml_footprint))
+                  {
+                     product.setFootPrint (gml_footprint);
+                  }
+                  else
+                  {
+                     LOGGER.error ("Incorrect on empty footprint for product " +
+                        product.getPath ());
+                  }
+               }
+               // Should not have been application/wkt ?
+               else if (index.getType().equalsIgnoreCase("application/jts"))
+               {
+                  String jts_footprint = index.getValue ();
+                  String parsedFootprint = JTSFootprintParser.checkJTSFootprint (jts_footprint);
+                  jtsValid = parsedFootprint != null;
+                  if (jtsValid)
+                  {
+                     index.setValue (parsedFootprint);
+                  }
+                  else
+                     if (jts_footprint != null)
+                     {
+                        // JTS footprint is wrong; remove the corrupted
+                        // footprint.
+                        iterator.remove ();
+                     }
                }
             }
          }
@@ -287,20 +318,33 @@ public class ProcessingManager
             product.setFootPrint (null);
          }
       }
-      Date ingestionDate = new Date ();
+      Date ingestion_date = new Date ();
       indexes.add (new MetadataIndex ("Ingestion Date",
-         null, "product", PROPERTY_INGESTIONDATE, df.format (ingestionDate)));
-      product.setIngestionDate (ingestionDate);
+         null, "product", PROPERTY_INGESTIONDATE, df.format (ingestion_date)));
+      product.setIngestionDate (ingestion_date);
       LOGGER.info (" - Product indexes and footprint extraction done in " +
                (System.currentTimeMillis () - start) + "ms.");
 
-      product.setUpdated (new Date());
-      product.setProcessed (true);
+         product.setUpdated (new Date ());
+         product.setProcessed (true);
 
-      LOGGER.info ("* Ingestion done in " +
-         (System.currentTimeMillis () - allStart) + "ms.");
+         LOGGER.info ("* Ingestion done in " +
+               (System.currentTimeMillis () - allStart) + "ms.");
 
-      return product;
+         return product;
+      }
+      finally
+      {
+         closeNode (productNode);
+      }
+   }
+
+   private void closeNode (DrbNode node)
+   {
+      if (node instanceof DrbNodeImpl)
+      {
+         DrbNodeImpl.class.cast (node).close (false);
+      }
    }
 
    /**
@@ -312,32 +356,12 @@ public class ProcessingManager
       {
          Configuration configuration = new GMLConfiguration ();
          Parser parser = new Parser (configuration);
-         parser.parse (new InputSource (new StringReader (footprint)));
+         parser.parse (new InputSource (new StringReader (footprint)));         
          return true;
       }
       catch (Exception e)
       {
          LOGGER.error("Error in extracted footprint: " + e.getMessage());
-         return false;
-      }
-   }
-
-   /**
-    * Check JTS Footprint validity
-    */
-   private boolean checkJTSFootprint (String footprint)
-   {
-      try
-      {
-         JtsSpatialContextFactory factory = new JtsSpatialContextFactory ();
-         JtsSpatialContext ctx = factory.newSpatialContext ();
-         JtsWKTReaderShapeParser parser = new JtsWKTReaderShapeParser (ctx, factory);
-         parser.parse (footprint);
-         return true;
-      }
-      catch (Exception e)
-      {
-         LOGGER.error ("JTS Footprint error : " + e.getMessage());
          return false;
       }
    }
@@ -435,16 +459,30 @@ public class ProcessingManager
             .getQuicklookConfiguration ().getWidth ();
       int quicklook_height = cfgManager.getProductConfiguration ()
             .getQuicklookConfiguration ().getHeight ();
-      boolean quicklook_cutting =
-               cfgManager.getProductConfiguration ()
+
+      // Deprecated code: raise warn.
+      boolean quicklook_cutting = cfgManager.getProductConfiguration ()
                      .getQuicklookConfiguration ().isCutting ();
+      if (quicklook_cutting)
+         LOGGER.warn(
+            "Quicklook \"cutting\" parameter is deprecated, will be ignored.");
 
       LOGGER.info ("Generating Quicklook " +
          quicklook_width + "x" + quicklook_height + " from " +
          input_image.getWidth() + "x" + input_image.getHeight ());
 
-      RenderedImage image = ProcessingUtils.resizeImage (input_image,
-            quicklook_width, quicklook_height, 10f, quicklook_cutting);
+      RenderedImage image = null;
+      try
+      {
+         image = ProcessingUtils.resizeImage(input_image, quicklook_width, quicklook_height);
+      }
+      catch (InconsistentImageScale e)
+      {
+         LOGGER.error("Cannot resize image: {}", e.getMessage());
+         SdiImageFactory.close(input_list);
+         return product;
+      }
+
 
       // Manages the quicklook output
       File image_directory = incomingManager.getNewIncomingPath ();
@@ -452,7 +490,8 @@ public class ProcessingManager
       AsyncFileLock afl = null;
       try
       {
-         Path path = Paths.get(image_directory.getAbsolutePath(), ".lock-writing");
+         Path path = Paths.get (image_directory.getAbsolutePath(), 
+            ".lock-writing");
          afl = new AsyncFileLock(path);
          afl.obtain (900000);
       }
@@ -481,16 +520,25 @@ public class ProcessingManager
             .getThumbnailConfiguration ().getWidth ();
       int thumbnail_height = cfgManager.getProductConfiguration ()
             .getThumbnailConfiguration ().getHeight ();
-      boolean thumbnail_cutting =
-               cfgManager.getProductConfiguration ()
-                     .getThumbnailConfiguration ().isCutting ();
 
       LOGGER.info ("Generating Thumbnail " +
          thumbnail_width + "x" + thumbnail_height + " from " +
          input_image.getWidth() + "x" + input_image.getHeight () + " image.");
 
-      image = ProcessingUtils.resizeImage (input_image,
-            thumbnail_width, thumbnail_height, 10f, thumbnail_cutting);
+      try
+      {
+         image = ProcessingUtils.resizeImage(input_image, thumbnail_width, thumbnail_height);
+      }
+      catch (InconsistentImageScale e)
+      {
+         LOGGER.error("Cannot resize image: {}", e.getMessage());
+         SdiImageFactory.close(input_list);
+         if (afl != null)
+         {
+            afl.close();
+         }
+         return product;
+      }
 
       // Manages the thumbnail output
       file = new File (image_directory, identifier + "-th.jpg");
@@ -661,8 +709,8 @@ public class ProcessingManager
                {
                   LOGGER.warn (
                      "Wrong metatdata extractor mime type in class \"" +
-                      productClass.getLabel () + "\" for metadata called \"" + name +
-                        "\".", e);
+                      productClass.getLabel () + "\" for metadata called \"" + 
+                      name + "\".", e);
                }
                index.setCategory (category);
                index.setValue (value);
@@ -689,16 +737,49 @@ public class ProcessingManager
    }
 
    /**
-    * Calculate a file or a folder size
+    * Calculate a file or a folder size. This method recursively browse product
+    * according to the supported item loaded by Drb.
     */
-   private long size (File file)
+   long drb_size (File file)
    {
-      long size = 0;
-      if (file.isDirectory ())
+      String variable_name = "product_path";
+      
+      // Use Drb/XQuery to compute size.
+      Query query = new Query(SIZE_QUERY);
+      if (query.getEnvironment().containsExternalVariable(variable_name))
+      {
+         ExternalVariable[] extVariables = query.getExternalVariables();
+         // Set the external variables
+         for (int iext = 0; iext < extVariables.length; iext++)
+         {
+            ExternalVariable var = extVariables[iext];
+            String varName = var.getName();
+            if (varName.equals(variable_name))
+            {
+               // Set it a new value
+               var.setValue(new
+                  fr.gael.drb.value.String(file.getAbsolutePath()));
+            }
+         }
+      }
+      else
+         throw new UnsupportedOperationException ("Cannot set \"" + 
+            variable_name + "\" XQuery parameter.");
+      
+      DrbSequence sequence = query.evaluate(DrbFactory.openURI("."));
+      return ((fr.gael.drb.value.UnsignedLong)sequence.getItem(0).getValue().
+         convertTo(Value.UNSIGNED_LONG_ID)).longValue();
+   }
+
+   
+   long system_size (File file)
+   {
+      long size=0;
+      if (file.isDirectory())
       {
          for (File subFile : file.listFiles ())
          {
-            size += size (subFile);
+            size += system_size (subFile);
          }
       }
       else
@@ -707,7 +788,20 @@ public class ProcessingManager
       }
       return size;
    }
-
+   
+   long size (File file)
+   {
+      try
+      {
+         return drb_size(file);
+      }
+      catch (Exception e)
+      {
+         LOGGER.warn ("Cannot compute size via Drb API, using system API(" + 
+            e.getMessage() + ").");
+         return system_size(file);
+      }
+   }
    /**********************/
    /** Product Transfer **/
    /**********************/
@@ -730,7 +824,8 @@ public class ProcessingManager
       AsyncFileLock afl = null;
       try
       {
-         Path path = Paths.get(dest.getParentFile().getAbsolutePath(), ".lock-writing");
+         Path path = Paths.get(dest.getParentFile().getAbsolutePath(),
+            ".lock-writing");
          afl = new AsyncFileLock(path);
          afl.obtain (900000);
       }
@@ -773,8 +868,8 @@ public class ProcessingManager
       catch (Exception e)
       {
          FileUtils.deleteQuietly (dest);
-         throw new DataStoreException ("Cannot transfer product \"" + productOrigin +
-            "\".", e);
+         throw new DataStoreException ("Cannot transfer product \"" +
+            productOrigin + "\".", e);
       }
       finally
       {
@@ -894,12 +989,11 @@ public class ProcessingManager
                         }
                         else
                         {
-                           if ( (node instanceof DrbNodeSpi) &&
-                              ( ((DrbNodeSpi) node).hasImpl (InputStream.class)))
+                           if ((node instanceof DrbNodeSpi) &&
+                              (((DrbNodeSpi) node).hasImpl (InputStream.class)))
                            {
-                              is =
-                                 (InputStream) ((DrbNodeSpi) node)
-                                    .getImpl (InputStream.class);
+                              is = (InputStream) ((DrbNodeSpi) node).
+                                 getImpl (InputStream.class);
                            }
                            else
                               is = element.getUrl ().openStream ();
@@ -916,10 +1010,8 @@ public class ProcessingManager
                      long size = local_path.length ();
                      String message = " in " + delay_ms + "ms";
                      if ( (size > 0) && (delay_ms > 0))
-                        message +=
-                           " at " +
-                              ( (size / (1024 * 1024)) / ((float) delay_ms / 1000.0)) +
-                              "MB/s";
+                        message += " at " +
+                           ((size/(1024*1024))/((float)delay_ms/1000.0))+"MB/s";
 
                      LOGGER.info ("Copy of " + node.getName () + " completed" +
                         message);
@@ -1077,7 +1169,8 @@ public class ProcessingManager
       }
    }
 
-   private void moveFile (File src_file, File dest_file) throws IOException, NoSuchAlgorithmException
+   private void moveFile (File src_file, File dest_file) 
+      throws IOException, NoSuchAlgorithmException
    {
       if (src_file == null)
       {
@@ -1181,8 +1274,8 @@ public class ProcessingManager
          }
          catch (IOException | InterruptedException | TimeoutException e)
          {
-            LOGGER.warn ("Cannot lock incoming directory - continuing without (" +
-               e.getMessage () +")");
+            LOGGER.warn ("Cannot lock incoming directory - " +
+               "continuing without (" + e.getMessage () +")");
          }
 
          zip_file = new File (incoming, (product_id + ".zip"));
@@ -1505,4 +1598,38 @@ public class ProcessingManager
          }
       }
    }
+   
+   /**
+    * Inner method used to load small ASCII resources that can be stored 
+    * into memory. Thios resource shall be store close to this class (same 
+    * package folder).
+    * @param resource the resource to load.
+    * @return the ASCII content of the resource.
+    */
+   private static String loadResourceFile (String resource)
+   {
+      Closer closer = Closer.create();
+      String contents=null;
+      try
+      {
+         InputStream is = closer.register (ProcessingManager.class.
+            getResourceAsStream(resource));
+         contents=IOUtils.toString(is);
+      }
+      catch (Throwable e)
+      {
+         throw new UnsupportedOperationException(
+            "Cannot retrieve resource \"" + resource + "\".",e);
+      }
+      finally
+      {
+         try
+         {
+            closer.close();
+         }
+         catch (IOException e) { ; }
+      }
+      return contents;
+   }
+
 }

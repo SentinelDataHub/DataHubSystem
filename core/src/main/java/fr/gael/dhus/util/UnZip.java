@@ -40,7 +40,7 @@ import java.util.List;
 
 public class UnZip
 {
-   private static final Logger LOGGER = LogManager.getLogger ();
+   private static final Logger LOGGER = LogManager.getLogger(UnZip.class);
 
    List<String> fileList;
 

@@ -138,6 +138,7 @@
                name="name_autocomplete"
                type="text_auto"
                indexed="true"
+               stored="false"
                multiValued="true" />
          </metadataType>
 

@@ -1,0 +1,152 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+    generic model
+
+
+    @demo demo/index.html
+    -->
+
+<dom-module id="generic-model">
+    <template>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class GenericModel {
+
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+              this.is = 'generic-model';
+              this.owcApp = document.querySelector('#owc-app');
+              this.removedElementsCount = 0;
+              this.addedElemetsCount = 0;
+              this.startIndex = 0;
+              this.endIndex = 0;
+              this.properties = {
+
+                  /**
+                   * Public property description
+                   *
+                   * @type {Object}
+                   */
+                  model: {
+                      type: Object,
+                      value: null,
+                      notify: false,
+                  },
+                  /**
+                   * Public property description
+                   *
+                   * @type {Object}
+                   */
+                  target: {
+                      type: String,
+                      value: null
+                  }
+              };
+
+              this._maxModelSize = 60;
+            }
+
+            detached() {
+              var self = this;
+              self.model = null;
+            }
+
+            setNewModel() {
+              var self = this;
+              self.owcApp.messageBroker.publish('setNewModel',null,self.target);
+            }
+
+            appendNewPage(genericModel) {
+              var newPageSize = genericModel.length;
+              this.model.push.apply(this.model, genericModel);
+              this.addedElementsCount = newPageSize + 0;
+              this.endIndex += newPageSize;
+              var bufferSize = this.model.length;
+              if(bufferSize > this._maxModelSize){
+                  this.model.splice(0, newPageSize);
+                  this.removedElementsCount = newPageSize + 0;
+                  this.startIndex += this.removedElementsCount;
+
+
+                }
+                else{
+                  this.removedElementsCount = 0;
+                }
+
+              this.owcApp.messageBroker.publish('setNewModel',null,this.target);
+            }
+
+            setModel(genericModel) {
+              this.model = genericModel;
+              this.owcApp.messageBroker.publish('setNewModel',null,this.target);
+              this.startIndex = 1;
+              if(this.model && this.model.length)
+                this.endIndex = this.model.length;
+            }
+
+            getModel() {
+                return this.model;
+            }
+
+            setTarget(target){
+              this.target = target;
+            }
+
+            prependNewPage(genericModel) {
+                var newPageSize = genericModel.length;
+                this.model.unshift.apply(this.model, genericModel);
+                this.startIndex -= newPageSize;
+                this.addedElementsCount = newPageSize + 0;
+                var bufferSize = this.model.length;
+                if(bufferSize > this._maxModelSize){
+                    this.model.splice(bufferSize  - newPageSize, newPageSize);
+                    this.removedElementsCount = newPageSize + 0;
+                    this.endIndex -= this.removedElementsCount;
+                  }
+                  else{
+                    this.removedElementsCount = 0;
+                  }
+                this.owcApp.messageBroker.publish('setNewModel',null,this.target);
+            }
+
+        };
+        Polymer(GenericModel);
+    })();
+    </script>
+</dom-module>

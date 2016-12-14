@@ -24,8 +24,8 @@ import java.net.URL;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import fr.gael.drb.DrbItem;
 import fr.gael.drb.DrbNode;
@@ -46,7 +46,7 @@ import fr.gael.drbx.cortex.DrbCortexModel;
  */
 public abstract class AbstractScanner implements Scanner
 {
-   private static Log logger = LogFactory.getLog (AbstractScanner.class);
+   private static final Logger LOGGER = LogManager.getLogger(AbstractScanner.class);
    public URL repository;
    public List<DrbCortexItemClass>supportedClasses;
    private boolean forceNavigate=false;
@@ -102,7 +102,7 @@ public abstract class AbstractScanner implements Scanner
    
    protected boolean matches (DrbItem item)
    {
-      logger.debug ("matches " + ((DrbNode)item).getPath ());
+      LOGGER.debug("matches " + ((DrbNode)item).getPath ());
       // First of all, checks if the pattern matches this item
       Pattern p = getUserPattern();
       if (p != null)
@@ -118,7 +118,7 @@ public abstract class AbstractScanner implements Scanner
       
       for (DrbCortexItemClass cl: supportedClasses)
       {
-         if (logger.isDebugEnabled())
+         if (LOGGER.isDebugEnabled())
          {
             DrbCortexItemClass item_class = null;
             String str_cl = "";
@@ -134,7 +134,7 @@ public abstract class AbstractScanner implements Scanner
                e1.printStackTrace();
             }
          
-            logger.debug ("Checking class : " + cl.getLabel () + 
+            LOGGER.debug("Checking class : " + cl.getLabel () + 
                "(" + cl.getOntClass().getURI() + ") - with - " + 
                   item.getName () + " (" + str_cl + ")");
          }
@@ -142,19 +142,19 @@ public abstract class AbstractScanner implements Scanner
          {
             if (cl.includes (item, false))
             {
-               logger.debug (item.getName() + " Match \"" + cl.getLabel() +
+               LOGGER.debug(item.getName() + " Match \"" + cl.getLabel() +
                      "\".");
                return true;
             }
          }
          catch (Exception e)
          {
-            logger.warn ("Cannot match the item \"" + 
+            LOGGER.warn("Cannot match the item \"" + 
                ((DrbNode)item).getName () + "\" with class \"" +
                   cl.getLabel () + "\": continuing...", e);
          }
       }
-      logger.debug ("No match for " + ((DrbNode)item).getPath ());
+      LOGGER.debug("No match for " + ((DrbNode)item).getPath ());
       return false;
    }
    

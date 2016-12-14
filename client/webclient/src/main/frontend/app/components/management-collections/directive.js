@@ -70,15 +70,13 @@ angular.module('DHuS-webclient')
     var showHideElements = function(show) {
       $(BTN_CREATE_COLL).show(); 
       $(BTN_RESET_COLL).hide();
-      if(show) {
-        $(BTN_CREATECHILD_COLL).show();        
+      if(show) {              
         $(BTN_UPDATE_COLL).show();
         $(BTN_SAVE_COLL).hide();
         $(BTN_DELETE_COLL).show();
         $(BTN_CANCEL_COLL).show();
       }
-      else {
-        $(BTN_CREATECHILD_COLL).hide();
+      else {        
         $(BTN_UPDATE_COLL).hide();        
         $(BTN_SAVE_COLL).hide();
         $(BTN_DELETE_COLL).hide();
@@ -129,8 +127,7 @@ angular.module('DHuS-webclient')
               if(isSubCollection) {
                 var coll={};
                 coll.parent={};
-                coll.parent.id=scope.details.id;
-                coll.parent.id=scope.details.id;
+                coll.parent.uuid=scope.details.uuid;                
                 coll.parent.name=scope.details.name;
                 coll.parent.description=scope.details.description;
                 coll.parent.deep=scope.details.deep;
@@ -150,9 +147,7 @@ angular.module('DHuS-webclient')
               scope.create();
             }
 
-            scope.addSubCollection = function() {
-              scope.create(true);
-            }
+            
 
             scope.resetButton = function(start) {
               if(start) {
@@ -247,7 +242,7 @@ angular.module('DHuS-webclient')
               var coll = scope.details = AdminCollectionManager.getDetailsFromComponent();
               var outcome = confirm("Delete " + coll.name + " collection?")
               if(outcome) {
-                AdminCollectionManager.removeCollection(coll.id)
+                AdminCollectionManager.removeCollection(coll.uuid)
                   .then(function(response) {
                     var responseStatus = parseInt(response.status);
                     if(responseStatus >= 200 && responseStatus < 300)

@@ -19,19 +19,20 @@
  */
 package fr.gael.dhus.service.job;
 
-import org.apache.log4j.Logger;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import fr.gael.dhus.DHuS;
-import fr.gael.dhus.database.dao.ActionRecordWritterDao;
 import fr.gael.dhus.database.dao.UserDao;
 import fr.gael.dhus.database.dao.interfaces.DaoUtils;
 import fr.gael.dhus.database.object.config.cron.CleanDatabaseCronConfiguration;
-import fr.gael.dhus.search.SolrDao;
 import fr.gael.dhus.system.config.ConfigurationManager;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Autowired by {@link AutowiringJobFactory}
@@ -39,16 +40,10 @@ import fr.gael.dhus.system.config.ConfigurationManager;
 @Component
 public class CleanDatabaseJob extends AbstractJob
 {
-   private static Logger logger = Logger.getLogger (CleanDatabaseJob.class);
+   private static final Logger LOGGER = LogManager.getLogger(CleanDatabaseJob.class);
 
    @Autowired
    private UserDao userDao;
-   
-   @Autowired
-   private ActionRecordWritterDao actionRecordWritterDao;
-   
-   @Autowired
-   private SolrDao solrDao;
 
    @Autowired
    private ConfigurationManager configurationManager;
@@ -74,23 +69,21 @@ public class CleanDatabaseJob extends AbstractJob
       if (!cleanDatabaseConf.isActive ()) return;
 
       long start = System.currentTimeMillis ();
-      logger.info ("SCHEDULER : Cleanup database.");
+      LOGGER.info("SCHEDULER : Cleanup database.");
 
       if (!DHuS.isStarted ())
       {
-         logger.warn("SCHEDULER : Not run while system not fully initialized.");
+         LOGGER.warn("SCHEDULER : Not run while system not fully initialized.");
          return;
       }
 
       userDao.cleanupTmpUser(cleanDatabaseConf.getTempUsersConfiguration ().
          getKeepPeriod ());
-      actionRecordWritterDao.cleanupOlderActionRecords (
-         cleanDatabaseConf.getLogStatConfiguration ().getKeepPeriod ()); 
-      
+
       // optimize database
       DaoUtils.optimize ();
 
-      logger.info ("SCHEDULER : Cleanup database done - " + 
+      LOGGER.info("SCHEDULER : Cleanup database done - " +
          (System.currentTimeMillis ()-start) + "ms");
    }
 }

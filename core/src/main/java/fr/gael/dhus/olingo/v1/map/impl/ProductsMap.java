@@ -24,15 +24,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.olingo.odata2.api.uri.expression.FilterExpression;
 import org.apache.olingo.odata2.api.uri.expression.OrderByExpression;
 import org.apache.olingo.odata2.core.exception.ODataRuntimeException;
 
 import fr.gael.dhus.database.object.User;
-import fr.gael.dhus.olingo.OlingoManager;
-import fr.gael.dhus.olingo.v1.V1Util;
+import fr.gael.dhus.olingo.v1.OlingoManager;
+import fr.gael.dhus.olingo.Security;
 import fr.gael.dhus.olingo.v1.entity.Product;
 import fr.gael.dhus.olingo.v1.map.AbstractDelegatingMap;
 import fr.gael.dhus.olingo.v1.map.SubMap;
@@ -49,8 +49,7 @@ import fr.gael.dhus.spring.context.ApplicationContextProvider;
 public class ProductsMap extends AbstractDelegatingMap<String, Product>
    implements SubMap<String, Product>
 {
-   private static Logger logger = LogManager.getLogger (ProductsMap.class
-      .getName ());
+   private static final Logger LOGGER = LogManager.getLogger(ProductsMap.class);
    private final OlingoManager olingoManager = ApplicationContextProvider
          .getBean (OlingoManager.class);
    private final ProductService productService = ApplicationContextProvider
@@ -83,7 +82,7 @@ public class ProductsMap extends AbstractDelegatingMap<String, Product>
    {
       try
       {
-         User u = V1Util.getCurrentUser ();
+         User u = Security.getCurrentUser();
          final List<fr.gael.dhus.database.object.Product> products =
             olingoManager.getProducts (u, filter, orderBy, skip, top);
 
@@ -112,12 +111,11 @@ public class ProductsMap extends AbstractDelegatingMap<String, Product>
    {
       try
       {
-         User u = V1Util.getCurrentUser ();
-         return olingoManager.getProductsNumber (filter, u);
+         return olingoManager.getProductsNumber(filter);
       }
       catch (Exception e)
       {
-         logger.error ("Error when getting Products number", e);
+         LOGGER.error("Error when getting Products number", e);
       }
       return -1;
    }
@@ -134,7 +132,7 @@ public class ProductsMap extends AbstractDelegatingMap<String, Product>
       }
       catch (ProductNotExistingException e)
       {
-         logger.error ("Product '" + key + "' not found");
+         LOGGER.error("Product '" + key + "' not found");
          return null;
       }
    }

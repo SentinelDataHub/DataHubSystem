@@ -30,7 +30,8 @@ import java.util.List;
 import org.apache.commons.io.DirectoryWalker;
 import org.apache.commons.io.FileUtils;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -47,8 +48,9 @@ import fr.gael.dhus.util.AsyncFileLock;
 @Component
 public class IncomingManager
 {
+   public static final String INCOMING_TEMP_DIR = "tmp";
    public static final String INCOMING_PRODUCT_DIR = "product";
-   private static Logger logger = Logger.getLogger (IncomingManager.class);
+   private static final Logger LOGGER = LogManager.getLogger(IncomingManager.class);
 
    @Autowired
    private ConfigurationManager cfgManager;
@@ -128,6 +130,19 @@ public class IncomingManager
       return file;
    }
 
+   /**
+    * Returns an existing directory on the same filesystem for temporary files.
+    * Files in this temp dir should be atomically moved into the incoming.
+    * @return the path to the temp directory.
+    */
+   public File getTempDir() {
+      File res = new File(getIncomingBuilder().getRoot(), INCOMING_TEMP_DIR);
+      if (!res.exists())
+      {
+         res.mkdir();
+      }
+      return res;
+   }
 
    /**
     * The initialization of incoming manager.
@@ -148,7 +163,7 @@ public class IncomingManager
       }
       catch (IOException e)
       {
-         logger.error ("Cannot control incoming folder", e);
+         LOGGER.error("Cannot control incoming folder", e);
       }
    }
 
@@ -179,7 +194,7 @@ public class IncomingManager
          }
          catch (IOException e)
          {
-            logger.warn (e.getMessage ());
+            LOGGER.warn(e.getMessage ());
             return false;
          }
 
@@ -192,7 +207,7 @@ public class IncomingManager
 
          if ( (list == null) || list.isEmpty ())
          {
-            logger.warn ("Product located at " + directory.getPath () +
+            LOGGER.warn("Product located at " + directory.getPath() +
                " not referenced in database: removing..");
             FileUtils.deleteQuietly (directory);
             results.add (directory);

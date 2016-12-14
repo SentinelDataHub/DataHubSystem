@@ -35,7 +35,7 @@ import java.sql.SQLException;
 
 public class TransformActionRecordUsers implements CustomTaskChange
 {
-   private static final Logger LOGGER = LogManager.getLogger ();
+   private static final Logger LOGGER = LogManager.getLogger(TransformActionRecordUsers.class);
    private long end = -1;
 
    @Override

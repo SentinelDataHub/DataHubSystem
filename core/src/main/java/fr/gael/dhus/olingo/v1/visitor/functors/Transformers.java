@@ -51,6 +51,18 @@ public class Transformers
             {
                return d.getA() == d.getB();
             }
+            // subclasses of Number reimplement #equals(o) to compare instance types
+            if (involvesNumbers(d))
+            {
+               return Number.class.cast(d.getA()).doubleValue() ==
+                      Number.class.cast(d.getB()).doubleValue();
+            }
+            // dates can be instances of Date or Calendar
+            if (involvesDates(d))
+            {
+               Duo<Calendar, Calendar> duo = asDuoOfCalendar(d);
+               return duo.getA().equals(duo.getB());
+            }
             return d.getA().equals(d.getB());
          }
       };
@@ -63,53 +75,93 @@ public class Transformers
    }
 
    /** gt, greater than. */
-   public static Transformer<Duo<Number, Number>, Boolean> gt()
+   public static Transformer<Duo<Object, Object>, Boolean> gt()
    {
-      return new Transformer<Duo<Number, Number>, Boolean>()
+      return new Transformer<Duo<Object, Object>, Boolean>()
       {
          @Override
-         public Boolean transform(Duo<Number, Number> d)
+         public Boolean transform(Duo<Object, Object> d)
          {
-            return d.getA().doubleValue() > d.getB().doubleValue();
+            if (involvesNumbers(d))
+            {
+               return Number.class.cast(d.getA()).doubleValue() >
+                      Number.class.cast(d.getB()).doubleValue();
+            }
+            if (involvesDates(d))
+            {
+               Duo<Calendar, Calendar> duo = asDuoOfCalendar(d);
+               return duo.getA().after(duo.getB());
+            }
+            throw new IllegalStateException(notComparableMsg(d));
          }
       };
    }
 
    /** ge, greater or equals than. */
-   public static Transformer<Duo<Number, Number>, Boolean> ge()
+   public static Transformer<Duo<Object, Object>, Boolean> ge()
    {
-      return new Transformer<Duo<Number, Number>, Boolean>()
+      return new Transformer<Duo<Object, Object>, Boolean>()
       {
          @Override
-         public Boolean transform(Duo<Number, Number> u)
+         public Boolean transform(Duo<Object, Object> u)
          {
-            return u.getA().doubleValue() >= u.getB().doubleValue();
+            if (involvesNumbers(u))
+            {
+            return Number.class.cast(u.getA()).doubleValue() >=
+                   Number.class.cast(u.getB()).doubleValue();
+            }
+            if (involvesDates(u))
+            {
+               Duo<Calendar, Calendar> duo = asDuoOfCalendar(u);
+               return duo.getA().after(duo.getB()) || duo.getA().equals(duo.getB());
+            }
+            throw new IllegalStateException(notComparableMsg(u));
          }
       };
    }
 
    /** lt, lower than. */
-   public static <T> Transformer<Duo<Number, Number>, Boolean> lt()
+   public static <T> Transformer<Duo<Object, Object>, Boolean> lt()
    {
-      return new Transformer<Duo<Number, Number>, Boolean>()
+      return new Transformer<Duo<Object, Object>, Boolean>()
       {
          @Override
-         public Boolean transform(Duo<Number, Number> u)
+         public Boolean transform(Duo<Object, Object> u)
          {
-            return u.getA().doubleValue() < u.getB().doubleValue();
+            if (involvesNumbers(u))
+            {
+            return Number.class.cast(u.getA()).doubleValue() <
+                   Number.class.cast(u.getB()).doubleValue();
+            }
+            if (involvesDates(u))
+            {
+               Duo<Calendar, Calendar> duo = asDuoOfCalendar(u);
+               return duo.getA().before(duo.getB());
+            }
+            throw new IllegalStateException(notComparableMsg(u));
          }
       };
    }
 
    /** le, lower or equals than. */
-   public static <T> Transformer<Duo<Number, Number>, Boolean> le()
+   public static <T> Transformer<Duo<Object, Object>, Boolean> le()
    {
-      return new Transformer<Duo<Number, Number>, Boolean>()
+      return new Transformer<Duo<Object, Object>, Boolean>()
       {
          @Override
-         public Boolean transform(Duo<Number, Number> u)
+         public Boolean transform(Duo<Object, Object> u)
          {
-            return u.getA().doubleValue() <= u.getB().doubleValue();
+            if (involvesNumbers(u))
+            {
+            return Number.class.cast(u.getA()).doubleValue() <=
+                   Number.class.cast(u.getB()).doubleValue();
+            }
+            if (involvesDates(u))
+            {
+               Duo<Calendar, Calendar> duo = asDuoOfCalendar(u);
+               return duo.getA().before(duo.getB()) || duo.getA().equals(duo.getB());
+            }
+            throw new IllegalStateException(notComparableMsg(u));
          }
       };
    }
@@ -173,7 +225,6 @@ public class Transformers
    {
       return new Transformer<Duo<Number, Number>, Number>()
       {
-
          @Override
          public Number transform(Duo<Number, Number> u)
          {
@@ -187,7 +238,6 @@ public class Transformers
    {
       return new Transformer<Duo<Number, Number>, Number>()
       {
-
          @Override
          public Number transform(Duo<Number, Number> u)
          {
@@ -201,7 +251,6 @@ public class Transformers
    {
       return new Transformer<Duo<Number, Number>, Number>()
       {
-
          @Override
          public Number transform(Duo<Number, Number> u)
          {
@@ -215,7 +264,6 @@ public class Transformers
    {
       return new Transformer<Duo<Number, Number>, Number>()
       {
-
          @Override
          public Number transform(Duo<Number, Number> u)
          {
@@ -247,6 +295,10 @@ public class Transformers
          @Override
          public Boolean transform(Duo<String, String> u)
          {
+            if (u == null || u.getA() == null)
+            {
+               return false;
+            }
             return u.getA().contains(u.getB());
          }
       };
@@ -260,6 +312,10 @@ public class Transformers
          @Override
          public Boolean transform(Duo<String, String> u)
          {
+            if (u == null || u.getA() == null)
+            {
+               return false;
+            }
             return u.getA().endsWith(u.getB());
          }
       };
@@ -273,6 +329,10 @@ public class Transformers
          @Override
          public Boolean transform(Duo<String, String> u)
          {
+            if (u == null || u.getA() == null)
+            {
+               return false;
+            }
             return u.getA().startsWith(u.getB());
          }
       };
@@ -286,6 +346,10 @@ public class Transformers
          @Override
          public Integer transform(String u)
          {
+            if (u == null)
+            {
+               return 0;
+            }
             return u.length();
          }
       };
@@ -299,6 +363,10 @@ public class Transformers
          @Override
          public Integer transform(Duo<String, String> u)
          {
+            if (u == null || u.getA() == null)
+            {
+               return -1;
+            }
             return u.getA().indexOf(u.getB());
          }
       };
@@ -312,6 +380,10 @@ public class Transformers
          @Override
          public String transform(Trio<String, String, String> u)
          {
+            if (u == null || u.getA() == null)
+            {
+               return null;
+            }
             return u.getA().replaceFirst(u.getB(), u.getC());
          }
       };
@@ -325,6 +397,10 @@ public class Transformers
          @Override
          public String transform(Duo<String, Integer> u)
          {
+            if (u == null || u.getA() == null)
+            {
+               return null;
+            }
             return u.getA().substring(u.getB());
          }
       };
@@ -335,10 +411,13 @@ public class Transformers
    {
       return new Transformer<Trio<String, Integer, Integer>, String>()
       {
-
          @Override
          public String transform(Trio<String, Integer, Integer> u)
          {
+            if (u == null || u.getA() == null)
+            {
+               return null;
+            }
             return u.getA().substring(u.getB(), u.getC() - u.getB());
          }
       };
@@ -352,6 +431,10 @@ public class Transformers
          @Override
          public String transform(String u)
          {
+            if (u == null)
+            {
+               return null;
+            }
             return u.toLowerCase();
          }
       };
@@ -365,6 +448,10 @@ public class Transformers
          @Override
          public String transform(String u)
          {
+            if (u == null)
+            {
+               return null;
+            }
             return u.toUpperCase();
          }
       };
@@ -378,6 +465,10 @@ public class Transformers
          @Override
          public String transform(String u)
          {
+            if (u == null)
+            {
+               return null;
+            }
             return u.trim();
          }
       };
@@ -530,4 +621,77 @@ public class Transformers
    }
 
    // IsOf functions are not yet implemented in Olingo2
+
+   /**
+    * Return true if <strong>BOTH</strong> A and B are instances of {@link Number}.
+    * @param d to test.
+    * @return true if A and B can be cast to Number.
+    */
+   private static boolean involvesNumbers(Duo<?, ?> d)
+   {
+      return Number.class.isAssignableFrom(d.getA().getClass()) &&
+             Number.class.isAssignableFrom(d.getB().getClass());
+   }
+
+   /**
+    * Returns true if A or B is a {@link Calendar} or a {@link Date}.
+    * @param d to test.
+    * @return true if the given Duo involves a date type.
+    */
+   private static boolean involvesDates(Duo<?, ?> d)
+   {
+      return Calendar.class.isAssignableFrom(d.getA().getClass()) ||
+             Calendar.class.isAssignableFrom(d.getB().getClass()) ||
+
+                 Date.class.isAssignableFrom(d.getA().getClass()) ||
+                 Date.class.isAssignableFrom(d.getB().getClass());
+   }
+
+   /**
+    * Converts the given object to a {@link Calendar}.
+    * @param o to convert to Calendar.
+    * @throws IllegalArgumentException parameter `o` cannot be converted into a Calendar.
+    */
+   private static Calendar castToCalendar(Object o) throws IllegalArgumentException
+   {
+      Calendar res;
+
+      Class<?> ocls = o.getClass();
+      if (Calendar.class.isAssignableFrom(ocls))
+      {
+         res = Calendar.class.cast(o);
+      }
+      else if (Date.class.isAssignableFrom(ocls))
+      {
+         res = Calendar.getInstance();
+         res.setTime(Date.class.cast(o));
+      }
+      else if (Long.class.isAnnotation())
+      {
+         res = Calendar.getInstance();
+         res.setTimeInMillis(Long.class.cast(o));
+      }
+      else
+      {
+         throw new IllegalArgumentException("Cannot create a Calendar from an instance of " + ocls);
+      }
+
+      return res;
+   }
+
+   /**
+    * Returns a {@link Duo} of {@link Calendar}s from the given Duo.
+    * @param d to convert.
+    * @return a Duo of Calendars.
+    */
+   private static Duo<Calendar, Calendar> asDuoOfCalendar(Duo<?, ?> d)
+   {
+      return new Duo<>(castToCalendar(d.getA()), castToCalendar(d.getB()));
+   }
+
+   private static String notComparableMsg(Duo<?, ?> d)
+   {
+      return String.format("Instances of %s and %s are not comparable",
+            d.getA().getClass(), d.getB().getClass());
+   }
 }

@@ -24,15 +24,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.olingo.odata2.api.uri.expression.FilterExpression;
 import org.apache.olingo.odata2.api.uri.expression.OrderByExpression;
 import org.apache.olingo.odata2.core.exception.ODataRuntimeException;
 
 import fr.gael.dhus.database.object.User;
-import fr.gael.dhus.olingo.OlingoManager;
-import fr.gael.dhus.olingo.v1.V1Util;
+import fr.gael.dhus.olingo.v1.OlingoManager;
+import fr.gael.dhus.olingo.Security;
 import fr.gael.dhus.olingo.v1.entity.Product;
 import fr.gael.dhus.olingo.v1.map.AbstractDelegatingMap;
 import fr.gael.dhus.olingo.v1.map.SubMap;
@@ -51,14 +51,13 @@ import fr.gael.dhus.spring.context.ApplicationContextProvider;
 public final class CollectionProductsMap extends
    AbstractDelegatingMap<String, Product> implements SubMap<String, Product>
 {
-   private static Logger logger = LogManager
-      .getLogger (CollectionProductsMap.class.getName ());
+   private static final Logger LOGGER = LogManager.getLogger(CollectionProductsMap.class);
    private static OlingoManager olingoManager = ApplicationContextProvider
       .getBean (OlingoManager.class);
    private static CollectionService collectionService =
       ApplicationContextProvider.getBean (CollectionService.class);
 
-   private final Long collectionId;
+   private final String collectionUUID;
 
    private final FilterExpression filter;
    private final OrderByExpression orderBy;
@@ -68,21 +67,21 @@ public final class CollectionProductsMap extends
    /**
     * Creates a new map view.
     * 
-    * @param collection_id identifier of the parent collection
+    * @param collection_uuid identifier of the parent collection
     */
-   public CollectionProductsMap (Long collection_id)
+   public CollectionProductsMap (String collection_uuid)
    {
-      this (collection_id, null, null, 0, -1);
+      this (collection_uuid, null, null, 0, -1);
    }
 
    /**
     * Private constructor used by
     * {@link CollectionProductsMap#getSubMapBuilder()}
     */
-   public CollectionProductsMap (Long collection_id, FilterExpression filter,
+   public CollectionProductsMap (String collection_uuid, FilterExpression filter,
       OrderByExpression order, int skip, int top)
    {
-      this.collectionId = collection_id;
+      this.collectionUUID = collection_uuid;
 
       this.filter = filter;
       this.orderBy = order;
@@ -93,16 +92,16 @@ public final class CollectionProductsMap extends
    @Override
    protected Product serviceGet (String s_key)
    {
-      User u = V1Util.getCurrentUser ();
+      User u = Security.getCurrentUser();
       fr.gael.dhus.database.object.Product product;
       try
       {
-         product = collectionService.getProduct (s_key, collectionId, u);
+         product = collectionService.getProduct (s_key, collectionUUID, u);
          if (product == null) return null;
       }
       catch (Exception e)
       {
-         logger.warn ("Cannot load Product from database !", e);
+         LOGGER.warn("Cannot load Product from database !", e);
          return null;
       }
       return new Product (product);
@@ -113,9 +112,9 @@ public final class CollectionProductsMap extends
    {
       try
       {
-         User u = V1Util.getCurrentUser ();
+         User u = Security.getCurrentUser();
          final List<fr.gael.dhus.database.object.Product> products =
-            olingoManager.getProducts (u, collectionId, filter, orderBy, skip,
+            olingoManager.getProducts (u, collectionUUID, filter, orderBy, skip,
                top);
 
          List<Product> prods = new ArrayList<Product> ();
@@ -143,12 +142,12 @@ public final class CollectionProductsMap extends
    {
       try
       {
-         User u = V1Util.getCurrentUser ();
-         return olingoManager.getProductsNumber (collectionId, filter, u);
+         User u = Security.getCurrentUser();
+         return olingoManager.getProductsNumber(collectionUUID, filter);
       }
       catch (Exception e)
       {
-         logger.error ("Error when getting Products number", e);
+         LOGGER.error("Error when getting Products number", e);
       }
       return -1;
    }
@@ -165,7 +164,7 @@ public final class CollectionProductsMap extends
          @Override
          public Map<String, Product> build ()
          {
-            return new CollectionProductsMap (collectionId, filter, orderBy,
+            return new CollectionProductsMap (collectionUUID, filter, orderBy,
                skip, top);
          }
       };

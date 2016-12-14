@@ -26,6 +26,7 @@ import fr.gael.dhus.olingo.v1.map.SubMap;
 import fr.gael.dhus.olingo.v1.map.SubMapBuilder;
 import fr.gael.dhus.service.UserService;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
+
 import org.apache.olingo.odata2.api.uri.expression.FilterExpression;
 import org.apache.olingo.odata2.api.uri.expression.OrderByExpression;
 
@@ -35,9 +36,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
-public class RestrictionMap extends AbstractDelegatingMap<Long, Restriction>
-      implements SubMap<Long, Restriction>
+public class RestrictionMap extends AbstractDelegatingMap<String, Restriction>
+      implements SubMap<String, Restriction>
 {
    private final fr.gael.dhus.database.object.User dhus_user;
 
@@ -50,12 +52,12 @@ public class RestrictionMap extends AbstractDelegatingMap<Long, Restriction>
    }
 
    @Override
-   protected Restriction serviceGet (Long key)
+   protected Restriction serviceGet (String key)
    {
       Set<AccessRestriction> restrictions = dhus_user.getRestrictions ();
       for (AccessRestriction restriction : restrictions)
       {
-         if (restriction.getId ().equals (key))
+         if (restriction.getUUID ().equals (key))
          {
             return new Restriction (restriction);
          }
@@ -85,12 +87,12 @@ public class RestrictionMap extends AbstractDelegatingMap<Long, Restriction>
    }
 
    @Override
-   public SubMapBuilder<Long, Restriction> getSubMapBuilder ()
+   public SubMapBuilder<String, Restriction> getSubMapBuilder ()
    {
-      return new SubMapBuilder<Long, Restriction> ()
+      return new SubMapBuilder<String, Restriction> ()
       {
          @Override
-         public Map<Long, Restriction> build ()
+         public Map<String, Restriction> build ()
          {
             return RestrictionMap.this;
          }
@@ -103,7 +105,10 @@ public class RestrictionMap extends AbstractDelegatingMap<Long, Restriction>
       @Override
       public int compare (AccessRestriction o1, AccessRestriction o2)
       {
-         return (o1.getId ().intValue () - o2.getId ().intValue ());
+         UUID u1 = UUID.fromString (o1.getUUID ());
+         UUID u2 = UUID.fromString (o2.getUUID ());
+         
+         return u1.compareTo (u2);
       }
    }
 

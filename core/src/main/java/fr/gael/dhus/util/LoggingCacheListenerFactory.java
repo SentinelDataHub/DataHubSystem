@@ -25,15 +25,15 @@ import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.Element;
 import net.sf.ehcache.event.CacheEventListener;
 import net.sf.ehcache.event.CacheEventListenerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class LoggingCacheListenerFactory extends CacheEventListenerFactory
 {
-   private static final Logger log =
-      LoggerFactory.getLogger(LoggingCacheListenerFactory.class);
+   private static final Logger LOGGER = LogManager.getLogger(LoggingCacheListenerFactory.class);
 
    @Override
    public CacheEventListener createCacheEventListener(Properties properties)
@@ -45,7 +45,7 @@ public class LoggingCacheListenerFactory extends CacheEventListenerFactory
          @Override
          public Object clone() throws CloneNotSupportedException
          {
-            log.debug("Clone obtained");
+            LOGGER.debug("Clone obtained");
             return super.clone();
          }
 
@@ -53,50 +53,50 @@ public class LoggingCacheListenerFactory extends CacheEventListenerFactory
          public void notifyElementRemoved(Ehcache cache, Element element)
             throws CacheException
          {
-            log.debug("Element removed from the cache : {}",
-                      element.getObjectKey());
+            LOGGER.debug("Element removed from the cache : " +
+               element.getObjectValue());
          }
 
          @Override
          public void notifyElementPut(Ehcache cache, Element element)
             throws CacheException
          {
-            log.debug("Element put into the cache : {}",
-                      element.getObjectKey());
+            LOGGER.debug("Element put into the cache : " + 
+               element.getObjectValue());
          }
 
          @Override
          public void notifyElementUpdated(Ehcache cache, Element element)
             throws CacheException
          {
-            log.debug("Element updated in the cache : {}",
-                      element.getObjectKey());
+            LOGGER.debug("Element updated in the cache : " + 
+               element.getObjectValue());
          }
 
          @Override
          public void notifyElementExpired(Ehcache cache, Element element)
          {
-            log.debug("Element expired in the cache : {}",
-                      element.getObjectKey());
+            LOGGER.debug("Element expired in the cache : " +
+               element.getObjectValue());
          }
 
          @Override
          public void notifyElementEvicted(Ehcache cache, Element element)
          {
-            log.debug("Element evicted from the cache : {}",
-                      element.getObjectKey());
+            LOGGER.debug("Element evicted from the cache : " +
+               element.getObjectValue());
          }
 
          @Override
          public void notifyRemoveAll(Ehcache cache)
          {
-            log.debug("Remove all elements from the cache");
+            LOGGER.debug("Remove all elements from the cache");
          }
 
          @Override
          public void dispose()
          {
-            log.debug("Dispose the listener");
+            LOGGER.debug("Dispose the listener");
          }
       };
    }

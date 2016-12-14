@@ -19,19 +19,19 @@
  */
 package fr.gael.dhus.olingo.v1.visitor;
 
+import fr.gael.dhus.database.object.Collection;
 import org.apache.olingo.odata2.api.edm.EdmTyped;
 import org.apache.olingo.odata2.api.uri.expression.PropertyExpression;
 
-import fr.gael.dhus.olingo.OlingoSQLVisitor;
+import fr.gael.dhus.olingo.v1.SQLVisitor;
 import fr.gael.dhus.olingo.v1.entityset.CollectionEntitySet;
 
-public class CollectionSQLVisitor extends OlingoSQLVisitor
+public class CollectionSQLVisitor extends SQLVisitor
 {
-   private String prefix = null;
 
-   public CollectionSQLVisitor (String prefix)
+   public CollectionSQLVisitor ()
    {
-      this.prefix = prefix;
+      super(Collection.class);
    }
 
    @Override
@@ -43,10 +43,10 @@ public class CollectionSQLVisitor extends OlingoSQLVisitor
                uri_literal);
 
       if (uri_literal.equals (CollectionEntitySet.NAME))
-         return prefix + ".name";
+         return new Member("name");
 
       if (uri_literal.equals (CollectionEntitySet.DESCRIPTION))
-         return prefix + ".description";
+         return new Member ("description");
 
       throw new IllegalArgumentException ("Property not supported: " +
             uri_literal);

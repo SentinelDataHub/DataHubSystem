@@ -141,9 +141,13 @@ angular.module('DHuS-webclient')
                 scope.details.productIds=[];
                 addedIds=[];
                 removedIds=[];
-                scope.selectedAll = !scope.selectedAll;   
+                var listFilter = "*";
+                scope.selectedAll = !scope.selectedAll;
+                 if(scope.filter.trim()!= ""){
+                    listFilter = scope.filter;
+                  }
                 SearchService
-                  .getAllCollectionProducts(scope.filter,scope.offset,scope.productCount)
+                  .getAllCollectionProducts(listFilter,scope.offset,scope.productCount)
                   .then(function(){
                     angular.forEach(SearchService.collectionAllProductsModel.list, function (item) {
                         //item.selected = scope.selectedAll;
@@ -173,12 +177,17 @@ angular.module('DHuS-webclient')
                 //   scope.performSearch=true;
                 //   return;
                 // }
+                var listFilter = "*";
                 if((pageNumber <= scope.pageCount && pageNumber > 0) || free){
                     
                     scope.currentPage = pageNumber;
                     scope.offset=(pageNumber * scope.productsPerPage) - scope.productsPerPage;
+
+                    if(scope.filter.trim()!= ""){
+                        listFilter = scope.filter;
+                    }
                     return SearchService
-                    .getCollectionProductsList(scope.filter,scope.offset,scope.productsPerPage)
+                    .getCollectionProductsList(listFilter,scope.offset,scope.productsPerPage)
                     .then(function(){
                         addedIds=[];
                         removedIds=[];

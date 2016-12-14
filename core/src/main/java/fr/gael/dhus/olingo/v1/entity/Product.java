@@ -19,60 +19,68 @@
  */
 package fr.gael.dhus.olingo.v1.entity;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
-import fr.gael.dhus.util.DownloadStreamCloserListener;
-import org.apache.commons.net.io.CopyStreamAdapter;
-import org.apache.commons.net.io.CopyStreamListener;
-import org.apache.log4j.Logger;
-import org.apache.olingo.odata2.api.exception.ODataException;
-import org.apache.olingo.odata2.api.processor.ODataResponse;
-import org.apache.olingo.odata2.api.processor.ODataSingleProcessor;
-import org.w3c.dom.Document;
-
 import fr.gael.dhus.database.object.MetadataIndex;
 import fr.gael.dhus.database.object.Role;
 import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.datastore.processing.ProcessingUtils;
 import fr.gael.dhus.network.RegulatedInputStream;
+import fr.gael.dhus.network.RegulationException;
 import fr.gael.dhus.network.TrafficDirection;
-import fr.gael.dhus.olingo.v1.V1Model;
-import fr.gael.dhus.olingo.v1.V1Util;
+import fr.gael.dhus.olingo.Security;
+import fr.gael.dhus.olingo.v1.Expander;
+import fr.gael.dhus.olingo.v1.ExpectedException.InvalidKeyException;
+import fr.gael.dhus.olingo.v1.ExpectedException.InvalidMediaException;
+import fr.gael.dhus.olingo.v1.ExpectedException.InvalidTargetException;
+import fr.gael.dhus.olingo.v1.ExpectedException.MediaRegulationException;
+import fr.gael.dhus.olingo.v1.ExpectedException.NotAllowedException;
+import fr.gael.dhus.olingo.v1.MediaResponseBuilder;
+import fr.gael.dhus.olingo.v1.Model;
+import fr.gael.dhus.olingo.v1.ServiceFactory;
 import fr.gael.dhus.olingo.v1.entityset.NodeEntitySet;
 import fr.gael.dhus.olingo.v1.entityset.ProductEntitySet;
 import fr.gael.dhus.service.EvictionService;
 import fr.gael.dhus.service.ProductService;
-import fr.gael.dhus.service.SecurityService;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
 import fr.gael.dhus.system.config.ConfigurationManager;
 import fr.gael.dhus.util.DownloadActionRecordListener;
+import fr.gael.dhus.util.DownloadStreamCloserListener;
 import fr.gael.dhus.util.MetalinkBuilder;
-import fr.gael.drb.DrbNode;
+
+import fr.gael.drb.impl.DrbNodeImpl;
+
+import java.io.BufferedInputStream;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import javax.xml.transform.TransformerException;
+
+import org.apache.commons.net.io.CopyStreamAdapter;
+import org.apache.commons.net.io.CopyStreamListener;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import org.apache.olingo.odata2.api.exception.ODataException;
+import org.apache.olingo.odata2.api.processor.ODataResponse;
+import org.apache.olingo.odata2.api.processor.ODataSingleProcessor;
+import org.apache.olingo.odata2.api.uri.NavigationSegment;
 
 /**
  * A OData representation of a DHuS Product.
  */
-public class Product extends Node
+public class Product extends Node implements Closeable
 {
-   private static final Logger LOGGER = Logger.getLogger (Product.class);
+   private static final Logger LOGGER = LogManager.getLogger(Product.class);
 
    private static final EvictionService EVICTION_SERVICE =
       ApplicationContextProvider.getBean (EvictionService.class);
@@ -84,10 +92,6 @@ public class Product extends Node
    private static final ConfigurationManager CONFIG_MGR =
       ApplicationContextProvider.getBean (ConfigurationManager.class);
 
-   /** Provides access to the user's roles (Expose more infos to admins). */
-   private static final SecurityService SECURITY_SERVICE =
-      ApplicationContextProvider.getBean (SecurityService.class);
-
    protected final fr.gael.dhus.database.object.Product product;
 
    protected Map<String, Node> nodes;
@@ -95,6 +99,24 @@ public class Product extends Node
    protected Map<String, Attribute> attributes;
 
    private Map<String, Product> products;
+
+   public static void delete (String uuid) throws ODataException
+   {
+      if (Security.currentUserHasRole(Role.DATA_MANAGER))
+      {
+         fr.gael.dhus.database.object.Product p =
+               PRODUCT_SERVICE.systemGetProduct (uuid);
+         if (p == null)
+         {
+            throw new InvalidKeyException(uuid, Product.class.getSimpleName());
+         }
+         PRODUCT_SERVICE.systemDeleteProduct (p.getId ());
+      }
+      else
+      {
+         throw new NotAllowedException();
+      }
+   }
 
    public Product (fr.gael.dhus.database.object.Product product)
    {
@@ -150,7 +172,7 @@ public class Product extends Node
    @Override
    public Long getContentLength ()
    {
-      return product.getDownload ().getSize ();
+      return product.getDownloadableSize();
    }
 
    @Override
@@ -261,13 +283,13 @@ public class Product extends Node
       if (this.nodes == null)
       {
          this.nodes = new LinkedHashMap<String, Node> ();
-         DrbNode product_node =
+         this.drbNode =
             ProcessingUtils.getNodeFromPath (product.getPath ().getPath ());
-         if (product_node == null)
+         if (this.drbNode == null)
             throw new NullPointerException ("Cannot compute DRB node from " +
                product.getPath ().getPath ());
 
-         this.nodes.put (product_node.getName (), new Node (product_node));
+         this.nodes.put (this.drbNode.getName (), new Node (this.drbNode));
       }
       return this.nodes;
    }
@@ -278,18 +300,11 @@ public class Product extends Node
       if (this.attributes == null)
       {
          this.attributes = new LinkedHashMap<String, Attribute> ();
-         boolean has_role = SECURITY_SERVICE.getCurrentUser ().
-            getRoles ().contains (Role.ARCHIVE_MANAGER);
          for (MetadataIndex index :
               PRODUCT_SERVICE.getIndexes (this.product.getId ()))
          {
-            if (has_role || "product".equalsIgnoreCase (index.getCategory ()))
-            {
-               Attribute attr =
-                  new Attribute (index.getName (), index.getValue ());
-               // attr.setContentType (index.getType ());
-               this.attributes.put (attr.getName (), attr);
-            }
+            Attribute attr= new Attribute(index.getName(), index.getValue(), index.getCategory());
+            this.attributes.put(attr.getName(), attr);
          }
       }
       return this.attributes;
@@ -310,6 +325,32 @@ public class Product extends Node
       return new FileInputStream (product.getDownload ().getPath ());
    }
 
+   /**
+    * Returns the Metalink4 document for this Product.
+    * @param root_url required to generate links in the Metalink document.
+    * @return Metalink document as String, may return {@code null}.
+    */
+   public String getMetalink(String root_url)
+   {
+      String url = String.format("%s%s('%s')/$value", root_url, Model.PRODUCT.getName(), getId());
+      MetalinkBuilder mb = new MetalinkBuilder();
+
+      mb.addFile(this.getName() + ".zip")
+            .addUrl(url, null, 0)
+            .setSize(this.getContentLength())
+            .setHash(this.getChecksumAlgorithm(), this.getChecksumValue());
+
+      try
+      {
+         return mb.buildToString(false);
+      }
+      catch (TransformerException ex)
+      {
+         LOGGER.error("Metalink4 XML doc to String error", ex);
+      }
+      return null;
+   }
+
    @Override
    public Map<String, Object> toEntityResponse (String root_url)
    {
@@ -320,13 +361,13 @@ public class Product extends Node
       res.put (NodeEntitySet.CHILDREN_NUMBER, getChildrenNumber ());
 
       LinkedHashMap<String, Date> dates = new LinkedHashMap<String, Date> ();
-      dates.put (V1Model.TIME_RANGE_START, getContentStart ());
-      dates.put (V1Model.TIME_RANGE_END, getContentEnd ());
+      dates.put(Model.TIME_RANGE_START, getContentStart());
+      dates.put(Model.TIME_RANGE_END, getContentEnd());
       res.put (ProductEntitySet.CONTENT_DATE, dates);
 
       HashMap<String, String> checksum = new LinkedHashMap<String, String> ();
-      checksum.put (V1Model.ALGORITHM, getChecksumAlgorithm ());
-      checksum.put (V1Model.VALUE, getChecksumValue ());
+      checksum.put(Model.ALGORITHM, getChecksumAlgorithm());
+      checksum.put(Model.VALUE, getChecksumValue());
       res.put (ProductEntitySet.CHECKSUM, checksum);
 
       res.put (ProductEntitySet.INGESTION_DATE, getIngestionDate ());
@@ -356,49 +397,23 @@ public class Product extends Node
       }
       res.put (ProductEntitySet.LOCAL_PATH, prod_path);
 
-      try
-      {
-         String url =
-            root_url + V1Model.PRODUCT.getName () + "('" + getId () +
-               "')/$value";
-         MetalinkBuilder mb = new MetalinkBuilder ();
-         mb.addFile (getName () + ".zip").addUrl (url, null, 0);
+      res.put (ProductEntitySet.METALINK, getMetalink(root_url));
 
-         StringWriter sw = new StringWriter ();
-         Document doc = mb.build ();
-         Transformer transformer =
-            TransformerFactory.newInstance ().newTransformer ();
-         transformer.transform (new DOMSource (doc), new StreamResult (sw));
-
-         res.put (ProductEntitySet.METALINK, sw.toString ());
-      }
-      catch (ParserConfigurationException e)
-      {
-         LOGGER.error ("Error when creating Product EntityResponse", e);
-      }
-      catch (TransformerException e)
-      {
-         LOGGER.error ("Error when creating Product EntityResponse", e);
-      }
       return res;
    }
 
    @Override
    public Object getProperty (String prop_name) throws ODataException
    {
-      if (prop_name.equals (ProductEntitySet.CREATION_DATE))
-         return getCreationDate ();
-
-      if (prop_name.equals (ProductEntitySet.INGESTION_DATE))
-         return getIngestionDate ();
-
-      if (prop_name.equals (ProductEntitySet.EVICTION_DATE))
-         return getEvictionDate ();
-
-      if (prop_name.equals (ProductEntitySet.CONTENT_GEOMETRY))
-         return getGeometry ();
-
-      return super.getProperty (prop_name);
+      switch(prop_name)
+      {
+         case ProductEntitySet.CREATION_DATE:    return getCreationDate();
+         case ProductEntitySet.INGESTION_DATE:   return getIngestionDate();
+         case ProductEntitySet.EVICTION_DATE:    return getEvictionDate();
+         case ProductEntitySet.CONTENT_GEOMETRY: return getGeometry();
+         case ProductEntitySet.METALINK:         return getMetalink(ServiceFactory.ROOT_URL);
+         default: return super.getProperty (prop_name);
+      }
    }
 
    @Override
@@ -408,65 +423,146 @@ public class Product extends Node
       if (prop_name.equals (ProductEntitySet.CONTENT_DATE))
       {
          Map<String, Object> values = new HashMap<String, Object> ();
-         values.put (V1Model.TIME_RANGE_START, getContentStart ());
-         values.put (V1Model.TIME_RANGE_END, getContentEnd ());
+         values.put(Model.TIME_RANGE_START, getContentStart());
+         values.put(Model.TIME_RANGE_END, getContentEnd());
          return values;
       }
       if (prop_name.equals (ProductEntitySet.CHECKSUM))
       {
          Map<String, Object> values = new HashMap<String, Object> ();
-         values.put (V1Model.ALGORITHM, getChecksumAlgorithm ());
-         values.put (V1Model.VALUE, getChecksumValue ());
+         values.put(Model.ALGORITHM, getChecksumAlgorithm());
+         values.put(Model.VALUE, getChecksumValue());
          return values;
       }
       throw new ODataException ("Complex property '" + prop_name +
          "' not found.");
    }
-   
+
    @Override
-   public ODataResponse getEntityMedia (ODataSingleProcessor processor)
-      throws ODataException
+   public ODataResponse getEntityMedia(ODataSingleProcessor processor) throws ODataException
    {
       ODataResponse rsp = null;
       try
       {
-         InputStream is=new BufferedInputStream(getInputStream());
-         if (requiresControl ())
+         InputStream is = new BufferedInputStream(getInputStream());
+         if (requiresControl())
          {
-            User u = V1Util.getCurrentUser ();
-            String user_name = (u == null ? null : u.getUsername ());
+            User u = Security.getCurrentUser();
+            String user_name = (u == null ? null : u.getUsername());
 
-            CopyStreamAdapter adapter = new CopyStreamAdapter ();
-            CopyStreamListener recorder = new DownloadActionRecordListener (
-                  product.getUuid (), product.getIdentifier (), u);
-            CopyStreamListener closer = new DownloadStreamCloserListener (is);
-            adapter.addCopyStreamListener (recorder);
-            adapter.addCopyStreamListener (closer);
+            CopyStreamAdapter adapter = new CopyStreamAdapter();
+            CopyStreamListener recorder =
+                  new DownloadActionRecordListener(product.getUuid(), product.getIdentifier(), u);
+            CopyStreamListener closer = new DownloadStreamCloserListener(is);
+            adapter.addCopyStreamListener(recorder);
+            adapter.addCopyStreamListener(closer);
 
             RegulatedInputStream.Builder builder =
-               new RegulatedInputStream.Builder (is,TrafficDirection.OUTBOUND);
-            builder.userName (user_name);
-            builder.copyStreamListener (adapter);
+                  new RegulatedInputStream.Builder(is, TrafficDirection.OUTBOUND);
+            builder.userName(user_name);
+            builder.copyStreamListener(adapter);
+            builder.streamSize(getContentLength());
 
-            is = builder.build ();
+            is = builder.build();
          }
 
          // Computes ETag
-         String etag = getChecksumValue ();
-         if (etag == null) etag = getId ();
-         String filename = new File (getDownloadablePath ()).getName ();
+         String etag = getChecksumValue();
+         if (etag == null)
+         {
+            etag = getId();
+         }
+         String filename = new File(getDownloadablePath()).getName();
          // Prepare the HTTP header for stream transfer.
-         rsp = V1Util.prepareMediaResponse (etag, filename, getContentType (),
-            getCreationDate ().getTime (), getContentLength (),
-            processor.getContext (), is);
+         rsp = MediaResponseBuilder.prepareMediaResponse(
+               etag, filename, getContentType(),
+               getCreationDate().getTime(), getContentLength(),
+               processor.getContext(), is);
       }
-      catch (Exception e)
+      // RegulationException must be handled separately as they are
+      // user generated errors and not internal problems
+      catch (RegulationException e)
       {
-         String inner_message = ".";
-         if (e.getMessage () != null) inner_message = " : " + e.getMessage ();
-         throw new ODataException (
-            "An exception occured while creating a stream" + inner_message, e);
+         throw new MediaRegulationException(e.getMessage());
+      }
+      catch (IOException e)
+      {
+         throw new InvalidMediaException(e.getMessage());
       }
       return rsp;
    }
+
+   @Override
+   public Object navigate(NavigationSegment ns) throws ODataException
+   {
+      Object res;
+
+      if (ns.getEntitySet().getName().equals(Model.NODE.getName()))
+      {
+         res = getNodes();
+      }
+      else if (ns.getEntitySet().getName().equals(Model.ATTRIBUTE.getName()))
+      {
+         res = getAttributes();
+      }
+      else if (ns.getEntitySet().getName().equals(Model.CLASS.getName()))
+      {
+         res = getItemClass();
+      }
+      else if (ns.getEntitySet().getName().equals(Model.PRODUCT.getName()))
+      {
+         res = getProducts();
+      }
+      else
+      {
+         throw new InvalidTargetException(this.getClass().getSimpleName(), ns.getEntitySet().getName());
+      }
+
+      if (!ns.getKeyPredicates().isEmpty())
+      {
+         res = Map.class.cast(res).get(
+            ns.getKeyPredicates().get(0).getLiteral());
+      }
+
+      return res;
+   }
+
+   @Override
+   public void close () throws IOException
+   {
+      if (this.drbNode == null)
+         return;
+
+      if (this.drbNode instanceof DrbNodeImpl)
+      {
+         DrbNodeImpl.class.cast(this.drbNode).close(true);
+      }
+   }
+
+   @Override
+   public List<String> getExpandableNavLinkNames()
+   {
+      // Product inherits from Node
+      List<String> res = new ArrayList<>(super.getExpandableNavLinkNames());
+      res.add("Products");
+      res.add("Class");
+      res.add("Attributes");
+      res.add("Nodes");
+      return res;
+   }
+
+   @Override
+   public List<Map<String, Object>> expand(String navlink_name, String self_url)
+   {
+      switch(navlink_name)
+      {
+         case "Products":
+            return Expander.mapToData(getProducts(), self_url);
+         case "Class":
+            return Expander.entityToData(getItemClass(), self_url);
+         default:
+            return super.expand(navlink_name, self_url);
+      }
+   }
+
 }

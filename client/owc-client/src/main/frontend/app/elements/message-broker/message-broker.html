@@ -1,0 +1,174 @@
+<!--
+  @license
+
+ 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+message broker element
+
+
+@demo demo/index.html
+-->
+<dom-module id="message-broker">
+    <script>
+    (function() {
+        'use strict';
+        class MessageBroker extends HTMLElement {
+
+            constructor() {
+                super();
+                this.beforeRegister();
+            }
+
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'message-broker';
+                this.topics = {};
+                this.lastUid = -1;
+            }
+
+
+
+            /**
+             * This method is devoted to send a message to subscribed objects
+             *
+             * @param {?String} topic: event name to subscribe
+             * @param {?String} data: callback parameter
+             * @return {boolean}
+             */
+            publish(topic, data, target) {
+              console.log("topic",topic);
+              console.log("data",data);
+              console.log("target",target);
+                var self = this;
+                if (!self.topics.hasOwnProperty(topic)) {
+                    return false;
+                }
+                if (!target) {
+                    var notify = function() {
+                        var subscribers = self.topics[topic],
+                            throwException = function(e) {
+                                return function() {
+                                    throw e;
+                                };
+                            };
+                        for (var i = 0, j = subscribers.length; i < j; i++) {
+                            try {
+                                subscribers[i].func(data);
+                            } catch (e) {
+                                setTimeout(throwException(e), 0);
+                            }
+                        }
+                    };
+                } else {
+                    var notify = function() {
+                        var subscribers = self.topics[topic],
+                            throwException = function(e) {
+                                return function() {
+                                    throw e;
+                                };
+                            };
+                        for (var i = 0, j = subscribers.length; i < j; i++) {
+                            if (subscribers[i].target == target) {
+                                try {
+                                    subscribers[i].func(data);
+                                } catch (e) {
+                                    setTimeout(throwException(e), 0);
+                                }
+                            }
+
+                        }
+                    };
+                }
+
+                setTimeout(notify, 0);
+
+                return true;
+            }
+
+            /**
+             * Subscribe a call back for a specific topic
+             *
+             * @param {?String} topic: event name to subscribe
+             * @param {?Function} func: callback
+             * @return {String} generated token
+             */
+            subscribe(topic, func, target) {
+                var self = this;
+                if (!self.topics.hasOwnProperty(topic)) {
+                    self.topics[topic] = [];
+                }
+                var token = (++self.lastUid).toString();
+                if (target) {
+                    self.topics[topic].push({
+                        token: token,
+                        func: func,
+                        target: target
+                    });
+                } else {
+                    self.topics[topic].push({
+                        token: token,
+                        func: func
+                    });
+                }
+                return token;
+            }
+
+            /**
+             * Unsubscribe to an event via token
+             *
+             * @param {?Number} token.
+             * @return {boolean}
+             */
+            unsubscribe(token) {
+                var self = this;
+                for (var m in self.topics) {
+                    if (self.topics.hasOwnProperty(m)) {
+                        for (var i = 0, j = self.topics[m].length; i < j; i++) {
+                            if (self.topics[m][i].token === token) {
+                                self.topics[m].splice(i, 1);
+                                return token;
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+
+        };
+        Polymer(MessageBroker);
+        if (typeof eu != 'undefined' && typeof eu.serco != 'undefined' && typeof eu.serco.Owc != 'undefined')
+            eu.serco.Owc.MessageBroker = MessageBroker;
+
+    })();
+    </script>
+</dom-module>

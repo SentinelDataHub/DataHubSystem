@@ -1,25 +1,25 @@
 <div>
-<!-- 
+<!--
   Data HUb Service (DHuS) - For Space data distribution.
   Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
   Copyright (C) 2013,2014,2015,2016 GAEL Systems
   Copyright (C) 2013,2014,2015,2016 Serco Spa
-  
+
   This file is part of DHuS software sources.
- 
+
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as
   published by the Free Software Foundation, either version 3 of the
   License, or (at your option) any later version.
-  
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
   GNU Affero General Public License for more details.
- 
+
   You should have received a copy of the GNU Affero General Public License
   along with this program. If not, see <http://www.gnu.org/licenses/>.
- 
+
 -->
 <div class="map-item">
     <script>
@@ -84,14 +84,14 @@
 
         .map-item{
             height:100%;
-        }        
+        }
 
         .layer-switcher {
             position: absolute;
             top: 3.5em;
             right: 0.5em;
             text-align: left;
-            background-color: none;            
+            background-color: none;
         }
 
         .layer-switcher .panel2 {
@@ -110,8 +110,8 @@
         .layer-switcher button {
             float: right;
             width: 38px;
-            height: 38px;  
-            background-image: none;          
+            height: 38px;
+            background-image: none;
             background-color: transparent;
             border: none;
         }
@@ -138,33 +138,48 @@
             margin: 4px;
         }
 
-        /* -- layer selector -- */        
+        /* -- layer selector -- */
         .pan {
             z-index: 11;
             margin-right: 15px;
-        }                
-        
+        }
 
-    </style>    
+        .ol-mouse-position{
+          background-color: #ffffff;
+          bottom: 8px !important;
+          left: 20px !important;
+          top: inherit;
+          width: 150px;
+          text-align: center;
+          opacity: 0.8;
+        }
+
+        .mouse-coordinates-box{
+          
+        }
+
+
+    </style>
     <div class="row fab-map pan dhus-button" ng-click="toggleActivedSelection()" ng-show="toggleBtnMap" title="Navigate on Map">
         <svg viewBox="0 0 24 24" height="100%" width="100%" preserveAspectRatio="xMidYMid meet" fit="" style="pointer-events: none; display: block;" >
             <g id="flip-to-front"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm2 4v-2H3c0 1.1.89 2 2 2zM3 9h2V7H3v2zm12 12h2v-2h-2v2zm4-18H9c-1.11 0-2 .9-2 2v10c0 1.1.89 2 2 2h10c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 12H9V5h10v10zm-8 6h2v-2h-2v2zm-4 0h2v-2H7v2z"/></g>
         </svg>
-    </div>  
+    </div>
     <div  class="row fab-map pan dhus-button" ng-click="toggleActivedSelection()" ng-show="!toggleBtnMap" title="Draw region of Interest">
         <svg viewBox="0 0 24 24" height="100%" width="100%" preserveAspectRatio="xMidYMid meet" fit="" style="pointer-events: none; display: block;" >
             <g id="open-with"><path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"/></g>
         </svg>
-    </div>        
+    </div>
+    <div id="mouse-position" class="mouse-coordinates-box" ></div>
     <div id="map" >
         <div ng-if="isMapLayerSwitcherVisible">
-            <ol3switcher-button ></ol3switcher-button>        
+            <ol3switcher-button ></ol3switcher-button>
         </div>
-    </div>   
+    </div>
     <info-badge></info-badge>
     <info-element></info-element>
 
-    
+
     <!--<script src="../../libs/OpenLayers3.4.0Dist/ol.js"></script>-->
     <!--<script src="../../libs/Cesium/Cesium.js"></script>-->
     <!--<script src="../ol3-cesium/ol3cesium.js"></script>-->

@@ -20,14 +20,14 @@ import fr.gael.dhus.util.TestContextLoader;
 @ContextConfiguration (locations = "classpath:fr/gael/dhus/spring/context-test.xml", loader = TestContextLoader.class)
 @DirtiesContext (classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestAccessRestrictionDao extends
-   TestAbstractHibernateDao<AccessRestriction, Long>
+   TestAbstractHibernateDao<AccessRestriction, String>
 {
 
    @Autowired
    private AccessRestrictionDao dao;
 
    @Override
-   protected HibernateDao<AccessRestriction, Long> getHibernateDao ()
+   protected HibernateDao<AccessRestriction, String> getHibernateDao ()
    {
       return dao;
    }
@@ -57,8 +57,8 @@ public class TestAccessRestrictionDao extends
    @Override
    public void read ()
    {
-      long trueId = 0;
-      long fakeId = 99;
+      String trueId = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0";
+      String fakeId = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa5";
 
       Assert.assertNotNull (dao.read (trueId));
       Assert.assertNull (dao.read (fakeId));
@@ -67,7 +67,7 @@ public class TestAccessRestrictionDao extends
    @Override
    public void update ()
    {
-      long id = 2;
+      String id = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2";
       String reason = "Test update reason";
       AccessRestriction ar = dao.read (id);
 
@@ -82,7 +82,7 @@ public class TestAccessRestrictionDao extends
    @Override
    public void delete ()
    {
-      Long id = 3L;
+      String id = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3";
       int expected = dao.count () - 1;
 
       AccessRestriction ar = dao.read (id);
@@ -109,7 +109,7 @@ public class TestAccessRestrictionDao extends
             + "'punition%' ORDER BY id DESC";
       AccessRestriction ar = dao.first (hql);
       assertNotNull (ar);
-      assertEquals (ar.getId ().intValue (), 3);
+      assertEquals (ar.getUUID (), "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3");
    }
 
 }

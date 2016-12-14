@@ -35,11 +35,14 @@ import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.mail.EmailAttachment;
 import org.apache.commons.mail.EmailException;
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.appender.RollingFileAppender;
+
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -54,8 +57,8 @@ import fr.gael.dhus.system.config.ConfigurationManager;
 @Component
 public class SendLogsJob extends AbstractJob
 {
-   private static Logger logger = Logger.getLogger (SendLogsJob.class);
-   
+   private static final Logger LOGGER = LogManager.getLogger(SendLogsJob.class);
+
    @Autowired
    private ConfigurationManager configurationManager;
 
@@ -75,10 +78,10 @@ public class SendLogsJob extends AbstractJob
       if (!configurationManager.getSendLogsCronConfiguration ().isActive ())
          return;
       long start = System.currentTimeMillis ();
-      logger.info ("SCHEDULER : Send Administrative logs.");
+      LOGGER.info("SCHEDULER : Send Administrative logs.");
       if (!DHuS.isStarted ())
       {
-         logger.warn("SCHEDULER : Not run while system not fully initialized.");
+         LOGGER.warn("SCHEDULER : Not run while system not fully initialized.");
          return;
       }
       
@@ -218,7 +221,7 @@ public class SendLogsJob extends AbstractJob
                   url + "\" host.\n\n" +
                "Kind Regards.\nThe "+configurationManager.
                getNameConfiguration ().getShortName ()+" Team.", attachment);
-            logger.info ("Logs Sent to "  + email);
+            LOGGER.info("Logs Sent to "  + email);
          }
          catch (EmailException e)
          {
@@ -228,11 +231,10 @@ public class SendLogsJob extends AbstractJob
 
       if (!zipLogs.delete ())
       {
-         logger.warn (
-               "Cannot remove mail attachment: " + zipLogs.getAbsolutePath ());
+         LOGGER.warn("Cannot remove mail attachment: " + zipLogs.getAbsolutePath());
       }
 
-      logger.info ("SCHEDULER : Send Administrative logs done - " + 
+      LOGGER.info("SCHEDULER : Send Administrative logs done - " +
          (System.currentTimeMillis ()-start) + "ms");
    }
 }

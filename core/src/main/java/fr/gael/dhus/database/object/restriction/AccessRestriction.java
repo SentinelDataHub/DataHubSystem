@@ -19,11 +19,11 @@
  */
 package fr.gael.dhus.database.object.restriction;
 
+import java.util.UUID;
+
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
@@ -48,11 +48,9 @@ public abstract class AccessRestriction
    @Column(name="ACCESS_RESTRICTION",insertable=false,updatable=false)
    String discriminator;
 
-
    @Id
-   @GeneratedValue(strategy=GenerationType.AUTO)
-   @Column ( name="ID", nullable = false )
-   private Long id;
+   @Column (name = "UUID", nullable = false)
+   private String uuid = UUID.randomUUID ().toString ();
 
    /**
     * @param blocking_reason the blockingReason to set
@@ -69,23 +67,22 @@ public abstract class AccessRestriction
    {
       return blockingReason;
    }
-   
+
    /**
-    * @param id the id to set
+    * @return the uuid
     */
-   public void setId (Long id)
+   public String getUUID ()
    {
-      this.id = id;
+      return uuid;
    }
 
    /**
-    * @return the id
+    * @param uuid the uuid to set
     */
-   public Long getId ()
+   public void setUUID (String uuid)
    {
-      return id;
+      this.uuid = uuid;
    }
-
 
    public abstract boolean isBlocked();
 }

@@ -19,10 +19,37 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+//var fileToUpload;
+
+angular.module('DHuS-webclient')
+.directive('shapefileModel', ['$parse', function ($parse) {
+    return {
+        restrict: 'A',
+        link: function(scope, element, attrs) {
+
+            var model = $parse(attrs.shapefileModel);
+            var modelSetter = model.assign;
+            
+            
+            element.bind('change', function(){
+                scope.$apply(function(){
+                    modelSetter(scope, element[0].files[0]);
+                    //fileToUpload = element[0].files[0];
+                    // console.log('attrs.shapefileModel',attrs.shapefileModel);
+                    // console.log(' modelSetter(scope, element[0].files[0]);', modelSetter(scope, element[0].files[0]));
+                });
+            });
+        }
+    };
+}]);
+
+
+
+
 angular.module('DHuS-webclient')
 
-.directive('advancedSearch', function($window, $document, UIUtils, AdvancedSearchService, SearchService, 
-  SearchModel, SearchBoxService, AdvancedFilterService, ConfigurationService) {
+.directive('advancedSearch', function($window, $document, UIUtils, AdvancedSearchService, SearchService,
+  SearchModel, SearchBoxService, AdvancedFilterService, ConfigurationService, OLMap, $timeout) {
   var ADVANCED_SEARCH_CONTAINER = '#advanced-search-container',
    TOOLBAR_ID = '#dhus-toolbar-container',
    SEARCH_BOX_ID = '#search-box-container',
@@ -90,136 +117,27 @@ angular.module('DHuS-webclient')
     scope: {
       text: "="
     },
+    expandedAdvancedSearch: false,
     compile: function(tElem, tAttrs){
         var self = this;
         return {
-          pre: function(scope, iElem, iAttrs){     
-            //get configuraion
+          pre: function(scope, iElem, iAttrs){ 
+            
             scope.showingestionfilter=ApplicationService.settings.showingestionfilter; 
-            scope.showsensingfilter=ApplicationService.settings.showsensingfilter;          
-            if(!ConfigurationService.isLoaded()) {              
-              ConfigurationService.getConfiguration().then(function(data) {
-                      // promise fulfilled
-                  if (data) {
-                      ApplicationService=data;
-                      scope.showingestionfilter=ApplicationService.settings.showingestionfilter; 
-                      scope.showsensingfilter=ApplicationService.settings.showsensingfilter;
-                  } else {
-                      console.log("fail");                    
-                  }
-              }, function(error) {
-                  // promise rejected, could log the error with: console.log('error', error);
-                  console.log("fail",error);                  
-              });
-            }  
+            scope.showsensingfilter=ApplicationService.settings.showsensingfilter; 
+            scope.enable_shapefile=ApplicationService.settings.enable_shapefile;           
+            
+            var span = document.createElement('div');
+            if('draggable' in span || ('ondragstart' in span && 'ondrop' in span)) {
+              scope.isdragsupported = true;
+            }
           },
           post: function(scope, iElem, iAttrs){   
-            SearchModel.sub(self);
 
-            // data binding /
-              
-            scope.model= SearchService.filterContext;            
-            AdvancedSearchService.setClearDates(function(){scope.clearDates()});                                  
-            ///
-            self.createdSearchModel = function(){
-                scope.doneRequest = SearchService.doneRequest;                
-            }
+            scope.toggleButtonClass = "glyphicon glyphicon-resize-full";
+            scope.toggleExpandTitle = "Expand AdvancedSearch";
 
-            /// utc date converter:
-
-            var utcDateConverter = function(date){
-              var result = date;
-              if(date != undefined) {
-                var day =  moment(date).get('date');
-                var month = moment(date).get('month');
-                var year = moment(date).get('year');
-                var utcDate = moment(year+ "-" + (parseInt(month)+1) +"-" +day+ " 00:00 +0000", "YYYY-MM-DD HH:mm Z"); // parsed as 4:30 UTC
-                result =  utcDate;
-              }
-
-              return result;
-            };
-
-            scope.updateFilter = function(){
-              //console.log('called updatefilter advancedFilter');
-              var advancedFilter = {
-                sensingPeriodFrom : utcDateConverter(scope.model.sensingPeriodFrom),
-                sensingPeriodTo: utcDateConverter(scope.model.sensingPeriodTo),
-                ingestionFrom: utcDateConverter(scope.model.ingestionFrom),
-                ingestionTo: utcDateConverter(scope.model.ingestionTo)
-              }; 
-              
-              
-              // update advanced filter for save search              
-                AdvancedSearchService.setAdvancedSearchFilter(advancedFilter, scope.model);
-                SearchBoxService.model.advancedFilter = AdvancedSearchService.getAdvancedSearchFilter();
-              
-
-                //SearchService.setAdvancedFilter(AdvancedSearchService.getAdvancedSearchFilter(advancedFilter, scope.model));
-                SearchService.setAdvancedFilter(SearchBoxService.model.advancedFilter);
-              
-            };
-
-            /*scope.$watch('model.sensingPeriodFrom', updateFilter);
-            scope.$watch('model.sensingPeriodTo', updateFilter);
-            scope.$watch('model.ingestionFrom', updateFilter);
-            scope.$watch('model.ingestionTo', updateFilter);*/
-
-            angular.element($window).bind('resize', function(){
-              resizeAdvancedSearch();
-            });
-
-            angular.element($document).ready(function(){
-              resizeAdvancedSearch();
-            }); 
-
-            AdvancedSearchService.setHide(function(){
-              AdvancedSearchService.model.hidden = true;              
-              $(ADVANCED_SEARCH_CONTAINER).animate({left: ('-' + parseInt($(ADVANCED_SEARCH_CONTAINER).width() + 20) + 'px')}, 300);             
-              if(SearchBoxService.model.advancedFilter.trim()!= '' || 
-                SearchBoxService.model.missionFilter.trim()!= '')
-              {
-                $('#advanced-search-icon').removeClass('glyphicon-menu-hamburger').addClass('glyphicon-filter colored');
-              }
-            });
-
-            AdvancedSearchService.setShow(function(){
-              AdvancedSearchService.model.hidden = false;
-              resizeAdvancedSearch();
-              $(ADVANCED_SEARCH_CONTAINER).animate({left: '20px'},300);
-              $('#advanced-search-icon').removeClass('glyphicon-filter colored').addClass('glyphicon-menu-hamburger');
-            });  
-
-
-              scope.today = function() {
-                scope.dt = new Date();
-              };
-              scope.today();
-
-              scope.clear = function () {
-                scope.dt = null;
-              };
-              scope.clearDates = function() {
-                scope.model.sensingPeriodFrom = null;
-                scope.model.sensingPeriodTo=null;
-                scope.model.ingestionFrom=null;
-                scope.model.ingestionTo=null;
-                scope.updateFilter();
-              }
-
-              scope.clearFilter = function() {                                
-                SearchService.clearSearchInput();
-                AdvancedFilterService.clearAdvancedFilter();
-                AdvancedSearchService.clearDates();
-                $('#advanced-search-icon').removeClass('glyphicon-filter colored').addClass('glyphicon-menu-hamburger');
-                $('.clear-button').css('display','none');
-              };
-
-              
-              scope.disabled = function(date, mode) {
-                return false;
-              };
-              var datePickerPosition = function($event){                
+            var datePickerPosition = function($event){                
                 var element = document.getElementsByClassName("dropdown-menu");
                 setTimeout(function(){
                   var element = document.getElementsByClassName("dropdown-menu");
@@ -239,19 +157,181 @@ angular.module('DHuS-webclient')
                 },100);
               };
 
-              scope.openSensingPeriodFrom = function($event) {
+            scope.$on('uib:datepicker.mode', function($event) {
+              $event.stopPropagation($event);
+               $timeout(function(){
+                 datePickerPosition(scope.lastOpenEvent);
+               }, 0, false);
+            });
+
+            SearchModel.sub(self);
+
+              
+            scope.model= SearchService.filterContext;            
+            AdvancedSearchService.setClearAdvFilter(function(){scope.clearAdvFilter()});                                  
+
+            self.createdSearchModel = function(){
+                scope.doneRequest = SearchService.doneRequest;                
+            }
+
+            var utcDateConverter = function(date){
+              var result = date;
+              if(date != undefined) {
+                var day =  moment(date).get('date');
+                var month = moment(date).get('month');
+                var year = moment(date).get('year');
+                var utcDate = moment(year+ "-" + (parseInt(month)+1) +"-" +day+ " 00:00 +0000", "YYYY-MM-DD HH:mm Z"); // parsed as 4:30 UTC
+                result =  utcDate;
+              }
+
+              return result;
+            };
+
+            scope.updateFilter = function(){
+              var advancedFilter = {
+                sensingPeriodFrom : utcDateConverter(scope.model.sensingPeriodFrom),
+                sensingPeriodTo: utcDateConverter(scope.model.sensingPeriodTo),
+                ingestionFrom: utcDateConverter(scope.model.ingestionFrom),
+                ingestionTo: utcDateConverter(scope.model.ingestionTo)
+              }; 
+              
+              
+              // update advanced filter for save search              
+                AdvancedSearchService.setAdvancedSearchFilter(advancedFilter, scope.model);
+                SearchBoxService.model.advancedFilter = AdvancedSearchService.getAdvancedSearchFilter();
+              
+
+                //SearchService.setAdvancedFilter(AdvancedSearchService.getAdvancedSearchFilter(advancedFilter, scope.model));
+                SearchService.setAdvancedFilter(SearchBoxService.model.advancedFilter);
+              
+            };
+            
+            scope.loadSettings = function () {
+                scope.showingestionfilter = ApplicationService.settings.showingestionfilter;
+                scope.showsensingfilter = ApplicationService.settings.showsensingfilter;
+                scope.enable_shapefile = ApplicationService.settings.enable_shapefile;
+
+                scope.model.options = ApplicationService.settings.sortOptions;
+                if(!scope.model.sortedby){
+                  scope.model.sortedby = scope.model.options[0].value;
+                  SearchService.setSortedBy(scope.model.options[0].value)
+                  SearchService.setSortedName(scope.model.options[0].name);
+                }
+                scope.model.orderOptions = ApplicationService.settings.orderOptions;
+                if(!scope.model.order){
+                  scope.model.order = scope.model.orderOptions[0].value;
+                  SearchService.setOrder(scope.model.orderOptions[0].value);
+                  SearchService.setOrderName(scope.model.orderOptions[0].name);
+                }
+                scope.showtoggle = !ApplicationService.settings.show_extended_list; 
+            }
+
+            /*scope.$watch('model.sensingPeriodFrom', updateFilter);
+            scope.$watch('model.sensingPeriodTo', updateFilter);
+            scope.$watch('model.ingestionFrom', updateFilter);
+            scope.$watch('model.ingestionTo', updateFilter);*/
+
+            angular.element($window).bind('resize', function(){
+              resizeAdvancedSearch();
+            });
+
+            angular.element($document).ready(function(){
+                if(!ConfigurationService.isLoaded()) {              
+                    ConfigurationService.getConfiguration().then(function(data) {
+                        if (data) {
+                            ApplicationService=data;
+                            scope.loadSettings();
+                        } else {
+
+                        }
+                    }, function(error) {
+
+                    });
+                } else {
+                    scope.loadSettings();
+                }  
+                
+              resizeAdvancedSearch();
+            }); 
+
+            AdvancedSearchService.setHide(function(){
+              AdvancedSearchService.model.hidden = true;              
+              $(ADVANCED_SEARCH_CONTAINER).animate({left: ('-' + parseInt($(ADVANCED_SEARCH_CONTAINER).width() + 20) + 'px')}, 300);             
+              if(SearchBoxService.model.advancedFilter.trim()!= '' || 
+                SearchBoxService.model.missionFilter.trim()!= '')
+              {
+                $('#advanced-search-icon').removeClass('glyphicon-menu-hamburger').addClass('glyphicon-filter colored');
+              }
+            });
+
+            AdvancedSearchService.setShow(function(){
+              AdvancedSearchService.model.hidden = false;
+              resizeAdvancedSearch();
+              $(ADVANCED_SEARCH_CONTAINER).animate({left: '20px'},300);
+              $('#advanced-search-icon').removeClass('glyphicon-filter colored').addClass('glyphicon-menu-hamburger');              
+            });  
+
+
+              scope.today = function() {
+                scope.dt = new Date();
+              };
+              scope.today();
+
+              scope.clear = function () {
+                scope.dt = null;
+              };
+              scope.clearAdvFilter = function() {
+                scope.model.sensingPeriodFrom = null;
+                scope.model.sensingPeriodTo=null;
+                scope.model.ingestionFrom=null;
+                scope.model.ingestionTo=null;
+                scope.resetSortingToDefault();
+
+                scope.updateFilter();
+              }
+
+              scope.clearFilter = function() {                                
+                SearchService.clearSearchInput();
+                AdvancedFilterService.clearAdvancedFilter();
+                AdvancedSearchService.clearAdvFilter();
+                $('#advanced-search-icon').removeClass('glyphicon-filter colored').addClass('glyphicon-menu-hamburger');
+                $('.clear-button').css('display','none');
+              };
+
+              scope.resetSortingToDefault = function() {               
+                scope.model.sortedby = scope.model.options[0].value;
+                SearchService.setSortedBy(scope.model.options[0].value)
+                SearchService.setSortedName(scope.model.options[0].name);
+              
+              
+                scope.model.order = scope.model.orderOptions[0].value;
+                SearchService.setOrder(scope.model.orderOptions[0].value);
+                SearchService.setOrderName(scope.model.orderOptions[0].name);                
+              };
+
+              
+              scope.disabled = function(date, mode) {
+                return false;
+              };
+              
+
+              scope.openSensingPeriodFrom = function($event) {                
+                scope.lastOpenEvent = $event;
                 scope.status.openedSensingPeriodFrom = true;
                 datePickerPosition($event);
               };
               scope.openSensingPeriodTo = function($event) {
+                scope.lastOpenEvent = $event;
                 scope.status.openedSensingPeriodTo = true;
                 datePickerPosition($event);
               };
               scope.openIngestionFrom = function($event) {
+                scope.lastOpenEvent = $event;
                 scope.status.openedIngestionFrom = true;
                 datePickerPosition($event);
               };
               scope.openIngestionTo = function($event) {
+                scope.lastOpenEvent = $event;
                 scope.status.openedIngestionTo = true;
                 datePickerPosition($event);
               };
@@ -266,6 +346,25 @@ angular.module('DHuS-webclient')
               scope.status = {
                 opened: false
               };
+              
+              scope.sortedbyChange = function(index){
+                  SearchService.setSortedBy(scope.model.sortedby);                  
+                  
+                 var itemValue = scope.model.sortedby;
+                var itemName = $.grep(scope.model.options, function (item) {
+                    return item.value === itemValue;
+                })[0].name;
+                   SearchService.setSortedName(itemName);
+              }
+              
+              scope.orderbyChange = function(){
+                   SearchService.setOrder(scope.model.order);
+                   var orderValue = scope.model.order;
+                var orderName = $.grep(scope.model.orderOptions, function (ord) {
+                    return ord.value === orderValue;
+                })[0].name;
+                   SearchService.setOrderName(orderName);
+              }
 
               var tomorrow = new Date();
               tomorrow.setDate(tomorrow.getDate() + 1);
@@ -286,7 +385,47 @@ angular.module('DHuS-webclient')
                   }
                 }
                 return '';
-              };         
+              };   
+
+              scope.setIfSelectedFile = function () {
+               var namefile = document.querySelector( '#shape-file-info' ).innerText;
+               if(namefile != "No file choosen") {
+                  scope.isSelectedFile = true;
+               } else {
+                  scope.isSelectedFile = false;
+               }
+              };
+
+              scope.uploadShapeFile = function(){
+                //console.log('fileToUpload',fileToUpload);
+                var file = scope.fileToUpload;
+                console.log('file',file);
+                var namefile = document.querySelector( '#shape-file-info' ).innerText;
+                if(namefile && (namefile.toLowerCase().indexOf('.shp', namefile.length - 4)) == -1) {
+                  AlertManager.warn("Unsupported shape file", "Only files with extension .shp are supported");
+                }
+                else {
+                  SpinnerManager.on();
+                  OLMap.loadShapeFile(file);
+                }
+                            
+              };
+
+              scope.toggleExpandAdvancedSearch = function(isExpanded){              
+                if(isExpanded)
+                    this.expandedAdvancedSearch = true;
+                else
+                    this.expandedAdvancedSearch = !this.expandedAdvancedSearch;
+                if(this.expandedAdvancedSearch){
+                  $(ADVANCED_SEARCH_CONTAINER).css('width','calc(100% - 40px)');                  
+                  scope.toggleButtonClass = "glyphicon glyphicon-resize-small";
+                  scope.toggleExpandTitle = "Compact Advanced Search";
+                }else{
+                  resizeAdvancedSearch();
+                  scope.toggleButtonClass = "glyphicon glyphicon-resize-full";
+                  scope.toggleExpandTitle = "Expand Advanced Search";
+                }
+             };      
           }
         }
       }

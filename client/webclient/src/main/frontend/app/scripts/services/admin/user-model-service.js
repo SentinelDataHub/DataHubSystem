@@ -1,16 +1,16 @@
-/* 
+/*
  * Data HUb Service (DHuS) - For Space data distribution.
  * Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
  * Copyright (C) 2013,2014,2015,2016 GAEL Systems
  * Copyright (C) 2013,2014,2015,2016 Serco Spa
- * 
+ *
  * This file is part of DHuS software sources.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
@@ -29,9 +29,9 @@ angular
 		'delete': 'deletedUserModel',
 		'update': 'updatedUserModel',
 		'hilight': 'productDidHighlighted',
-		'nohilight': 'productDidntHighlighted'		
+		'nohilight': 'productDidntHighlighted'
 	};
-    // test    
+    // test
 	return {
 		/* ATTRIBUTES */
 		model: {list:[], count:0},
@@ -40,12 +40,12 @@ angular
 		createModel: function(model, count){
 			this.model.list = model;
 			this.model.count = count;
-			var aSubscribers = []; 
+			var aSubscribers = [];
 			for(var ii = 0; ii < this.subscribers.length; ii++){
 				aSubscribers.push(this.subscribers[ii]);
 			}
 			for(var jj = 0; jj < aSubscribers.length; jj++){
-				if(aSubscribers[jj].id && aSubscribers[jj].id == 'listItem'){				
+				if(aSubscribers[jj].id && aSubscribers[jj].id == 'listItem'){
 					this.unsub(aSubscribers[jj]);
 				}
 			}
@@ -53,20 +53,20 @@ angular
 			this.pub('create');
 		},
 		readModel: function(){
-			
+
 			return this.model;
 		},
 		updateModel: function(model){
-			
+
 
 		},
 		deleteModel: function(){
-			
+
 		},
 		getUserIndexByID: function(uuid){
 			var self = this;
 			var user =  _.findIndex(self.model.list, function(element) {
-                return (element.id == uuid);
+                return (element.uuid == uuid);
             });
             return user;
 		},
@@ -79,8 +79,8 @@ angular
 			var user = this.getUserByIndex(index);
 			return user;
 		},
-		highlightProduct: function(param){						
-			var index = this.getUserIndexByID(param.uuid);            
+		highlightProduct: function(param){
+			var index = this.getUserIndexByID(param.uuid);
             this.model.list[index].highlight = true;
 			this.pub('hilight',param);
 		},
@@ -88,19 +88,19 @@ angular
 			var index = this.getUserIndexByID(param.uuid);
 			this.model.list[index].highlight = false;
 			this.pub('nohilight',param);
-		},			
-		/* pub-sub design pattern */		
-		sub: function(delegate){			
-			this.subscribers.push(delegate);      
+		},
+		/* pub-sub design pattern */
+		sub: function(delegate){
+			this.subscribers.push(delegate);
 		},
 		unsub: function(element){
 			this.subscribers.splice(this.subscribers.indexOf(element), 1);
 		},
 		pub: function(method,param){
-			var self = this;	
+			var self = this;
 			for (var i = 0; i < self.subscribers.length; i++){
 				if (typeof self.subscribers[i][UserModelProtocol[method]] == 'function')
-				  self.subscribers[i][UserModelProtocol[method]](param);  
+				  self.subscribers[i][UserModelProtocol[method]](param);
 			}
 		}
 	};

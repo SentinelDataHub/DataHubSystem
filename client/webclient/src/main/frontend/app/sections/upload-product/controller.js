@@ -58,6 +58,15 @@ angular.module('DHuS-webclient')
 
 
      $scope.getFileScanners = function() {
+
+
+
+
+        AdminUploadService.getNextFileScannerDate()
+          .then(function(response){
+            $scope.nextFileScannerDate = response.data;
+          });
+
               AdminUploadService.getFileScanners()
                   .then(function(response){            
                     $scope.names = response.data;
@@ -78,7 +87,12 @@ angular.module('DHuS-webclient')
                         $scope.names[i].classicon = 'glyphicon glyphicon-remove';
                       } else if ($scope.names[i].status == 'added') {
                         $scope.names[i].classicon = 'glyphicon glyphicon-question-sign';
+                      } else if ($scope.names[i].status == 'running') {
+                        $scope.names[i].classicon = 'glyphicon glyphicon-upload';
+                      } else {
+                        $scope.names[i].classicon = 'glyphicon glyphicon-question-sign';
                       }
+                       
                     }
                   });
              };
@@ -131,6 +145,10 @@ angular.module('DHuS-webclient')
                         $scope.names[i].classicon = 'glyphicon glyphicon-remove';
                       } else if ($scope.names[i].status == 'added') {
                         $scope.names[i].classicon = 'glyphicon glyphicon-question-sign';
+                      } else if ($scope.names[i].status == 'running') {
+                        $scope.names[i].classicon = 'glyphicon glyphicon-upload';
+                      } else {
+                        $scope.names[i].classicon = 'glyphicon glyphicon-question-sign';
                       }
                     }
                     ToastManager.success("file scanner added");
@@ -150,6 +168,7 @@ angular.module('DHuS-webclient')
 
      $scope.saveFileScanner = function() {
        var idCollections = AdminCollectionManager.getSelectedCollectionsIds();
+
        var model=
         {
           id: $scope.names[$scope.x_state].id,
@@ -164,6 +183,8 @@ angular.module('DHuS-webclient')
           var responseStatus = parseInt(response.status);
           if(responseStatus >= 200 && responseStatus < 300)
           {
+
+
             AdminUploadService.getFileScanners()
                   .then(function(response){            
                     $scope.names = response.data;
@@ -182,6 +203,10 @@ angular.module('DHuS-webclient')
                       } else if ($scope.names[i].status == 'error') {
                         $scope.names[i].classicon = 'glyphicon glyphicon-remove';
                       } else if ($scope.names[i].status == 'added') {
+                        $scope.names[i].classicon = 'glyphicon glyphicon-question-sign';
+                      } else if ($scope.names[i].status == 'running') {
+                        $scope.names[i].classicon = 'glyphicon glyphicon-upload';
+                      } else {
                         $scope.names[i].classicon = 'glyphicon glyphicon-question-sign';
                       }
                     }
@@ -207,6 +232,8 @@ angular.module('DHuS-webclient')
        $scope.password = "";
        $scope.pattern = "";
        $scope.getFileScanners();
+       $scope.toggle = false;
+       $scope.collections = {};
      };
 
      $scope.getScanningInfo = function(x) {
@@ -220,11 +247,17 @@ angular.module('DHuS-webclient')
               $scope.scanninginfo = "";
               $scope.collections = {};
               $scope.urltoscan = "";
+              $scope.username = "";
+              $scope.password = "";
+              $scope.pattern = "";
               $scope.names[i].toggle = false;
             } else {
               $scope.scanninginfo = x.statusMessage;
               $scope.collections = x.collections;
               $scope.urltoscan = x.url;
+              $scope.username = x.username;
+              $scope.password = "";
+              $scope.pattern = x.pattern;
               $scope.names[i].toggle = true;
             }
             if ($scope.names[i].toggle) {
@@ -285,6 +318,10 @@ angular.module('DHuS-webclient')
                           $scope.names[i].classicon = 'glyphicon glyphicon-remove';
                         } else if ($scope.names[i].status == 'added') {
                           $scope.names[i].classicon = 'glyphicon glyphicon-question-sign';
+                        } else if ($scope.names[i].status == 'running') {
+                          $scope.names[i].classicon = 'glyphicon glyphicon-upload';
+                        } else {
+                          $scope.names[i].classicon = 'glyphicon glyphicon-question-sign';
                         }
                       }
                       ToastManager.success("file scanner played");
@@ -329,6 +366,10 @@ angular.module('DHuS-webclient')
                         } else if ($scope.names[i].status == 'error') {
                           $scope.names[i].classicon = 'glyphicon glyphicon-remove';
                         } else if ($scope.names[i].status == 'added') {
+                          $scope.names[i].classicon = 'glyphicon glyphicon-question-sign';
+                        } else if ($scope.names[i].status == 'running') {
+                          $scope.names[i].classicon = 'glyphicon glyphicon-upload';
+                        } else {
                           $scope.names[i].classicon = 'glyphicon glyphicon-question-sign';
                         }
                       }
@@ -380,6 +421,10 @@ angular.module('DHuS-webclient')
                         } else if ($scope.names[i].status == 'error') {
                           $scope.names[i].classicon = 'glyphicon glyphicon-remove';
                         } else if ($scope.names[i].status == 'added') {
+                          $scope.names[i].classicon = 'glyphicon glyphicon-question-sign';
+                        } else if ($scope.names[i].status == 'running') {
+                          $scope.names[i].classicon = 'glyphicon glyphicon-upload';
+                        } else {
                           $scope.names[i].classicon = 'glyphicon glyphicon-question-sign';
                         }
                       }
@@ -442,9 +487,22 @@ angular.module('DHuS-webclient')
                           $scope.names[i].classicon = 'glyphicon glyphicon-remove';
                         } else if ($scope.names[i].status == 'added') {
                           $scope.names[i].classicon = 'glyphicon glyphicon-question-sign';
-                        }
+                        } else if ($scope.names[i].status == 'running') {
+                          $scope.names[i].classicon = 'glyphicon glyphicon-upload';
+                        } else {
+                          $scope.names[i].classicon = 'glyphicon glyphicon-question-sign';
+                      }
                       }
                       ToastManager.success("file scanner removed");
+                      $scope.scanninginfo = "";
+                      $scope.urltoscan = "";
+                      $scope.username = "";
+                      $scope.password = "";
+                      $scope.pattern = "";
+                      $scope.collections = {};
+                      $scope.x_state = -1;
+                      $scope.toggle = false;
+                      $scope.isSelectedFile = false;
                     });
             }
             else
@@ -463,14 +521,14 @@ angular.module('DHuS-webclient')
      $scope.uploadProduct = function(){
         if($scope.isSelectedFile == false) return;
         var file = $scope.fileToUpload;
-        console.log('file is ' );
-        console.dir(file);
+        //console.log('file is ' );
+       // console.dir(file);
         var uploadUrl = ApplicationConfig.baseUrl + "/api/upload";
         var selected = AdminCollectionManager.getSelectedCollectionsIds();
-        console.log('get selected ids!!!!  ',selected);
+        //console.log('get selected ids!!!!  ',selected);
         AdminUploadService.uploadProduct(file, selected)
         .then( function(response){
-            console.log(response) ;
+            //console.log(response) ;
             var d = $('<div>').html(response.data);
            
             if(response.status == 200 || response.status == 201)

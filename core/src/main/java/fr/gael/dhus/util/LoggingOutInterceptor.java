@@ -19,6 +19,8 @@
  */
 package fr.gael.dhus.util;
 
+import java.util.logging.Logger;
+
 import org.apache.cxf.common.injection.NoJSR250Annotations;
 import org.apache.cxf.interceptor.AbstractLoggingInterceptor;
 import org.apache.cxf.interceptor.Fault;
@@ -26,13 +28,13 @@ import org.apache.cxf.interceptor.StaxOutInterceptor;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.phase.Phase;
 
-import java.util.logging.Logger;
+import org.apache.logging.log4j.jul.LogManager;
 
 @NoJSR250Annotations
 public class LoggingOutInterceptor extends AbstractLoggingInterceptor
 {
-   private static Logger logger = Logger.getLogger (
-         LoggingOutInterceptor.class.getName ());
+   private static final Logger LOGGER =
+         LogManager.getLogManager().getLogger(LoggingOutInterceptor.class.getName());
 
    public LoggingOutInterceptor ()
    {
@@ -43,7 +45,7 @@ public class LoggingOutInterceptor extends AbstractLoggingInterceptor
    @Override
    protected Logger getLogger ()
    {
-      return logger;
+      return LOGGER;
    }
 
    @Override

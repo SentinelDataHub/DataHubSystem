@@ -27,11 +27,18 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.hibernate.Criteria;
+import org.hibernate.FetchMode;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Projections;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -62,12 +69,14 @@ import fr.gael.dhus.database.object.User.PasswordEncryption;
 import fr.gael.dhus.database.object.restriction.AccessRestriction;
 import fr.gael.dhus.messaging.mail.MailServer;
 import fr.gael.dhus.service.exception.EmailNotSentException;
+import fr.gael.dhus.service.exception.MalformedEmailException;
 import fr.gael.dhus.service.exception.ProductNotExistingException;
 import fr.gael.dhus.service.exception.RequiredFieldMissingException;
 import fr.gael.dhus.service.exception.RootNotModifiableException;
 import fr.gael.dhus.service.exception.UserBadEncryptionException;
 import fr.gael.dhus.service.exception.UserBadOldPasswordException;
 import fr.gael.dhus.service.exception.UserNotExistingException;
+import fr.gael.dhus.service.exception.UsernameBadCharacterException;
 import fr.gael.dhus.service.job.JobScheduler;
 import fr.gael.dhus.spring.context.SecurityContextProvider;
 import fr.gael.dhus.system.config.ConfigurationManager;
@@ -79,20 +88,20 @@ import fr.gael.dhus.system.config.ConfigurationManager;
 @Service
 public class UserService extends WebService
 {
-   private static Log logger = LogFactory.getLog (UserService.class);
-   
+   private static final Logger LOGGER = LogManager.getLogger(UserService.class);
+
    @Autowired
    private SearchDao searchDao;
-   
+
    @Autowired
    private CountryDao countryDao;
-   
+
    @Autowired
    private UserDao userDao;
-   
+
    @Autowired
    private CollectionDao collectionDao;
-   
+
    @Autowired
    private ProductDao productDao;
 
@@ -101,58 +110,88 @@ public class UserService extends WebService
 
    @Autowired
    private ConfigurationManager cfgManager;
-   
+
    @Autowired
    private MailServer mailer;
 
    @Autowired
    private JobScheduler scheduler;
-   
+
    @Autowired
    private SecurityService securityService;
-   
+
+   @Autowired
+   private CacheManager cacheManager;
+
+   /**
+    * Pattern for username checking
+    */
+   private static Pattern USERNAME_PATTERN = Pattern.compile ("^[a-zA-Z0-9\\._\\-]+$");
+
+   /**
+    * Pattern for email checking
+    * Note: This pattern contains all the possible characters in an e-mail.
+    * DHuS shall restrict these mail characters to enhance mailing security...
+    * As far as mail servers already avoid a large part of possible mailing
+    * hacks, no security breach is expected even if all the character are
+    * authorized in DHuS...
+    */
+   private static Pattern EMAIL_PATTERN = Pattern.compile (
+      "^[a-zA-Z0-9!#$%\\x26'*+/=?^_`{|}~-]+" +
+      "(?:\\.[a-zA-Z0-9!#$%\\x26'*+/=?^_`{|}~-]+)*" +
+      "@" +
+      "(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\\.)+"  +
+      "[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$");
+
    /**
     * Return user corresponding to given id.
-    * 
+    *
     * @param id User id.
     * @throws RootNotModifiableException
     */
    @PreAuthorize ("hasAnyRole('ROLE_USER_MANAGER','ROLE_DATA_MANAGER','ROLE_SYSTEM_MANAGER')")
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
    @Cacheable (value = "user", key = "#id")
-   public User getUser (Long id) throws RootNotModifiableException
+   public User getUser (String id) throws RootNotModifiableException
    {
       User u = userDao.read (id);
       checkRoot (u);
       return u;
    }
-   
+
+   @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
+   public User getUserNoCache (String id)
+   {
+      User u = userDao.read (id);
+      return u;
+   }
+
    /**
     * Return user corresponding to given user name.
-    * 
+    *
     * @param name User name.
     * @throws RootNotModifiableException
     */
    @PreAuthorize ("hasAnyRole('ROLE_USER_MANAGER','ROLE_DATA_MANAGER','ROLE_SYSTEM_MANAGER')")
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   @Cacheable (value = "user", key = "#name?.toLowerCase()")
-   public User getUser (String name) throws RootNotModifiableException
+   @Cacheable (value = "userByName", key = "#name?.toLowerCase()")
+   public User getUserByName (String name) throws RootNotModifiableException
    {
       User u = this.getUserNoCheck (name);
       checkRoot (u);
       return u;
    }
-   
+
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   @Cacheable (value = "user", key = "#name?.toLowerCase()")
+   @Cacheable (value = "userByName", key = "#name?.toLowerCase()")
    public User getUserNoCheck (String name)
    {
       return userDao.getByName (name);
    }
-   
+
    /**
     * Get all users corresponding to given filter.
-    * 
+    *
     * @param filter
     * @return All users corresponding to given filter.
     */
@@ -162,7 +201,46 @@ public class UserService extends WebService
    {
       return userDao.scrollNotDeleted (filter, skip);
    }
-   
+
+   /**
+    * Retrieves corresponding users at the given criteria.
+    *
+    * @param criteria criteria contains filter and order of required collection.
+    * @param skip     number of skipped valid results.
+    * @param top      max of valid results.
+    * @return a list of {@link User}
+    */
+   @Transactional(readOnly = true)
+   public List<User> getUsers (DetachedCriteria criteria, int skip, int top)
+   {
+      if (criteria == null)
+      {
+         criteria = DetachedCriteria.forClass (User.class);
+      }
+      criteria.setFetchMode("roles", FetchMode.SELECT);
+      criteria.setFetchMode("restrictions", FetchMode.SELECT);
+      List<User> result = userDao.listCriteria (criteria, skip, top);
+      return result;
+   }
+
+   /**
+    * Counts corresponding users at the given criteria.
+    *
+    * @param criteria criteria contains filter of required collection.
+    * @return number of corresponding users.
+    */
+   @Transactional(readOnly = true)
+   public int countUsers (DetachedCriteria criteria)
+   {
+      if (criteria == null)
+      {
+         criteria = DetachedCriteria.forClass (User.class);
+      }
+      criteria.setResultTransformer (Criteria.DISTINCT_ROOT_ENTITY);
+      criteria.setProjection (Projections.rowCount ());
+      return userDao.count (criteria);
+   }
+
    @PreAuthorize ("hasRole('ROLE_STATS')")
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
    public Iterator<User> getAllUsers (String filter, int skip)
@@ -179,7 +257,7 @@ public class UserService extends WebService
 
    /**
     * Create given User, after checking required fields.
-    * 
+    *
     * @param user
     * @throws RequiredFieldMissingException
     * @throws RootNotModifiableException
@@ -201,7 +279,7 @@ public class UserService extends WebService
     * @throws RootNotModifiableException
     */
    @Transactional(readOnly=false)
-   @CacheEvict(value = "user", key = "#user?.getUsername()")
+   @CacheEvict(value = "userByName", key = "#user?.getUsername().toLowerCase()")
    public void systemCreateUser(User user) throws RequiredFieldMissingException,
       RootNotModifiableException, EmailNotSentException
    {
@@ -212,7 +290,7 @@ public class UserService extends WebService
 
    /**
     * Create given User as temporary User, after checking required fields.
-    * 
+    *
     * @param user
     * @throws RequiredFieldMissingException
     * @throws RootNotModifiableException
@@ -225,7 +303,7 @@ public class UserService extends WebService
       checkRoot (user);
       userDao.createTmpUser (user);
    }
-   
+
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
    public Country getCountry (long id)
    {
@@ -239,19 +317,47 @@ public class UserService extends WebService
       if (u != null && userDao.isTmpUser (u))
       {
          userDao.registerTmpUser (u);
+
+         // update cache entries
+         Cache cache = cacheManager.getCache("user");
+         if (cache != null)
+         {
+            synchronized (cache)
+            {
+               if (cache.get(u.getUUID()) != null)
+               {
+                  cache.put(u.getUUID(), u);
+               }
+            }
+         }
+
+         cache = cacheManager.getCache("userByName");
+         if (cache != null)
+         {
+            synchronized (cache)
+            {
+               if (cache.get(u.getUsername()) != null)
+               {
+                  cache.put(u.getUsername(), u);
+               }
+            }
+         }
       }
    }
-   
+
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
    public boolean checkUserCodeForPasswordReset(String code)
    {
       return userDao.getUserFromUserCode (code) != null;
    }
-   
+
    @Transactional (readOnly=false, propagation=Propagation.REQUIRED)
-   @CacheEvict (value = "user", allEntries = true)
+   @Caching (evict = {
+      @CacheEvict(value = "user", allEntries = true),
+      @CacheEvict(value = "userByName", allEntries = true),
+      @CacheEvict(value = "json_user", allEntries = true)})
    public void resetPassword(String code, String new_password)
-      throws RootNotModifiableException, RequiredFieldMissingException, 
+      throws RootNotModifiableException, RequiredFieldMissingException,
          EmailNotSentException
    {
       User u = userDao.getUserFromUserCode (code);
@@ -269,7 +375,7 @@ public class UserService extends WebService
 
    /**
     * Update given User, after checking required fields.
-    * 
+    *
     * @param user
     * @throws RootNotModifiableException
     * @throws RequiredFieldMissingException
@@ -277,12 +383,13 @@ public class UserService extends WebService
    @PreAuthorize ("hasRole('ROLE_USER_MANAGER')")
    @Transactional (readOnly=false, propagation=Propagation.REQUIRED)
    @Caching(evict = {
-         @CacheEvict(value = "user", key = "#user?.id"),
-         @CacheEvict(value = "user", key = "#user?.username")})
+      @CacheEvict(value = "user", key = "#user?.getUUID ()"),
+      @CacheEvict(value = "userByName", key = "#user?.username.toLowerCase()"),
+      @CacheEvict(value = "json_user", key = "#user")})
    public void updateUser (User user) throws RootNotModifiableException,
       RequiredFieldMissingException
    {
-      User u = userDao.read (user.getId ());
+      User u = userDao.read (user.getUUID ());
       boolean updateRoles = user.getRoles ().size () != u.getRoles ().size ();
       if (!updateRoles)
       {
@@ -309,6 +416,13 @@ public class UserService extends WebService
       u.setSubUsage (user.getSubUsage ());
       u.setDomain (user.getDomain ());
       u.setSubDomain (user.getSubDomain ());
+      if (user.getPassword() != null)
+      {
+         // If password is null, it means client forgot to set it up.
+         // it should never been set to null.
+         u.setEncryptedPassword(user.getPassword(),
+            user.getPasswordEncryption());
+      }
 
       Set<AccessRestriction> restrictions = user.getRestrictions ();
       Set<AccessRestriction> restrictionsToDelete = u.getRestrictions ();
@@ -339,16 +453,19 @@ public class UserService extends WebService
          SecurityContextProvider.forceLogout (u.getUsername ());
       }
 
-      for (AccessRestriction restriction : restrictionsToDelete)
+      if (restrictionsToDelete != null)
       {
-         accessRestrictionDao.delete (restriction);
+         for (AccessRestriction restriction : restrictionsToDelete)
+         {
+            accessRestrictionDao.delete (restriction);
+         }
       }
-      
+
       // Fix to mail user when admin updates his account
       // Temp : to move in mail class after
-       logger.debug ("User " + u.getUsername () + 
+       LOGGER.debug("User " + u.getUsername () +
        " Updated.");
-   
+
        if (cfgManager.getMailConfiguration ().isOnUserUpdate ())
        {
           String email = u.getEmail ();
@@ -356,13 +473,13 @@ public class UserService extends WebService
           if (cfgManager.getAdministratorConfiguration ().getName ()
                 .equals (u.getUsername ()) && (email==null))
              email = "dhus@gael.fr";
-          
-          logger.debug ("Sending email to " + email);
+
+          LOGGER.debug("Sending email to " + email);
           if (email == null)
              throw new UnsupportedOperationException (
                 "Missing Email in configuration: " +
                  "Cannot inform modified user \"" + u.getUsername () + ".");
-          
+
           String message = new String (
              "Dear " + getUserWelcome (u) + ",\n\nYour account on " +
              cfgManager.getNameConfiguration ().getShortName () +
@@ -383,9 +500,9 @@ public class UserService extends WebService
              throw new EmailNotSentException (
                 "Cannot send email to " + email, e);
           }
-          logger.debug ("email sent.");
+          LOGGER.debug("email sent.");
        }
-      
+
    }
 
    /**
@@ -404,24 +521,28 @@ public class UserService extends WebService
 
    /**
     * Delete user corresponding to given id.
-    * 
-    * @param id User id.
+    *
+    * @param uuid User id.
     * @throws RootNotModifiableException
     */
    @PreAuthorize ("hasRole('ROLE_USER_MANAGER')")
    @Transactional (readOnly=false, propagation=Propagation.REQUIRED)
-   @CacheEvict (value = "user", allEntries = true)
-   public void deleteUser (Long id) throws RootNotModifiableException,
+   @Caching (evict = {
+      @CacheEvict(value = "user", allEntries = true),
+      @CacheEvict(value = "userByName", allEntries = true),
+      @CacheEvict(value = "json_user", allEntries = true)})
+   public void deleteUser (String uuid) throws RootNotModifiableException,
       EmailNotSentException
    {
-      User u = userDao.read (id);
+      User u = userDao.read (uuid);
       checkRoot (u);
+      SecurityContextProvider.forceLogout (u.getUsername ());
       userDao.removeUser (u);
    }
-   
+
    /**
     * Cout number of users corresponding to filter.
-    * 
+    *
     * @param filter
     * @return Number of users corresponding to filter.
     */
@@ -431,7 +552,7 @@ public class UserService extends WebService
    {
       return userDao.countNotDeleted (filter);
    }
-   
+
    @PreAuthorize ("hasRole('ROLE_STATS')")
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
    public int countAll (String filter)
@@ -445,63 +566,63 @@ public class UserService extends WebService
    {
       return userDao.countForDataRight (filter);
    }
-   
+
    @PreAuthorize ("isAuthenticated ()")
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public List<AccessRestriction> getRestrictions (Long user_id)
+   public List<AccessRestriction> getRestrictions (String user_uuid)
    {
-      return new ArrayList<> (userDao.read (user_id).getRestrictions ());
+      return new ArrayList<> (userDao.read (user_uuid).getRestrictions ());
    }
 
    /**
-    * THIS METHOD IS NOT SAFE: IT MUST BE REMOVED. 
+    * THIS METHOD IS NOT SAFE: IT MUST BE REMOVED.
     * TODO: manage access by page.
-    * @param user_id
+    * @param user_uuid
     * @return
     */
    @PreAuthorize ("hasRole('ROLE_DATA_MANAGER')")
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public List<Long> getAuthorizedProducts (Long user_id)
+   public List<Long> getAuthorizedProducts (String user_uuid)
    {
-      return productDao.getAuthorizedProducts (user_id);
+      return productDao.getAuthorizedProducts (user_uuid);
    }
 
    @PreAuthorize ("hasRole('ROLE_DATA_MANAGER')")
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public List<Long> getAuthorizedCollections (Long user_id)
+   public List<String> getAuthorizedCollections (String user_uuid)
    {
-      return collectionDao.getAuthorizedCollections (user_id);
+      return collectionDao.getAuthorizedCollections (user_uuid);
    }
-   
+
    @PreAuthorize ("hasRole('ROLE_DATA_MANAGER')")
    @Transactional (readOnly=false, propagation=Propagation.REQUIRED)
-   public void addAccessToCollections (Long user_id, List<Long> collection_ids)
+   public void addAccessToCollections (String user_uuid, List<String> collection_uuids)
       throws RootNotModifiableException
    {
-      User user = userDao.read (user_id);
+      User user = userDao.read (user_uuid);
       checkRoot (user);
       // database
-      for (Long collectionId : collection_ids)
+      for (String collectionUUID : collection_uuids)
       {
-         Collection collection = collectionDao.read (collectionId);
+         Collection collection = collectionDao.read (collectionUUID);
          userDao.addAccessToCollection (user, collection);
       }
    }
-   
+
    @PreAuthorize ("hasRole('ROLE_DATA_MANAGER')")
    @Transactional (readOnly=false, propagation=Propagation.REQUIRED)
-   public void removeAccessToCollections (Long user_id,
-         List<Long> collection_ids) throws RootNotModifiableException
+   public void removeAccessToCollections (String user_uuid,
+         List<String> collection_uuids) throws RootNotModifiableException
    {
-      User user = userDao.read (user_id);
+      User user = userDao.read (user_uuid);
       checkRoot (user);
-      for (Long collectionId : collection_ids)
+      for (String collectionUUID : collection_uuids)
       {
-         Collection collection = collectionDao.read(collectionId);
-         userDao.removeAccessToCollection (user.getId(), collection);
+         Collection collection = collectionDao.read(collectionUUID);
+         userDao.removeAccessToCollection (user.getUUID(), collection);
       }
    }
-   
+
    @PreAuthorize ("hasRole('ROLE_DATA_MANAGER')")
    public void addAccessToProducts (Long user_id, List<Long> product_ids) throws
          RootNotModifiableException
@@ -519,7 +640,7 @@ public class UserService extends WebService
 
    /**
     * Update given User, after checking required fields.
-    * 
+    *
     * @param user
     * @throws RootNotModifiableException
     * @throws RequiredFieldMissingException
@@ -527,39 +648,43 @@ public class UserService extends WebService
    @PreAuthorize ("isAuthenticated ()")
    @Transactional (readOnly=false, propagation=Propagation.REQUIRED)
    @Caching (evict = {
-         @CacheEvict (value = "user", key = "#user.id"),
-         @CacheEvict (value = "user", key = "#user.username")})
+      @CacheEvict(value = "user", key = "#user.getUUID ()"),
+      @CacheEvict(value = "userByName", key = "#user.username.toLowerCase()"),
+      @CacheEvict(value = "json_user", key = "#user")})
    public void selfUpdateUser (User user) throws RootNotModifiableException,
       RequiredFieldMissingException, EmailNotSentException
    {
-      User u = userDao.read (user.getId ());
+      User u = userDao.read (user.getUUID ());
       checkRoot (u);
       u.setEmail (user.getEmail ());
       u.setFirstname (user.getFirstname ());
       u.setLastname (user.getLastname ());
       u.setAddress (user.getAddress ());
-      u.setPhone (user.getPhone ());    
+      u.setPhone (user.getPhone ());
       u.setCountry (user.getCountry ());
       u.setUsage (user.getUsage ());
       u.setSubUsage (user.getSubUsage ());
       u.setDomain (user.getDomain ());
-      u.setSubDomain (user.getSubDomain ());  
-      
+      u.setSubDomain (user.getSubDomain ());
+
       checkRequiredFields (u);
       userDao.update (u);
    }
-   
+
    @PreAuthorize ("isAuthenticated ()")
    @Transactional (readOnly=false, propagation=Propagation.REQUIRED)
-   @CacheEvict (value = "user", allEntries = true)
-   public void selfChangePassword (Long id, String old_password,
+   @Caching (evict = {
+      @CacheEvict(value = "user", allEntries = true),
+      @CacheEvict(value = "userByName", allEntries = true),
+      @CacheEvict(value = "json_user", allEntries = true)})
+   public void selfChangePassword (String uuid, String old_password,
          String new_password) throws RootNotModifiableException,
          RequiredFieldMissingException, EmailNotSentException,
          UserBadOldPasswordException
    {
-      User u = userDao.read (id);
+      User u = userDao.read (uuid);
       checkRoot (u);
-      
+
       //encrypt old password to compare
       PasswordEncryption encryption = u.getPasswordEncryption ();
       if (encryption != PasswordEncryption.NONE) // when configurable
@@ -577,25 +702,25 @@ public class UserService extends WebService
                   "There was an error while encrypting password of user " +
                         u.getUsername (), e);
          }
-      }      
-      
+      }
+
       if (! u.getPassword ().equals(old_password))
       {
          throw new UserBadOldPasswordException("Old password is not correct.");
       }
-      
+
       u.setPassword (new_password);
-      
+
       checkRequiredFields (u);
       userDao.update (u);
    }
-   
+
    @PreAuthorize ("hasRole('ROLE_SEARCH')")
    @Transactional (readOnly=false, propagation=Propagation.REQUIRED)
-   public void storeUserSearch (Long id, String search, String footprint,
+   public void storeUserSearch (String uuid, String search, String footprint,
          HashMap<String, String> advanced, String complete)
    {
-      User u = userDao.read (id);
+      User u = userDao.read (uuid);
       if (u == null)
       {
          throw new UserNotExistingException ();
@@ -605,35 +730,35 @@ public class UserService extends WebService
          if (s.getComplete ().equals(complete))
          {
             return;
-         }            
+         }
       }
       userDao.storeUserSearch (u, search, footprint, advanced, complete);
    }
-   
+
    @PreAuthorize ("hasRole('ROLE_SEARCH')")
    @Transactional (readOnly=false, propagation=Propagation.REQUIRED)
-   public void removeUserSearch (Long u_id, Long s_id)
+   public void removeUserSearch (String u_uuid, String uuid)
    {
-      User u = userDao.read (u_id);
+      User u = userDao.read (u_uuid);
       if (u == null)
       {
          throw new UserNotExistingException ();
       }
-      userDao.removeUserSearch (u, s_id);
+      userDao.removeUserSearch (u, uuid);
    }
-   
+
    @PreAuthorize ("hasRole('ROLE_SEARCH')")
    @Transactional (readOnly=false, propagation=Propagation.REQUIRED)
-   public void activateUserSearchNotification (Long s_id, boolean notify)
+   public void activateUserSearchNotification (String uuid, boolean notify)
    {
-      userDao.activateUserSearchNotification (s_id, notify);
+      userDao.activateUserSearchNotification (uuid, notify);
    }
-   
+
    @PreAuthorize ("hasRole('ROLE_SEARCH')")
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public int countUserSearches (Long u_id)
+   public int countUserSearches (String uuid)
    {
-      User u = userDao.read (u_id);
+      User u = userDao.read (uuid);
       if (u == null)
       {
          throw new UserNotExistingException ();
@@ -641,12 +766,12 @@ public class UserService extends WebService
       List<Search> searches = userDao.getUserSearches(u);
       return searches != null ? searches.size () : 0;
    }
-   
+
    @PreAuthorize ("hasRole('ROLE_SEARCH')")
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public int countUploadedProducts (Long u_id)
+   public int countUploadedProducts (String uuid)
    {
-      User u = userDao.read (u_id);
+      User u = userDao.read (uuid);
       if (u == null)
       {
          throw new UserNotExistingException ();
@@ -657,9 +782,9 @@ public class UserService extends WebService
 
    @PreAuthorize ("hasRole('ROLE_SEARCH')")
    @Transactional (readOnly=false, propagation=Propagation.REQUIRED)
-   public void clearSavedSearches (Long u_id)
+   public void clearSavedSearches (String uuid)
    {
-      User u = userDao.read (u_id);
+      User u = userDao.read (uuid);
       if (u == null)
       {
          throw new UserNotExistingException ();
@@ -669,9 +794,9 @@ public class UserService extends WebService
 
    @PreAuthorize ("hasRole('ROLE_SEARCH')")
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public List<Search> getAllUserSearches (Long u_id)
-   {    
-      User u = userDao.read (u_id);
+   public List<Search> getAllUserSearches (String uuid)
+   {
+      User u = userDao.read (uuid);
       if (u == null)
       {
          throw new UserNotExistingException ();
@@ -684,38 +809,38 @@ public class UserService extends WebService
    {
       return scheduler.getNextSearchesJobSchedule ();
    }
-   
+
    @PreAuthorize ("hasRole('ROLE_SEARCH')")
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public List<Search> scrollSearchesOfUser (Long uid, int skip, int top)
+   public List<Search> scrollSearchesOfUser (String uuid, int skip, int top)
    {
-      User u = userDao.read (uid);
+      User u = userDao.read (uuid);
       if (u == null)
       {
          throw new UserNotExistingException ();
       }
       return searchDao.scrollSearchesOfUser (u, skip, top);
    }
-   
+
    @PreAuthorize ("hasRole('ROLE_UPLOAD')")
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public List<Product> getUploadedProducts(Long uid, int skip, int top)
+   public List<Product> getUploadedProducts(String uuid, int skip, int top)
             throws UserNotExistingException, ProductNotExistingException
    {
-      User user = userDao.read (uid);
+      User user = userDao.read (uuid);
       if (user == null)
       {
          throw new UserNotExistingException();
       }
       return productDao.scrollUploadedProducts (user, skip, top);
-   } 
-   
+   }
+
    @PreAuthorize ("hasRole('ROLE_UPLOAD')")
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public Set<String> getUploadedProductsIdentifiers (Long u_id) throws
+   public Set<String> getUploadedProductsIdentifiers (String uuid) throws
          UserNotExistingException, ProductNotExistingException
    {
-      User user = userDao.read (u_id);
+      User user = userDao.read (uuid);
       if (user == null)
       {
          throw new UserNotExistingException();
@@ -730,8 +855,8 @@ public class UserService extends WebService
    }
 
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public void forgotPassword (String base_url, User user) throws
-         UserNotExistingException, RootNotModifiableException,
+   public void forgotPassword (User user, String baseuri)
+      throws UserNotExistingException, RootNotModifiableException,
          EmailNotSentException
    {
       checkRoot (user);
@@ -742,20 +867,21 @@ public class UserService extends WebService
          throw new UserNotExistingException ("No user can be found for this " +
                         "username/mail combination");
       }
-      
+
       String message = "Dear " + getUserWelcome (checked) +",\n\n" +
             "Please follow this link to set a new password in the " +
             cfgManager.getNameConfiguration ().getShortName () +" system:\n" +
-            cfgManager.getServerConfiguration ().getExternalUrl () + base_url +
+            cfgManager.getServerConfiguration ().getExternalUrl () + baseuri +
             userDao.computeUserCode (checked) + "\n\n"  +
+
             "For help requests please write to: " +
             cfgManager.getSupportConfiguration ().getMail () + "\n\n" +
             "Kind regards.\n" +
             cfgManager.getSupportConfiguration ().getName () + ".\n" +
             cfgManager.getServerConfiguration ().getExternalUrl ();
-      
+
       String subject = "User password reset";
-      
+
       try
       {
          mailer.send  (checked.getEmail (), null, null, subject, message);
@@ -770,6 +896,7 @@ public class UserService extends WebService
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
    private void checkRoot (User user) throws RootNotModifiableException
    {
+      if (user == null) return;
       if (userDao.isRootUser (user))
       {
          throw new RootNotModifiableException ("Root cannot be modified");
@@ -778,7 +905,8 @@ public class UserService extends WebService
 
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
    private void checkRequiredFields (User user)
-      throws RequiredFieldMissingException
+      throws RequiredFieldMissingException, UsernameBadCharacterException,
+      MalformedEmailException
    {
       if (user.getUsername () == null ||
          user.getUsername ().trim ().isEmpty () ||
@@ -789,8 +917,20 @@ public class UserService extends WebService
          throw new RequiredFieldMissingException (
             "At least one required field is empty.");
       }
+      // Test username allowed chars [a-zA-Z0-9]
+      if (!USERNAME_PATTERN.matcher (user.getUsername ()).find ())
+      {
+         throw new UsernameBadCharacterException (
+            "At least one forbidden character has been detected in username.");
+      }
+      // Test email field
+      if (!EMAIL_PATTERN.matcher (user.getEmail ()).find ())
+      {
+         throw new MalformedEmailException (
+            "Email is not well formed.");
+      }
    }
-   
+
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
    private String getUserWelcome (User u)
    {
@@ -806,11 +946,11 @@ public class UserService extends WebService
    }
 
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public Long getPublicDataUserId ()
+   public String getPublicDataUserUUID ()
    {
-      return userDao.getPublicData ().getId ();
-   } 
-   
+      return userDao.getPublicData ().getUUID ();
+   }
+
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
    public List<Country> getCountries ()
    {
@@ -823,46 +963,47 @@ public class UserService extends WebService
    {
       User u = securityService.getCurrentUser ();
       if (u == null) return null;
-      return getUser(u.getId ());
+      return getUserByName(u.getUUID ());
    }
-   
+
    /**
     * Facility method to easily provide user content with resolved lazy fields
     * to be able to serialize. The method takes care of the possible cycles
     * such as "users->pref->filescanners->collections->users" ...
     * It also removes possible huge product list from collections.
-    * 
+    *
     * @param u the user to resolve.
     * @return the resolved user.
     */
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
+   @Cacheable (value = "json_user", key = "#u")
    public User resolveUser (User u)
    {
-      u = userDao.read(u.getId());
+      u = userDao.read(u.getUUID());
       Gson gson = new GsonBuilder().setExclusionStrategies (
          new ExclusionStrategy()
          {
             public boolean shouldSkipClass(Class<?> clazz)
             {
                // Avoid huge number of products in collection
-               return clazz==Product.class; 
+               return clazz==Product.class;
             }
             /**
              * Custom field exclusion goes here
              */
             public boolean shouldSkipField(FieldAttributes f)
             {
-               // Avoid cycles caused by collection tree and user/auth users... 
+               // Avoid cycles caused by collection tree and user/auth users...
                return f.getName().equals("authorizedUsers") ||
                       f.getName().equals("parent") ||
                       f.getName().equals("subCollections");
-                        
+
             }
          }).serializeNulls().create();
       String users_string = gson.toJson(u);
       return gson.fromJson(users_string, User.class);
    }
-   
+
     /*
     * Get all non deleted users corresponding to given filter from the specified offset and limit.
     * @param filter
@@ -876,10 +1017,10 @@ public class UserService extends WebService
    {
       return userDao.scrollNotDeletedByFilter (filter, skip);
    }
-   
+
    /**
     * Cout number of users corresponding to filter.
-    * 
+    *
     * @param filter
     * @return Number of users corresponding to filter.
     */

@@ -50,19 +50,19 @@ public class FileScannerDao extends HibernateDao<FileScanner, Long>
                throws HibernateException, SQLException
             {
                String sql = "DELETE FROM FILESCANNER_COLLECTIONS s " +
-                        " WHERE s.COLLECTIONS_ID = :cid";
+                        " WHERE s.COLLECTIONS_UUID = :cid";
                SQLQuery query = session.createSQLQuery(sql);
-               query.setLong ("cid", collection.getId());
+               query.setString ("cid", collection.getUUID());
                return query.executeUpdate ();
             }
          });
    }
    
    @SuppressWarnings ("unchecked")
-   public List<Long> getScannerCollections (final Long scan_id)
+   public List<String> getScannerCollections (final Long scan_id)
    {
-      return (List<Long>)getHibernateTemplate().find(
-         "select c.id " +
+      return (List<String>)getHibernateTemplate().find(
+         "select c.uuid " +
          "from FileScanner fs inner join fs.collections c " +
          "where fs.id=?)", 
          scan_id);
@@ -111,5 +111,28 @@ public class FileScannerDao extends HibernateDao<FileScanner, Long>
       return (User)DataAccessUtils.uniqueResult (getHibernateTemplate ().find (
          "select u from User u where ? in elements(u.preferences.fileScanners)",
          fs));
+   }
+
+   /**
+    * Tests existence of a file scanner in database.
+    * @param file_scanner   the file scanner to test.
+    * @return true if exists, otherwise false.
+    */
+   public boolean exists (final FileScanner file_scanner)
+   {
+      boolean result = false;
+
+      if (file_scanner != null)
+      {
+         // New session to not interfere with current session.
+         Session session = getSessionFactory().openSession();
+         // Session "get" adds new object in the session that should be removed.
+         Object object = session.get (entityClass, file_scanner.getId ());
+         result = object != null;
+         // Remove the created object with closing the dedicated session.
+         session.close();
+      }
+
+      return result;
    }
 }

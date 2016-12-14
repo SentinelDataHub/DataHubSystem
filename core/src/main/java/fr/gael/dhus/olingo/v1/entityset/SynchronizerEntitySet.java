@@ -21,12 +21,15 @@ package fr.gael.dhus.olingo.v1.entityset;
 
 import fr.gael.dhus.database.object.Role;
 import fr.gael.dhus.database.object.User;
-import fr.gael.dhus.olingo.v1.V1Model;
+import fr.gael.dhus.olingo.v1.Model;
 import fr.gael.dhus.olingo.v1.entity.Synchronizer;
+import fr.gael.dhus.olingo.v1.entity.AbstractEntity;
+import fr.gael.dhus.olingo.v1.map.impl.SynchronizerMap;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.olingo.odata2.api.edm.EdmMultiplicity;
 import org.apache.olingo.odata2.api.edm.EdmSimpleTypeKind;
@@ -42,11 +45,12 @@ import org.apache.olingo.odata2.api.edm.provider.NavigationProperty;
 import org.apache.olingo.odata2.api.edm.provider.Property;
 import org.apache.olingo.odata2.api.edm.provider.PropertyRef;
 import org.apache.olingo.odata2.api.edm.provider.SimpleProperty;
+import org.apache.olingo.odata2.api.uri.KeyPredicate;
 
 /**
  * An OData entity set for {@link Synchronizer}.
  */
-public class SynchronizerEntitySet extends V1EntitySet<Synchronizer>
+public class SynchronizerEntitySet extends AbstractEntitySet<Synchronizer>
 {
    public static final String ENTITY_NAME = "Synchronizer";
 
@@ -73,7 +77,7 @@ public class SynchronizerEntitySet extends V1EntitySet<Synchronizer>
 
    // Association (Navigation link)
    public static final FullQualifiedName ASSO_SYNC_COLLECTION =
-         new FullQualifiedName (V1Model.NAMESPACE, "Synchronizer_Collection");
+         new FullQualifiedName(Model.NAMESPACE, "Synchronizer_Collection");
 
    // one
    public static final String ROLE_SYNC_COLLECTION = "Synchronizer_Collection";
@@ -188,8 +192,7 @@ public class SynchronizerEntitySet extends V1EntitySet<Synchronizer>
    @Override
    public List<AssociationSet> getAssociationSets ()
    {
-      return Collections.singletonList (
-         new AssociationSet ()
+      return Collections.singletonList (new AssociationSet ()
             .setName (ASSO_SYNC_COLLECTION.getName ())
             .setAssociation (ASSO_SYNC_COLLECTION)
             .setEnd1 (
@@ -197,7 +200,7 @@ public class SynchronizerEntitySet extends V1EntitySet<Synchronizer>
                   .setEntitySet (getName ()))
             .setEnd2 (
                new AssociationSetEnd ().setRole (ROLE_SYNC_COLLECTION)
-                  .setEntitySet (V1Model.COLLECTION.getName ()))
+                  .setEntitySet(Model.COLLECTION.getName()))
       );
    }
 
@@ -209,7 +212,7 @@ public class SynchronizerEntitySet extends V1EntitySet<Synchronizer>
             .setName (ASSO_SYNC_COLLECTION.getName ())
             .setEnd1 (
                new AssociationEnd ()
-                  .setType (V1Model.COLLECTION.getFullQualifiedName ())
+                  .setType(Model.COLLECTION.getFullQualifiedName())
                   .setRole (ROLE_SYNC_COLLECTION)
                   .setMultiplicity (EdmMultiplicity.ZERO_TO_ONE))
             .setEnd2 (
@@ -223,5 +226,24 @@ public class SynchronizerEntitySet extends V1EntitySet<Synchronizer>
    public boolean isAuthorized (User user)
    {
       return user.getRoles ().contains (Role.SYSTEM_MANAGER);
+   }
+
+   @Override
+   public Map getEntities()
+   {
+      return new SynchronizerMap();
+   }
+
+   @Override
+   public AbstractEntity getEntity(KeyPredicate kp)
+   {
+      Long key = Long.parseLong(kp.getLiteral());
+      return (new SynchronizerMap()).get(key);
+   }
+
+   @Override
+   public boolean hasManyEntries()
+   {
+      return false;
    }
 }

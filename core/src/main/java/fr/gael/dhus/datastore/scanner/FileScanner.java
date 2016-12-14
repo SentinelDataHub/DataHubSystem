@@ -24,8 +24,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import fr.gael.drb.DrbFactory;
 import fr.gael.drb.DrbNode;
@@ -35,8 +35,8 @@ import fr.gael.drb.DrbNode;
  */
 public class FileScanner extends AbstractScanner
 {
-   private static Log logger = LogFactory.getLog (FileScanner.class);
-   
+   private static final Logger LOGGER = LogManager.getLogger(FileScanner.class);
+
    protected int scannedFiles = 0;
    protected int retrievedFile = 0;   
    
@@ -86,7 +86,7 @@ public class FileScanner extends AbstractScanner
          File[]files = root_file.listFiles ();
          if (files == null)
          {
-            logger.error("Directory " + root_file + " not accessible." );
+            LOGGER.error("Directory " + root_file + " not accessible." );
             return;
          }
          for (File f: files)
@@ -109,7 +109,7 @@ public class FileScanner extends AbstractScanner
       retrievedFile = 0;
       getScanList ().clear ();
       checkList (getScanList (), getUri ());
-      logger.info ("Filesystem Scan done (" + retrievedFile + "/" +
+      LOGGER.info("Filesystem Scan done (" + retrievedFile + "/" +
             scannedFiles + ").");
       return retrievedFile;
    }   

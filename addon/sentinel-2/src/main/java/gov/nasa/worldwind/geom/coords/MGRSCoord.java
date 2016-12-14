@@ -96,7 +96,8 @@ public class MGRSCoord
 
         if (err != MGRSCoordConverter.MGRS_NO_ERROR)
         {
-            throw new IllegalArgumentException("MGRS Conversion Error");
+            throw new IllegalArgumentException("MGRS Conversion Error (\"" +
+               MGRSString +"\")");
         }
 
         return new MGRSCoord(Angle.fromRadians(converter.getLatitude()), Angle.fromRadians(converter.getLongitude()), MGRSString);

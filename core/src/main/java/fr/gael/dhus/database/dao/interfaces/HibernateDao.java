@@ -19,24 +19,25 @@
  */
 package fr.gael.dhus.database.dao.interfaces;
 
-import java.io.Serializable;
-import java.lang.reflect.ParameterizedType;
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.List;
-
-import javax.swing.event.EventListenerList;
-
+import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.DetachedCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
+
+import javax.swing.event.EventListenerList;
+import java.io.Serializable;
+import java.lang.reflect.ParameterizedType;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Hibernate DAO Implementation, containing minimal CRUD operations.
@@ -68,7 +69,7 @@ public class HibernateDao<T, PK extends Serializable> extends
       PK id = (PK) getHibernateTemplate ().save (t);
       t = getHibernateTemplate ().get ((Class<T>)t.getClass (), id);
       long end = new Date ().getTime ();
-      logger.info ("Create/save " + entityClass.getSimpleName () + "("+ id 
+      logger.info("Create/save " + entityClass.getSimpleName () + "("+ id 
          +") spent " + (end-start) + "ms" );
 
       fireCreatedEvent (new DaoEvent<T> (sent));
@@ -81,7 +82,7 @@ public class HibernateDao<T, PK extends Serializable> extends
       long start = new Date ().getTime ();
       T ret = getHibernateTemplate ().get (entityClass, id);
       long end = new Date ().getTime ();
-      logger.debug ("Read " + entityClass.getSimpleName ()
+      logger.debug("Read " + entityClass.getSimpleName ()
             + "(" + id + ") spent " + (end-start) + "ms" );
       return ret;
    }
@@ -92,10 +93,24 @@ public class HibernateDao<T, PK extends Serializable> extends
       long start = new Date ().getTime ();
       getHibernateTemplate ().update (t);
       long end = new Date ().getTime ();
-      logger.info ("Update " + entityClass.getSimpleName () + " spent "
+      logger.info("Update " + entityClass.getSimpleName () + " spent "
             + (end-start) + "ms" );
 
       fireUpdatedEvent (new DaoEvent<T> (t));
+   }
+
+   /**
+    * Merge the provided object into the current session.
+    * This could be useful when one session handle the same object twice.
+    * @param t the entity to merge.
+    */
+   public void merge (T t)
+   {
+      long start = new Date ().getTime ();
+      getHibernateTemplate().getSessionFactory().getCurrentSession().merge(t);
+      long end = new Date ().getTime ();
+      logger.info("Merge " + entityClass.getSimpleName () + " spent "
+            + (end-start) + "ms" );
    }
 
    @Override
@@ -104,7 +119,7 @@ public class HibernateDao<T, PK extends Serializable> extends
       long start = new Date ().getTime ();
       getHibernateTemplate ().delete (t);
       long end = new Date ().getTime ();
-      logger.info ("Delete " + entityClass.getSimpleName () + " spent "
+      logger.info("Delete " + entityClass.getSimpleName () + " spent "
             + (end-start) + "ms" );
 
       fireDeletedEvent (new DaoEvent<T> (t));
@@ -164,11 +179,11 @@ public class HibernateDao<T, PK extends Serializable> extends
          query.setFetchSize (n);
       }
       
-      logger.info ("Execution of HQL: " + hql.toString ());
+      logger.info("Execution of HQL: " + hql.toString ());
       long start = System.currentTimeMillis ();
 
       List<T> result = (List<T>) query.list ();
-      logger.info ("HQL executed in " + 
+      logger.info("HQL executed in " + 
          (System.currentTimeMillis() -start) + "ms.");
 
       if (newSession)
@@ -226,7 +241,7 @@ public class HibernateDao<T, PK extends Serializable> extends
       List ret= getHibernateTemplate ().find (query_string);
       
       long end = new Date ().getTime ();
-      logger.debug ("Query \"" + 
+      logger.debug("Query \"" + 
          query_string.replaceAll("(\\r|\\n)", " ").trim () +
          "\" spent " + (end-start) + "ms" );
       return ret;
@@ -285,22 +300,15 @@ public class HibernateDao<T, PK extends Serializable> extends
       int index = 0;
       while (index<num_session)
       {
-         logger.info(
-            "   SESSION_ID       "+ getSystemByName("SESSION_ID", index));
-         logger.info(
-            "   CONNECTED        "+ getSystemByName("CONNECTED", index));
-         logger.info(
-            "   SCHEMA           "+ getSystemByName("SCHEMA", index));
+         logger.info("   SESSION_ID       "+ getSystemByName("SESSION_ID", index));
+         logger.info("   CONNECTED        "+ getSystemByName("CONNECTED", index));
+         logger.info("   SCHEMA           "+ getSystemByName("SCHEMA", index));
          //logger.info(
          //   "TRANSACTION      "+ getSystemByName("TRANSACTION", index));
-         logger.info(
-            "   WAITING_FOR_THIS "+ getSystemByName("WAITING_FOR_THIS", index));
-         logger.info(
-            "   THIS_WAITING_FOR "+ getSystemByName("THIS_WAITING_FOR", index));
-         logger.info(
-            "   LATCH_COUNT      "+ getSystemByName("LATCH_COUNT", index));
-         logger.info(
-            "   STATEMENT        "+ getSystemByName("CURRENT_STATEMENT",index));
+         logger.info("   WAITING_FOR_THIS "+ getSystemByName("WAITING_FOR_THIS", index));
+         logger.info("   THIS_WAITING_FOR "+ getSystemByName("THIS_WAITING_FOR", index));
+         logger.info("   LATCH_COUNT      "+ getSystemByName("LATCH_COUNT", index));
+         logger.info("   STATEMENT        "+ getSystemByName("CURRENT_STATEMENT",index));
          logger.info("");
          index++;
       }
@@ -370,5 +378,35 @@ public class HibernateDao<T, PK extends Serializable> extends
             return hql_query.list ();
          }
       });
+   }
+
+   @SuppressWarnings ("unchecked")
+   public List<T> listCriteria (DetachedCriteria detached, int skip, int top)
+   {
+      SessionFactory factory = getSessionFactory ();
+      org.hibernate.classic.Session session = factory.getCurrentSession ();
+
+      Criteria criteria = detached.getExecutableCriteria (session);
+
+      if (skip > 0)
+         criteria.setFirstResult (skip);
+      if (top > 0)
+         criteria.setMaxResults (top);
+      return criteria.list ();
+   }
+
+   @SuppressWarnings ("unchecked")
+   public T uniqueResult (DetachedCriteria criteria)
+   {
+      return (T) criteria.getExecutableCriteria (
+            getSessionFactory ().getCurrentSession ()).uniqueResult ();
+   }
+
+   public int count (DetachedCriteria detached)
+   {
+      Session session = getSessionFactory ().getCurrentSession ();
+      Criteria criteria = detached.getExecutableCriteria (session);
+      Object result = criteria.uniqueResult ();
+      return ((Number) result).intValue ();
    }
 }

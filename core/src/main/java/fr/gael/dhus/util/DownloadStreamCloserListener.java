@@ -21,15 +21,16 @@ package fr.gael.dhus.util;
 
 import org.apache.commons.net.io.CopyStreamEvent;
 import org.apache.commons.net.io.CopyStreamListener;
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 public class DownloadStreamCloserListener implements CopyStreamListener
 {
-   private static final Logger LOGGER =
-         Logger.getLogger (DownloadStreamCloserListener.class);
+   private static final Logger LOGGER = LogManager.getLogger(DownloadStreamCloserListener.class);
 
    private final InputStream stream;
 

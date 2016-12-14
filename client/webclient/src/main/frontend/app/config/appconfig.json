@@ -6,6 +6,7 @@
     "version": "Data Hub System #version published here is developed by a Serco (http://serco.com/) and Gael Systems (http://www.gael.fr/) consortium under a contract with the European Space Agency (http://www.esa.int) in the frame of the Copernicus Programme. ",
     "settings": {
         "logo": "images/datahub.png",
+        "t_and_c": "https://scihub.copernicus.eu/twiki/do/view/SciHubWebPortal/TermsConditions",
         "signup": true,
         "editprofile": true,
         "showcart": true,
@@ -18,6 +19,8 @@
         "showsensingfilter": true,
         "showingestionfilter": true,
         "querytitle": "Request Done: ",
+        "enable_shapefile": false,
+        "show_admin_change_password": true,
         "toolbar" : {
             "title": "Data Hub System - OSF Installation",
             "userguide_link": "",
@@ -25,7 +28,9 @@
             "home_link": "",
             "home_title": "Scientific Data Hub Portal",
             "logos": [
-
+                {"link":"http://www.copernicus.eu", "image":"images/EC_standard_logo.png"},
+                {"link":"https://sentinel.esa.int", "image":"images/logo_esa.png"},
+                {"link":"http://www.copernicus.eu", "image":"images/copernicus.png"}
             ],
             "rightlogos": []
         },
@@ -42,6 +47,9 @@
         "managementRoles": ["USER_MANAGER","DATA_MANAGER", "SYSTEM_MANAGER"],
         "synchronizerRoles": ["UPLOAD"],
         "uploadRoles": ["UPLOAD"],
+        "sortOptions":[{"name":"Ingestion Date","value":"ingestiondate"},{"name":"Sensing Date","value":"beginposition"},
+            {"name":"Cloud Coverage","value":"cloudcoverpercentage"}],
+        "orderOptions" : [{"name":"Descending","value":"desc"},{"name":"Ascending","value":"asc"}],
 
         "isMapLayerSwitcherVisible":true,
         "map":{
@@ -108,28 +116,42 @@
             "indexvalue": "Sentinel-1",
             "filters": [
                 {
+                    "indexname": "filename",
+                    "indexlabel": "Satellite Platform",
+                    "indexvalues": "S1A_*|S1B_*",
+                    "regex": ".*"
+
+                },
+                {
                     "indexname": "producttype",
                     "indexlabel": "Product Type",
-                    "indexvalues": "",
+                    "indexvalues": "SLC|GRD|OCN",
                     "regex": ".*"
 
                 },
                 {
                     "indexname": "polarisationmode",
                     "indexlabel": "Polarisation",
+                    "indexvalues": "HH|VV|HV|VH|HH+HV|VV+VH",
                     "regex": ".*"
 
                 },
                 {
                     "indexname": "sensoroperationalmode",
                     "indexlabel": "Sensor Mode",
-                    "indexvalues": "",
+                    "indexvalues": "SM|IW|EW|WV",
                     "regex": ".*"
 
                 },
                 {
-                    "indexname": "swathidentifier",
-                    "indexlabel": "Swath",
+                    "indexname": "relativeorbitnumber",
+                    "indexlabel": "Relative Orbit Number (from 1 to 175)",
+                    "regex": "[1-9]|[1-9][0-9]|[1-9][0-7][0-5]"
+                },
+                {
+                    "indexname": "collection",
+            "indexlabel": "Collection",
+                    "indexvalues": "S1B_24AUG2016",
                     "regex": ".*"
 
                 }
@@ -141,26 +163,46 @@
             "indexvalue": "Sentinel-2",
             "filters": [
                 {
+                    "indexname": "cloudcoverpercentage",
+                    "indexlabel": "Cloud Cover % (e.g.[0 TO 9.4])"
+                }
+                ]
+        },
+        {
+            "name": "Mission: Sentinel-3",
+            "indexname": "platformname",
+            "indexvalue": "Sentinel-3",
+            "filters": [
+                {
                     "indexname": "producttype",
                     "indexlabel": "Product Type",
+                    "indexvalues": "DO_0_DOP___|DO_0_NAV___|GN_0_GNS___|MW_0_MWR___|MW_1_CAL___|MW_1_MWR___|OL_0_CR0___|OL_0_CR1___|OL_0_EFR___|OL_1_EFR___|OL_1_EFR_BW|OL_1_ERR___|OL_1_ERR_BW|OL_1_RAC___|OL_1_SPC___|OL_2_LFR___|OL_2_LFR_BW|OL_2_LRR___|OL_2_LRR_BW|SL_0_SLT___|SL_1_RBT___|SL_1_RBT_BW|SL_2_LST___|SL_2_LST_BW|SR_0_CAL___|SR_0_SRA___|SR_1_CAL___|SR_1_SRA___|SR_2_LAN___|SY_1_MISR__|SY_2_SYN___|SY_2_V10___|SY_2_VG1___|SY_2_VGK___|SY_2_VGP___|TM_0_HKM___|TM_0_HKM2__|TM_0_NAT___",
                     "regex": ".*"
-
                 },
                 {
-                    "indexname": "cloudcoverpercentage",
-                    "indexlabel": "Cloud Coverage (%)",
+                    "indexname": "timeliness",
+                    "indexlabel": "Timeliness",
+                    "indexvalues": "Near Real Time|Short Time Critical|Non Time Critical",
                     "regex": ".*"
-
                 },
                 {
-                    "indexname": "processingbaseline",
-                    "indexlabel": "Processing Baseline",
+                    "indexname": "instrumentshortname",
+                    "indexlabel": "Instrument",
+                    "indexvalues": "OLCI|SLSTR|SRAL|DORIS|MWR|GNSS|SYNERGY|HKTM|NAVATT",
                     "regex": ".*"
-
+                },
+                {
+                    "indexname": "productlevel",
+                    "indexlabel": "Product Level",
+                    "indexvalues": "L0|L1|L2",
+                    "regex": ".*"
+                },
+                {
+                    "indexname": "relativeorbitnumber",
+                    "indexlabel": "Relative Orbit Start [1-385]",
+                    "regex": ".*"
                 }
             ]
         }
     ]
-
 }
-

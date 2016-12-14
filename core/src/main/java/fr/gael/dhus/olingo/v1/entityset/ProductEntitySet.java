@@ -19,15 +19,21 @@
  */
 package fr.gael.dhus.olingo.v1.entityset;
 
-import java.net.URI;
+
+import fr.gael.dhus.database.object.Role;
+import fr.gael.dhus.olingo.Security;
+import fr.gael.dhus.olingo.v1.Expander;
+import fr.gael.dhus.olingo.v1.Model;
+import fr.gael.dhus.olingo.v1.entity.AbstractEntity;
+import fr.gael.dhus.olingo.v1.entity.Product;
+import fr.gael.dhus.olingo.v1.map.impl.ProductsMap;
+import fr.gael.dhus.service.ProductService;
+import fr.gael.dhus.spring.context.ApplicationContextProvider;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-import org.apache.olingo.odata2.api.ODataCallback;
 import org.apache.olingo.odata2.api.edm.EdmMultiplicity;
 import org.apache.olingo.odata2.api.edm.EdmSimpleTypeKind;
 import org.apache.olingo.odata2.api.edm.EdmTargetPath;
@@ -43,23 +49,9 @@ import org.apache.olingo.odata2.api.edm.provider.Facets;
 import org.apache.olingo.odata2.api.edm.provider.NavigationProperty;
 import org.apache.olingo.odata2.api.edm.provider.Property;
 import org.apache.olingo.odata2.api.edm.provider.SimpleProperty;
-import org.apache.olingo.odata2.api.ep.EntityProviderWriteProperties;
-import org.apache.olingo.odata2.api.ep.callback.OnWriteFeedContent;
-import org.apache.olingo.odata2.api.ep.callback.WriteFeedCallbackContext;
-import org.apache.olingo.odata2.api.ep.callback.WriteFeedCallbackResult;
-import org.apache.olingo.odata2.api.exception.ODataApplicationException;
+import org.apache.olingo.odata2.api.uri.KeyPredicate;
 
-import fr.gael.dhus.database.object.Role;
-import fr.gael.dhus.database.object.User;
-import fr.gael.dhus.olingo.v1.V1Model;
-import fr.gael.dhus.olingo.v1.V1Util;
-import fr.gael.dhus.olingo.v1.entity.Attribute;
-import fr.gael.dhus.olingo.v1.entity.Node;
-import fr.gael.dhus.olingo.v1.entity.Product;
-import fr.gael.dhus.service.ProductService;
-import fr.gael.dhus.spring.context.ApplicationContextProvider;
-
-public class ProductEntitySet extends V1EntitySet<Product>
+public class ProductEntitySet extends AbstractEntitySet<Product>
 {
    public static final String ENTITY_NAME = "Product";
 
@@ -74,28 +66,27 @@ public class ProductEntitySet extends V1EntitySet<Product>
    public static final String LOCAL_PATH = "LocalPath";
 
    public static final FullQualifiedName ASSO_PRODUCT_PRODUCT =
-      new FullQualifiedName (V1Model.NAMESPACE, "Product_Product");
+      new FullQualifiedName(Model.NAMESPACE, "Product_Product");
    public static final String ROLE_PRODUCT_PRODUCTS = "Product_Products";// many
    public static final String ROLE_PRODUCT_PRODUCT = "Product_Product";// 1
 
    public static final FullQualifiedName ASSO_PRODUCT_NODE =
-      new FullQualifiedName (V1Model.NAMESPACE, "Product_Node");
+      new FullQualifiedName(Model.NAMESPACE, "Product_Node");
    public static final String ROLE_PRODUCT_NODES = "Product_Nodes";// many
    public static final String ROLE_NODE_PRODUCT = "Node_Product";// 1
 
    public static final FullQualifiedName ASSO_PRODUCT_CLASS =
-      new FullQualifiedName (V1Model.NAMESPACE, "Product_Class");
+      new FullQualifiedName(Model.NAMESPACE, "Product_Class");
    public static final String ROLE_PRODUCT_CLASS = "Product_Class";
    public static final String ROLE_CLASS_PRODUCTS = "Class_Products";
 
    public static final FullQualifiedName ASSO_PRODUCT_ATTRIBUTE =
-      new FullQualifiedName (V1Model.NAMESPACE, "Product_Attribute");
+      new FullQualifiedName(Model.NAMESPACE, "Product_Attribute");
    public static final String ROLE_PRODUCT_ATTRIBUTES = "Product_Attributes";// many
    public static final String ROLE_ATTRIBUTE_PRODUCT = "Attribute_Product";// 1
 
-   private static Logger logger = LogManager.getLogger (ProductEntitySet.class);
-   private static ProductService productManager = ApplicationContextProvider
-      .getBean (ProductService.class);
+   private static final ProductService PRODUCT_SERVICE =
+         ApplicationContextProvider.getBean(ProductService.class);
 
    @Override
    public String getEntityName ()
@@ -106,7 +97,7 @@ public class ProductEntitySet extends V1EntitySet<Product>
    @Override
    public EntityType getEntityType ()
    {
-      EntityType res = V1Model.NODE.getEntityType ();
+      EntityType res = Model.NODE.getEntityType();
 
       // Properties
       List<Property> properties = res.getProperties ();
@@ -122,16 +113,14 @@ public class ProductEntitySet extends V1EntitySet<Product>
                .setFcTargetPath (EdmTargetPath.SYNDICATION_UPDATED)));
       properties.add (new SimpleProperty ().setName (EVICTION_DATE).setType (
          EdmSimpleTypeKind.DateTime));
-      properties.add (new ComplexProperty ().setName (CONTENT_DATE).setType (
-         V1Model.TIME_RANGE));
-      properties.add (new ComplexProperty ().setName (CHECKSUM).setType (
-         V1Model.CHECKSUM));
+      properties.add(new ComplexProperty().setName(CONTENT_DATE).setType(Model.TIME_RANGE));
+      properties.add(new ComplexProperty().setName(CHECKSUM).setType(Model.CHECKSUM));
       properties.add (new SimpleProperty ().setName (CONTENT_GEOMETRY).setType (
          EdmSimpleTypeKind.String));
       properties.add (new SimpleProperty ().setName (METALINK).setType (
          EdmSimpleTypeKind.String));
 
-      if (V1Util.getCurrentUser ().getRoles ().contains (Role.ARCHIVE_MANAGER))
+      if (Security.currentUserHasRole(Role.ARCHIVE_MANAGER))
       {
          properties.add (new SimpleProperty ().setName (LOCAL_PATH).setType (
             EdmSimpleTypeKind.String));
@@ -145,10 +134,10 @@ public class ProductEntitySet extends V1EntitySet<Product>
          .setRelationship (ASSO_PRODUCT_PRODUCT)
          .setFromRole (ROLE_PRODUCT_PRODUCT).setToRole (ROLE_PRODUCT_PRODUCTS));
       navigationProperties.add (new NavigationProperty ()
-         .setName (V1Model.NODE.getName ()).setRelationship (ASSO_PRODUCT_NODE)
+         .setName(Model.NODE.getName()).setRelationship(ASSO_PRODUCT_NODE)
          .setFromRole (ROLE_NODE_PRODUCT).setToRole (ROLE_PRODUCT_NODES));
       navigationProperties.add (new NavigationProperty ()
-         .setName (V1Model.ATTRIBUTE.getName ())
+         .setName(Model.ATTRIBUTE.getName())
          .setRelationship (ASSO_PRODUCT_ATTRIBUTE)
          .setFromRole (ROLE_ATTRIBUTE_PRODUCT)
          .setToRole (ROLE_PRODUCT_ATTRIBUTES));
@@ -180,8 +169,8 @@ public class ProductEntitySet extends V1EntitySet<Product>
          .setName (ASSO_PRODUCT_NODE.getName ())
          .setAssociation (ASSO_PRODUCT_NODE)
          .setEnd1 (
-            new AssociationSetEnd ().setRole (ROLE_PRODUCT_NODES).setEntitySet (
-               V1Model.NODE.getName ()))
+            new AssociationSetEnd().setRole(ROLE_PRODUCT_NODES)
+               .setEntitySet(Model.NODE.getName()))
          .setEnd2 (
             new AssociationSetEnd ().setRole (ROLE_NODE_PRODUCT).setEntitySet (
                getName ())));
@@ -191,7 +180,7 @@ public class ProductEntitySet extends V1EntitySet<Product>
          .setAssociation (ASSO_PRODUCT_ATTRIBUTE)
          .setEnd1 (
             new AssociationSetEnd ().setRole (ROLE_PRODUCT_ATTRIBUTES)
-               .setEntitySet (V1Model.ATTRIBUTE.getName ()))
+               .setEntitySet(Model.ATTRIBUTE.getName()))
          .setEnd2 (
             new AssociationSetEnd ().setRole (ROLE_ATTRIBUTE_PRODUCT)
                .setEntitySet (getName ())));
@@ -200,8 +189,8 @@ public class ProductEntitySet extends V1EntitySet<Product>
          .setName (ASSO_PRODUCT_CLASS.getName ())
          .setAssociation (ASSO_PRODUCT_CLASS)
          .setEnd1 (
-            new AssociationSetEnd ().setRole (ROLE_PRODUCT_CLASS).setEntitySet (
-               V1Model.CLASS.getName ()))
+            new AssociationSetEnd().setRole(ROLE_PRODUCT_CLASS)
+                  .setEntitySet(Model.CLASS.getName()))
          .setEnd2 (
             new AssociationSetEnd ().setRole (ROLE_CLASS_PRODUCTS)
                .setEntitySet (getName ())));
@@ -228,7 +217,7 @@ public class ProductEntitySet extends V1EntitySet<Product>
          .setName (ASSO_PRODUCT_NODE.getName ())
          .setEnd1 (
             new AssociationEnd ()
-               .setType (V1Model.NODE.getFullQualifiedName ())
+               .setType(Model.NODE.getFullQualifiedName())
                .setRole (ROLE_PRODUCT_NODES)
                .setMultiplicity (EdmMultiplicity.MANY))
          .setEnd2 (
@@ -240,7 +229,7 @@ public class ProductEntitySet extends V1EntitySet<Product>
          .setName (ASSO_PRODUCT_ATTRIBUTE.getName ())
          .setEnd1 (
             new AssociationEnd ()
-               .setType (V1Model.ATTRIBUTE.getFullQualifiedName ())
+               .setType(Model.ATTRIBUTE.getFullQualifiedName())
                .setRole (ROLE_PRODUCT_ATTRIBUTES)
                .setMultiplicity (EdmMultiplicity.MANY))
          .setEnd2 (
@@ -252,7 +241,7 @@ public class ProductEntitySet extends V1EntitySet<Product>
          .setName (ASSO_PRODUCT_CLASS.getName ())
          .setEnd1 (
             new AssociationEnd ()
-               .setType (V1Model.CLASS.getFullQualifiedName ())
+               .setType(Model.CLASS.getFullQualifiedName())
                .setRole (ROLE_PRODUCT_CLASS)
                .setMultiplicity (EdmMultiplicity.ONE))
          .setEnd2 (
@@ -266,154 +255,37 @@ public class ProductEntitySet extends V1EntitySet<Product>
    @Override
    public int count ()
    {
-      return productManager.countAuthorizedProducts ();
+      return PRODUCT_SERVICE.count ();
    }
 
    @Override
-   public Map<String, ODataCallback> getCallbacks (final URI lnk)
+   public Map getEntities()
    {
-      Map<String, ODataCallback> res = new HashMap<String, ODataCallback> ();
-      // Expand Products
-      res.put ("Products", new OnWriteFeedContent ()
-      {
+      return new ProductsMap();
+   }
 
-         @Override
-         public WriteFeedCallbackResult retrieveFeedResult (
-            WriteFeedCallbackContext context) throws ODataApplicationException
-         {
-            WriteFeedCallbackResult result = new WriteFeedCallbackResult ();
-            try
-            {
-               if (isNavigationFromTo (context, getName (), getName ()))
-               {
-                  EntityProviderWriteProperties inlineProperties =
-                     EntityProviderWriteProperties
-                        .serviceRoot (lnk)
-                        .expandSelectTree (
-                           context.getCurrentExpandSelectTreeNode ())
-                        .selfLink (context.getSelfLink ()).build ();
+   @Override
+   public AbstractEntity getEntity(KeyPredicate kp)
+   {
+      return (new ProductsMap()).get(kp.getLiteral());
+   }
 
-                  User u = V1Util.getCurrentUser ();
-                  fr.gael.dhus.database.object.Product product =
-                     productManager.getProduct ((String) context
-                        .getEntryData ().get (ItemEntitySet.ID), u);
-
-                  List<Map<String, Object>> feedData =
-                     new ArrayList<Map<String, Object>> ();
-                  if (product != null)
-                  {
-                     Product p = new Product (product);
-                     for (Product subP : p.getProducts ().values ())
-                     {
-                        feedData.add (subP.toEntityResponse (lnk.toString ()));
-                     }
-                  }
-                  result.setFeedData (feedData);
-                  result.setInlineProperties (inlineProperties);
-               }
-            }
-            catch (Exception e)
-            {
-               logger.error (
-                  "Error when including Products in Product Response", e);
-            }
-            return result;
-         }
-      });
-      // Expand Attributes
-      res.put ("Attributes", new OnWriteFeedContent ()
-      {
-         @Override
-         public WriteFeedCallbackResult retrieveFeedResult (
-            WriteFeedCallbackContext context) throws ODataApplicationException
-         {
-            WriteFeedCallbackResult result = new WriteFeedCallbackResult ();
-            try
-            {
-               if (isNavigationFromTo (context, getName (),
-                  V1Model.ATTRIBUTE.getName ()))
-               {
-                  EntityProviderWriteProperties inlineProperties =
-                     EntityProviderWriteProperties
-                        .serviceRoot (lnk)
-                        .expandSelectTree (
-                           context.getCurrentExpandSelectTreeNode ())
-                        .selfLink (context.getSelfLink ()).build ();
-
-                  User u = V1Util.getCurrentUser ();
-                  fr.gael.dhus.database.object.Product product =
-                     productManager.getProduct ((String) context
-                        .getEntryData ().get (ItemEntitySet.ID), u);
-
-                  List<Map<String, Object>> feedData =
-                     new ArrayList<Map<String, Object>> ();
-                  if (product != null)
-                  {
-                     Product p = new Product (product);
-                     for (Attribute attr : p.getAttributes ().values ())
-                     {
-                        feedData.add (attr.toEntityResponse (lnk.toString ()));
-                     }
-                  }
-                  result.setFeedData (feedData);
-                  result.setInlineProperties (inlineProperties);
-               }
-            }
-            catch (Exception e)
-            {
-               logger.error (
-                  "Error when including Attributes in Product Response", e);
-            }
-            return result;
-         }
-      });
-      // Expand Nodes
-      res.put ("Nodes", new OnWriteFeedContent ()
-      {
-         @Override
-         public WriteFeedCallbackResult retrieveFeedResult (
-            WriteFeedCallbackContext context) throws ODataApplicationException
-         {
-            WriteFeedCallbackResult result = new WriteFeedCallbackResult ();
-            try
-            {
-               if (isNavigationFromTo (context, getName (),
-                  V1Model.NODE.getName ()))
-               {
-                  EntityProviderWriteProperties inlineProperties =
-                     EntityProviderWriteProperties
-                        .serviceRoot (lnk)
-                        .expandSelectTree (
-                           context.getCurrentExpandSelectTreeNode ())
-                        .selfLink (context.getSelfLink ()).build ();
-
-                  User u = V1Util.getCurrentUser ();
-                  fr.gael.dhus.database.object.Product product =
-                     productManager.getProduct ((String) context
-                        .getEntryData ().get (ItemEntitySet.ID), u);
-
-                  List<Map<String, Object>> feedData =
-                     new ArrayList<Map<String, Object>> ();
-                  if (product != null)
-                  {
-                     Product p = new Product (product);
-                     for (Node node : p.getNodes ().values ())
-                     {
-                        feedData.add (node.toEntityResponse (lnk.toString ()));
-                     }
-                  }
-                  result.setFeedData (feedData);
-                  result.setInlineProperties (inlineProperties);
-               }
-            }
-            catch (Exception e)
-            {
-               logger.error ("Error when including Nodes in Product Response",
-                  e);
-            }
-            return result;
-         }
-      });
+   @Override
+   public List<String> getExpandableNavLinkNames()
+   {
+      List<String> res = new ArrayList<>(super.getExpandableNavLinkNames());
+      res.add("Products");
+      res.add("Class");
+      res.add("Attributes");
+      res.add("Nodes");
       return res;
    }
+
+   @Override
+   public List<Map<String, Object>> expand(String navlink_name, String self_url,
+         Map<?, AbstractEntity> entities, Map<String, Object> key)
+   {
+      return Expander.expandFeedSingletonKey(navlink_name, self_url, entities, key, ItemEntitySet.ID);
+   }
+
 }

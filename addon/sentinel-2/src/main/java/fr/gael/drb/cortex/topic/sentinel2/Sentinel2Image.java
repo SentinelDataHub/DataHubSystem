@@ -43,6 +43,7 @@ import com.sun.media.imageioimpl.plugins.jpeg2000.J2KImageReaderSpi;
 import fr.gael.drb.cortex.topic.sentinel2.DrbImageManager.Bands;
 import fr.gael.drbx.image.DrbCollectionImage;
 import fr.gael.drbx.image.DrbImage;
+import java.awt.image.SampleModel;
 
 /**
  * This class manage all the sentinel-2 images processing
@@ -76,15 +77,15 @@ public class Sentinel2Image
     * @param vertical_padding padding between vertical assembled images.
     * @return the rendered and mosaic'd image.
     */
-   public static RenderedImage process1CImage (RenderedImageAdapter input, 
+   public static RenderedImage processLocatedImage (RenderedImageAdapter input, 
       int bands, int horizontal_padding, int vertical_padding)
    {
       DrbCollectionImage source = (DrbCollectionImage)input.getWrappedImage();
-      return process1CImage (source, bands, horizontal_padding, 
+      return processLocatedImage (source, bands, horizontal_padding,
          vertical_padding);
    }
    
-   public static RenderedImage process1CImage (DrbCollectionImage source, 
+   public static RenderedImage processLocatedImage (DrbCollectionImage source, 
       int bands, int horizontal_padding, int vertical_padding)
    {
       // Prepare output mosaic layout
@@ -94,24 +95,24 @@ public class Sentinel2Image
       // Prepare variables for building output strip mosaic
       int image_width=source.getWidth();
       int image_height=source.getHeight();
-      
-      ParameterBlockJAI mosaicParameters = 
+
+      ParameterBlockJAI mosaicParameters =
          new ParameterBlockJAI("Mosaic", "rendered");
-      
+
       mosaicParameters.setParameter("mosaicType",
          javax.media.jai.operator.MosaicDescriptor.MOSAIC_TYPE_BLEND);
-      
+
       Collection<DrbImage>images = source.getChildren();
-      
+
       DrbImageManager im = new DrbImageManager();
       im.addAll (images);
-      
-      
+
+
       // Computes the mosaic
       Bands[][] rows = im.getMosaic();
-      
+
       RenderedImage current_image = null;
-      
+
       int row_number = rows.length;
 
       // Loop on image table
@@ -122,14 +123,13 @@ public class Sentinel2Image
          {
             Bands banded_images_map=rows[irow][icol];
             // Look at the band composition
-            // Case of no image at this position: shift to the next image 
+            // Case of no image at this position: shift to the next image
             if (banded_images_map==null)
             {
-               current_image = new BufferedImage(image_width, image_height, 
+               current_image = new BufferedImage(image_width, image_height,
                   BufferedImage.TYPE_3BYTE_BGR);
             }
-            else
-            if (banded_images_map.values().size()>1)
+            else if (banded_images_map.values().size()>1)
             {
                ParameterBlock pb = new ParameterBlock();
                for (DrbImage image:banded_images_map.values())
@@ -138,7 +138,7 @@ public class Sentinel2Image
                   fmt_pb.addSource(image);
                   fmt_pb.add(DataBuffer.TYPE_USHORT);
                   RenderedOp op = JAI.create("Format", fmt_pb);
-            
+
                   pb.addSource(op);
                }
                current_image = JAI.create("bandMerge", pb);
@@ -159,10 +159,10 @@ public class Sentinel2Image
                layout.setSampleModel(current_image.getSampleModel());
                isLayoutTileSet = true;
             }
-            
+
             image_width = current_image.getWidth();
             image_height = current_image.getHeight();
-            
+
             // Translate strip to the output coordinate (vertical shift)
             ParameterBlock translateParameters = new ParameterBlock();
             translateParameters.addSource(current_image);
@@ -185,8 +185,20 @@ public class Sentinel2Image
 
       mosaicParameters.setParameter("backgroundValues", backgroundValues);
       // Create output mosaic
-      return JAI.create("mosaic", mosaicParameters,
-         new RenderingHints(JAI.KEY_IMAGE_LAYOUT, layout));
+      RenderedOp finalImage = JAI.create("mosaic", mosaicParameters,
+            new RenderingHints(JAI.KEY_IMAGE_LAYOUT, layout));
+
+      // Convert dataBuffer
+      SampleModel sm = finalImage.getSampleModel ();
+      if (sm.getDataType () != DataBuffer.TYPE_BYTE)
+      {
+         ParameterBlock pb = new ParameterBlock ();
+         pb.addSource (finalImage);
+         pb.add (DataBuffer.TYPE_BYTE);
+         finalImage = JAI.create ("format", pb);
+      }
+
+      return finalImage;
    }
    
    /**
@@ -228,7 +240,6 @@ public class Sentinel2Image
       
       Collection<DrbImage>images = source.getChildren();
       Iterator<DrbImage> image_it = images.iterator();
-      
       while (image_it.hasNext())
       {
          RenderedImage current_image = null;
@@ -278,6 +289,8 @@ public class Sentinel2Image
          current_image = JAI.create("translate", translateParameters,
             new RenderingHints(JAI.KEY_IMAGE_LAYOUT,layout));
 
+         // TODO: find a way to retrieves the granules position within
+         // the mosaic. 
          // Update following strip translation
          /*
          if ((source_index%13)==0)

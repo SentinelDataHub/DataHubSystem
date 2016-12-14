@@ -25,12 +25,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
-import fr.gael.dhus.service.NetworkUsageService;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.apache.commons.net.io.CopyStreamAdapter;
 
 import fr.gael.dhus.database.object.User;
+import fr.gael.dhus.service.NetworkUsageService;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
 
 public class RegulatedInputStream extends FilterInputStream
@@ -55,7 +55,7 @@ public class RegulatedInputStream extends FilterInputStream
    /**
     * A logger for this class.
     */
-   private static Log logger = LogFactory.getLog(RegulatedInputStream.class);
+   private static final Logger LOGGER = LogManager.getLogger(RegulatedInputStream.class);
 
    /**
     * The internal buffer array where the data is stored. When necessary, it may
@@ -141,6 +141,11 @@ public class RegulatedInputStream extends FilterInputStream
     * Copy listener (optional)
     */
    private CopyStreamAdapter listener;
+   
+   /**
+    * This stream size if known.
+    */
+   private Long streamSize = null;
 
    /**
     * Builds a regulated stream from a builder.
@@ -166,6 +171,9 @@ public class RegulatedInputStream extends FilterInputStream
       
       if (builder.listener!=null)
          this.listener = builder.listener;
+      
+      if (builder.streamSize!=null)
+         this.streamSize=builder.streamSize;
 
       // Allocate buffer array
       buf = new byte[builder.bufferSize];
@@ -190,7 +198,7 @@ public class RegulatedInputStream extends FilterInputStream
       }
       catch (IOException e)
       {
-         logger.warn (e);
+         LOGGER.warn(e);
       }
       
       // Build connection parameters
@@ -206,12 +214,12 @@ public class RegulatedInputStream extends FilterInputStream
       }
       catch (RegulationException exception)
       {
-         logger.error(exception);
+         LOGGER.error(exception);
          throw exception;
       }
 
       // Report opened flow
-      logger.debug ("OPEN - " + this.flow);
+      LOGGER.debug("OPEN - " + this.flow);
    }
    
    /**
@@ -224,11 +232,15 @@ public class RegulatedInputStream extends FilterInputStream
     */
    private long getStreamSize (InputStream is) throws IOException
    {
-      if (is instanceof FileInputStream)
+      if (streamSize == null)
       {
-         return ((FileInputStream)is).getChannel ().size ();
+         if (is instanceof FileInputStream)
+         {
+            return ((FileInputStream)is).getChannel ().size ();
+         }
+         streamSize = (long)is.available ();
       }
-      return (long)is.available ();
+      return streamSize;
    }
 
    /**
@@ -324,18 +336,18 @@ public class RegulatedInputStream extends FilterInputStream
          }
          catch (InterruptedException exception)
          {
-            logger.error(exception);
+            LOGGER.error(exception);
             this.close();
             throw new IOException(exception);
          }
          catch (RegulationException exception)
          {
-            logger.error(exception);
+            LOGGER.error(exception);
             this.close();
             throw exception;
          }
       }
-
+      
       // Continue
       if (pos >= count)
       {
@@ -346,6 +358,7 @@ public class RegulatedInputStream extends FilterInputStream
       if (listener != null)
          listener.bytesTransferred(pos, 1, 
             this.connectionParameters.getStreamSize ());
+      
       return getBufIfOpen()[pos++] & 0xff;
    }
 
@@ -459,13 +472,13 @@ public class RegulatedInputStream extends FilterInputStream
          }
          catch (InterruptedException exception)
          {
-            logger.error(exception);
+            LOGGER.error(exception);
             this.close();
             throw new IOException(exception);
          }
          catch (RegulationException exception)
          {
-            logger.error(exception);
+            LOGGER.error(exception);
             this.close();
             throw exception;
          }
@@ -606,7 +619,13 @@ public class RegulatedInputStream extends FilterInputStream
          NetworkUsageService network_service = ApplicationContextProvider.
             getBean (NetworkUsageService.class);
 
-         if (network_service != null)
+         // Write database only if service exists and
+         // if quota configuration requires persistent informations to 
+         // be saved.
+         if ((network_service != null) &&
+             (flow.getUserQuotas() != null) &&
+             ((flow.getUserQuotas().getMaxCount()!=null) ||
+              (flow.getUserQuotas().getMaxCumulativeSize()!=null)))
          {
             network_service.createDownloadUsage (flow.getTransferedSize (),
                   flow.getStartDate (), connectionParameters.getUser ());
@@ -622,7 +641,7 @@ public class RegulatedInputStream extends FilterInputStream
 
       // Release flow
       this.regulator.releaseChannel(this.flow);
-      logger.debug ("CLOSED - " + this.flow);
+      LOGGER.debug("CLOSED - " + this.flow);
       
       // Close stream
       byte[] buffer;
@@ -683,6 +702,10 @@ public class RegulatedInputStream extends FilterInputStream
        * Listener to monitor stream copy (optional).
        */
       private CopyStreamAdapter listener;
+      /**
+       * The size of the passed stream if known
+       */
+      private Long streamSize;
 
       /**
        * Build a RegulatedInputStream builder.
@@ -728,6 +751,15 @@ public class RegulatedInputStream extends FilterInputStream
       public Builder bufferSize(final int buffer_size)
       {
          this.bufferSize = buffer_size;
+         return this;
+      }
+      
+      /**
+       * Set stream size.
+       */
+      public Builder streamSize(final long stream_size)
+      {
+         this.streamSize = stream_size;
          return this;
       }
 

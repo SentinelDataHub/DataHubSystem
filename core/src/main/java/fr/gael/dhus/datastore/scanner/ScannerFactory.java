@@ -26,33 +26,27 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.olingo.odata2.api.exception.ODataException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.hp.hpl.jena.ontology.OntClass;
 import com.hp.hpl.jena.ontology.OntProperty;
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.rdf.model.StmtIterator;
 import com.hp.hpl.jena.util.iterator.ExtendedIterator;
-
-import fr.gael.dhus.database.dao.CollectionDao;
-import fr.gael.dhus.database.dao.FileScannerDao;
-import fr.gael.dhus.database.dao.ProductDao;
 import fr.gael.dhus.database.object.Collection;
 import fr.gael.dhus.database.object.Product;
 import fr.gael.dhus.database.object.User;
-import fr.gael.dhus.datastore.DefaultDataStore;
-import fr.gael.dhus.datastore.scanner.AsynchronousLinkedList.Event;
-import fr.gael.dhus.datastore.scanner.AsynchronousLinkedList.Listener;
+import fr.gael.dhus.service.FileScannerService;
+import fr.gael.dhus.service.ProductService;
 import fr.gael.drbx.cortex.DrbCortexItemClass;
 import fr.gael.drbx.cortex.DrbCortexModel;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.olingo.odata2.api.exception.ODataException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Provide the scanner instances.
@@ -60,22 +54,16 @@ import fr.gael.drbx.cortex.DrbCortexModel;
 @Component ("scannerFactory")
 public class ScannerFactory
 {
-   private static Log logger = LogFactory.getLog (ScannerFactory.class);
+   private static final Logger LOGGER = LogManager.getLogger(ScannerFactory.class);
 
    @Autowired
-   private DefaultDataStore datastore;
+   private ProductService productService;
 
    @Autowired
-   private FileScannerDao fileScannerDao;
+   private FileScannerService fs_service;
 
-   @Autowired
-   private CollectionDao collectionDao;
-
-   @Autowired
-   private ProductDao productDao;
-
-   private HashMap<Long, Scanner> runningScanners =
-         new HashMap<Long, Scanner> ();
+   private ConcurrentHashMap<Long, Scanner> runningScanners =
+         new ConcurrentHashMap<> ();
 
    private String[] itemClasses;
 
@@ -91,6 +79,14 @@ public class ScannerFactory
       if (itemClasses == null)
       {
          itemClasses = getDefaultCortexSupport ();
+         if ((itemClasses!=null) && LOGGER.isDebugEnabled())
+         {
+            LOGGER.debug("Supported classes:");
+            for (String cl:itemClasses)
+            {
+               LOGGER.debug(" - " + cl);
+            }
+         }
       }
 
       if (itemClasses == null)
@@ -108,7 +104,7 @@ public class ScannerFactory
             }
             catch (Exception e)
             {
-               logger.error ("Cannot add support for class " + s);
+               LOGGER.error ("Cannot add support for class " + s);
             }
          }
       }
@@ -149,7 +145,7 @@ public class ScannerFactory
          while (properties.hasNext ())
          {
             Statement stmt = properties.nextStatement ();
-            logger.debug ("Scanner Support Added for " +
+            LOGGER.debug ("Scanner Support Added for " +
                stmt.getSubject ().toString ());
             list.add (stmt.getSubject ().toString ());
          }
@@ -215,167 +211,117 @@ public class ScannerFactory
    /**
     * Provides a scanner able to fully scan&upload passed URL.
     *
-    * @param archive
     * @param url
     * @param username
     * @param password
     * @return
     */
    public Scanner getUploadScanner (String url, final String username,
-      final String password, String pattern, final User owner,
-      final List<Collection> collections,
-      final FileScannerWrapper wrapper)
+      final String password, String pattern)
    {
       final Scanner scanner = getScanner (url, username, password, pattern);
       scanner.setSupportedClasses (getScannerSupport ());
-
-      final AsynchronousLinkedList<URLExt> list = scanner.getScanList ();
-
-      list.addListener (new Listener<URLExt> ()
-      {
-         @Override
-         public void addedElement (final Event<URLExt> e)
-         {
-            String url = e.getElement ().getUrl ().toString ();
-            Product product = null;
-            if ((product=productDao.getProductByOrigin (url)) != null)
-            {
-               String action = "scheduled";
-               if (product.getProcessed ()) action="ingested";
-
-               logger.info ("Product \"" +
-                  showPublicURL(e.getElement ().getUrl ()) +
-                  "\" already "+ action + ".");
-               return;
-            }
-
-            try
-            {
-               if (wrapper != null)
-               {
-                  wrapper.incrementTotalProcessed ();
-               }
-
-               datastore.addProduct (new URL(url), owner, collections, url,
-                  scanner, wrapper);
-            }
-            catch (Exception exception)
-            {
-               logger.error ("Cannot add product from url " + url, exception);
-               // Listener must be notified of this error.
-               if (wrapper != null)
-               {
-                  wrapper.fatalError (exception);
-               }
-            }
-         }
-
-         @Override
-         public void removedElement (Event<URLExt> e)
-         {
-         }
-      });
       return scanner;
-   }
-
-   private String showPublicURL (URL url)
-   {
-      String protocol = url.getProtocol();
-      String host = url.getHost();
-      int port = url.getPort();
-      String path = url.getFile();
-      if (protocol == null) protocol = "";
-      else protocol += "://";
-
-      String s_port = "";
-      if (port != -1) s_port = ":"+port;
-
-      return protocol + host + s_port + path;
    }
 
    /**
     * Process passed file scanner attached to a the passed user within
     * a separate thread. If the requested scanner is already running (
     * from schedule or UI), it will not restart.
+    *
     * @param scan_id
     * @param user
     * @throws ScannerException when scanner cannot be started.
     */
    public void processScan (final Long scan_id, final User user)
-      throws ScannerException
+         throws ScannerException
    {
-      fr.gael.dhus.database.object.FileScanner fileScanner = null;
       SimpleDateFormat sdf = new SimpleDateFormat (
-         "EEEE dd MMMM yyyy - HH:mm:ss", Locale.ENGLISH);
+            "EEEE dd MMMM yyyy - HH:mm:ss", Locale.ENGLISH);
 
-      // Check if scanner is already running. If not set it status.
-      //fileScannerDao.printCurrentSessions ();
-      //synchronized (fileScannerDao)
-      //{
-         fileScanner = fileScannerDao.read (scan_id);
-         if (fr.gael.dhus.database.object.FileScanner.STATUS_RUNNING.
-             equals (fileScanner.getStatus ()))
-         {
-            throw new ScannerException ("Scanner to \"" +
-               fileScanner.getUsername () + "@" + fileScanner.getUrl () +
-               "\" already running.");
-         }
-
-         fileScanner.setStatus (
-            fr.gael.dhus.database.object.FileScanner.STATUS_RUNNING);
-         fileScanner.setStatusMessage ("Started on " + sdf.format (new Date()) +
-                  "<br>");
-         fileScannerDao.update (fileScanner);
-      //}
-
-      List<Collection> collections = new ArrayList<Collection> ();
-      List<Long> colIds = fileScannerDao.getScannerCollections (scan_id);
-      for (Long colId : colIds)
+      // Synchronize with runningScanner instance to avoid 2 simultaneous
+      // scanners executions.
+      // Running scanner hash table should contains the scanner, but during the
+      // transition between scanner the status settings and the scanner 
+      // initialization, runningScanner[scan_id] could contains null to avoid 
+      // the same scanner being executed twice.
+      synchronized (runningScanners)
       {
-         Collection col = collectionDao.read(colId);
-         if (col != null)
+         if (runningScanners.containsKey (scan_id))
          {
-            collections.add (col);
+            throw new ScannerException (
+                  "Scanner #" + scan_id + " already running.");
          }
+         runningScanners.put (scan_id, new UninitilizedScanner ());
       }
 
-      // Processing scanner is used to manage synchronization between
-      // processing and this scanner. It is in charge of setting and updating
-      // the scanner status.
-      FileScannerWrapper wrapper =
-         new FileScannerWrapper (fileScanner);
+      fr.gael.dhus.database.object.FileScanner fs =
+            fs_service.getFileScanner (scan_id);
+      fs.setStatus (fr.gael.dhus.database.object.FileScanner.STATUS_RUNNING);
+      fs.setStatusMessage ("Started on " + sdf.format (new Date ()));
+      fs_service.updateFileScanner (fs);
 
-      Hook hook = new Hook (fileScanner);
+      // prepare scan
+      ScannerListener listener = new ScannerListener ();
+      Scanner scanner = getUploadScanner (fs.getUrl (), fs.getUsername (),
+            fs.getPassword (), fs.getPattern ());
+      scanner.getScanList ().addListener (listener);
+      Hook hook = new Hook (fs);
+      Runtime.getRuntime ().addShutdownHook (hook);
 
-      String status = fr.gael.dhus.database.object.FileScanner.STATUS_OK;
-      String message = "Error while scanning.";
+      // perform scan
       try
       {
-         Scanner scanner = getUploadScanner (fileScanner.getUrl (),
-            fileScanner.getUsername (), fileScanner.getPassword (),
-            fileScanner.getPattern (), user, collections, wrapper);
-         runningScanners.put (scan_id, scanner);
-         Runtime.getRuntime ().addShutdownHook (hook);
-         int total = scanner.scan ();
-
-         message = "Successfully completed on " + sdf.format (new Date()) +
-            " with " + total + " product" + (total>1?"s":"") + " scanned.";
+         scanner.scan ();
       }
       catch (InterruptedException e)
       {
-         status = fr.gael.dhus.database.object.FileScanner.STATUS_OK;
-         message = "Scanner stopped by user on " + sdf.format (new Date());
+         fs.setStatus (fr.gael.dhus.database.object.FileScanner.STATUS_OK);
+         fs.setStatusMessage (
+               "Scanner stopped by user on " + sdf.format (new Date ()));
+         fs_service.updateFileScanner (fs);
+         LOGGER.warn ("Scanner stop by a user");
+         return;
       }
-      catch (Exception e)
+
+      // prepare ingestion
+      List<URL> waiting_product = listener.newlyProducts();
+      if (waiting_product.isEmpty())
       {
-         status = fr.gael.dhus.database.object.FileScanner.STATUS_ERROR;
-         message =  "Scanner error occurs on " + sdf.format (new Date()) +": "+
-            e.getMessage ();
+         runningScanners.remove(scan_id);
+         LOGGER.info("Scanner #{}: No products scanned.", scan_id);
+         return;
       }
-      finally
+      List<Collection> collections = fs_service.getScannerCollection(fs);
+      FileScannerWrapper wrapper = new FileScannerWrapper (fs)
       {
-         Runtime.getRuntime ().removeShutdownHook (hook);
-         wrapper.setScannerDone (status, message);
+         @Override
+         protected synchronized void processingsDone (String end_message)
+         {
+            super.processingsDone (end_message);
+            runningScanners.remove (scan_id);
+         }
+      };
+      wrapper.setTotalProcessed (waiting_product.size ());
+      LOGGER.info("Scanner #{}: {} products scanned.", scan_id, wrapper.getTotalProcessed());
+
+      // perform ingestion
+      for (URL url : waiting_product)
+      {
+         try
+         {
+            Product p = productService.addProduct (url, user, url.toString ());
+            productService.processProduct (
+                  p, user, collections, scanner, wrapper);
+         }
+         catch (RuntimeException e)
+         {
+            LOGGER.error("Unable to start ingestion.", e);
+            fs.setStatus(fr.gael.dhus.database.object.FileScanner.STATUS_ERROR);
+            fs.setStatusMessage (e.getMessage ());
+            fs_service.updateFileScanner (fs);
+            runningScanners.remove (scan_id);
+         }
       }
    }
 
@@ -386,26 +332,31 @@ public class ScannerFactory
       // Thread-safe retrieve the scanner and remove it from the list.
       synchronized (runningScanners)
       {
-         scanner = runningScanners.remove (scan_id);
-      }
-      if (scanner == null)
-      {
-         logger.error ("Scanner already stopped.");
-         return;
+         scanner = runningScanners.get (scan_id);
+         if (scanner == null)
+         {
+            LOGGER.warn ("Scanner already stopped.");
+            return;
+         }
+         if (scanner instanceof UninitilizedScanner)
+         {
+            LOGGER.warn ("Scanner not initialized (retry stop later).");
+            return;
+         }
+         runningScanners.remove(scan_id);
       }
 
       fr.gael.dhus.database.object.FileScanner fileScanner =
-         fileScannerDao.read (scan_id);
+            fs_service.getFileScanner (scan_id);
       if (fileScanner != null)
       {
          // Just update the message
          fileScanner.setStatusMessage (fileScanner.getStatusMessage () +
-            "<b>Interrupted</b>: waiting ongoing processings ends...<br>");
-         fileScannerDao.update (fileScanner);
-
+            "<b>Interrupted</b>: waiting ongoing processings ends...<br>\n");
+         fs_service.updateFileScanner (fileScanner);
       }
 
-      logger.info ("Scanner stopped.");
+      LOGGER.info ("Scanner stopped.");
       scanner.stop ();
    }
 
@@ -428,7 +379,58 @@ public class ScannerFactory
          scanner.setStatusMessage (
             scanner.getStatusMessage () +
             "Scanner interrupted because DHuS stopped.");
-         fileScannerDao.update (scanner);
+         fs_service.updateFileScanner (scanner);
+      }
+   }
+   
+   /**
+    * An internal scanner implementation to manage the scanner initialization 
+    * transition.
+    */
+   class UninitilizedScanner implements Scanner
+   {
+      @Override
+      public int scan() throws InterruptedException
+      {
+         return 0;
+      }
+
+      @Override
+      public void stop()
+      {
+      }
+
+      @Override
+      public boolean isStopped()
+      {
+         return false;
+      }
+
+      @Override
+      public AsynchronousLinkedList<URLExt> getScanList()
+      {
+         return null;
+      }
+
+      @Override
+      public void setSupportedClasses(List<DrbCortexItemClass> supported)
+      {
+      }
+
+      @Override
+      public void setForceNavigate(boolean force)
+      {
+      }
+
+      @Override
+      public boolean isForceNavigate()
+      {
+         return false;
+      }
+
+      @Override
+      public void setUserPattern(String pattern)
+      {
       }
    }
 }

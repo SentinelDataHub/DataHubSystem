@@ -54,6 +54,8 @@ $.fn.EasyTree = function (options) {
 
     options = $.extend(defaults, options);
 
+    var link_param = '?$skip=0&$top=200';
+
     this.each(function () {
         var easyTree = $(this);
         $.each($(easyTree).find('ul > li'), function() {
@@ -121,28 +123,38 @@ $.fn.EasyTree = function (options) {
                           var entry = result.d.results[i];
                             //console.log('entry',entry);
                             //var nodelink = entry.Nodes.__deferred.uri;
-                            var nodelink = nodeurl+"('"+entry.Id+"')/Nodes";
+                            nodeurl = nodeurl.replace(link_param,'');
+                            var nodelink = nodeurl+"('"+entry.Id+"')/Nodes"+link_param;
                             nodelink=nodelink.replace((new RegExp("'", 'g')),"%27");
                             nodelink=nodelink.replace(new RegExp("\\[", 'g'),"%5B");
                             nodelink=nodelink.replace(new RegExp("\\]", 'g'),"%5D");
                             var nodevalue = "";
                             if(entry.Value)
                                 nodevalue = entry.Value;
-                            //var find = "'";
-                            //var re = new RegExp(find, 'g');        
-                            //nodelink=(nodelink).replace(re,"%27"); 
-                            //console.log('nodelink',nodelink); 
-                            //console.log('builtlink',builtlink);
-                          var item;
+                            
+                            var item;
                             if(entry.Value) {
-                                item = $('<li loaded="false" nodelink="'+nodelink+'"><span><span class="glyphicon glyphicon-file"></span><a href="javascript: void(0);">' + entry.Name +'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+nodevalue+'</a></span></li>');
-                            }
-                            else if(entry.ChildrenNumber == 0){
-
-                                item = $('<li loaded="false" nodelink="'+nodelink+'"><span><span class="glyphicon glyphicon-file"></span><a href="javascript: void(0);">' + entry.Name + '</a> </span></li>');
+                                item = $('<li loaded="false" nodelink="'+nodelink+'"><span><a href="javascript: void(0);"><span class="glyphicon glyphicon-file"></span><a href="javascript: void(0);">' + entry.Name +'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+nodevalue+'</a></span></li>');
                             }
                             else{
-                                item = $('<li loaded="false" nodelink="'+nodelink+'"><span><span class="glyphicon glyphicon-folder-close"></span><a href="javascript: void(0);">' + entry.Name + '</a> </span></li>');
+
+                                if(entry.ContentType != 'Item' && entry.ContentLength > 0) {
+                                    var node_download = nodelink.replace("/Nodes"+link_param,'');
+                                    item = $('<li loaded="false" nodelink="'+nodelink+'"><span><span class="glyphicon glyphicon-folder-close"></span><a href="javascript: void(0);">' + entry.Name + '</a> </span><a href="'+node_download+'/$value'+'"><span class="glyphicon glyphicon-download-alt download-prod-node"></span></a></li>');
+                                }
+                                else {
+                                    if(entry.ChildrenNumber == 0 ) {
+                                        if(entry.ContentType == 'Item' && entry.ContentLength > 0) {
+                                            var node_download = nodelink.replace("/Nodes"+link_param,'');
+                                            item = $('<li loaded="false" nodelink="'+nodelink+'"><span><span class="glyphicon glyphicon-file"></span><a href="javascript: void(0);">' + entry.Name + '</a> </span><a href="'+node_download+'/$value'+'"><span class="glyphicon glyphicon-download-alt download-prod-node"></span></a></li>');                                            
+                                        }
+                                        else {
+                                            item = $('<li loaded="false" nodelink="'+nodelink+'"><span><span class="glyphicon glyphicon-file"></span><a href="javascript: void(0);">' + entry.Name + '</a> </span></li>');
+                                        }
+                                    }
+                                    else
+                                        item = $('<li loaded="false" nodelink="'+nodelink+'"><span><span class="glyphicon glyphicon-folder-close"></span><a href="javascript: void(0);">' + entry.Name + '</a> </span></li>');
+                                }
                             }                    
                             
                             if (selected.length <= 0) {
@@ -155,7 +167,9 @@ $.fn.EasyTree = function (options) {
                                     $(selected).find(' > ul').append(item);
 
                                 } else {
-                                    $(selected).addClass('parent_li').find(' > span > span').addClass('glyphicon-folder-open').removeClass('glyphicon-folder-close');
+                                   
+                                    if(!$(selected).find(' > span > span').hasClass('glyphicon-download-alt'))
+                                        $(selected).addClass('parent_li').find(' > span > span').addClass('glyphicon-folder-open').removeClass('glyphicon-folder-close');
                                     $(selected).append($('<ul></ul>')).find(' > ul').append(item);
                                 }
                             }
@@ -206,8 +220,8 @@ $.fn.EasyTree = function (options) {
                     children.hide(); 
 
                     var selclass = $(selected).find(' span > span');
-
-                    if(!$(selected).find(' span > span').first().hasClass('glyphicon-file')) 
+                    
+                    if(!$(selected).find(' span > span').first().hasClass('glyphicon-file') ) 
                     {
                         $(selected).find(' span > span').first().addClass('glyphicon-folder-close');
                         $(selected).find(' span > span').first().removeClass('glyphicon-folder-open');
@@ -221,7 +235,7 @@ $.fn.EasyTree = function (options) {
                       
                     children.show(); 
                     var selclass = $(selected).find(' span > span');
-                    if(!$(selected).find(' span > span').first().hasClass('glyphicon-file')) 
+                    if(!$(selected).find(' span > span').first().hasClass('glyphicon-file') ) 
                     {
                         $(selected).find(' span > span').first().addClass('glyphicon-folder-open');
                         $(selected).find(' span > span').first().removeClass('glyphicon-folder-close');
@@ -290,7 +304,7 @@ angular.module('DHuS-webclient')
                                 //console.log('scope.product.alternative',scope.product.alternative);                                     
                                 //var nodelink = entry.Nodes.__deferred.uri;                    
                                 //nodelink=nodelink.replace((new RegExp("'", 'g')),"%27");                    
-                                var nodelink = scope.product.alternative+"Nodes('"+entry.Id+"')/Nodes";
+                                var nodelink = scope.product.alternative+"Nodes('"+entry.Id+"')/Nodes?$skip=0&$top=200";
                                 nodelink=nodelink.replace((new RegExp("'", 'g')),"%27");
                                 nodelink=nodelink.replace((new RegExp("\\[", 'g')),"%5B");
                                 nodelink=nodelink.replace((new RegExp("\\]", 'g')),"%5D");

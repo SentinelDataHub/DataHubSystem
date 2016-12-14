@@ -1,0 +1,194 @@
+<!--
+  @license
+
+ 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!-- <link rel="import" href="../owchttp-filter/owchttp-filter.html"> -->
+<!--
+This component is devoted to manage http requests and responses
+
+
+@demo demo/index.html
+-->
+<dom-module id="http-manager">
+    <!-- VIEW  CODE HERE -->
+    <template>
+        <!-- view code here -->
+    </template>
+    <!-- MODEL-CONTROLLER CODE -->
+    <script>
+    (function() {
+        'use strict';
+        class HttpManager {
+
+            /**
+             * Constructor
+             *
+             * @return {null}
+             */
+            constructor() {
+                this.beforeRegister();
+            }
+
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.owcApp = document.querySelector('#owc-app');
+                this.is = 'http-manager';
+                this.demoMode = false;
+            };
+
+
+
+            /**             
+             *   This method is used to manage HTTP requests in demo mode (no authentication managed).           
+             *
+             * @param {mode} true: is in demo mode, false otherwise             
+             * @return {null}
+             */
+            setDemoMode(mode) {
+                this.demoMode = mode;
+            }
+
+
+            _httpResponseTransform(data, headers) {
+                var self = this;
+                var JSON_PROTECTION_PREFIX = /^\)\]\}',?\n/;
+                var APPLICATION_JSON = 'application/json';
+                if (this.owcApp.utils.isString(data)) {
+                    var tempData = data.replace(JSON_PROTECTION_PREFIX, '').trim();
+
+                    if (tempData) {
+                        var contentType = headers('Content-Type');
+                        if ((contentType && (contentType.indexOf(APPLICATION_JSON) === 0)) || self.owcApp.utils.isJsonLike(tempData)) {
+                            data = fromJson(tempData);
+                        }
+                    }
+                }
+
+                return data;
+            }
+
+            _processResponse(response, status, headers) {
+
+                var spinners = document.querySelectorAll('paper-spinner');
+                Array.prototype.forEach.call(spinners, function(spinner) {
+                    spinner.active = !spinner.active;
+                });
+
+                var processedResponse = response;
+                if (this.owcApp.utils.isJsonLike(response)) {
+                    processedResponse = this.owcApp.utils.fromJson(response);
+                }
+                return {
+                    data: processedResponse,
+                    status: status,
+                    headers: headers
+                };
+            }
+
+
+            /**             
+            *   This method is used to manage HTTP requests.           
+            *
+            * @param {?Object} method:  String containing request method (GET|POST|PUT|DELETE)
+                               url:     String containing request url (doesn't include base url)
+                               options: Object containing request parameters like
+                                          body: Object type containing request body, if needed. 
+                                          headers: JSON Array containing request headers. Each element of the array it's a JSON object with the following fields:
+                                            name: String containing header name
+                                            value: String containing header value
+                                          
+
+            * @return {null}
+            */
+            sendRequest(method, url, options) {
+                var spinners = document.querySelectorAll('paper-spinner');
+                Array.prototype.forEach.call(spinners, function(spinner) {
+                    spinner.active = !spinner.active;
+                });
+
+                var self = this;
+                if (self.filter != null) {
+                    var result = self.filter.request(method, url, options);
+
+                    if (!result.status) return new Promise(function(resolve, reject) {
+                        reject(result.code);
+                    });
+                }
+
+                return new Promise(function(resolve, reject) {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open(method, url);
+                    if (options && options.headers) {
+                        for (var i = 0; i < options.headers.length; i++) {
+                            xhr.setRequestHeader(options.headers[i].name, options.headers[i].value);
+                        }
+                    }
+                    xhr.onload = function() {
+
+                        if (xhr.status >= 200 && xhr.status < 300) {
+                            resolve(self._processResponse(xhr.response, xhr.status, xhr.getAllResponseHeaders()));
+                        } else {
+                            var spinners = document.querySelectorAll('paper-spinner');
+                            Array.prototype.forEach.call(spinners, function(spinner) {
+                                spinner.active = !spinner.active;
+                            });
+                            reject({
+                                status: xhr.status,
+                                statusText: xhr.statusText
+                            });
+                        }
+                    };
+                    xhr.onerror = function() {
+                        reject({
+                            status: xhr.status,
+                            statusText: xhr.statusText
+                        });
+                    };
+                    if (options && options.body) {
+                        xhr.send(options.body);
+                    } else {
+                        try {
+                            xhr.send();
+                        } catch (ex) {}
+                    }
+                });
+            }
+
+        };
+
+        Polymer(HttpManager);
+        eu.serco.Owc.HttpManager = HttpManager;
+
+    })();
+    </script>
+</dom-module>

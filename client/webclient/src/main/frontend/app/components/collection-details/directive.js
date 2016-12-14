@@ -54,7 +54,7 @@ angular.module('DHuS-webclient')
               
               scope.collection = details;
               scope.details = details;
-              //console.log('getCollectionDetails in details',details);
+              console.log('getCollectionDetails in details',details);
               if((details && details.name) || isEmpty) {
                 scope.disableField = false;                
               }
@@ -90,7 +90,7 @@ angular.module('DHuS-webclient')
               }
               else {
                 coll.deep=scope.collection.deep;
-                coll.id=scope.collection.id;
+                coll.uuid=scope.collection.uuid;
                 coll.parent=scope.collection.parent;                
               }
               return coll;
@@ -143,7 +143,7 @@ angular.module('DHuS-webclient')
             scope.resetFields = function() {
               scope.collection.name='';
               scope.collection.description='';
-              scope.collection.id='';
+              scope.collection.uuid='';
               
             };
             

@@ -21,13 +21,12 @@ package fr.gael.dhus.database.object;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -42,9 +41,8 @@ import org.hibernate.annotations.CascadeType;
 public class Search
 {
    @Id
-   @GeneratedValue (strategy = GenerationType.AUTO)
-   @Column (name = "ID", nullable = false)
-   private Long id;
+   @Column (name = "UUID", nullable = false)
+   private String uuid = UUID.randomUUID ().toString ();
 
    @Column (name = "VALUE")
    private String value;
@@ -61,19 +59,19 @@ public class Search
    private String complete;
 
    /**
-    * @return the id
+    * @return the uuid
     */
-   public Long getId ()
+   public String getUUID ()
    {
-      return id;
+      return uuid;
    }
 
    /**
-    * @param id the id to set
+    * @param uuid the uuid to set
     */
-   public void setId (Long id)
+   public void setId (String uuid)
    {
-      this.id = id;
+      this.uuid = uuid;
    }
 
    public String getValue ()
@@ -134,13 +132,13 @@ public class Search
 
       Search search = (Search) o;
 
-      return !(id != null ? !id.equals (search.id) : search.id != null);
+      return !(uuid != null ? !uuid.equals (search.uuid) : search.uuid != null);
 
    }
 
    @Override
    public int hashCode ()
    {
-      return id != null ? id.hashCode () : 0;
+      return uuid != null ? uuid.hashCode () : 0;
    }
 }

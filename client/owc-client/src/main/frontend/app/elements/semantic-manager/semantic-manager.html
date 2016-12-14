@@ -1,0 +1,175 @@
+<!--
+  @license
+
+ 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<!--
+semantic manager
+
+
+@demo demo/index.html
+-->
+
+<dom-module id="semantic-manager">
+
+<!-- VIEW  CODE HERE -->
+<template>
+    <!-- view code here -->
+</template>
+
+<!-- MODEL-CONTROLLER CODE -->
+<script>
+    (function() {
+       'use strict';
+       class SemanticManager {
+           
+                                            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+           beforeRegister() {
+               this.is = 'semantic-manager';
+               this.properties = {};
+               this.owcApp = document.querySelector('#owc-app');
+               
+           }
+          
+          /**
+         *  Public method of semantic manager to process model from server
+         * 
+         * @param {Object} modelFromServer: the response from server 
+         * @return {Promise}
+         */
+
+        processModel(modelFromServer) {
+
+            var self = this;
+            return new Promise(function(resolve, reject) {
+                resolve(self._processModel(modelFromServer));
+            });
+        }
+
+        /**
+         *  Private method of semantic manager to process model from server
+         * 
+         * @param {Object} modelFromServer: the response from server 
+         * @return {Promise}
+         */
+
+        _processModel(modelFromServer) {
+
+            var genericModel = [],
+                self = this;
+            if (modelFromServer && modelFromServer.length)
+                for (var i = 0; i < modelFromServer.length; i++){ 
+                    if(modelFromServer[i].footprint){
+                    genericModel.push({
+                        uuid: modelFromServer[i].uuid,
+                        title: modelFromServer[i].identifier,
+                        footprint: modelFromServer[i].footprint,
+                        showAdf: true,
+                        attributes: [
+                            self.getInstrument(modelFromServer[i]),
+                            self.getIngestionDate(modelFromServer[i]),
+                            self.getFileSize(modelFromServer[i])
+                        ],
+                        thumb: self.getQuicklook(modelFromServer[i])
+                    });
+                   }
+                  }
+            return genericModel;
+        }
+
+         // ---------------------------TEMPORANY IMPLEMENTATION--------------------------------------- //       
+
+        /**
+         * Semantic (hard coded) quicklook
+         * 
+         * @param {Object} product 
+         * @return {null}
+         */
+        getQuicklook(product) {
+            var IMAGE_PLACE_HOLDER_URL = this.owcApp.config.clientUrl + '/images/placeholder.png';
+            return (product.quicklook) ? this.owcApp.config.baseUrl + "/odata/v1/Products('" + product.uuid + "')/Products('Thumbnail')/$value" : IMAGE_PLACE_HOLDER_URL;
+
+        }
+
+        /**
+         * Semantic (hard coded) instrument
+         * 
+         * @param {Object} itemElement 
+         * @return {null}
+         */
+        getInstrument(product) {
+
+            return product.instrument;
+        }
+
+        /**
+         * Semantic ingestion date
+         * 
+         * @param {Object} itemElement 
+         * @return {null}
+         */
+        getIngestionDate(product) {
+            var summary = _.findWhere(product.indexes, {
+                name: "summary"
+            });
+            return (summary) ? _.findWhere(summary.children, {
+                name: "Date"
+            }).value : '';
+        }
+
+        /**
+         * Semantic file size
+         * 
+         * @param {Object} itemElement 
+         * @return {null}
+         */
+        getFileSize(product) {
+                var summary = _.findWhere(product.indexes, {
+                    name: "summary"
+                });
+                return (summary) ? _.findWhere(summary.children, {
+                    name: "Size"
+                }).value : '';
+            }
+            // --------------------------------------------------------------- //
+
+       };
+
+      Polymer(SemanticManager);
+
+    })();
+  </script>
+
+</dom-module>

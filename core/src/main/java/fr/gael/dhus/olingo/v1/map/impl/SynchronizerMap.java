@@ -40,7 +40,12 @@ public class SynchronizerMap extends AbstractDelegatingMap<Long, Synchronizer>
    @Override
    protected Synchronizer serviceGet (Long key)
    {
-      return new Synchronizer (SYNC_SERVICE.getSynchronizerConfById (key));
+      SynchronizerConf sc = SYNC_SERVICE.getSynchronizerConfById(key);
+      if (sc == null)
+      {
+         return null;
+      }
+      return new Synchronizer(sc);
    }
 
    @Override

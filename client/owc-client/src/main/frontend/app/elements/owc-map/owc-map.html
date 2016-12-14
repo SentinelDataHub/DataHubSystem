@@ -1,0 +1,343 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="Map.html">
+<link rel="stylesheet" href="../../bower_components/ol3-bower/ol.css" type="text/css">
+<script src="../../bower_components/ol3-bower/ol.js"></script>
+<link rel="import" href="Map.html">
+<!--
+                owc map
+                
+                
+                @demo demo/index.html
+                -->
+<dom-module id="owc-map">
+    <style>
+    #map {
+        width: 100%;
+        height: 100%;
+    }
+    
+    .mapButton {
+        top: 50px;
+        float: right;
+        /*position: absolute;*/
+        /*margin-left: calc(33% - 50px);*/
+        z-index: 1;
+        background-color: #002664;
+        color: #fff;
+        cursor: pointer;
+        text-decoration: none;
+        border-radius: 50%;
+    }
+    </style>
+    <template>
+        <paper-icon-button icon="open-with" class="mapButton" on-click="activateSelection" hidden="{{!activeSelection}}" title="Navigate on Map"></paper-icon-button>
+        <paper-icon-button icon="flip-to-front" class="mapButton" on-click="activateSelection" hidden="{{activeSelection}}" title="Draw region of Interest"></paper-icon-button>
+        <map-coder id="map-coder"></map-coder>
+        <div id="{{mapId}}" style="height: 94%;"></div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class OwcMap {
+
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            attached() {
+                $(window).trigger('resize');
+                this.owcApp = document.querySelector('#owc-app');
+                //this.owcApp.utils.generateUUID();
+
+                this.properties = {
+
+                    /**
+                     * Public property description
+                     *
+                     * @type {Object}
+                     */
+                    map: {
+                        type: Object,
+                        value: null,
+                        notify: true
+
+                    },
+
+                    owcQuery: {
+                        type: Object,
+                        value: null,
+                        notify: true
+
+                    },
+
+                    /**
+                     * Public property description
+                     *
+                     * @type {Object}
+                     */
+                    mapmodel: {
+                        type: Array,
+                        value: null,
+                        notify: true
+
+                    },
+
+                    /**
+                     * Interanal property, If it is true the infinite scroll calls http requests, 
+                     * if it is false the scroll event is ignored. 
+                     *
+                     * @type {Boolean}
+                     */
+                    readyToLoadNewPage: true,
+
+                    /**
+                     * UI variable: visibleList, to hide the empty list in case of 0 results
+                     *
+                     * @type {Boolean}
+                     */
+                    visibleMap: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
+                    /**
+                     * Enable pagination in owc list
+                     *
+                     * @type {Boolean}
+                     */
+                    paginationEnabled: {
+                        type: Boolean,
+                        value: true,
+                        notify: true
+                    },
+
+                    /**
+                     * Public property description
+                     *
+                     * @type {Object}
+                     */
+                    datasource: {
+                        type: Object,
+                        value: {},
+                        notify: true
+
+                    },
+
+                    genericModel: {
+                        type: Object,
+                        value: {},
+                        notify: true
+
+                    },
+
+                    container: {
+                        type: Object,
+                        value: null
+                    },
+
+                    activeSelection: {
+                        type: Boolean,
+                        value: true
+                    },
+
+                     /**
+                     * Public property description
+                     *
+                     * @type {Object}
+                     */
+                    target: {
+                        type: String,
+                        value: null
+                    }
+                };
+                var self = this;
+                this.is = 'owc-map';
+
+                self.owcApp = document.querySelector('#owc-app');
+                self.owcApp.messageBroker.subscribe('setNewModel',
+                    function() {
+                        if (self.genericModel != null) {
+                            var page = self.genericModel.getModel();
+                            var coder = document.getElementById('map-coder');
+                            var specificModel = coder.extractSpecificModel(page);
+                            self.visibleMap = true;
+                            setTimeout(function() {
+                                self.set('mapmodel', specificModel);
+                                self.notifyPath('mapmodel', specificModel);
+                                self.set('visibleMap', self.visibleMap);
+                                self.notifyPath('visibleMap', self.visibleMap);
+                                var event = document.createEvent('Event');
+                                event.initEvent('resize', true, true);
+                                document.dispatchEvent(event);
+
+                            }, 0);
+                            self.readyToLoadNewPage = self.properties.paginationEnabled && true;
+                            self.map.setModel(specificModel);
+                        }
+
+                    }, self.target);
+            }
+            resize() {
+                var self = this;
+                //console.info("self.map.map: ", self.map.map);
+                setTimeout(function() {
+                    self.map.map.updateSize();
+                }, 0);
+
+            }
+
+
+            setTarget(target) {
+                this.target = target;
+                console.log("TARGET @@@@@",target);
+            }
+
+            init() {
+                var self = this;
+                self.owcApp = document.querySelector('#owc-app');
+                self.mapId = self.owcApp.utils.generateUUID();
+                self.setActiveSelection(true);
+                // self.config = self.owcApp.Owc.DefaultMapConfig.instance.config;
+                // self.config.target = self.mapId;
+                self.map = new Map(self.mapId);
+                self.set("map", self.map);
+                self.resize();
+                /*self.map.map.redraw();*/
+            }
+
+            detached() {
+                //                console.log("OWC MAP detached !!!!");
+                var self = this;
+                //self.map = null;
+            }
+
+
+
+
+            /**             
+             *   Public method sample            
+             *
+             * @param {?Object} paramExample: method parameter sample
+             * @return {null}
+             */
+            setDelegate(delegate) {
+                this.datasource = delegate;
+            }
+
+            setGenericModel(genericModel) {
+                this.genericModel = genericModel;
+            }
+
+            setContainer(mapContainer) {
+                this.container = mapContainer;
+            }
+
+            setOwcQuery(owcQuery) {
+                this.owcQuery = owcQuery;
+            }
+
+            setMap() {
+                var self = this;
+                self.map.setOwcQuery(self.owcQuery);
+                self.map.setDataSource(self.datasource);
+                self.map.setOwcMap(self);
+            }
+
+            updateSearch(param) {
+                var mapContainer = this.container;
+                this.mapContainer.updateSearch();
+            }
+
+            setActiveSelection(status) {
+                this.activeSelection = status;
+            }
+
+            /**
+             * Public method to set (reset) a new  list model.
+             * 
+             * @return {null}
+             */
+            setNewModel(page) {
+                var self = this;
+                self.visibleMap = true;
+                self.map.setNewQuery(self.newQuery);
+
+                setTimeout(function() {
+                    self.set('mapmodel', page);
+                    self.notifyPath('mapmodel', page);
+                    self.set('visibleMap', self.visibleMap);
+                    self.notifyPath('visibleMap', self.visibleMap);
+                    var event = document.createEvent('Event');
+                    event.initEvent('resize', true, true);
+                    document.dispatchEvent(event);
+                }, 0);
+                self.readyToLoadNewPage = self.properties.paginationEnabled && true;
+                self.map.setModel(page);
+
+            }
+
+            /**
+             * Public method to append a new page to list.
+             * 
+             * @return {null}
+             */
+            appendNewPage(page) {
+                var self = this;
+                if (!page || page.length < 1) {
+                    this.readyToLoadNewPage = false;
+                    return;
+                }
+
+                self.readyToLoadNewPage = self.properties.paginationEnabled && true;
+                var concatMap = this.mapmodel.concat(page);
+                this.set('mapmodel', concatMap);
+                var event = document.createEvent('Event');
+                event.initEvent('resize', true, true);
+                document.dispatchEvent(event);
+                setTimeout(function() {
+                    if (self.container.offsetHeight > self.$['scrollable'].offsetHeight)
+                        self.datasource.loadNextPage();
+                }, 0);
+            }
+
+            activateSelection() {
+                this.map.activateSelection();
+            }
+
+
+        };
+        Polymer(OwcMap);
+    })();
+    </script>
+</dom-module>

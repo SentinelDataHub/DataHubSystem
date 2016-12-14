@@ -1,0 +1,1019 @@
+<!--
+    @license
+
+
+    Data HUb Service (DHuS) - For Space data distribution.
+    Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+    Copyright (C) 2013,2014,2015,2016 GAEL Systems
+    Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+    This file is part of DHuS software sources.
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+  -->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
+<link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
+<!--
+  Owc list
+
+
+  @demo demo/index.html
+  -->
+<dom-module id="owc-calendar">
+    <!-- VIEW  CODE HERE -->
+    <template>
+        <style is="custom-style">
+        .nomap {
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            margin-bottom: 20px;
+        }
+        
+        .chart div {
+            font: 10px sans-serif;
+            /*background-color: white;*/
+            padding: 3px;
+            margin: 1px;
+            color: white;
+            height: 100%;
+        }
+        
+        #wrapper {
+            width: 100%;
+            height: 100%;
+            margin: 0px;
+        }
+        
+        #chart_placeholder {
+            font: 10px sans-serif;
+            shape-rendering: crispEdges;
+            overflow-y: auto;
+        }
+        
+        #calendar-content .month {
+            fill: none !important;
+            stroke: #000;
+            stroke-width: 2px;
+        }
+        
+        #calendar-content .day {
+            fill: #fff !important;
+            stroke: #ccc !important;
+        }
+        
+        .RdYlGn .q0-11 {
+            fill: rgb(165, 0, 38)
+        }
+        
+        .RdYlGn .q1-11 {
+            fill: rgb(215, 48, 39)
+        }
+        
+        .RdYlGn .q2-11 {
+            fill: rgb(244, 109, 67)
+        }
+        
+        .RdYlGn .q3-11 {
+            fill: rgb(253, 174, 97)
+        }
+        
+        .RdYlGn .q4-11 {
+            fill: rgb(254, 224, 139)
+        }
+        
+        .RdYlGn .q5-11 {
+            fill: rgb(255, 255, 191)
+        }
+        
+        .RdYlGn .q6-11 {
+            fill: rgb(217, 239, 139)
+        }
+        
+        .RdYlGn .q7-11 {
+            fill: rgb(166, 217, 106)
+        }
+        
+        .RdYlGn .q8-11 {
+            fill: rgb(102, 189, 99)
+        }
+        
+        .RdYlGn .q9-11 {
+            fill: rgb(26, 152, 80)
+        }
+        
+        .RdYlGn .q10-11 {
+            fill: rgb(0, 104, 55)
+        }
+        
+        #calendar-content {
+            max-height: calc(100% - 50px);
+            overflow-y: auto !important;
+            overflow-x: hidden;
+            position: absolute;
+            width: 100%;
+        }
+        
+        #calendar-container {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        #calendar-container header {
+            width: 100%;
+            height: 120px;
+            /*position: fixed; 
+            background: white;*/
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            padding-top: 20px;
+        }
+        
+        @media screen and (min-width: 993px) and (max-width: 1200px) {
+            #calendar-container header {
+                font-size: 16px;
+            }
+        }
+        
+        @media screen and (min-width: 769px) and(max-width: 992px) {
+            #calendar-container header {
+                font-size: 14px;
+            }
+        }
+        
+        @media screen and (max-width: 768px) {
+            #calendar-container header {
+                font-size: 14px;
+            }
+        }
+        
+        #calendar-header {
+            width: 100%;
+            /*height: 300px;      */
+            height: 50%;
+            /*position: fixed;*/
+            top: 50px;
+            /*line-height: 60px;      
+        padding-left: 5px;*/
+            /*position:fixed;*/
+            left: 0;
+            right: 0;
+        }
+        
+        #calendar-footer {
+            width: 100%;
+            /*height: 300px;      */
+            height: 50%;
+            /*position: fixed;*/
+            bottom: -60px;
+            /*line-height: 60px;      
+        padding-left: 5px;*/
+            color: #373b50;
+            /*position:fixed;*/
+            left: 0;
+            right: 0;
+            padding-top: 10px;
+            overflow: auto !important;
+        }
+        
+        #calendar-content .calendar-year-label {
+            font-size: 20px !important;
+            font-weight: bold !important;
+        }
+        
+        .calendar-title {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        #calendar-content .month-title {
+            font-size: 12px !important;
+        }
+        
+        .calendar-date-details {
+            max-height: calc(100% - 40px);
+            overflow-y: auto;
+            margin-top: 40px;
+            position: relative;
+        }
+        
+        .calendar-date-details > ul {
+            padding-left: 15px;
+        }
+        
+        .calendar-date-details li {
+            list-style-type: none;
+            margin: 0;
+            height: 20px !important;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .calendar-date-details li::before,
+        .calendar-date-details li::after {
+            content: '';
+            left: -30px;
+            position: absolute;
+            right: auto
+        }
+        
+        .calendar-date-details li::before {
+            border-left: 1px solid #eaeaea;
+            bottom: 50px;
+            height: 100%;
+            top: 0;
+            width: 1px
+        }
+        
+        .calendar-date-details li::after {
+            border-top: 1px solid #eaeaea;
+            height: 20px;
+            top: 25px;
+            width: 35px
+        }
+        
+        .calendar-date-details li > span {
+            display: inline-block;
+            padding: 5px;
+            text-decoration: none
+        }
+        
+        .calendar-date-details li.parent_li > span {
+            cursor: pointer
+        }
+        
+        .calendar-date-details > ul > li::before,
+        .calendar-date-details > ul > li::after {
+            border: 0
+        }
+        
+        .calendar-date-details li:last-child::before {
+            height: 30px
+        }
+        
+        .calendar-date-details li > span:hover {
+            background: #eaeaea;
+        }
+        
+        .calendar-date-details li.parent_li > span:hover + ul li.li_selected span {
+            background: #eaeaea;
+        }
+        
+        .calendar-date-details li > span > a {
+            color: #373b50;
+            text-decoration: none;
+        }
+        
+        .calendar-date-details li:hover > span:hover > a:hover {
+            background: #eaeaea;
+            text-decoration: none;
+        }
+        
+        .calendar-date-details li > span > span.glyphicon-folder-close,
+        .calendar-date-details li > span > span.glyphicon-folder-open {
+            margin-right: 5px;
+        }
+        
+        .calendar-date-details li.li_selected > span,
+        .calendar-date-details li.li_selected > span > a {
+            background: #eaeaea;
+        }
+        
+        .calendar-date-details li.li_selected > span:hover,
+        .calendar-date-details li.li_selected > span:hover > a {
+            background: #eaeaea;
+        }
+        
+        .calendar-selected-date {
+            height: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            padding-bottom: 5px;
+            padding-left: 20px;
+        }
+        
+        .calendar-details-description {
+            height: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            padding-left: 20px;
+        }
+        
+        paper-radio-button.interval {
+            --paper-radio-button-checked-color: var(--paper-grey-900);
+            --paper-radio-button-checked-ink-color: var(--paper-grey-900);
+            --paper-radio-button-unchecked-color: var(--paper-grey-500);
+            --paper-radio-button-unchecked-ink-color: var(--paper-grey-500);
+            --paper-radio-button-label-color: var(--paper-grey-900);
+        }
+        
+        .calendar-info-date {
+            font-size: 12px;
+            font-style: italic;
+            text-align: center;
+            text-align: -webkit-center;
+            padding-top: 10px;
+        }
+        
+        .mission-bar {
+            /* min-height: 100%; */
+            max-height: 20px !important;
+            background: grey;
+            padding-bottom: 0px !important;
+            padding-top: 20px;
+        }
+        
+        .mission-button {
+            height: 30px;
+            margin: auto;
+            width: 30px;
+        }
+        
+        .max-product-number-per-date {
+            font-size: 14px !important;
+            padding: 5px;
+        }
+        
+        .min-product-number-per-date {
+            font-size: 14px !important;
+            padding: 5px;
+        }
+        
+        .flex-horizontal {
+            @apply(--layout-horizontal);
+            @apply(--layout-center-justified);
+            width: 90%;
+        }
+        
+        .flexchild {
+            @apply(--layout-flex);
+        }
+        </style>
+        <div id="calendar-container">
+            <div id="calendar-header">
+                <header>
+                    <div class="calendar-title" hidden="{{hasProduct}}">
+                        {{i18n('No products found')}}.
+                    </div>
+                    <div class=" calendar-title" hidden="{{!hasProduct}}">
+                        {{productnumber}} {{i18n('products found from')}} {{start}} {{i18n('to')}} {{end}}
+                    </div>
+                    <div class=" calendar-info-date" hidden="{{!lastupdate}}">
+                        Last Update:  {{lastupdate}}
+                    </div>
+                    <div class="calendar-info-date ">click on a date for more details
+                    </div>
+                    <paper-radio-group selected="90days" >
+                        <paper-radio-button id="all-products" name="all" class="interval" data-args="all" on-change="updateCalendar" hidden="{{!isDebug}}">All data</paper-radio-button>
+                        <paper-radio-button id="last-90" name="90days" class="interval" data-args="90" on-change="updateCalendar" hidden="{{!isDebug}}">Last 90 days</paper-radio-button>
+                    </paper-radio-group>
+                    <div class="container flex-horizontal">
+                        <div class="min-product-number-per-date">
+                            1
+                        </div>
+                        <div class="flexchild mission-bar"></div>
+                        <div class=" max-product-number-per-date">
+                        </div>
+                    </div>
+                </header>
+                <div id="calendar-content"></div>
+            </div>
+        </div>
+        <calendar-coder id="calendar-coder"></calendar-coder>
+    </template>
+    <!-- MODEL-CONTROLLER CODE -->
+    <script>
+    (function() {
+        'use strict';
+        class OwcCalendar {
+            // constructor() {
+            //   this.beforeRegister()
+            // }
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'owc-calendar';
+                this.owcApp = document.querySelector('#owc-app');
+
+                this.properties = {
+
+                    /**
+                     * Interanal property, If it is true the infinite scroll calls http requests,
+                     * if it is false the scroll event is ignored.
+                     *
+                     * @type {Boolean}
+                     */
+                    readyToLoadNewPage: false,
+
+                    /**
+                     * UI variable: visibleList, to hide the empty list in case of 0 results
+                     *
+                     * @type {Boolean}
+                     */
+                    visible: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
+
+                    /**
+                     * Public property description
+                     *
+                     * @type {Object}
+                     */
+                    model: {
+                        type: Array,
+                        value: null,
+                        notify: true
+
+                    },
+
+                    /**
+                     * Public property description
+                     *
+                     * @type {Object}
+                     */
+                    datasource: {
+                        type: Object,
+                        value: {},
+                        notify: true
+
+                    },
+                    /**
+                     * Public property description
+                     *
+                     * @type {Object}
+                     */
+                    genericModel: {
+                        type: Object,
+                        value: {},
+                        notify: true
+
+                    },
+                    /**
+                     * Public property description
+                     *
+                     * @type {Object}
+                     */
+                    coder: {
+                        type: Object,
+                        value: {},
+                        notify: true
+
+                    },
+
+
+                    /**
+                     * Public property description
+                     *
+                     * @type {Object}
+                     */
+                    container: {
+                        type: Object,
+                        value: null
+                    },
+
+                    /**
+                     * This property contains the number of products per date
+                     *
+                     * @type {Object}
+                     */
+                    productnumber: {
+                        type: Number,
+                        value: 0,
+                        notify: true
+                    },
+                    
+                    hasProduct: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
+                    isDebug: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
+                    data: {
+                        type: Array,
+                        value: [],
+                        notify: true
+                    },
+
+                    mindate: {
+                        type: String,
+                        value: null,
+                        notify: true
+                    },
+
+                    maxdate: {
+                        type: String,
+                        value: null,
+                        notify: true
+                    },
+
+                    start: {
+                        type: String,
+                        value: null,
+                        notify: true
+                    },
+
+                    end: {
+                        type: String,
+                        value: null,
+                        notify: true
+                    },
+
+                    mission: {
+                        type: String,
+                        value: 'all',
+                        notify: true
+                    },
+
+                    maxnumprodperdate: {
+                        type: Number,
+                        value: 0,
+                        notify: true
+                    },
+                    lastupdate: {
+                        type: String,
+                        value: null,
+                        notify: true
+                    }
+                };
+            }
+
+            setProductCount(count) {
+                this.productnumber = count
+            }
+
+
+            detached() {
+
+                var self = this;
+                this.genericModel = null;
+                this.model = null;
+            }
+
+            // updateModel(page){
+
+            /**
+             *  set delegate
+             *
+             * @param {?Object} paramExample: method parameter sample
+             * @return {null}
+             */
+            setDelegate(delegate) {
+                this.datasource = delegate;
+            }
+            setGenericModel(genericModel) {
+                this.genericModel = genericModel;
+            }
+
+            setContainer(listContainer) {
+                this.container = listContainer;
+            }
+            setCoder(listCoder) {
+                this.coder = listCoder;
+            }
+
+            updateCalendar(event) { 
+                                        
+                var args = event.target.getAttribute('data-args')
+                
+                if(args == "90")
+                    this.datasource.loadDataFromServer(true);
+                else    
+                    this.datasource.loadDataFromServer(false);
+            }
+
+            /**
+             * Public method to set (reset) a new  list model.
+             *
+             * @return {null}
+             */
+            setNewModel(model) {
+                var self = this;
+
+                if (!model || model.length < 1) {
+                    self.visible = false;
+                    return;
+                }
+                var coder = document.getElementById('calendar-coder');
+                var specificModel = coder.extractSpecificModel(model);
+                console.warn('specificModellllllll',specificModel);
+                self.start = specificModel.startdate;
+                self.end = specificModel.enddate;
+                self.data = specificModel.data;
+                self.maxnumprodperdate = specificModel.maxnumprodperdate;
+                self.mindate=specificModel.mindate;
+                self.maxdate=specificModel.maxdate;                
+                self.productnumber = specificModel.totalproducts;
+                if(self.owcApp.calendar && self.owcApp.calendar.lastupdate)
+                    self.lastupdate = moment(self.owcApp.calendar.lastupdate).utc().format();
+                else
+                    self.lastupdate = null;
+                if(self.productnumber>0)
+                    self.hasProduct = true;
+                else
+                    self.hasProduct = false;
+                self.visible = true;                
+
+                setTimeout(function() {
+
+                    self.set('model', specificModel);
+                    self.notifyPath('model', specificModel);
+                    self.set('productnumber', self.productnumber);
+                    self.notifyPath('productnumber', self.productnumber);
+                    self.set('visible', self.visible);
+                    self.notifyPath('visible', self.visible);
+                    var event = document.createEvent('Event');
+                    event.initEvent('resize', true, true);
+                    document.dispatchEvent(event);
+                }, 0);
+                self.readyToLoadNewPage = self.properties.paginationEnabled && true;
+
+            }
+
+            /**             
+             *   This method is used to manage content panel behaviour on panel resize           
+             *
+             */
+            resize() {
+                var self = this;
+                self.customStyle['--calendarheight'] = parseInt(self.parentPanel.getSize().height - 50) + "px";
+                self.updateStyles();
+                self.customStyle['--calendarwidth'] = parseInt(self.parentPanel.getSize().width - 50) + "px";
+                self.updateStyles();
+            }
+
+            getFirstColor(mission) {
+                switch (mission) {
+                    case 'Sentinel-1':
+                        return {
+                            "R": 253,
+                            "G": 200,
+                            "B": 47
+                        };
+                        break;
+                    case 'Sentinel-2':
+                        return {
+                            "R": 0,
+                            "G": 133,
+                            "B": 66
+                        };
+                        break;
+                    case 'Sentinel-3':
+                        return {
+                            "R": 0,
+                            "G": 152,
+                            "B": 219
+                        };
+                        break;
+                    default:
+                        return {
+                            "R": 227,
+                            "G": 114,
+                            "B": 34
+                        };
+                }
+            }
+
+            getSecondColor(mission) {
+                switch (mission) {
+                    case 'Sentinel-1':
+                        return {
+                            "R": 254,
+                            "G": 241,
+                            "B": 202
+                        };
+                        break;
+                    case 'Sentinel-2':
+                        return {
+                            "R": 216,
+                            "G": 236,
+                            "B": 226
+                        };
+                        break;
+                    case 'Sentinel-3':
+                        return {
+                            "R": 205,
+                            "G": 235,
+                            "B": 248
+                        };
+                        break;
+                    default:
+                        return {
+                            "R": 250,
+                            "G": 230,
+                            "B": 216
+                        };
+                }
+            }
+
+            setBarColor(mission) {
+                var firstCol = this.getFirstColor(mission);
+                var secondCol = this.getSecondColor(mission);
+                $('.mission-bar').attr("style", function() {
+                    var firstGradient = "rgb(" + firstCol.R + "," + firstCol.G + "," + firstCol.B + ")";
+                    var secondGradient = "rgb(" + secondCol.R + "," + secondCol.G + "," + secondCol.B + ")";
+                    return "background: " + firstGradient + "; " +
+                        "background: -o-linear-gradient(left," + firstGradient + "," + secondGradient + ");" +
+                        "background: -moz-linear-gradient(left," + firstGradient + "," + secondGradient + ");" +
+                        "background: linear-gradient(to left," + firstGradient + "," + secondGradient + ");";
+                });
+            }
+
+            computeGradient(d, mission) {
+
+                var firstCol = this.getFirstColor(mission);
+                var secondCol = this.getSecondColor(mission);
+
+                var computedCol = "rgb(255,255,255)";
+                if (d && d.amount) {
+                    var p = d.amount / (this.maxnumprodperdate);
+                    computedCol = "rgb(" + parseInt(firstCol.R * p + secondCol.R * (1 - p)) + "," + parseInt(firstCol.G * p + secondCol.G * (1 - p)) + "," + parseInt(firstCol.B * p + secondCol.B * (1 - p)) + ")";
+                }
+                return computedCol;
+
+            }
+
+            createDetail(date, productNumber) {
+
+                var calendarDetail = document.createElement('calendar-details');
+                calendarDetail.selected_date = date;
+                if (productNumber)
+                    calendarDetail.productnumber = productNumber;
+                var panelTitle = this.i18n('Calendar Details');
+                document.getElementById('navigation-manager').pushComponent(calendarDetail, '500px', panelTitle);
+            }
+
+            drawCalendar() {
+                if(this.owcApp && this.owcApp.appconfig && this.owcApp.appconfig.debug)
+                    this.isDebug = this.owcApp.appconfig.debug;
+                $("#calendar-content").html("");
+                $('.max-product-number-per-date').text('');
+                $('.max-product-number-per-date').text(this.maxnumprodperdate);
+                this.setBarColor();
+
+                var startdate, enddate, startyear, endyear, startmonth, endmonth, startday, endday;
+                if (this.maxdate && this.mindate) {
+                    startdate = new Date(this.mindate);
+                    enddate = new Date(this.maxdate);
+                    startyear = startdate.getFullYear();
+                    endyear = enddate.getFullYear();
+                    startmonth = startdate.getMonth();
+                    endmonth = enddate.getMonth();
+                    startday = startdate.getDate();
+                    endday = enddate.getDate();
+
+                } else {
+
+                    startyear = new Date().getFullYear();
+                    endyear = new Date().getFullYear();
+                    startmonth = 0;
+                    endmonth = 11;
+                    startday = 1;
+                    endday = 31;
+                    startdate = new Date(startyear, startmonth, startday);
+                    enddate = new Date(endyear, endmonth, endday);
+                }
+                var self = this;
+                var monthGap = ((endmonth - startmonth) < 4) ? (endmonth - startmonth + 1) : (endmonth - startmonth + 2);
+                // console.log('monthGap',monthGap);
+                // console.log('endmonth',endmonth);
+                // console.log('startmonth',startmonth);
+                var cellSize = 35;
+                var paddingSize = 30,
+                    svgHeight = (endyear - startyear == 0) ? cellSize * 5 * monthGap : cellSize * 5 * 12,
+
+                    svgWidth = cellSize * 7 + (paddingSize * 2);
+
+                var percent = d3.format(".1%"),
+                    format = d3.time.format("%Y-%m-%d"),
+                    day = d3.time.format("%w"),
+                    week = d3.time.format("%U");
+
+                var color = d3.scale.quantize()
+                    .domain([-.05, .05])
+                    .range(d3.range(11).map(function(d) {
+                        return "q" + d + "-11";
+                    }));
+                             // console.log("startyear", startyear );
+                             //    console.log("endyear", endyear );
+                var svg = d3.select("#calendar-content").selectAll("svg")
+                    .data(d3.range(startyear, endyear + 1))
+                    .enter().append("svg")
+                    .attr("width", svgWidth)
+                    .attr("height", svgHeight)
+                    .attr("class", "RdYlGn")
+                    .attr("style", "padding-top: 10px; margin:auto; display: block;")
+                    .attr("xmlns:xlink", "http://www.w3.org/1999/xlink")
+                    .append("g")
+                    .attr("transform", "translate(" + paddingSize + ",25)");                    
+                svg.append("text")
+                    .attr("transform", "translate(" + (svgWidth / 2 - paddingSize) + "," + -5 + ")")
+                    .attr("class", "calendar-year-label")
+                    .attr("style", "font-size:16px; font-weight:bold;")
+                    .style("text-anchor", "middle")
+                    .text(function(d) {
+                        return d;
+                    });
+
+
+                var rect = svg.selectAll(".day")
+                    .data(function(d) {
+                        //console.log("which is the date for day?",d);
+                        //return d3.time.days(new Date(d, 0, 1), new Date(d + 1, 0, 1));
+                        if(endyear - startyear == 0)
+                            return d3.time.days(new Date(startyear, startmonth, startday), new Date(endyear, endmonth, endday));
+                        else
+                            return d3.time.days(new Date(d, 0, 1), new Date(d + 1, 0, 1));
+                    })
+                    .enter().append("rect")
+                    .attr("stroke", "#000")
+
+                .attr("class", "day")
+                    .attr("width", cellSize)
+                    .attr("height", cellSize)
+                    // .attr("x", function(d) { return week(d) * cellSize; })
+                    // .attr("y", function(d) { return day(d) * cellSize; })
+
+                .attr("y", function(d) {
+                        if(endyear - startyear == 0)
+                            return (d3.time.weekOfYear(d) - d3.time.weekOfYear(startdate)) * cellSize;
+                        else
+                           return week(d) * cellSize; 
+                    })
+                    .attr("x", function(d) {
+                        if(endyear - startyear == 0)
+                            return d.getDay() * cellSize;
+                        else
+                            return day(d) * cellSize;
+                    })
+                    .datum(format)
+                    .attr("fill", function(d) {
+                        if(self.data[d] && self.data[d].amount)
+                            return self.computeGradient(self.data[d], self.mission);
+                        else
+                            return self.computeGradient(null, self.mission);
+                    })
+                    .on('click', function(d) {
+
+                        if (self.data[d] && self.data[d].amount)
+                            self.createDetail(d, self.data[d].amount);
+
+
+                    });
+
+                rect.append("title")
+                    .text(function(d) {
+                        var dateTitle = d;
+                        if (self.data[d] && self.data[d].amount)
+                            dateTitle = d + ": " + self.data[d].amount + ((self.data[d].amount > 1) ? " products" : " product");
+                        return dateTitle;
+                    });
+
+                rect.append("title")
+                    .text(function(d) {
+                        var dateTitle = d;
+                        if (self.data[d] && self.data[d].amount)
+                            dateTitle = d + ": " + self.data[d].amount + ((self.data[d].amount > 1) ? " products" : " product");
+                        return dateTitle;
+                    });
+
+                svg.selectAll(".month")
+                    .data(function(d) {
+                        //return d3.time.months(new Date(d, 0, 1), new Date(d + 1, 0, 1));
+                        if(endyear - startyear == 0)
+                            return d3.time.months(new Date(startyear, startmonth, startday), new Date(endyear, endmonth, endday));
+                        else
+                            return d3.time.months(new Date(d, 0, 1), new Date(d + 1, 0, 1));
+                    })
+                    .enter().append("path")
+                    .attr("class", "month")
+                    .attr("style", "fill: none; stroke: #000; stroke-width: 3px;")
+                    .attr("d", self.monthPath)
+                    .attr("transform", function(d) {
+                        if(endyear - startyear == 0)
+                            return "translate(0,-" + (d3.time.weekOfYear(startdate) * cellSize) + ")"
+                        else
+                            return // "translate(0,-" + (d3.time.weekOfYear(d) * cellSize) + ")"
+                    });
+
+                var month_titles = svg.selectAll(".month-title") // Jan, Feb, Mar and the whatnot
+                    .data(function(d) {
+                        //return d3.time.months(new Date(d, 0, 1), new Date(d + 1, 0, 1));
+                        if(endyear - startyear == 0)
+                            return d3.time.months(new Date(startyear, startmonth, startday), new Date(endyear, endmonth, endday));
+                        else
+                            return d3.time.months(new Date(d, 0, 1), new Date(d + 1, 0, 1));
+                    })
+                    .enter().append("text")
+                    .text(self.monthTitle)
+                    .attr("class", "month-title")
+                    .attr("style", "font-size:12px;")
+                    .attr("y", function(d) {
+                        if(endyear - startyear == 0)
+                            return ((d3.time.weekOfYear(d) - d3.time.weekOfYear(startdate)) + 1) * cellSize;
+                        else
+                            return (d3.time.weekOfYear(d) + 1) * cellSize;
+                    })
+                    .attr("x", "-5")
+                    .attr("d", self.monthPath)
+                    .attr("transform", function(d) {
+                         if(endyear - startyear == 0)
+                            return "rotate(-90,-5," + ((d3.time.weekOfYear(d) - d3.time.weekOfYear(startdate)) + 1) * cellSize + ")"
+                        else
+                            return "rotate(-90,-5," + ((d3.time.weekOfYear(d) + 1) * cellSize) + ")"
+                    });
+
+                // svg.append("text")
+                //   .attr("transform", "translate(-6," + cellSize * 3.5 + ")rotate(-90)")
+                //   .style("text-anchor", "middle")
+                //   .text(function(d) { return d; });
+
+                // console.log("data",self.data);
+                rect.filter(function(d) {
+                        return d in self.data;
+                    })
+                    // .attr("class", function(d) {
+                    //   return "day " + color(data[d]); })
+                    .attr("class", "")
+                    .attr("fill", function(d) {
+                        var greenGraduation = parseInt(self.data[d].amount / (self.productnumber) * 255);
+                        //console.log("data[d]",greenGraduation)  ;
+                        //console.log("rgb(0,"+greenGraduation+",0)")  ;
+                        return self.computeGradient(self.data[d], self.mission);
+                    })
+                    .select("title")
+                    .text(function(d) {
+                        if (self.data[d] && self.data[d].amount)
+                            return d + ": " + self.data[d].amount + ((self.data[d].amount > 1) ? " products" : " product");
+                        else
+                            return "No products found on " + d;
+                    });
+            }
+
+            monthPath(t0) {
+                var day = d3.time.format("%w"),
+                    week = d3.time.format("%U");
+
+                var cellSize = 35;
+                var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
+                    d0 = +day(t0),
+                    w0 = +week(t0),
+                    d1 = +day(t1),
+                    w1 = +week(t1);
+
+                return "M" + d0 * cellSize + "," + (w0) * cellSize + "H" + 7 * cellSize + "V" + (w1) * cellSize + "H" + (d1 + 1) * cellSize + "V" + (w1 + 1) * cellSize + "H" + 0 + "V" + (w0 + 1) * cellSize + "H" + d0 * cellSize + "Z";
+            }
+
+            monthTitle(t0) {
+                var monthNames = ["January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"
+                ];
+                //return t0.toLocaleString("en-us", { month: "long" });
+                return monthNames[t0.getMonth()];
+            }
+
+
+        };
+
+        Polymer(OwcCalendar);
+        eu.serco.Owc.OwcCalendar = OwcCalendar;
+
+    })();
+    </script>
+</dom-module>

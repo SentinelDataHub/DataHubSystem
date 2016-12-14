@@ -26,15 +26,17 @@ import org.apache.olingo.odata2.api.edm.provider.EntityType;
 import org.apache.olingo.odata2.api.edm.provider.Property;
 import org.apache.olingo.odata2.api.edm.provider.SimpleProperty;
 
-import fr.gael.dhus.olingo.v1.V1Model;
+import fr.gael.dhus.olingo.v1.Model;
 import fr.gael.dhus.olingo.v1.entity.Attribute;
+import org.apache.olingo.odata2.api.edm.provider.Facets;
 
-public class AttributeEntitySet extends V1EntitySet<Attribute>
+public class AttributeEntitySet extends AbstractEntitySet<Attribute>
 {
    public static final String ENTITY_NAME = "Attribute";
 
    // Entity keys
    public static final String VALUE = "Value";
+   public static final String CATEGORY = "Category";
 
    @Override
    public String getEntityName ()
@@ -45,13 +47,27 @@ public class AttributeEntitySet extends V1EntitySet<Attribute>
    @Override
    public EntityType getEntityType ()
    {
-      EntityType res = V1Model.ITEM.getEntityType ();
+      EntityType res = Model.ITEM.getEntityType();
 
-      // Collections.singletonList(
       List<Property> properties = res.getProperties ();
       properties.add ((Property) new SimpleProperty ().setName (VALUE)
             .setType (EdmSimpleTypeKind.String));
+      properties.add((Property) new SimpleProperty().setName(CATEGORY)
+            .setType(EdmSimpleTypeKind.String)
+            .setFacets(new Facets().setDefaultValue(null)));
 
       return res.setName (ENTITY_NAME).setProperties (properties);
+   }
+
+   @Override
+   public boolean isTopLevel()
+   {
+      return false;
+   }
+
+   @Override
+   public boolean hasManyEntries()
+   {
+      return false;
    }
 }

@@ -20,12 +20,11 @@
 package fr.gael.dhus.database.object;
 
 import java.util.Set;
+import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
@@ -41,33 +40,32 @@ import javax.persistence.Table;
 public class ProductCart
 {
    @Id
-   @GeneratedValue (strategy = GenerationType.AUTO)
-   @Column (name = "ID", nullable = false)
-   private Long id;
+   @Column (name = "UUID", nullable = false)
+   private String uuid = UUID.randomUUID ().toString ();
 
    @OneToOne (fetch=FetchType.LAZY)
    private User user;
    
    @ManyToMany (fetch = FetchType.LAZY)
    @JoinTable (name = "CART_PRODUCTS",
-               joinColumns = { @JoinColumn (name = "CART_ID") },
+               joinColumns = { @JoinColumn (name = "CART_UUID") },
                inverseJoinColumns = { @JoinColumn (name = "PRODUCT_ID") })
    private Set<Product> products;
 
    /**
-    * @return the id
+    * @return the uuid
     */
-   public Long getId ()
+   public String getUUID ()
    {
-      return id;
+      return uuid;
    }
 
    /**
-    * @param id the id to set
+    * @param uuid the uuid to set
     */
-   public void setId (Long id)
+   public void setUUID (String uuid)
    {
-      this.id = id;
+      this.uuid = uuid;
    }
 
    public User getUser ()
@@ -98,7 +96,7 @@ public class ProductCart
 
       ProductCart that = (ProductCart) o;
 
-      if (id != null ? !id.equals (that.id) : that.id != null) return false;
+      if (uuid != null ? !uuid.equals (that.uuid) : that.uuid != null) return false;
       return !(user != null ? !user.equals (that.user) : that.user != null);
 
    }
@@ -106,7 +104,7 @@ public class ProductCart
    @Override
    public int hashCode ()
    {
-      int result = id != null ? id.hashCode () : 0;
+      int result = uuid != null ? uuid.hashCode () : 0;
       result = 31 * result + (user != null ? user.hashCode () : 0);
       return result;
    }

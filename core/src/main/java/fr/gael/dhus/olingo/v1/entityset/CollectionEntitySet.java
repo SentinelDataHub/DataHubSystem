@@ -19,19 +19,13 @@
  */
 package fr.gael.dhus.olingo.v1.entityset;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-import org.apache.olingo.odata2.api.ODataCallback;
-import org.apache.olingo.odata2.api.edm.EdmException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.olingo.odata2.api.edm.EdmMultiplicity;
 import org.apache.olingo.odata2.api.edm.EdmSimpleTypeKind;
 import org.apache.olingo.odata2.api.edm.EdmTargetPath;
@@ -48,48 +42,37 @@ import org.apache.olingo.odata2.api.edm.provider.NavigationProperty;
 import org.apache.olingo.odata2.api.edm.provider.Property;
 import org.apache.olingo.odata2.api.edm.provider.PropertyRef;
 import org.apache.olingo.odata2.api.edm.provider.SimpleProperty;
-import org.apache.olingo.odata2.api.ep.EntityProviderWriteProperties;
-import org.apache.olingo.odata2.api.ep.callback.OnWriteFeedContent;
-import org.apache.olingo.odata2.api.ep.callback.WriteFeedCallbackContext;
-import org.apache.olingo.odata2.api.ep.callback.WriteFeedCallbackResult;
-import org.apache.olingo.odata2.api.exception.ODataApplicationException;
+import org.apache.olingo.odata2.api.uri.KeyPredicate;
 
 import fr.gael.dhus.database.object.User;
-import fr.gael.dhus.olingo.v1.V1Model;
-import fr.gael.dhus.olingo.v1.V1Util;
+import fr.gael.dhus.olingo.Security;
+import fr.gael.dhus.olingo.v1.Expander;
+import fr.gael.dhus.olingo.v1.Model;
+import fr.gael.dhus.olingo.v1.entity.AbstractEntity;
 import fr.gael.dhus.olingo.v1.entity.Collection;
-import fr.gael.dhus.olingo.v1.entity.Product;
+import fr.gael.dhus.olingo.v1.map.impl.CollectionMap;
 import fr.gael.dhus.service.CollectionService;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
 
-public class CollectionEntitySet extends V1EntitySet<Collection>
+public class CollectionEntitySet extends AbstractEntitySet<Collection>
 {
+   private static final Logger LOGGER = LogManager.getLogger (CollectionEntitySet.class);
+   private static final CollectionService COLLECTION_SERVICE =
+         ApplicationContextProvider.getBean(CollectionService.class);
+
    public static final String ENTITY_NAME = "Collection";
 
    // Entity keys
-   public static final String ID = "Id";
+   public static final String UUID = "UUID";
    public static final String NAME = "Name";
    public static final String DESCRIPTION = "Description";
 
    public static final FullQualifiedName ASSO_COLLECTION_PRODUCT =
-      new FullQualifiedName (V1Model.NAMESPACE, "Collection_Product");
+      new FullQualifiedName(Model.NAMESPACE, "Collection_Product");
    // many
    public static final String ROLE_COLLECTION_PRODUCTS = "Collection_Products";
    // many
    public static final String ROLE_PRODUCT_COLLECTIONS = "Product_Collections";
-
-   public static final FullQualifiedName ASSO_COLLECTION_COLLECTION =
-      new FullQualifiedName (V1Model.NAMESPACE, "Collection_Collection");
-   // many
-   public static final String ROLE_COLLECTION_COLLECTIONS =
-      "Collection_Collections";
-   // 1
-   public static final String ROLE_COLLECTION_PARENT = "Collection_Parent";
-
-   private static Logger logger = LogManager
-      .getLogger (CollectionEntitySet.class);
-   private static CollectionService collectionManager =
-      ApplicationContextProvider.getBean (CollectionService.class);
 
    @Override
    public String getEntityName ()
@@ -100,7 +83,7 @@ public class CollectionEntitySet extends V1EntitySet<Collection>
    @Override
    public EntityType getEntityType ()
    {
-      List<Property> properties = new ArrayList<Property> ();
+      List<Property> properties = new ArrayList<>();
       properties.add (new SimpleProperty ()
          .setName (NAME)
          .setType (EdmSimpleTypeKind.String)
@@ -113,17 +96,11 @@ public class CollectionEntitySet extends V1EntitySet<Collection>
 
       // Navigation Properties
       List<NavigationProperty> navigationProperties =
-         new ArrayList<NavigationProperty> ();
-      navigationProperties.add (new NavigationProperty ()
-         .setName (V1Model.PRODUCT.getName ())
-         .setRelationship (ASSO_COLLECTION_PRODUCT)
-         .setFromRole (ROLE_PRODUCT_COLLECTIONS)
-         .setToRole (ROLE_COLLECTION_PRODUCTS));
-      // TODO (OData v3) setContainsTarget(true)
-      navigationProperties.add (new NavigationProperty ().setName (getName ())
-         .setRelationship (ASSO_COLLECTION_COLLECTION)
-         .setFromRole (ROLE_COLLECTION_PARENT)
-         .setToRole (ROLE_COLLECTION_COLLECTIONS));
+         Collections.singletonList(new NavigationProperty()
+            .setName(Model.PRODUCT.getName())
+            .setRelationship(ASSO_COLLECTION_PRODUCT)
+            .setFromRole(ROLE_PRODUCT_COLLECTIONS)
+            .setToRole(ROLE_COLLECTION_PRODUCTS));
 
       // Key
       Key key =
@@ -137,8 +114,7 @@ public class CollectionEntitySet extends V1EntitySet<Collection>
    @Override
    public List<AssociationSet> getAssociationSets ()
    {
-      List<AssociationSet> associationSets = new ArrayList<AssociationSet> ();
-      associationSets.add (new AssociationSet ()
+      return Collections.singletonList(new AssociationSet()
          .setName (ASSO_COLLECTION_PRODUCT.getName ())
          .setAssociation (ASSO_COLLECTION_PRODUCT)
          .setEnd1 (
@@ -146,168 +122,54 @@ public class CollectionEntitySet extends V1EntitySet<Collection>
                .setEntitySet (getName ()))
          .setEnd2 (
             new AssociationSetEnd ().setRole (ROLE_COLLECTION_PRODUCTS)
-               .setEntitySet (V1Model.PRODUCT.getName ())));
-      associationSets.add (new AssociationSet ()
-         .setName (ASSO_COLLECTION_COLLECTION.getName ())
-         .setAssociation (ASSO_COLLECTION_COLLECTION)
-         .setEnd1 (
-            new AssociationSetEnd ().setRole (ROLE_COLLECTION_COLLECTIONS)
-               .setEntitySet (getName ()))
-         .setEnd2 (
-            new AssociationSetEnd ().setRole (ROLE_COLLECTION_PARENT)
-               .setEntitySet (getName ())));
-      return associationSets;
+               .setEntitySet(Model.PRODUCT.getName())));
    }
 
    @Override
    public List<Association> getAssociations ()
    {
-      List<Association> associations = new ArrayList<Association> ();
-      associations.add (new Association ()
+      return Collections.singletonList(new Association()
          .setName (ASSO_COLLECTION_PRODUCT.getName ())
          .setEnd1 (
             new AssociationEnd ()
-               .setType (V1Model.PRODUCT.getFullQualifiedName ())
+               .setType(Model.PRODUCT.getFullQualifiedName())
                .setRole (ROLE_COLLECTION_PRODUCTS)
                .setMultiplicity (EdmMultiplicity.MANY))
          .setEnd2 (
             new AssociationEnd ().setType (getFullQualifiedName ())
                .setRole (ROLE_PRODUCT_COLLECTIONS)
                .setMultiplicity (EdmMultiplicity.MANY)));
-
-      associations.add (new Association ()
-         .setName (ASSO_COLLECTION_COLLECTION.getName ())
-         .setEnd1 (
-            new AssociationEnd ().setType (getFullQualifiedName ())
-               .setRole (ROLE_COLLECTION_COLLECTIONS)
-               .setMultiplicity (EdmMultiplicity.MANY))
-         .setEnd2 (
-            new AssociationEnd ().setType (getFullQualifiedName ())
-               .setRole (ROLE_COLLECTION_PARENT)
-               .setMultiplicity (EdmMultiplicity.ZERO_TO_ONE)));
-      return associations;
-   }
-
-   @Override
-   public Map<String, ODataCallback> getCallbacks (final URI lnk)
-   {
-      Map<String, ODataCallback> res = new HashMap<String, ODataCallback> ();
-      // Expand Products
-      res.put ("Products", new OnWriteFeedContent ()
-      {
-         @Override
-         public WriteFeedCallbackResult retrieveFeedResult (
-            WriteFeedCallbackContext context) throws ODataApplicationException
-         {
-            WriteFeedCallbackResult result = new WriteFeedCallbackResult ();
-            try
-            {
-               if (isNavigationFromTo (context, getName (),
-                  V1Model.PRODUCT.getName ()))
-               {
-                  EntityProviderWriteProperties inlineProperties =
-                     EntityProviderWriteProperties
-                        .serviceRoot (lnk)
-                        .expandSelectTree (
-                           context.getCurrentExpandSelectTreeNode ())
-                        .selfLink (context.getSelfLink ()).build ();
-
-                  User u = V1Util.getCurrentUser ();
-                  List<fr.gael.dhus.database.object.Product> products =
-                     new ArrayList<fr.gael.dhus.database.object.Product> ();
-                  try
-                  {
-                     products =
-                        collectionManager.getAuthorizedProducts (
-                           ((Long) (context.getEntryData ().get (ID))),
-                           (u == null) ? null : u);
-                  }
-                  catch (Exception e)
-                  {
-                     logger.warn ("An error is occurred !", e);
-                  }
-                  List<Map<String, Object>> feedData =
-                     new ArrayList<Map<String, Object>> ();
-                  for (fr.gael.dhus.database.object.Product product : products)
-                  {
-                     if (product == null) continue;
-                     Product p = new Product (product);
-                     feedData.add (p.toEntityResponse (lnk.toString ()));
-                  }
-                  result.setFeedData (feedData);
-                  result.setInlineProperties (inlineProperties);
-               }
-            }
-            catch (EdmException e)
-            {
-               logger.error (
-                  "Error when including Products in Collection Response", e);
-            }
-            return result;
-         }
-      });
-      // Expand Collections
-      res.put ("Collections", new OnWriteFeedContent ()
-      {
-
-         @Override
-         public WriteFeedCallbackResult retrieveFeedResult (
-            WriteFeedCallbackContext context) throws ODataApplicationException
-         {
-            WriteFeedCallbackResult result = new WriteFeedCallbackResult ();
-            try
-            {
-               if (isNavigationFromTo (context, getName (), getName ()))
-               {
-                  EntityProviderWriteProperties inlineProperties =
-                     EntityProviderWriteProperties
-                        .serviceRoot (lnk)
-                        .expandSelectTree (
-                           context.getCurrentExpandSelectTreeNode ())
-                        .selfLink (context.getSelfLink ()).build ();
-
-                  User u = V1Util.getCurrentUser ();
-                  Set<fr.gael.dhus.database.object.Collection> collections =
-                     new HashSet<fr.gael.dhus.database.object.Collection> ();
-                  try
-                  {
-                     collections =
-                        collectionManager.getAuthorizedSubCollections (
-                           (Long) context.getEntryData ().get (ID), u);
-                  }
-                  catch (Exception e)
-                  {
-                     logger.warn ("An error is occurred !", e);
-                  }
-
-                  List<Map<String, Object>> feedData =
-                     new ArrayList<Map<String, Object>> ();
-                  for (fr.gael.dhus.database.object.Collection collection : collections)
-                  {
-                     if (collection == null) continue;
-                     Collection c = new Collection (collection);
-                     feedData.add (c.toEntityResponse (lnk.toString ()));
-                  }
-                  result.setFeedData (feedData);
-                  result.setInlineProperties (inlineProperties);
-               }
-            }
-            catch (EdmException e)
-            {
-               logger.error (
-                  "Error when including SubCollections in Collection Response",
-                  e);
-            }
-            return result;
-         }
-      });
-      return res;
    }
 
    @Override
    public int count ()
    {
-      User u = V1Util.getCurrentUser ();
-      return collectionManager.countAuthorizedSubCollections (null, u);
+      User u = Security.getCurrentUser();
+      return COLLECTION_SERVICE.countAuthorizedCollections(u);
+   }
+
+   @Override
+   public Map getEntities()
+   {
+      return new CollectionMap();
+   }
+
+   @Override
+   public AbstractEntity getEntity(KeyPredicate kp)
+   {
+      return new CollectionMap().get(kp.getLiteral());
+   }
+
+   @Override
+   public List<String> getExpandableNavLinkNames()
+   {
+      return Collections.singletonList("Products");
+   }
+
+   @Override
+   public List<Map<String, Object>> expand(String navlink_name, String self_url,
+         Map<?, AbstractEntity> entities, Map<String, Object> key)
+   {
+      return Expander.expandFeedSingletonKey(navlink_name, self_url, entities, key, CollectionEntitySet.NAME);
    }
 }

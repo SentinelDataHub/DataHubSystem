@@ -1,0 +1,66 @@
+{
+	"@id": "&s2;pdi_level_1b_granule",
+	"schema": {
+		"productsExtractor": {
+			"absolutePath": "/"
+		},
+		"model": {
+			"@type": "Array",
+			"valuesExtractor": [{
+				"@id": "id",
+				"@type": "Object",
+				"valueExtractor": {
+					"relativePath": "/id"
+				}
+			}, {
+				"@id": "id",
+				"@type": "Object",
+				"@value": "objectPropertyValue"
+			}, {
+				"@id": "uuid",
+				"@type": "Object",
+				"valueExtractor": {
+					"relativePath": "/uuid"
+				}
+			}, {
+				"@id": "footprint",
+				"@type": "Object",
+				"valueExtractor": {
+					"relativePath": "/footprint"
+				}
+			}, {
+				"@id": "quicklook",
+				"@type": "Object",
+				"valueExtractor": {
+					"relativePath": "/quicklook"
+				}
+			}, {
+				"@id": "attributes",
+				"@type": "Array",
+				"valuesExtractor": [{
+					"@id": "baseline_collection",
+					"@type": "Object",
+					"valueExtractor": {
+						"@type": "Array",
+						"relativePath": "/indexes",
+						"findWhere": {
+							"name": "products"
+						},
+						"valueExtractor": {
+							"@type": "Array",
+							"relativePath": "/children",
+							"findWhere": {
+								"name": "Baseline Collection"
+							},
+							"valueExtractor": {
+
+								"relativePath": "/value"
+							}
+						}
+					}
+				}]
+			}]
+		},
+		"properties": [{}]
+	}
+}

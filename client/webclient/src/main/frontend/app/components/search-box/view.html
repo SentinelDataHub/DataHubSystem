@@ -1,25 +1,25 @@
 <div>
-<!-- 
+<!--
   Data HUb Service (DHuS) - For Space data distribution.
   Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
   Copyright (C) 2013,2014,2015,2016 GAEL Systems
   Copyright (C) 2013,2014,2015,2016 Serco Spa
-  
+
   This file is part of DHuS software sources.
- 
+
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as
   published by the Free Software Foundation, either version 3 of the
   License, or (at your option) any later version.
-  
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
   GNU Affero General Public License for more details.
- 
+
   You should have received a copy of the GNU Affero General Public License
   along with this program. If not, see <http://www.gnu.org/licenses/>.
- 
+
 -->
 <div >
     <style>
@@ -70,14 +70,14 @@
             background-color: white;
             padding: 5px;
             float:left;
-            width: calc(100% - 70px);
+            width: inherit;
             border:none;
             left: 30px;
-            position: absolute;
+            position: relative;
 
         }
         #search-box-container{
-            /*-webkit-transition: width 0.4s; 
+            /*-webkit-transition: width 0.4s;
             transition: width 0.4s;*/
             -webkit-box-shadow: 3px 5px 19px 0px rgba(49, 50, 50, 0.62);
             -moz-box-shadow: 3px 5px 19px 0px rgba(49, 50, 50, 0.62);
@@ -93,7 +93,7 @@
             background-image: linear-gradient(#373B50,#373B50);
             width: 40px;
             height: 32px;
-            display: block;            
+            display: block;
             color: #fff;
             float: right;
             fill: currentColor;
@@ -113,30 +113,30 @@
             background-image: linear-gradient(#fff,#fff);
             width: 40px;
             height: 32px;
-            display: block;            
+            display: block;
             color: #333;
             float: right;
             fill: currentColor;
             position: relative;
             cursor: pointer;
-            z-index: 5;            
+            z-index: 5;
             background-image: -webkit-linear-gradient(#fff,#fff);
             background-image: linear-gradient(#fff,#fff);
         }
 
         .clear-button {
-            padding: 8px;            
+            padding: 8px;
             position: relative;
-            background-color: #fff;            
+            background-color: #fff;
             width: 20px;
             height: 30px;
-            display: block;            
+            display: block;
             color: #777;
-            float: right;            
+            float: right;
             cursor: pointer;
-            z-index: 5; 
-            display: none;           
-        }            
+            z-index: 5;
+            display: none;
+        }
 
         .advance-search-button-active{
             color: green;
@@ -166,42 +166,46 @@
         }
 
         .ui-widget{
-            display: inline-grid;            
+            display: inline-grid;
             /*width: 100%;            */
-            z-index: 11000000;   
-            background-color: white ; 
-            opacity: 0.9;                   
+            z-index: 11000000;
+            background-color: white ;
+            opacity: 0.9;
+        }
+
+        .search-box-ui-widget {
+            width: calc(100% - 70px);
         }
 
         .ui-menu-item {
             display: table;
             text-decoration: none;
         }
-        @media screen and (min-width: 994px) { 
-        
+        @media screen and (min-width: 994px) {
+
             #ui-id-1 {
-                max-width: calc(40% - 111px);           
+                max-width: calc(40% - 111px);
             }
         }
 
-        @media screen and (min-width: 993px) and (max-width: 1200px) { 
-        
-            #ui-id-1 {
-                max-width: calc(50% - 111px);           
-            }
-        } 
+        @media screen and (min-width: 993px) and (max-width: 1200px) {
 
-        @media screen and (min-width: 769px) and(max-width: 992px) { 
-            
             #ui-id-1 {
-                max-width: calc(100% - 71px);           
+                max-width: calc(50% - 111px);
             }
-        } 
+        }
 
-        @media screen and (max-width: 768px) { 
-            
+        @media screen and (min-width: 769px) and(max-width: 992px) {
+
             #ui-id-1 {
-                max-width: calc(100% - 71px);           
+                max-width: calc(100% - 71px);
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+
+            #ui-id-1 {
+                max-width: calc(100% - 71px);
             }
         }
 
@@ -213,22 +217,26 @@
         <div class="row">
             <div  class="advanced-search-button" ng-click="toggleAdvancedMenu()">
                 <div id="advanced-search-icon" ng-class="{'advance-search-button-active': (advancedSearchButtonActive)}"  class="glyphicon glyphicon-menu-hamburger" ></div>
-            </div> 
-            <div class="ui-widget">           
-                <input ng-model="model.textQuery" ng-keyup="getSuggestions()" type="text" class="form-control" ng-focus="showClear()" ng-blur="hideClear()" id="search-input" placeholder="Insert search criteria..." > 
             </div>
-          <!--   <input ng-model="advancedSearchButtonActive" type="text" class="form-control" id="search-input" placeholder="Insert search criteria..."> -->            
+            <div class="ui-widget search-box-ui-widget" >
+                <input ng-model="model.textQuery" ng-keyup="getSuggestions($event)" type="text" class="form-control" ng-focus="showClear()" ng-blur="hideClear()" id="search-input" placeholder="Insert search criteria..." > 
+
+            </div>
+
+          <!--   <input ng-model="advancedSearchButtonActive" type="text" class="form-control" id="search-input" placeholder="Insert search criteria..."> -->
             <div class="search-button" ng-click="search()" id="search-button">
                 <svg viewBox="0 0 24 24"  height="100%" width="100%" preserveAspectRatio="xMidYMid meet" fit="" style="pointer-events: none; display: block;"><g><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></g></svg>
             </div>
             <div class="save-button" ng-click="saveSearch()" id="save-search-button" title="Save Search">
                 <svg viewBox="0 0 24 24"  height="100%" width="100%" preserveAspectRatio="xMidYMid meet" fit="" style="pointer-events: none; display: block;"><g id="save"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></g></svg>
             </div>
-            <div class="clear-button glyphicon glyphicon-remove" id="clear-filter-button" ng-click="clearFilter()"  title="Clear Search Filter">
-                
+
+
+                <div class="clear-button glyphicon glyphicon-remove" id="clear-filter-button" ng-click="clearFilter()"  title="Clear Search Filter">
+
             </div>
-                                    
         </div>
+
     </div>
 </div>
 </div>

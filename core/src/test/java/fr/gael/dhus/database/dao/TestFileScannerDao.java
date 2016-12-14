@@ -53,10 +53,12 @@ public class TestFileScannerDao extends
    @Override
    public void create ()
    {
-      String message = "testSsuccess";
+      String message = "testSuccess";
+      String collection_name = "testCollection";
       
       Collection collection = new Collection ();
-      collection.setId (5L);
+      collection.setUUID ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa5");
+      collection.setName (collection_name);
       
       HashSet<Collection> collections =  new HashSet<> ();
       collections.add (collection);
@@ -85,12 +87,14 @@ public class TestFileScannerDao extends
    @Override
    public void update ()
    {
-      Long cid = Long.valueOf (3);
+      String cid = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3";
       Long fid = Long.valueOf (0);
       String username = "toto";
+      String collection_name = "testCollection";
       FileScanner fs = dao.read (fid);
       Collection collection = new Collection ();
-      collection.setId (cid);
+      collection.setUUID (cid);
+      collection.setName (collection_name);
 
       assertNotEquals (fs.getUsername (), username);
       fs.setUsername (username);
@@ -116,7 +120,7 @@ public class TestFileScannerDao extends
       assertNull (dao.read (id));
       for (Collection collection : collections)
       {
-         assertNotNull (cdao.read (collection.getId ()));
+         assertNotNull (cdao.read (collection.getUUID ()));
       }
    }
 
@@ -145,7 +149,7 @@ public class TestFileScannerDao extends
       Long fid1 = Long.valueOf (1);
       FileScanner fs0 = dao.read (fid0);
       FileScanner fs1 = dao.read (fid1);
-      Collection c = cdao.read (1L);
+      Collection c = cdao.read ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1");
 
      
       assertTrue (fs0.getCollections ().contains (c));
@@ -163,11 +167,11 @@ public class TestFileScannerDao extends
    @Test
    public void getScannerCollections ()
    {
-      List<Long> list = dao.getScannerCollections (0L);
+      List<String> list = dao.getScannerCollections (0L);
       assertNotNull (list);
       assertEquals (list.size (), 2);
-      assertTrue (list.contains (1L));
-      assertTrue (list.contains (2L));
+      assertTrue (list.contains ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1"));
+      assertTrue (list.contains ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2"));
    }
    
    @Test

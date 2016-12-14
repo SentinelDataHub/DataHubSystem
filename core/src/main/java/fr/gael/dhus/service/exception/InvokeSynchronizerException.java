@@ -8,6 +8,7 @@ import fr.gael.dhus.database.object.SynchronizerConf;
  */
 public class InvokeSynchronizerException extends Exception
 {
+   private static final long serialVersionUID = -252836655922811559L;
    /**
     * Creates a new exception.
     * @param cause cause.

@@ -52,7 +52,8 @@ angular.module('DHuS-webclient')
         id: 'searchItem',
         product: product,
         element: element,        
-        productDidHighlighted: function(param){          
+        productDidHighlighted: function(param){ 
+                 
           if(param.id == this.product.id && SavedSearchModel.getProductByID(this.product.id) ){
             this.element.css({'background-color':HIGHLIGHT_ITEM_BACKGROUND_COLOR});           
           }
@@ -61,6 +62,7 @@ angular.module('DHuS-webclient')
           }          
         },
         productDidntHighlighted: function(param){
+          
           if((param.id == this.product.id)){
             this.element.css({'background-color':SELECTED_ITEM_BACKGROUND_COLOR});
           }
@@ -88,6 +90,7 @@ angular.module('DHuS-webclient')
             self.savedSearchModelSubscription(scope.product, iElem, scope);            
 
             scope.hoverIn = function(){  
+              
               if(scope.product)   
               {
                 SavedSearchModel.highlightProduct({id:scope.product.id, sender:"searchItem"});
@@ -95,7 +98,8 @@ angular.module('DHuS-webclient')
               }
             };
 
-            scope.hoverOut = function(){    
+            scope.hoverOut = function(){  
+            
               if(scope.product)   
               {
                 SavedSearchModel.nohighlightProduct({id:scope.product.id, sender:"searchItem"});
@@ -116,8 +120,8 @@ angular.module('DHuS-webclient')
             }; 
 
             scope.updateNotificationStatus = function() {
-
-                SavedSearchService.updateNotificationStatus(scope.product.id, !scope.product.notify)
+                
+                SavedSearchService.updateNotificationStatus(scope.product.uuid, !scope.product.notify)
                 .success(function(){                     
                     scope.product.notify = !scope.product.notify;
                     ToastManager.success("Notification status update successful");
@@ -128,7 +132,8 @@ angular.module('DHuS-webclient')
             };
 
             scope.removeSavedSearch = function() {
-              SavedSearchService.removeSavedSearch(scope.product.id)
+             
+              SavedSearchService.removeSavedSearch(scope.product.uuid)
               .success(function(response) {
                 SavedSearchService.getSavedSearches(SavedSearchService.offset, SavedSearchService.limit);
                 ToastManager.success("User search deletion successful");                

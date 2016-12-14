@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
@@ -36,8 +37,6 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
@@ -46,8 +45,6 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.springframework.security.core.GrantedAuthority;
@@ -60,7 +57,6 @@ import fr.gael.dhus.service.exception.UserBadEncryptionException;
 
 @Entity
 @Table (name = "USERS")
-@Cache(usage=CacheConcurrencyStrategy.READ_WRITE, region="user")
 public class User extends AbstractTimestampEntity implements Serializable,
    UserDetails
 {
@@ -108,12 +104,19 @@ public class User extends AbstractTimestampEntity implements Serializable,
       {
          return algorithmKey;
       }
+      
+      public static PasswordEncryption fromAlgorithm (String hash)
+      {
+         for (PasswordEncryption pe:values())
+            if (pe.getAlgorithmKey().equals(hash)) return pe;
+         
+         throw new IllegalArgumentException("Unknown \""+hash+"\" algorithm.");
+      }
    }
 
    @Id
-   @GeneratedValue (strategy = GenerationType.AUTO)
-   @Column (name = "ID", nullable = false)
-   private Long id;
+   @Column (name = "UUID", nullable = false)
+   private String uuid = UUID.randomUUID ().toString ();
 
    @Column (name = "LOGIN", unique = true)
    private String username;
@@ -148,7 +151,7 @@ public class User extends AbstractTimestampEntity implements Serializable,
 
    @ElementCollection (targetClass = Role.class, fetch = FetchType.EAGER)
    @CollectionTable (name = "USER_ROLES",
-                     joinColumns = @JoinColumn (name = "USER_ID"))
+                     joinColumns = @JoinColumn (name = "USER_UUID"))
    @Enumerated (EnumType.STRING)
    @Cascade ({CascadeType.DELETE})
    private List<Role> roles;
@@ -165,14 +168,10 @@ public class User extends AbstractTimestampEntity implements Serializable,
     */
    @OneToMany (fetch = FetchType.EAGER)
    @JoinTable (name = "USER_RESTRICTIONS",
-               joinColumns = { @JoinColumn (name = "USER_ID") },
-               inverseJoinColumns = { @JoinColumn (name = "RESTRICTION_ID") })
+               joinColumns = { @JoinColumn (name = "USER_UUID") },
+               inverseJoinColumns = { @JoinColumn (name = "RESTRICTION_UUID") })
    @Cascade ({CascadeType.SAVE_UPDATE, CascadeType.DELETE})
    private Set<AccessRestriction> restrictions;
-
-   @OneToOne (fetch = FetchType.EAGER)
-   @Cascade ({CascadeType.SAVE_UPDATE, CascadeType.DELETE})
-   private Quota quota;
 
    @Column (name = "COUNTRY", nullable = false,
             columnDefinition = "VARCHAR(255) default 'unknown'")
@@ -382,21 +381,21 @@ public class User extends AbstractTimestampEntity implements Serializable,
    {
       return address;
    }
-
+   
    /**
-    * @param id the id to set
+    * @return the uuid
     */
-   public void setId (Long id)
+   public String getUUID ()
    {
-      this.id = id;
+      return uuid;
    }
 
    /**
-    * @return the id
+    * @param uuid the uuid to set
     */
-   public Long getId ()
+   public void setUUID (String uuid)
    {
-      return id;
+      this.uuid = uuid;
    }
 
    /**
@@ -429,22 +428,6 @@ public class User extends AbstractTimestampEntity implements Serializable,
    public boolean isDeleted ()
    {
       return deleted;
-   }
-
-   /**
-    * @param quota the quota to set
-    */
-   public void setQuota (Quota quota)
-   {
-      this.quota = quota;
-   }
-
-   /**
-    * @return the quota
-    */
-   public Quota getQuota ()
-   {
-      return quota;
    }
 
    public void addRestriction (AccessRestriction restriction)
@@ -549,7 +532,7 @@ public class User extends AbstractTimestampEntity implements Serializable,
 
    public String hash ()
    {
-      String source = getId() + "-" + getUsername () + "@" + getEmail () + 
+      String source = getUUID() + "-" + getUsername () + "@" + getEmail () + 
          " - " + getPassword ();
       MessageDigest md;
       byte[] digest;
@@ -653,7 +636,7 @@ public class User extends AbstractTimestampEntity implements Serializable,
    {
       final int prime = 31;
       int result = 1;
-      result = prime * result + ( (id == null) ? 0 : id.hashCode ());
+      result = prime * result + ( (uuid == null) ? 0 : uuid.hashCode ());
       result =
          prime * result + ( (username == null) ? 0 : username.hashCode ());
       return result;
@@ -666,12 +649,12 @@ public class User extends AbstractTimestampEntity implements Serializable,
       if (obj == null) return false;
       if (getClass () != obj.getClass ()) return false;
       User other = (User) obj;
-      if (id == null)
+      if (uuid == null)
       {
-         if (other.id != null) return false;
+         if (other.uuid != null) return false;
       }
       else
-         if ( !id.equals (other.id)) return false;
+         if ( !uuid.equals (other.uuid)) return false;
       if (username == null)
       {
          if (other.username != null) return false;

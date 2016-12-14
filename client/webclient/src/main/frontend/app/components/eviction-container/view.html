@@ -216,15 +216,27 @@
   top: 20px;
 }
 
+#eviction-container h3 {
+  text-align: center;
+}
+
 </style>
 
 <div id="eviction-container" class="container" ng-init="model={}">
   <div class="row">
+      <div class="col-md-1 "></div>
+      <div class="col-md-10 col-xs-8 col-sd-8">
+        <h3>Eviction Configuration</h3>
+      </div>
+      <div class="col-md-1 col-sd-3 col-xs-3 gotomap"><gotomap-button></gotomap-button></div>
+    </div>
+  <!-- <div class="row">
     <div class="col-md-1 "></div>
     <div class="col-md-10 col-sd-8 col-xs-8">
     </div>
     <div style="position:fixed; top:120px; right:40px;" class=" gotomap"><gotomap-button></gotomap-button></div>
-  </div>
+  </div> -->
+  <hr></hr>
   <hr></hr>
   <div class="row">
     <div class="group col-md-6">    

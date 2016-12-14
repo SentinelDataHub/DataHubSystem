@@ -21,9 +21,12 @@ package fr.gael.dhus.service.job;
 
 import java.util.Date;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -40,7 +43,7 @@ import fr.gael.dhus.system.config.ConfigurationManager;
 @Component
 public class SystemCheckJob extends AbstractJob
 {
-   private static Logger logger=Logger.getLogger (SystemCheckJob.class);
+   private static final Logger LOGGER = LogManager.getLogger(SystemCheckJob.class);
    private static boolean running = false; 
    
    @Autowired
@@ -68,10 +71,10 @@ public class SystemCheckJob extends AbstractJob
    {
       if (!configurationManager.getSystemCheckCronConfiguration ().isActive ())
          return;
-      logger.info ("SCHEDULER : Check system consistency.");
+      LOGGER.info("SCHEDULER : Check system consistency.");
       if (!DHuS.isStarted ())
       {
-         logger.warn("SCHEDULER : Not run while system not fully initialized.");
+         LOGGER.warn("SCHEDULER : Not run while system not fully initialized.");
          return;
       }
       if (!running)
@@ -80,28 +83,28 @@ public class SystemCheckJob extends AbstractJob
          try
          {   
             long time_start = System.currentTimeMillis ();
-            logger.info ("Control of Database coherence...");
+            LOGGER.info("Control of Database coherence...");
             long start = new Date ().getTime ();
             productService.checkDBProducts ();
-            logger.info ("Control of Database coherence spent " + 
+            LOGGER.info("Control of Database coherence spent " +
                      (new Date ().getTime ()-start) + " ms");
 
-            logger.info ("Control of Indexes coherence...");
+            LOGGER.info("Control of Indexes coherence...");
             start = new Date ().getTime ();
             searchService.checkIndex();
-            logger.info ("Control of Indexes coherence spent " + 
+            LOGGER.info("Control of Indexes coherence spent " +
                      (new Date ().getTime ()-start) + " ms");
 
-            logger.info ("Control of incoming folder coherence...");
+            LOGGER.info("Control of incoming folder coherence...");
             start = new Date ().getTime ();
             incomingManager.checkIncomming ();
-            logger.info ("Control of incoming folder coherence spent " + 
+            LOGGER.info("Control of incoming folder coherence spent " +
                      (new Date ().getTime ()-start) + " ms");
 
-            logger.info ("Optimizing database...");
+            LOGGER.info("Optimizing database...");
             DaoUtils.optimize ();
             
-            logger.info ("SCHEDULER : Check system consistency done - " +
+            LOGGER.info("SCHEDULER : Check system consistency done - " +
                (System.currentTimeMillis ()-time_start) + "ms");
 
          }

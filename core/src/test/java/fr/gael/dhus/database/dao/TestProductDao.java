@@ -30,7 +30,6 @@ import fr.gael.dhus.database.object.Collection;
 import fr.gael.dhus.database.object.MetadataIndex;
 import fr.gael.dhus.database.object.Product;
 import fr.gael.dhus.database.object.Product.Download;
-import fr.gael.dhus.database.object.Role;
 import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.util.CheckIterator;
 import fr.gael.dhus.util.TestContextLoader;
@@ -178,10 +177,10 @@ public class TestProductDao extends TestAbstractHibernateDao<Product, Long>
 
       for (User user : authorizedUsers)
       {
-         Assert.assertNotNull (udao.read (user.getId ()));
+         Assert.assertNotNull (udao.read (user.getUUID ()));
       }
    }
-
+   
    @Override
    public void scroll ()
    {
@@ -225,21 +224,21 @@ public class TestProductDao extends TestAbstractHibernateDao<Product, Long>
    @Test
    public void getAuthorizedProduct ()
    {
-      long uid;
+      String uid;
       List<Long> expected;
       List<Long> products;
 
-      uid = 0;
+      uid = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0";
       expected = Arrays.asList (0L, 5L, 6L, 7L);
       products = dao.getAuthorizedProducts (uid);
       Assert.assertEquals (products.size (), expected.size ());
       Assert.assertTrue (products.containsAll (expected));
    }
 
-   private User emulateUser (long uid, String username)
+   private User emulateUser (String uid, String username)
    {
       User user = new User ();
-      user.setId (uid);
+      user.setUUID (uid);
       user.setUsername (username);
       return user;
    }
@@ -247,7 +246,7 @@ public class TestProductDao extends TestAbstractHibernateDao<Product, Long>
    @Test
    public void getNoCollectionProducts ()
    {
-      long uid = 0;
+      String uid = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0";
       long expectedPid1 = 6;
       long expectedPid2 = 7;
 
@@ -256,6 +255,12 @@ public class TestProductDao extends TestAbstractHibernateDao<Product, Long>
       Assert.assertEquals (products.size (), 2);
       Assert.assertEquals (products.get (0).getId ().intValue (), expectedPid1);
       Assert.assertEquals (products.get (1).getId ().intValue (), expectedPid2);
+   }
+   
+   @Test
+   public void count ()
+   {
+      Assert.assertEquals (dao.count(null, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3"), 1);
    }
 
    @Test
@@ -269,13 +274,13 @@ public class TestProductDao extends TestAbstractHibernateDao<Product, Long>
       
       User user = dao.getOwnerOfProduct (product);
       // To be sure that both are equals...
-      expectedUser.setId (user.getId ());
+      expectedUser.setUUID (user.getUUID ());
 
       Assert.assertNotNull (user);
       Assert.assertTrue (user.equals (expectedUser), 
-         "User " + user.getUsername () + "#" + user.getId() + 
+         "User " + user.getUsername () + "#" + user.getUUID() + 
          " not expected (" + expectedUser.getUsername () + "#" + 
-         expectedUser.getId () + ").");
+         expectedUser.getUUID () + ").");
 
       product = dao.read (6L);
       user = dao.getOwnerOfProduct (product);
@@ -290,11 +295,11 @@ public class TestProductDao extends TestAbstractHibernateDao<Product, Long>
       Product product;
 
       validCollection = new Collection ();
-      validCollection.setId (3L);
+      validCollection.setUUID ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3");
       validCollection.setName ("Japan");
 
       invalidCollection = new Collection ();
-      invalidCollection.setId (4L);
+      invalidCollection.setUUID ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4");
       invalidCollection.setName ("China");
 
       product = dao.getProductByDownloadableFilename("prod0",validCollection);
@@ -312,20 +317,6 @@ public class TestProductDao extends TestAbstractHibernateDao<Product, Long>
       Assert.assertEquals(product.getId ().intValue (), 6);
 
       product = dao.getProductByDownloadableFilename (null, null);
-      Assert.assertNull (product);
-   }
-
-   @Test
-   public void getProductByOrigin ()
-   {
-      Product product = dao.getProductByOrigin ("space");
-      Assert.assertNotNull (product);
-      Assert.assertEquals (product.getId ().intValue (), 6);
-
-      product = dao.getProductByOrigin ("unknown origin");
-      Assert.assertNull (product);
-
-      product = dao.getProductByOrigin (null);
       Assert.assertNull (product);
    }
 
@@ -361,21 +352,21 @@ public class TestProductDao extends TestAbstractHibernateDao<Product, Long>
       String valid = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa6";
       String invalid = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb6";
       User user = new User ();
-      user.setId (0L);
+      user.setUUID ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0");
       user.setUsername ("koko");
 
-      Product product = dao.getProductByUuid (valid, user);
+      Product product = dao.getProductByUuid (valid);
       Assert.assertNotNull (product);
       Assert.assertEquals (product.getId ().intValue (), 6);
 
-      product = dao.getProductByUuid (invalid, user);
+      product = dao.getProductByUuid (invalid);
       Assert.assertNull (product);
 
-      product = dao.getProductByUuid (valid, null);
+      product = dao.getProductByUuid (valid);
       Assert.assertNotNull (product);
       Assert.assertEquals (product.getId ().intValue (), 6);
 
-      product = dao.getProductByUuid (null, null);
+      product = dao.getProductByUuid (null);
       Assert.assertNull (product);
    }
 
@@ -407,19 +398,19 @@ public class TestProductDao extends TestAbstractHibernateDao<Product, Long>
    @Test
    public void isAuthorized ()
    {
-      Assert.assertTrue (dao.isAuthorized (0, 0));
-      Assert.assertTrue (dao.isAuthorized (1, 0));
-      Assert.assertTrue (dao.isAuthorized (2, 0));
-      Assert.assertTrue (dao.isAuthorized (3, 0));
+      Assert.assertTrue (dao.isAuthorized ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0", 0));
+      Assert.assertTrue (dao.isAuthorized ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1", 0));
+      Assert.assertTrue (dao.isAuthorized ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2", 0));
+      Assert.assertTrue (dao.isAuthorized ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3", 0));
       
-      Assert.assertTrue (dao.isAuthorized (0, 1));
-      Assert.assertTrue (dao.isAuthorized (2, 1));
-      Assert.assertTrue (dao.isAuthorized (3, 1));
+      Assert.assertTrue (dao.isAuthorized ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0", 1));
+      Assert.assertTrue (dao.isAuthorized ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2", 1));
+      Assert.assertTrue (dao.isAuthorized ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3", 1));
       
       // Unknown user
-      Assert.assertFalse (dao.isAuthorized (1000, 1));
+      Assert.assertFalse (dao.isAuthorized ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1000", 1));
       // Unknown product
-      Assert.assertFalse (dao.isAuthorized (1, 1000));
+      Assert.assertFalse (dao.isAuthorized ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1", 1000));
    }
 
    // TODO merge others test

@@ -21,7 +21,8 @@ package fr.gael.dhus.network;
 
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.database.object.config.network.ChannelType;
@@ -42,8 +43,8 @@ class Regulator
    /**
     * A logger for this class.
     */
-   private static Logger logger = Logger.getLogger (Regulator.class);
-   
+   private static final Logger LOGGER = LogManager.getLogger(Regulator.class);
+
    /**
     * The a single instance default network regulator.
     */
@@ -121,7 +122,7 @@ class Regulator
          defaultRegulator = regulator;
       }
 
-      logger.debug (defaultRegulator);
+      LOGGER.debug(defaultRegulator);
 
       // Return the default regulator
       return defaultRegulator;

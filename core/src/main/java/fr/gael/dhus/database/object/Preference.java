@@ -22,13 +22,12 @@ package fr.gael.dhus.database.object;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
@@ -49,31 +48,36 @@ public class Preference implements Serializable
    private static final long serialVersionUID = 3943794837766136598L;
 
    @Id
-   @GeneratedValue (strategy = GenerationType.AUTO)
-   @Column (name = "ID", nullable = false)
-   private Long id;
+   @Column (name = "UUID", nullable = false)
+   private String uuid = UUID.randomUUID ().toString ();
    
    @OneToMany (fetch = FetchType.EAGER)
    @CollectionTable (name="SEARCH_PREFERENCES", 
-      joinColumns = @JoinColumn (name="PREFERENCE_ID"))
+      joinColumns = @JoinColumn (name="PREFERENCE_UUID"))
    @Cascade ({CascadeType.SAVE_UPDATE, CascadeType.DELETE})
    private Set<Search> searches = new HashSet<Search> ();
    
    @OneToMany (fetch=FetchType.EAGER)
    @JoinTable (name="FILE_SCANNER_PREFERENCES",  
-      joinColumns = {@JoinColumn(name="PREFERENCE_ID")}, 
+      joinColumns = {@JoinColumn(name="PREFERENCE_UUID")}, 
       inverseJoinColumns = { @JoinColumn (name = "FILE_SCANNER_ID") })
    @Cascade ({CascadeType.SAVE_UPDATE, CascadeType.DELETE})
    private Set<FileScanner> fileScanners = new HashSet<FileScanner> ();
 
-   public void setId (Long id)
+   /**
+    * @return the uuid
+    */
+   public String getUUID ()
    {
-      this.id = id;
+      return uuid;
    }
 
-   public Long getId ()
+   /**
+    * @param uuid the uuid to set
+    */
+   public void setUUID (String uuid)
    {
-      return id;
+      this.uuid = uuid;
    }
 
    /**

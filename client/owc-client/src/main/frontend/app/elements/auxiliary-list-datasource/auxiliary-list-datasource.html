@@ -1,0 +1,314 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<!--
+This component is devoted to handle Auxiliary List Datasource
+
+
+@demo demo/index.html
+-->
+
+<dom-module id="auxiliary-list-datasource">
+
+
+<script>
+   (function() {
+   'use strict';
+   class AuxiliaryListDatasource extends HTMLElement {
+
+     constructor() {
+       super();
+       this.beforeRegister();
+     }
+
+
+     /**
+      * BeforeRegister method Polymer calls before creating the element.
+      * This method is where you shoud define the is property (element's name) and
+      * properties  object.
+      *
+      * @return {null}
+      */
+     beforeRegister() {
+       this.is = 'auxiliary-list-datasource';
+       this.options = {
+         headers: [{
+           name: "Accept",
+           value: "application/json"
+         }]
+       };
+       this.owcApp = document.querySelector('#owc-app');
+
+       /**
+        * List reference
+        *
+        * @type {Object}
+        */
+       this._list = null;
+
+       /**
+        * List Coder
+        *
+        * @type {Object}
+        */
+       this._listCoder = null;
+
+       /**
+        * List Semantic Manager
+        *
+        * @type {Object}
+        */
+       this._listSemanticManager = null;
+
+     }
+
+
+     /**
+      * Get formatted url
+      *
+      * @param {?String} url to format
+      * @return {String} formatted url
+      */
+     _formatUrl(url) {
+       var _url = url.replace((new RegExp("'", 'g')), "%27");
+       _url = _url.replace(new RegExp("\\[", 'g'), "%5B");
+       _url = _url.replace(new RegExp("\\]", 'g'), "%5D");
+       return _url;
+     }
+
+     /**
+      *   This method is used to retrieve the product processing node
+      *
+      * @param {String} url: url used to retrieve the list of product nodes via odata
+      *
+      */
+     _getProcessingNode(url) {
+       var self = this;
+       var promises = [];
+       var processingUrl = "";
+       self.owcApp.httpManager.sendRequest('GET', self.owcApp.config.baseUrl + this._formatUrl(url), this.options)
+         .then(function(response) {
+           var result = response.data;
+           for (var i = 0;
+             (i < result.d.results.length); i++) {
+             var entry = result.d.results[i];
+             var nodelink = self.owcApp.config.baseUrl + self._formatUrl(url) + "(%27" + entry.Id + "%27)/Attributes(%27ID%27)";
+             nodelink = self._formatUrl(nodelink);
+             promises.push(self.owcApp.httpManager.sendRequest('GET', nodelink, self.options)
+               .then(function(response) {
+                 var result = response.data;
+                 if (result && result.d && result.d.Value == 'processing') {
+                   var _url = result.d.__metadata.id.replace("Attributes(%27ID%27)", "");
+                   _url = _url.replace("Attributes('ID')", "");
+                   _url = '/odata' + _url.split('odata')[1];
+                   processingUrl = self.owcApp.config.baseUrl + self._formatUrl(_url) + "/Nodes(%27metadataWrap%27)/Nodes(%27xmlData%27)/Nodes(%27processing%27)/Nodes";
+                 }
+               }, function(response) {}));
+           }
+           Promise.all(promises).then(function() {
+             self._getProductResource(processingUrl);
+           });
+
+         }, function(result) {});
+     }
+
+     /**
+      *   This method is used to retrieve the resources nodes containing ADF information
+      *
+      * @param {String} url: url used to retrieve the resources nodes containing ADF information
+      *
+      */
+     _getProductResource(processingnode) {
+       var self = this;
+       var list = [];
+       var extralist = [];
+       self.owcApp.httpManager.sendRequest('GET', processingnode, self.options)
+         .then(function(response) {
+           var result = response.data;
+           if(result && result.d)
+             for (var i = 0; result && i < result.d.results.length; i++) {
+               var entry = result.d.results[i];
+               if (entry.Id.indexOf('resource') >= 0) {
+                 var nodelink = processingnode + "('" + entry.Id + "')/Attributes('name')";
+                 nodelink = self._formatUrl(nodelink);
+                 list.push(nodelink);
+                 if (entry.ChildrenNumber != 0) {
+                   var _link = processingnode + "(%27" + entry.Id + "%27)/Nodes(%27processing%27)/Nodes";
+                   _link = self._formatUrl(_link);
+                   extralist.push(_link);
+                 }
+               }
+             } // for
+           if (extralist.length > 0) {
+             self._getExtraResource(list, extralist);
+           } else
+             self._getAuxiliaryFiles(list);
+         });
+
+     }
+
+
+     /**
+      *   This method is used to retrieve the product processing node
+      *
+      * @param {Object} list: partial list contaning ADF nodes
+      * @param {Object} extralist: url used to retrieve the complete list of ADF nodes via odata
+      *
+      */
+     _getExtraResource(list, extralist) {
+       var self = this;
+       var list = list;
+       var promises = [];
+       var link;
+       for (var i = 0; i < extralist.length; i++) {
+         link = extralist[i];
+         promises.push(self.owcApp.httpManager.sendRequest('GET', extralist[i], self.options)
+           .then(function(response) {
+             var result = response.data;
+             for (var j = 0; j < result.d.results.length; j++) {
+               var entry = result.d.results[j];
+               if (entry.Id.indexOf('resource') >= 0) {
+                 var nodelink = link + "('" + entry.Id + "')/Attributes('name')";
+                 nodelink = self._formatUrl(nodelink);
+                 list.push(nodelink);
+               }
+             }
+           }, function(result) {})
+         );
+       }
+       Promise.all(promises).then(function() {
+         self._getAuxiliaryFiles(list);
+       });
+     }
+
+     /**
+      *   This method is used to retrieve the list of ADF used to process the product
+      *
+      * @param {Objects} nodeurls: list of nodes used to retrieve the complete list of ADF via odata
+      *
+      */
+     _getAuxiliaryFiles(nodeurls) {
+       var self = this;
+       var promises = [];
+       var files = [];
+       for (var i = 0; i < nodeurls.length; i++) {
+         promises.push(self.owcApp.httpManager.sendRequest('GET', nodeurls[i], self.options)
+           .then(function(response) {
+             var result = response.data;
+             if (result && result.d && files.indexOf(result.d.Value) < 0) {
+               files.push(result.d.Value);
+             }
+           }, function(result) {})
+         );
+
+       }
+       Promise.all(promises).then(function() {        
+         self._listSemanticManager.process(files).then(function(genericModel) {
+           var specificModel = self._listCoder.extractSpecificModel(genericModel);
+           self.model = specificModel;
+           self._list.showAdf=false;
+           self._list.setNewModel(self.model);
+           self.delegateContainer.readModelFromDS();
+         });
+       });
+     }
+
+     /**
+      * set the list reference
+      * @param {Object} list
+      *
+      * @return {null}
+      */
+     setList(list) {
+       this._list = list;
+     }
+
+     /**
+      * set the list coder reference
+      * @param {Object} listCoder
+      *
+      * @return {null}
+      */
+     setListCoder(listCoder) {
+       this._listCoder = listCoder;
+     }
+
+     /**
+      * set the list semantic manager reference
+      * @param {Object} listSemanticManager
+      *
+      * @return {null}
+      */
+     setListSemanticManager(listSemanticManager) {
+       this._listSemanticManager = listSemanticManager;
+     }
+
+     /**
+      * set the listcontainer as delegate container
+      * @param {Object} delegate
+      *
+      * @return {null}
+      */
+     setListContainer(listContainer) {
+       this.delegateContainer = listContainer;
+     }
+
+
+     /*
+      * This method is used to load ADF list using product inspection via OData
+      * @param {String} manifest name
+      * @param {String} productname
+      * @param {String} productuuid
+      */
+     loadDataFromServer(productname, productuuid) {
+       var self = this;
+       var fullProductName = this._listSemanticManager.getFullProductName(productname);
+       var metadataFile = this._listSemanticManager.getMetadataFile(productname);
+       self.auxiliaryurl = "/odata/v1/Products(%27" + productuuid + "%27)/Nodes(%27" + fullProductName + "%27)/Nodes(%27" + metadataFile + "%27)/Nodes(%27XFDU%27)/Nodes(%27metadataSection%27)/Nodes"
+       self._getProcessingNode(self.auxiliaryurl);
+     }
+
+     /*
+      * This method is used by list datasource to retrieve List model
+      * @return(Object)  List model
+      */
+     getModel() {
+       return this.model;
+     }
+
+
+   };
+
+   Polymer(AuxiliaryListDatasource);
+   eu.serco.Owc.AuxiliaryListDatasource = AuxiliaryListDatasource;
+
+ })();
+  </script>
+
+</dom-module>

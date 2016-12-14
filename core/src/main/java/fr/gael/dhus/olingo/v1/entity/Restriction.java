@@ -19,14 +19,15 @@
  */
 package fr.gael.dhus.olingo.v1.entity;
 
-import fr.gael.dhus.database.object.restriction.AccessRestriction;
-import fr.gael.dhus.olingo.v1.entityset.RestrictionEntitySet;
-import org.apache.olingo.odata2.api.exception.ODataException;
-
 import java.util.HashMap;
 import java.util.Map;
 
-public class Restriction extends V1Entity
+import org.apache.olingo.odata2.api.exception.ODataException;
+
+import fr.gael.dhus.database.object.restriction.AccessRestriction;
+import fr.gael.dhus.olingo.v1.entityset.RestrictionEntitySet;
+
+public class Restriction extends AbstractEntity
 {
    private AccessRestriction restriction;
 
@@ -40,9 +41,12 @@ public class Restriction extends V1Entity
    public Map<String, Object> toEntityResponse (String root_url)
    {
       Map<String, Object> response = new HashMap<> ();
-      response.put (RestrictionEntitySet.ID, restriction.getId ());
-      response.put (
-            RestrictionEntitySet.REASON, restriction.getBlockingReason ());
+      response.put (RestrictionEntitySet.UUID, restriction.getUUID ());
+      response.put (RestrictionEntitySet.REASON,
+            restriction.getBlockingReason ());
+      response.put (RestrictionEntitySet.RESTRICTION_TYPE,
+            restriction.getClass ().getSimpleName ());
+
       return response;
    }
 
@@ -51,11 +55,14 @@ public class Restriction extends V1Entity
    {
       switch (prop_name)
       {
-         case RestrictionEntitySet.ID:
-            return restriction.getId ();
+         case RestrictionEntitySet.UUID:
+            return restriction.getUUID ();
 
          case RestrictionEntitySet.REASON:
             return restriction.getBlockingReason ();
+
+         case RestrictionEntitySet.RESTRICTION_TYPE:
+            return restriction.getClass ().getSimpleName ();
 
          default:
             throw new ODataException (

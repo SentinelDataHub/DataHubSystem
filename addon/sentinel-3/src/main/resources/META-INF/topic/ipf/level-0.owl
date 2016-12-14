@@ -59,14 +59,6 @@
       <rdfs:subClassOf rdf:resource="&s3;product"/>
       <drb:signature rdf:parseType="Resource">
          <drb:nameMatch>.*\_0_(SRA___|CAL___|MWR___|SLT___|EFR___|CR0___|CR1___|GNS___|NAV___|DOP___|HKM___|NAT___|HKM2__)_\d{8}T\d{6}_\d{8}T\d{6}_\d{8}T\d{6}_\w{17}_\w{3}_\w{8}.SEN3</drb:nameMatch>
-	  	 <drb:xqueryTest>
-         <![CDATA[
-            exists (*[name() = "ISPAnnotation.dat"]) and
-            exists (*[name() = "ISPAnnotation.xsd"]) and
-            exists (*[name() = "ISPData.dat"]) and
-            exists (*[name() = "ISPData.xsd"])            
-         ]]>
-      	 </drb:xqueryTest>
       </drb:signature>
    </owl:Class>
    
@@ -81,5 +73,18 @@
          <drb:nameMatch>S3[AB_]_OL_0_.*</drb:nameMatch>	  	 
       </drb:signature>
    </owl:Class>
+   
+   <owl:Class rdf:about="&s3;ipf_slstr_level_0">
+      <rdfs:label xml:lang="en">IPF Level-0 (SLSTR) </rdfs:label>
+      <rdfs:comment xml:lang="en">
+         IPF containing level-0 processing item. It consists on
+         many raw channels in ISP format (Optical, Fire, Scan, ancillary).
+      </rdfs:comment>      
+      <rdfs:subClassOf rdf:resource="&s3;ipf_level_0"/>
+      <drb:signature rdf:parseType="Resource">
+         <drb:nameMatch>S3[AB_]_SL_0_.*</drb:nameMatch>      
+      </drb:signature>
+   </owl:Class>
+   
 
 </rdf:RDF>

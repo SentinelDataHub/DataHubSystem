@@ -122,8 +122,8 @@ angular
     setHide: function(method){
       this.hide = method;
     },
-    clearDates: function(){},
-    setClearDates: function(method){this.clearDates = method;}      
+    clearAdvFilter: function(){},
+    setClearAdvFilter: function(method){this.clearAdvFilter = method;}      
   };
 });
 

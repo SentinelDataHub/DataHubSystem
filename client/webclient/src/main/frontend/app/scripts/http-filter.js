@@ -40,7 +40,8 @@ angular
     {url: /ngToast\/toastMessage.html/g,method: "GET"},
     {url:/.*api\/stub\/signup/g,method: "POST"},
     {url:/.*api\/stub\/version/g,method: "GET"},
-    {url:/.*api\/stub\/forgotpwd/g,method: "POST"},
+    {url:/.*api\/stub\/countries/g,method: "GET"},
+    {url:/.*api\/stub\/forgotpwd/g,method: "POST"},    
     {url:/.*api\/stub\/resetpwd/g,method: "POST"}     
     ];
   return {

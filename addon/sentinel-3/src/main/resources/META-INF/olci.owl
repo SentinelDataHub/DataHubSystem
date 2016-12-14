@@ -45,35 +45,35 @@
     <rdf:Description rdf:about="&s3;ipf_olci_level_1_2_but_cal">
       <dhus:metadataTypes rdf:parseType="Literal">
 
-         <metadataType id="salinewaterpixels"
-                       name="Saline Water Pixels (%)"
+         <metadataType id="salinewatercoverpercentage"
+                       name="Saline Water Cover Percentage (%)"
                        contentType="text/plain"
                        category="product">
-           	<solrField name="salinewaterpixels"
+           	<solrField name="salinewatercoverpercentage"
                        type="float"/>
          </metadataType> 
          
-         <metadataType id="coastalpixels"
-                       name="Coastal Pixels (%)"
+         <metadataType id="coastalcoverpercentage"
+                       name="Coastal Cover Percentage (%)"
                        contentType="text/plain"
                        category="product">
-           	<solrField name="coastalpixels"
+           	<solrField name="coastalcoverpercentage"
                        type="float"/>
          </metadataType>
          
-         <metadataType id="tidalregionpixels"
-                       name="Tidal Region Pixels (%)"
+         <metadataType id="tidalregioncoverpercentage"
+                       name="Tidal Region Cover Percentage (%)"
                        contentType="text/plain"
                        category="product">
-           	<solrField name="tidalregionpixels"
+           	<solrField name="tidalregioncoverpercentage"
                        type="float"/>
          </metadataType>
          
-         <metadataType id="freshwaterpixels"
-                       name="Fresh Inland Water Pixels (%)"
+         <metadataType id="freshwatercoverpercentage"
+                       name="Fresh Inland Water Cover Percentage (%)"
                        contentType="text/plain"
                        category="product">
-           	<solrField name="freshwaterpixels"
+           	<solrField name="freshwatercoverpercentage"
                        type="float"/>
          </metadataType>
          
@@ -105,32 +105,32 @@
          <!-- OLCI Level 1 and 2 (No Calibration) -->
           
          <metadata
-            queryable="salinewaterpixels"
-            category="product" name="Saline Water Pixels (%)" type="text/plain">
+            queryable="salinewatercoverpercentage"
+            category="product" name="Saline Water Cover Percentage (%)" type="text/plain">
             {data(xfdumanifest.xml/XFDU/metadataSection/
                 metadataObject[@ID="olciProductInformation"]/metadataWrap/xmlData/
                 olciProductInformation/classificationSummary/salineWaterPixels/@percentage)}    
          </metadata>,
          
          <metadata
-            queryable="coastalpixels"
-            category="product" name="Coastal Pixels (%)" type="text/plain">
+            queryable="coastalcoverpercentage"
+            category="product" name="Coastal Cover Percentage (%)" type="text/plain">
             {data(xfdumanifest.xml/XFDU/metadataSection/
                 metadataObject[@ID="olciProductInformation"]/metadataWrap/xmlData/
                 olciProductInformation/classificationSummary/coastalPixels/@percentage)}    
          </metadata>,
          
          <metadata
-            queryable="tidalregionpixels"
-            category="product" name="Tidal Region Pixels (%)" type="text/plain">
+            queryable="tidalregioncoverpercentage"
+            category="product" name="Tidal Region Cover Percentage (%)" type="text/plain">
             {data(xfdumanifest.xml/XFDU/metadataSection/
                 metadataObject[@ID="olciProductInformation"]/metadataWrap/xmlData/
                 olciProductInformation/classificationSummary/tidalRegionPixels/@percentage)}    
          </metadata>,
          
          <metadata
-            queryable="freshwaterpixels"
-            category="product" name="Fresh Inland Water Pixels (%)" type="text/plain">
+            queryable="freshwatercoverpercentage"
+            category="product" name="Fresh Inland Water Cover Percentage (%)" type="text/plain">
             {data(xfdumanifest.xml/XFDU/metadataSection/
                 metadataObject[@ID="olciProductInformation"]/metadataWrap/xmlData/
                 olciProductInformation/classificationSummary/freshInlandWaterPixels/@percentage)}    
@@ -151,11 +151,11 @@
     <rdf:Description rdf:about="&s3;ipf_olci_level_1">
       <dhus:metadataTypes rdf:parseType="Literal">
 
-         <metadataType id="brightpixels"
-                       name="Bright Pixels (%)"
+         <metadataType id="brightcoverpercentage"
+                       name="Bright Cover Percentage (%)"
                        contentType="text/plain"
                        category="product">
-           	<solrField name="brightpixels"
+           	<solrField name="brightcoverpercentage"
                        type="float"/>
          </metadataType> 
                   
@@ -168,8 +168,8 @@
                 
          <!-- OLCI Level 1 -->
          <metadata
-            queryable="brightpixels"
-            category="product" name="Bright Pixels (%)" type="text/plain">
+            queryable="brightcoverpercentage"
+            category="product" name="Bright Cover Percentage (%)" type="text/plain">
             {data(xfdumanifest.xml/XFDU/metadataSection/
                 metadataObject[@ID="olciProductInformation"]/metadataWrap/xmlData/
                 olciProductInformation/classificationSummary/brightPixels/@percentage)}    
@@ -216,20 +216,20 @@
     <rdf:Description rdf:about="&s3;ipf_olci_level_2">
       <dhus:metadataTypes rdf:parseType="Literal">
 
-         <metadataType id="landpixels"
-                       name="Land Pixels (%)"
+         <metadataType id="landcoverpercentage"
+                       name="Land Cover Percentage (%)"
                        contentType="text/plain"
                        category="product">
-           	<solrField name="landpixels"
+           	<solrField name="landcoverpercentage"
                        type="float"/>
          </metadataType>
          
-         <metadataType id="cloudypixels"
-                       name="Cloudy Pixels (%)"
+         <metadataType id="cloudcoverpercentage"
+                       name="Cloud Cover Percentage (%)"
                        contentType="text/plain"
                        category="product">
-           	<solrField name="cloudypixels"
-                       type="float"/>
+           	<solrField name="cloudcoverpercentage"
+                       type="double"/>
          </metadataType> 
                   
      </dhus:metadataTypes>
@@ -241,16 +241,16 @@
                 
          <!-- OLCI Level 2 -->
          <metadata
-            queryable="landpixels"
-            category="product" name="Land Pixels (%)" type="text/plain">
+            queryable="landcoverpercentage"
+            category="product" name="Land Cover Percentage (%)" type="text/plain">
             {data(xfdumanifest.xml/XFDU/metadataSection/
                 metadataObject[@ID="olciProductInformation"]/metadataWrap/xmlData/
                 olciProductInformation/classificationSummary/landPixels/@percentage)}    
          </metadata>,                
                        
          <metadata
-            queryable="cloudypixels"
-            category="product" name="Cloudy Pixels (%)" type="text/plain">
+            queryable="cloudcoverpercentage"
+            category="product" name="Cloud Cover Percentage (%)" type="text/plain">
             {data(xfdumanifest.xml/XFDU/metadataSection/
                 metadataObject[@ID="olciProductInformation"]/metadataWrap/xmlData/
                 olciProductInformation/classificationSummary/cloudyPixels/@percentage)}    

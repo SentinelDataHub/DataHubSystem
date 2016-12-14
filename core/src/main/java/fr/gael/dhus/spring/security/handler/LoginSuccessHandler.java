@@ -19,34 +19,28 @@
  */
 package fr.gael.dhus.spring.security.handler;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.stereotype.Component;
-
-import fr.gael.dhus.database.dao.ActionRecordWritterDao;
 import fr.gael.dhus.database.object.User.PasswordEncryption;
 import fr.gael.dhus.spring.context.SecurityContextProvider;
 import fr.gael.dhus.spring.security.CookieKey;
 import fr.gael.dhus.spring.security.authentication.ValidityAuthentication;
 import fr.gael.dhus.util.encryption.EncryptPassword;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.stereotype.Component;
+
 @Component
 public class LoginSuccessHandler implements AuthenticationSuccessHandler
 {
-   private static final Log LOGGER = LogFactory
-      .getLog (LoginSuccessHandler.class);
-
-   @Autowired
-   private ActionRecordWritterDao arwDao;
+   private static final Logger LOGGER = LogManager.getLogger(LoginSuccessHandler.class);
 
    @Override
    public void onAuthenticationSuccess (HttpServletRequest request,

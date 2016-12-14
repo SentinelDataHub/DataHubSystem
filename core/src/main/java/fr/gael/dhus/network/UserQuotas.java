@@ -136,7 +136,7 @@ class UserQuotas
             throws IllegalArgumentException
       {
          // Check parameter
-         if (max_concurrent <= 0)
+         if (max_concurrent < 0)
          {
             throw new IllegalArgumentException(
                   "Negative or null maximum concurrent flows (" +

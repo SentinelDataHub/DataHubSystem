@@ -16,13 +16,11 @@
    GNU Affero General Public License for more details.
 
    You should have received a copy of the GNU Affero General Public License
-   along with this program. If not, see <http://www.gnu.org/licenses/>.
+   along with this program. If not, see <http://www.gnu.org/licenses />.
 -->
-<project
-   xmlns="http://maven.apache.org/POM/4.0.0"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
    <modelVersion>4.0.0</modelVersion>
 
@@ -30,40 +28,30 @@
       <aspectj.version>1.8.8</aspectj.version>
       <cxf.version>3.0.3</cxf.version>
       <hibernate.version>3.6.10.Final</hibernate.version>
-      <olingo.version>2.0.5</olingo.version>
-      <solr.version>5.3.1</solr.version>
+      <olingo.version>2.0.6-XmlFix</olingo.version>
+      <solr.version>5.5.3</solr.version>
       <spring.version>4.1.4.RELEASE</spring.version>
       <spring_security.version>3.2.5.RELEASE</spring_security.version>
+      <log4j.version>2.6.2</log4j.version>
+      <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
    </properties>
 
-   <parent>
-      <groupId>fr.gael.dhus</groupId>
-      <artifactId>dhus-parent</artifactId>
-      <version>0.9.1-osf</version>
-      <relativePath></relativePath>
-   </parent>
-
    <artifactId>dhus-core</artifactId>
+   <groupId>fr.gael.dhus</groupId>
+   <version>0.12.5-6-osf</version>
    <packaging>jar</packaging>
 
    <name>DHuS - Core</name>
+   <url>http://www.gael.fr/software/dhus</url>
+   <inceptionYear>2016</inceptionYear>
 
    <dependencies>
-   
-      <!-- bof stub -->
+      <!-- Cache -->
       <dependency>
-         <groupId>org.gwtopenmaps.openlayers</groupId>
-         <artifactId>gwt-openlayers-client</artifactId>
-         <version>1.0</version>
+         <groupId>net.sf.ehcache</groupId>
+         <artifactId>ehcache</artifactId>
+         <version>2.10.1</version>
       </dependency>
-      <!--
-      <dependency>
-         <groupId>com.google.gwt</groupId>
-         <artifactId>gwt-user</artifactId>
-         <version>2.3.0</version>
-      </dependency>
-      -->
-      <!-- eof stub -->
 
       <!-- Commons -->
       <dependency>
@@ -92,6 +80,12 @@
          <groupId>org.apache.commons</groupId>
          <artifactId>commons-dbcp2</artifactId>
          <version>2.0.1</version>
+         <exclusions>
+            <exclusion>
+               <groupId>commons-logging</groupId>
+               <artifactId>commons-logging</artifactId>
+            </exclusion>
+         </exclusions>
       </dependency>
       <dependency>
          <groupId>org.hibernate</groupId>
@@ -103,12 +97,7 @@
          <artifactId>hibernate-entitymanager</artifactId>
          <version>${hibernate.version}</version>
       </dependency>
-      <dependency>
-         <groupId>org.hibernate</groupId>
-         <artifactId>hibernate-ehcache</artifactId>
-         <version>${hibernate.version}</version>
-      </dependency>
-      
+
       <dependency>
          <groupId>org.hsqldb</groupId>
          <artifactId>hsqldb</artifactId>
@@ -118,11 +107,6 @@
          <groupId>org.liquibase</groupId>
          <artifactId>liquibase-core</artifactId>
          <version>3.1.1</version>
-      </dependency>
-      <dependency>
-         <groupId>fr.gael.dhus</groupId>
-         <artifactId>dhus-liquibase-logs</artifactId>
-         <version>1.0.0</version>
       </dependency>
 
       <!-- DRB -->
@@ -134,6 +118,10 @@
             <exclusion>
                <groupId>log4j</groupId>
                <artifactId>log4j</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>net.sf.ehcache</groupId>
+               <artifactId>ehcache-core</artifactId>
             </exclusion>
          </exclusions>
       </dependency>
@@ -153,6 +141,10 @@
             <exclusion>
                <groupId>org.codehaus.woodstox</groupId>
                <artifactId>wstx-asl</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>net.sf.ehcache</groupId>
+               <artifactId>ehcache-core</artifactId>
             </exclusion>
          </exclusions>
       </dependency>
@@ -182,6 +174,10 @@
                <groupId>fr.gael.drb</groupId>
                <artifactId>drb</artifactId>
             </exclusion>
+            <exclusion>
+               <groupId>org.apache.commons</groupId>
+               <artifactId>commons-compress</artifactId>
+            </exclusion>
          </exclusions>
       </dependency>
       <dependency>
@@ -192,6 +188,10 @@
             <exclusion>
                <groupId>fr.gael.drb</groupId>
                <artifactId>drb</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>org.apache.commons</groupId>
+               <artifactId>commons-compress</artifactId>
             </exclusion>
          </exclusions>
       </dependency>
@@ -208,7 +208,7 @@
       <dependency>
          <groupId>fr.gael.drb</groupId>
          <artifactId>drbx-impl-zip</artifactId>
-         <version>1.1.2</version>
+         <version>1.1.6</version>
          <exclusions>
             <exclusion>
                <groupId>fr.gael.drb</groupId>
@@ -306,7 +306,7 @@
          <artifactId>jaxb-impl</artifactId>
          <version>2.2.11</version>
       </dependency>
-      
+
       <!-- JMS -->
       <!-- <dependency>
          <groupId>org.apache.activemq</groupId>
@@ -325,33 +325,49 @@
       <dependency>
          <groupId>org.apache.logging.log4j</groupId>
          <artifactId>log4j-api</artifactId>
+         <version>${log4j.version}</version>
       </dependency>
       <dependency>
          <groupId>org.apache.logging.log4j</groupId>
          <artifactId>log4j-core</artifactId>
+         <version>${log4j.version}</version>
       </dependency>
+      <!-- SLF4J adapter -->
       <dependency>
          <groupId>org.apache.logging.log4j</groupId>
          <artifactId>log4j-slf4j-impl</artifactId>
+         <version>${log4j.version}</version>
       </dependency>
+      <!-- java.util.logging adapter -->
       <dependency>
          <groupId>org.apache.logging.log4j</groupId>
-         <artifactId>log4j-1.2-api</artifactId>
+         <artifactId>log4j-jul</artifactId>
+         <version>${log4j.version}</version>
       </dependency>
+      <!-- Commons Logging adapter -->
       <dependency>
          <groupId>org.apache.logging.log4j</groupId>
          <artifactId>log4j-jcl</artifactId>
+         <version>${log4j.version}</version>
       </dependency>
+      <!-- java.io.* to write to Loggers -->
       <dependency>
-         <groupId>org.slf4j</groupId>
-         <artifactId>jul-to-slf4j</artifactId>
+         <groupId>org.apache.logging.log4j</groupId>
+         <artifactId>log4j-iostreams</artifactId>
+         <version>${log4j.version}</version>
+      </dependency>
+      <!-- Log4j1.2 adapter -->
+      <dependency>
+         <groupId>org.apache.logging.log4j</groupId>
+         <artifactId>log4j-1.2-api</artifactId>
+         <version>${log4j.version}</version>
       </dependency>
 
       <!-- Quartz -->
       <dependency>
          <groupId>org.quartz-scheduler</groupId>
          <artifactId>quartz</artifactId>
-         <version>2.2.1</version>
+         <version>2.2.3</version>
       </dependency>
 
       <!-- SOLR -->
@@ -371,6 +387,10 @@
             <exclusion>
                <groupId>org.slf4j</groupId>
                <artifactId>slf4j-log4j12</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>org.slf4j</groupId>
+               <artifactId>jcl-over-slf4j</artifactId>
             </exclusion>
             <exclusion>
                <groupId>org.eclipse.jetty</groupId>
@@ -427,6 +447,10 @@
             <exclusion>
                <groupId>org.apache.httpcomponents</groupId>
                <artifactId>httpcore</artifactId>
+            </exclusion>
+            <exclusion>
+               <artifactId>javax.servlet-api</artifactId>
+               <groupId>javax.servlet</groupId>
             </exclusion>
          </exclusions>
       </dependency>
@@ -511,6 +535,7 @@
       <dependency>
          <groupId>org.testng</groupId>
          <artifactId>testng</artifactId>
+         <version>6.8.13</version>
          <scope>test</scope>
       </dependency>
       <dependency>
@@ -534,20 +559,14 @@
 
       <!-- Tomcat -->
       <dependency>
-         <groupId>org.apache.tomcat.maven</groupId>
-         <artifactId>tomcat7-war-runner</artifactId>
-         <version>2.2</version>
-         <exclusions>
-            <exclusion>
-               <artifactId>tomcat-juli</artifactId>
-               <groupId>org.apache.tomcat</groupId>
-            </exclusion>
-         </exclusions>
+         <groupId>org.apache.tomcat</groupId>
+         <artifactId>tomcat-catalina</artifactId>
+         <version>8.0.36</version>
       </dependency>
       <dependency>
-         <groupId>org.apache.tomcat.extras</groupId>
-         <artifactId>tomcat-extras-juli-adapters</artifactId>
-         <version>7.0.57</version>
+         <groupId>org.apache.tomcat</groupId>
+         <artifactId>tomcat-jasper</artifactId>
+         <version>8.0.36</version>
       </dependency>
 
       <!-- Apache Olingo Odata -->
@@ -621,6 +640,50 @@
          <artifactId>commons-collections4</artifactId>
          <version>4.1</version>
       </dependency>
+
+      <!-- Symmetric DS -->
+      <dependency>
+         <groupId>org.jumpmind.symmetric</groupId>
+         <artifactId>symmetric-core</artifactId>
+         <version>3.7.33</version>
+         <exclusions>
+            <exclusion>
+               <groupId>org.slf4j</groupId>
+               <artifactId>slf4j-log4j12</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>org.slf4j</groupId>
+               <artifactId>jul-to-slf4j</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>org.slf4j</groupId>
+               <artifactId>jcl-over-slf4j</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>log4j</groupId>
+               <artifactId>log4j</artifactId>
+            </exclusion>
+         </exclusions>
+      </dependency>
+      <dependency>
+         <groupId>org.jumpmind.symmetric</groupId>
+         <artifactId>symmetric-jdbc</artifactId>
+         <version>3.7.33</version>
+         <exclusions>
+            <exclusion>
+               <groupId>org.slf4j</groupId>
+               <artifactId>slf4j-log4j12</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>org.slf4j</groupId>
+               <artifactId>jul-to-slf4j</artifactId>
+            </exclusion>
+            <exclusion>
+               <groupId>org.slf4j</groupId>
+               <artifactId>jcl-over-slf4j</artifactId>
+            </exclusion>
+         </exclusions>
+      </dependency>
    </dependencies>
 
    <build>
@@ -631,6 +694,22 @@
       </resources>
 
       <plugins>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.2</version>
+            <configuration>
+               <source>1.7</source>
+               <target>1.7</target>
+               <encoding>ISO-8859-1</encoding>
+               <compilerArgs>
+                  <arg>-Xlint:all,-options,-path</arg>
+               </compilerArgs>
+            </configuration>
+         </plugin>
+
+         <!-- solr.war is not required from copmpilation but for execution ans packaging -->
+         <!-- This plugin is not required in dhus-core compilation file but in dhus package assembly -->
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-dependency-plugin</artifactId>
@@ -646,16 +725,17 @@
             <configuration>
                <artifactItems>
                   <artifactItem>
-                     <groupId>fr.gael.dhus</groupId>
-                     <artifactId>dhus-solr</artifactId>
-                     <version>1.0.0</version>
+                     <groupId>org.dhus</groupId>
+                     <artifactId>solr-webapp</artifactId>
+                     <version>${solr.version}</version>
                      <type>war</type>
                      <outputDirectory>${project.build.outputDirectory}</outputDirectory>
-                     <destFileName>solr.war</destFileName>
+                     <destFileName>dhus-solr.war</destFileName>
                   </artifactItem>
                </artifactItems>
             </configuration>
          </plugin>
+
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-jar-plugin</artifactId>
@@ -732,143 +812,76 @@
                   </suiteXmlFile>
                </suiteXmlFiles>
                <redirectTestOutputToFile>true</redirectTestOutputToFile>
-               <testFailureIgnore>true</testFailureIgnore>
+               <testFailureIgnore>false</testFailureIgnore>
                <systemPropertyVariables>
                   <user.timezone>UTC</user.timezone>
                </systemPropertyVariables>
             </configuration>
          </plugin>
-
-         <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <version>3.2</version>
-         </plugin>
-
-         <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <version>1.4.0</version>
-         </plugin>
       </plugins>
    </build>
 
+   <repositories>
+      <repository>
+         <id>osf-public</id>
+         <name>OSF Public Repository</name>
+         <url>
+            https://copernicus.serco.eu/repository/nexus/content/groups/public
+         </url>
+         <layout>default</layout>
+      </repository>
+      <repository>
+         <id>gael-thirdparty</id>
+         <name>GAEL Thrid Party Repository</name>
+         <url>http://repository.gael.fr:8081/nexus/content/repositories/thirdparty</url>
+         <layout>default</layout>
+      </repository>
+   </repositories>
+
+   <distributionManagement>
+      <repository>
+         <uniqueVersion>true</uniqueVersion>
+         <id>osf-releases</id>
+         <name>OSF Releases Repository</name>
+         <url>
+            https://copernicus.serco.eu/repository/nexus/content/repositories/releases/
+
+         </url>
+         <layout>default</layout>
+      </repository>
+      <site>
+         <id>gael-site</id>
+         <url>${site.baseUrl}/</url>
+      </site>
+   </distributionManagement>
+
+   <issueManagement>
+      <system>Jira</system>
+      <url>https://copernicus.serco.eu/jira-osf</url>
+   </issueManagement>
+
+   <scm>
+      <connection>scm:git:https://github.com/SercoSPA/DHuS</connection>
+      <developerConnection>scm:git:https://github.com/SercoSPA/DHuS</developerConnection>
+      <tag>HEAD</tag>
+      <url>https://github.com/SercoSPA/DHuS</url>
+   </scm>
+
    <profiles>
       <profile>
-         <id>jenkins</id>
-         <activation>
-            <property>
-               <name>env.BUILD_NUMBER</name>
-            </property>
-         </activation>
+         <id>sources</id>
          <build>
             <plugins>
                <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
-                  <artifactId>maven-surefire-plugin</artifactId>
-                  <configuration>
-                     <suiteXmlFiles>
-                        <suiteXmlFile>src/test/resources/xml/testng.xml
-                        </suiteXmlFile>
-                     </suiteXmlFiles>
-                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                     <disableXmlReport>false</disableXmlReport>
-                     <testFailureIgnore>true</testFailureIgnore>
-                  </configuration>
-               </plugin>
-               <plugin>
-                  <groupId>org.apache.maven.plugins</groupId>
-                  <artifactId>maven-jxr-plugin</artifactId>
-                  <version>2.5</version>
+                  <artifactId>maven-source-plugin</artifactId>
+                  <version>2.1.2</version>
                   <executions>
                      <execution>
-                        <id>dhus-jenkins-jxr</id>
-                        <phase>validate</phase>
+                        <id>attach-sources</id>
                         <goals>
-                           <goal>jxr</goal>
+                           <goal>jar-no-fork</goal>
                         </goals>
-                     </execution>
-                  </executions>
-               </plugin>
-               <plugin>
-                  <groupId>org.apache.maven.plugins</groupId>
-                  <artifactId>maven-checkstyle-plugin</artifactId>
-                  <version>2.13</version>
-                  <executions>
-                     <execution>
-                        <id>dhus-jenkins-checkstyle</id>
-                        <phase>validate</phase>
-                        <goals>
-                           <goal>checkstyle</goal>
-                        </goals>
-                        <configuration>
-                           <failsOnError>false</failsOnError>
-                           <configLocation>../parent/checkstyle.xml</configLocation>
-                        </configuration>
-                     </execution>
-                  </executions>
-               </plugin>
-               <plugin>
-                  <groupId>org.apache.maven.plugins</groupId>
-                  <artifactId>maven-pmd-plugin</artifactId>
-                  <version>3.3</version>
-                  <executions>
-                     <execution>
-                        <id>dhus-jenkins-pmd</id>
-                        <phase>package</phase>
-                        <goals>
-                           <goal>pmd</goal>
-                        </goals>
-                     </execution>
-                     <execution>
-                        <id>dhus-jenkins-cpd</id>
-                        <phase>package</phase>
-                        <goals>
-                           <goal>cpd</goal>
-                        </goals>
-                     </execution>
-                  </executions>
-               </plugin>
-               <plugin>
-                  <groupId>org.codehaus.mojo</groupId>
-                  <artifactId>findbugs-maven-plugin</artifactId>
-                  <version>2.3.2</version>
-                  <executions>
-                     <execution>
-                        <id>dhus-jenkins-findbugs</id>
-                        <phase>package</phase>
-                        <goals>
-                           <goal>findbugs</goal>
-                        </goals>
-                        <configuration>
-                           <failOnError>false</failOnError>
-                           <xmlOutput>true</xmlOutput>
-                        </configuration>
-                     </execution>
-                  </executions>
-               </plugin>
-               <plugin>
-                  <groupId>org.codehaus.mojo</groupId>
-                  <artifactId>cobertura-maven-plugin</artifactId>
-                  <configuration>
-                     <check/>
-                     <instrumentation>
-                        <ignoreTrivial>true</ignoreTrivial>
-                     </instrumentation>
-                  </configuration>
-                  <executions>
-                     <execution>
-                        <id>dhus-jenkins-cobertura</id>
-                        <phase>package</phase>
-                        <goals>
-                           <goal>cobertura</goal>
-                        </goals>
-                        <configuration>
-                           <formats>
-                              <format>xml</format>
-                           </formats>
-                           <quiet>true</quiet>
-                        </configuration>
                      </execution>
                   </executions>
                </plugin>
@@ -876,4 +889,6 @@
          </build>
       </profile>
    </profiles>
+
+
 </project>

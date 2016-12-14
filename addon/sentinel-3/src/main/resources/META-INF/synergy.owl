@@ -44,20 +44,20 @@
 	<rdf:Description rdf:about="&s3;ipf_syn_level_1_2">
       <dhus:metadataTypes rdf:parseType="Literal">
 
-         <metadataType id="landpixels"
-                       name="Land Pixels (%)"
+         <metadataType id="landcoverpercentage"
+                       name="Land Cover Percentage (%)"
                        contentType="text/plain"
                        category="product">
-           	<solrField name="landpixels"
+           	<solrField name="landcoverpercentage"
                        type="float"/>
          </metadataType>  
          
-         <metadataType id="cloudypixels"
-                       name="Cloudy Pixels (%)"
+         <metadataType id="cloudcoverpercentage"
+                       name="Cloud Cover Percentage (%)"
                        contentType="text/plain"
                        category="product">
-           	<solrField name="cloudypixels"
-                       type="float"/>
+           	<solrField name="cloudcoverpercentage"
+                       type="double"/>
          </metadataType>             
                   
      </dhus:metadataTypes>
@@ -69,16 +69,16 @@
                 
          <!-- SYNERGY Level 1 and 2 -->
          <metadata
-            queryable="landpixels"
-            category="product" name="Land Pixels (%)" type="text/plain">
+            queryable="landcoverpercentage"
+            category="product" name="Land Cover Percentage (%)" type="text/plain">
             {data(xfdumanifest.xml/XFDU/metadataSection/
                 metadataObject[@ID="synProductInformation"]/metadataWrap/xmlData/
                 synProductInformation/classificationSummary/landPixels/@percentage)}    
          </metadata>,                
                        
          <metadata
-            queryable="cloudypixels"
-            category="product" name="Cloudy Pixels (%)" type="text/plain">
+            queryable="cloudcoverpercentage"
+            category="product" name="Cloud Cover Percentage (%)" type="text/plain">
             {data(xfdumanifest.xml/XFDU/metadataSection/
                 metadataObject[@ID="synProductInformation"]/metadataWrap/xmlData/
                 synProductInformation/classificationSummary/cloudyPixels/@percentage)}    
@@ -91,35 +91,35 @@
     <rdf:Description rdf:about="&s3;ipf_syn_level_1">
       <dhus:metadataTypes rdf:parseType="Literal">
 
-         <metadataType id="salinewaterpixels"
-                       name="Saline Water Pixels (%)"
+         <metadataType id="salinewatercoverpercentage"
+                       name="Saline Water Cover Percentage (%)"
                        contentType="text/plain"
                        category="product">
-           	<solrField name="salinewaterpixels"
+           	<solrField name="salinewatercoverpercentage"
                        type="float"/>
          </metadataType>  
          
-         <metadataType id="coastalpixels"
-                       name="Coastal Pixels (%)"
+         <metadataType id="coastalcoverpercentage"
+                       name="Coastal Cover Percentage (%)"
                        contentType="text/plain"
                        category="product">
-           	<solrField name="coastalpixels"
+           	<solrField name="coastalcoverpercentage"
                        type="float"/>
          </metadataType> 
          
-         <metadataType id="tidalregionpixels"
-                       name="Tidal Region Pixels (%)"
+         <metadataType id="tidalregioncoverpercentage"
+                       name="Tidal Region Cover Percentage (%)"
                        contentType="text/plain"
                        category="product">
-           	<solrField name="tidalregionpixels"
+           	<solrField name="tidalregioncoverpercentage"
                        type="float"/>
          </metadataType>
          
-         <metadataType id="freshwaterpixels"
-                       name="Fresh Inland Water Pixels (%)"
+         <metadataType id="freshwatercoverpercentage"
+                       name="Fresh Inland Water Cover Percentage (%)"
                        contentType="text/plain"
                        category="product">
-           	<solrField name="freshwaterpixels"
+           	<solrField name="freshwatercoverpercentage"
                        type="float"/>
          </metadataType>            
                   
@@ -131,32 +131,32 @@
          <![CDATA[                                                          
          
          <metadata
-            queryable="salinewaterpixels"
-            category="product" name="Saline Water Pixels (%)" type="text/plain">
+            queryable="salinewatercoverpercentage"
+            category="product" name="Saline Water Cover Percentage (%)" type="text/plain">
             {data(xfdumanifest.xml/XFDU/metadataSection/
                 metadataObject[@ID="synProductInformation"]/metadataWrap/xmlData/
                 synProductInformation/classificationSummary/salineWaterPixels/@percentage)}    
          </metadata>,
          
          <metadata
-            queryable="coastalpixels"
-            category="product" name="Coastal Pixels (%)" type="text/plain">
+            queryable="coastalcoverpercentage"
+            category="product" name="Coastal Cover Percentage (%)" type="text/plain">
             {data(xfdumanifest.xml/XFDU/metadataSection/
                 metadataObject[@ID="synProductInformation"]/metadataWrap/xmlData/
                 synProductInformation/classificationSummary/coastalPixels/@percentage)}    
          </metadata>,
          
          <metadata
-            queryable="tidalregionpixels"
-            category="product" name="Tidal Region Pixels (%)" type="text/plain">
+            queryable="tidalregioncoverpercentage"
+            category="product" name="Tidal Region Cover Percentage (%)" type="text/plain">
             {data(xfdumanifest.xml/XFDU/metadataSection/
                 metadataObject[@ID="synProductInformation"]/metadataWrap/xmlData/
                 synProductInformation/classificationSummary/tidalRegionPixels/@percentage)}    
          </metadata>,
          
          <metadata
-            queryable="freshwaterpixels"
-            category="product" name="Fresh Inland Water Pixels (%)" type="text/plain">
+            queryable="freshwatercoverpercentage"
+            category="product" name="Fresh Inland Water Cover Percentage (%)" type="text/plain">
             {data(xfdumanifest.xml/XFDU/metadataSection/
                 metadataObject[@ID="synProductInformation"]/metadataWrap/xmlData/
                 synProductInformation/classificationSummary/freshInlandWaterPixels/@percentage)}    
@@ -258,11 +258,11 @@
     <rdf:Description rdf:about="&s3;ipf_syn_level_2_vgs_vgk">
       <dhus:metadataTypes rdf:parseType="Literal">
 
-         <metadataType id="snoworicepixels"
-                       name="Snow or Ice Pixels (%)"
+         <metadataType id="snoworicecoverpercentage"
+                       name="Snow or Ice Cover Percentage (%)"
                        contentType="text/plain"
                        category="product">
-           	<solrField name="snoworicepixels"
+           	<solrField name="snoworicecoverpercentage"
                        type="float"/>
          </metadataType>         
                   
@@ -275,8 +275,8 @@
                 
          <!-- SYNERGY Level 2 (VGS - VGK) -->
          <metadata
-            queryable="snoworicepixels"
-            category="product" name="Snow or Ice Pixels (%)" type="text/plain">
+            queryable="snoworicecoverpercentage"
+            category="product" name="Snow or Ice Cover Percentage (%)" type="text/plain">
             {data(xfdumanifest.xml/XFDU/metadataSection/
                 metadataObject[@ID="synProductInformation"]/metadataWrap/xmlData/
                 synProductInformation/classificationSummary/snowOrIcePixels/@percentage)}    
@@ -289,35 +289,35 @@
     <rdf:Description rdf:about="&s3;ipf_syn_level_2_vgp_syn">
       <dhus:metadataTypes rdf:parseType="Literal">
 
-         <metadataType id="salinewaterpixels"
-                       name="Saline Water Pixels (%)"
+         <metadataType id="salinewatercoverpercentage"
+                       name="Saline Water Cover Percentage (%)"
                        contentType="text/plain"
                        category="product">
-           	<solrField name="salinewaterpixels"
+           	<solrField name="salinewatercoverpercentage"
                        type="float"/>
          </metadataType>  
          
-         <metadataType id="coastalpixels"
-                       name="Coastal Pixels (%)"
+         <metadataType id="coastalcoverpercentage"
+                       name="Coastal Cover Percentage (%)"
                        contentType="text/plain"
                        category="product">
-           	<solrField name="coastalpixels"
+           	<solrField name="coastalcoverpercentage"
                        type="float"/>
          </metadataType> 
          
-         <metadataType id="tidalregionpixels"
-                       name="Tidal Region Pixels (%)"
+         <metadataType id="tidalregioncoverpercentage"
+                       name="Tidal Region Cover Percentage (%)"
                        contentType="text/plain"
                        category="product">
-           	<solrField name="tidalregionpixels"
+           	<solrField name="tidalregioncoverpercentage"
                        type="float"/>
          </metadataType>  
          
-         <metadataType id="freshwaterpixels"
-                       name="Fresh Inland Water Pixels (%)"
+         <metadataType id="freshwatercoverpercentage"
+                       name="Fresh Inland Water Cover Percentage (%)"
                        contentType="text/plain"
                        category="product">
-           	<solrField name="freshwaterpixels"
+           	<solrField name="freshwatercoverpercentage"
                        type="float"/>
          </metadataType>    
                   
@@ -329,32 +329,32 @@
          <![CDATA[                                 
                 
          <metadata
-            queryable="salinewaterpixels"
-            category="product" name="Saline Water Pixels (%)" type="text/plain">
+            queryable="salinewatercoverpercentage"
+            category="product" name="Saline Water Cover Percentage (%)" type="text/plain">
             {data(xfdumanifest.xml/XFDU/metadataSection/
                 metadataObject[@ID="synProductInformation"]/metadataWrap/xmlData/
                 synProductInformation/classificationSummary/salineWaterPixels/@percentage)}    
          </metadata>,
          
          <metadata
-            queryable="coastalpixels"
-            category="product" name="Coastal Pixels (%)" type="text/plain">
+            queryable="coastalcoverpercentage"
+            category="product" name="Coastal Cover Percentage (%)" type="text/plain">
             {data(xfdumanifest.xml/XFDU/metadataSection/
                 metadataObject[@ID="synProductInformation"]/metadataWrap/xmlData/
                 synProductInformation/classificationSummary/coastalPixels/@percentage)}    
          </metadata>,
          
          <metadata
-            queryable="tidalregionpixels"
-            category="product" name="Tidal Region Pixels (%)" type="text/plain">
+            queryable="tidalregioncoverpercentage"
+            category="product" name="Tidal Region Cover Percentage (%)" type="text/plain">
             {data(xfdumanifest.xml/XFDU/metadataSection/
                 metadataObject[@ID="synProductInformation"]/metadataWrap/xmlData/
                 synProductInformation/classificationSummary/tidalRegionPixels/@percentage)}    
          </metadata>,
          
          <metadata
-            queryable="freshwaterpixels"
-            category="product" name="Fresh Inland Water Pixels (%)" type="text/plain">
+            queryable="freshwatercoverpercentage"
+            category="product" name="Fresh Inland Water Cover Percentage (%)" type="text/plain">
             {data(xfdumanifest.xml/XFDU/metadataSection/
                 metadataObject[@ID="synProductInformation"]/metadataWrap/xmlData/
                 synProductInformation/classificationSummary/freshInlandWaterPixels/@percentage)}    
@@ -368,11 +368,11 @@
     <rdf:Description rdf:about="&s3;ipf_syn_level_2_vgp">
       <dhus:metadataTypes rdf:parseType="Literal">
 
-         <metadataType id="snoworicepixels"
-                       name="Snow or Ice Pixels (%)"
+         <metadataType id="snoworicecoverpercentage"
+                       name="Snow or Ice Cover Percentage (%)"
                        contentType="text/plain"
                        category="product">
-           	<solrField name="snoworicepixels"
+           	<solrField name="snoworicecoverpercentage"
                        type="float"/>
          </metadataType>         
                   
@@ -385,8 +385,8 @@
                 
          <!-- SYNERGY Level 2 VGP -->
          <metadata
-            queryable="snoworicepixels"
-            category="product" name="Snow or Ice Pixels (%)" type="text/plain">
+            queryable="snoworicecoverpercentage"
+            category="product" name="Snow or Ice Cover Percentage (%)" type="text/plain">
             {data(xfdumanifest.xml/XFDU/metadataSection/
                 metadataObject[@ID="synProductInformation"]/metadataWrap/xmlData/
                 synProductInformation/classificationSummary/snowOrIcePixels/@percentage)}    

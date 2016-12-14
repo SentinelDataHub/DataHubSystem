@@ -30,14 +30,16 @@ import fr.gael.dhus.olingo.v1.entityset.AttributeEntitySet;
  */
 public class Attribute extends Item
 {
-   private String name;
-   private String value;
+   private final String name;
+   private final String value;
+   private final String category;
 
-   public Attribute (String name, String value)
+   public Attribute (String name, String value, String category)
    {
       super (name);
       this.name = name;
       this.value = value;
+      this.category = category;
    }
 
    @Override
@@ -49,6 +51,11 @@ public class Attribute extends Item
    public String getValue ()
    {
       return value;
+   }
+
+   public String getCategory()
+   {
+      return category;
    }
 
    @Override
@@ -63,12 +70,10 @@ public class Attribute extends Item
       return "text/plain";
    }
 
-   /**
-    * Attributes has no class.
-    */
    @Override
    public Class getItemClass()
    {
+      // Attributes have no class.
       return null;
    }
 
@@ -77,6 +82,7 @@ public class Attribute extends Item
    {
       Map<String, Object> res = super.toEntityResponse (root_url);
       res.put (AttributeEntitySet.VALUE, getValue ());
+      res.put(AttributeEntitySet.CATEGORY, getCategory());
       return res;
    }
 

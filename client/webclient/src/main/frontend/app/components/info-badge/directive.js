@@ -82,7 +82,8 @@ angular.module('DHuS-webclient')
             scope.setInfo = function() {
               $('#datahublogo').attr('src',ApplicationService.settings.logo);
               $('#datahubtitle').html(ApplicationService.settings.toolbar.title);
-              scope.title=ApplicationService.settings.toolbar.title;            
+              scope.title=ApplicationService.settings.toolbar.title;
+              scope.TandCLink = ApplicationService.settings.t_and_c;
               if(!loadedInfo)
                 scope.getVersion();
               else {

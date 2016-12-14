@@ -33,7 +33,7 @@ import fr.gael.dhus.database.object.Search;
 import fr.gael.dhus.database.object.User;
 
 @Repository
-public class SearchDao extends HibernateDao<Search, Long>
+public class SearchDao extends HibernateDao<Search, String>
 {
    public List<Search> scrollSearchesOfUser (final User user, final int skip,
       final int top)
@@ -49,9 +49,9 @@ public class SearchDao extends HibernateDao<Search, Long>
                String hql =
                   "SELECT s FROM User u LEFT OUTER JOIN u.preferences p "
                      + "LEFT OUTER JOIN p.searches s "
-                     + "WHERE u.id = ? ORDER BY s.value";
+                     + "WHERE u.uuid like ? ORDER BY s.value";
                Query query = session.createQuery (hql).setReadOnly (true);
-               query.setLong (0, user.getId ());
+               query.setString (0, user.getUUID ());
                query.setFirstResult (skip);
                query.setMaxResults (top);
                return (List<Search>) query.list ();
@@ -68,9 +68,9 @@ public class SearchDao extends HibernateDao<Search, Long>
          public Void doInHibernate (Session session) throws HibernateException,
             SQLException
          {
-            String sql = "DELETE FROM SEARCH_PREFERENCES WHERE SEARCHES_ID = ?";
+            String sql = "DELETE FROM SEARCH_PREFERENCES WHERE SEARCHES_UUID = ?";
             Query query = session.createSQLQuery (sql);
-            query.setLong (0, search.getId ());
+            query.setString (0, search.getUUID ());
             query.executeUpdate ();
             return null;
          }

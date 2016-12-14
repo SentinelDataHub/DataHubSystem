@@ -42,6 +42,7 @@
       
    <owl:Ontology rdf:about="&s3;"/>           
    <rdf:Description rdf:about="&s3;ipf_level_1_2">
+      <dhus:support/>
       <dhus:metadataTypes rdf:parseType="Literal">
 
          <metadataType id="productlevel"
@@ -51,24 +52,76 @@
            	<solrField name="productlevel"
                        type="text_general"/>
          </metadataType> 
-                  
-     </dhus:metadataTypes>
-   </rdf:Description>      
-   <rdf:Description rdf:about="&s3;ipf_level_1_2">
-   <dhus:support/>
+
+         <metadataType id="GMLfootprint"
+                       name="Footprint"
+                       contentType="application/gml+xml"
+                       category="product">
+            <solrField name="gmlfootprint"
+                       type="string"/>
+         </metadataType>
+
+         <metadataType id="footprint"
+                       name="JTS footprint"
+                       contentType="application/jts"
+                       category="product">
+            <solrField name="footprint"
+                       type="location_rpt"/>
+         </metadataType> 
+
+      </dhus:metadataTypes>
+
+   
       <dhus:metadataExtractor  rdf:parseType="Literal">
          <![CDATA[                                 
-                
+         declare namespace utils="java:fr.gael.drb.cortex.topic.sentinel3.Sentinel3Utils";
+         declare function local:footprint() as xs:string*
+         {
+            fn:data(*[matches (name(), "xfdumanifest.xml")]/XFDU/metadataSection/
+               metadataObject[@ID="measurementFrameSet"]/metadataWrap/xmlData/
+               frameSet/footPrint/posList)
+         };
+
          <!-- PRODUCT LEVEL -->
          <metadata
             queryable="productlevel"
             category="product" name="Product level" type="text/plain">
-            { let $level := fn:substring (name(),8,1)
-              return
-              fn:concat("L",$level)
-             }
-         </metadata>                 
-                        
+            {
+               let $level := fn:substring (name(),8,1)
+                  return
+                     fn:concat("L",$level)
+            }
+         </metadata>,
+         
+         <metadata
+            queryable="GMLfootprint"
+            category="product"
+            name="Footprint"
+            type="application/gml+xml">
+            <gml:Polygon xmlns:gml="http://www.opengis.net/gml"
+               srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">
+               <gml:outerBoundaryIs>
+                  <gml:LinearRing>
+                     <gml:coordinates>
+                     {
+                        utils:points2GML(local:footprint())
+                     }
+                     </gml:coordinates>
+                  </gml:LinearRing>
+               </gml:outerBoundaryIs>
+            </gml:Polygon>
+         </metadata>,
+   
+         <!-- JTS FOOTPRINT -->
+         <metadata
+            queryable="footprint"
+            category="product"
+            name="JTS footprint"
+            type="application/jts">
+            {
+               concat ("POLYGON ((",utils:points2JTS(local:footprint()),"))")
+            }
+         </metadata>                     
   		 ]]>
       </dhus:metadataExtractor>   
     </rdf:Description> 

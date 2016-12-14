@@ -21,17 +21,14 @@ package fr.gael.dhus.server.ftp;
 
 import java.io.File;
 
+import fr.gael.dhus.service.UserService;
 import org.apache.ftpserver.DataConnectionConfigurationFactory;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
-import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.listener.ListenerFactory;
 import org.apache.ftpserver.ssl.SslConfigurationFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.stereotype.Component;
-
-import fr.gael.dhus.server.ftp.service.DHuSVFSService;
 
 /**
  * Class dedicated to configure and manage a FTP server within DHuS
@@ -41,34 +38,10 @@ import fr.gael.dhus.server.ftp.service.DHuSVFSService;
 @Component
 public class DHuSFtpServer
 {
-   @Autowired
-   private DHuSVFSService vfsService;
-   
    private final String ftpserverRoot = "etc";
-   
-   /**
-    * @param args
-    * @throws FtpException 
-    */
-   public static void main(String[] args) throws FtpException
-   {
-      ClassPathXmlApplicationContext context =
-               new ClassPathXmlApplicationContext (
-                  "classpath:fr/gael/dhus/spring/dhus-core-context.xml");
-            context.registerShutdownHook ();
-            
-      DHuSVFSService vfsService = (DHuSVFSService)context.getBean(
-            "ftpVfsService");
-      
-      DHuSFtpServer ftp = new DHuSFtpServer();
-      ftp.vfsService = vfsService;
-      
-      FtpServer server = ftp.createFtpServer(2121, "30200-30220", false);
-      
-      server.start();
-      context.close();
-   }
-   
+
+   @Autowired
+   private UserService userService;
    
    public FtpServer createFtpServer(int port, String passivePort ,boolean ftps)
    {
@@ -100,11 +73,9 @@ public class DHuSFtpServer
       final FtpServerFactory ftpServerFactory = new FtpServerFactory();
       ftpServerFactory.addListener("default", listenerFactory.createListener());
       // Authentication
-      ftpServerFactory.setUserManager(
-            new DHuSFtpUserManager(vfsService.getUserDao()));
+      ftpServerFactory.setUserManager(new DHuSFtpUserManager(userService));
       // File System
-      ftpServerFactory.setFileSystem(
-            new DHuSFtpFileSystemFactory (vfsService));
+      ftpServerFactory.setFileSystem(new DHuSFtpFileSystemFactory ());
       return ftpServerFactory.createServer();
    }
 

@@ -32,14 +32,15 @@ import org.apache.olingo.odata2.api.uri.expression.OrderByExpression;
 import org.apache.olingo.odata2.core.exception.ODataRuntimeException;
 
 import fr.gael.dhus.database.object.User;
-import fr.gael.dhus.olingo.OlingoManager;
-import fr.gael.dhus.olingo.v1.V1Util;
+import fr.gael.dhus.olingo.Security;
 import fr.gael.dhus.olingo.v1.entity.Collection;
 import fr.gael.dhus.olingo.v1.map.AbstractDelegatingMap;
 import fr.gael.dhus.olingo.v1.map.SubMap;
 import fr.gael.dhus.olingo.v1.map.SubMapBuilder;
+import fr.gael.dhus.olingo.v1.visitor.CollectionSQLVisitor;
 import fr.gael.dhus.service.CollectionService;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
+import org.hibernate.criterion.DetachedCriteria;
 
 /**
  * This is a map view on ALL collections.
@@ -49,13 +50,11 @@ import fr.gael.dhus.spring.context.ApplicationContextProvider;
 public class CollectionMap extends AbstractDelegatingMap<String, Collection>
    implements SubMap<String, Collection>
 {
-   private static Logger logger = LogManager.getLogger (CollectionMap.class);
-   private static OlingoManager olingoManager =
-         ApplicationContextProvider.getBean (OlingoManager.class);
+   private static final Logger LOGGER = LogManager.getLogger (CollectionMap.class);
    private static CollectionService collectionService =
          ApplicationContextProvider.getBean (CollectionService.class);
 
-   private Long parentId;
+   private String parentId;
    private FilterExpression filter;
    private OrderByExpression orderBy;
    private int skip;
@@ -66,13 +65,13 @@ public class CollectionMap extends AbstractDelegatingMap<String, Collection>
       this (null, null, 0, -1, null);
    }
 
-   public CollectionMap (Long parent_id)
+   public CollectionMap (String parent_id)
    {
       this (null, null, 0, -1, parent_id);
    }
 
    private CollectionMap (FilterExpression filter, OrderByExpression order,
-      int skip, int top, Long parent_id)
+      int skip, int top, String parent_id)
    {
       this.filter = filter;
       this.orderBy = order;
@@ -84,23 +83,19 @@ public class CollectionMap extends AbstractDelegatingMap<String, Collection>
    @Override
    protected Collection serviceGet (String key)
    {
-      User u = V1Util.getCurrentUser ();
+      User u = Security.getCurrentUser();
       try
       {
-         Set<fr.gael.dhus.database.object.Collection> subs =
-            collectionService.getAuthorizedSubCollections (parentId, u);
-         for (fr.gael.dhus.database.object.Collection child : subs)
-         {
-            if (child.getName ().equals (key))
+         fr.gael.dhus.database.object.Collection c =
+            collectionService.getAuthorizedCollectionByName (key, u);
+            if (c != null)
             {
-               return new Collection (child);
+               return new Collection (c);
             }
-         }
       }
       catch (Exception e)
       {
-         logger.warn ("CollectionMap.serviceGet(" + key + ", parent:" +
-            parentId + ")", e);
+         LOGGER.warn("CollectionMap.serviceGet(" + key + ", parent:" + parentId + ")", e);
       }
       return null;
    }
@@ -110,12 +105,17 @@ public class CollectionMap extends AbstractDelegatingMap<String, Collection>
    {
       try
       {
-         User u = V1Util.getCurrentUser ();
+         User u = Security.getCurrentUser();
+         CollectionSQLVisitor expV = new CollectionSQLVisitor();
+         DetachedCriteria visite = null;
+         if (filter != null)
+         {
+            visite = (DetachedCriteria) filter.accept(expV);
+         }
          final List<fr.gael.dhus.database.object.Collection> collections =
-            olingoManager.getSubCollections (u, parentId, filter, orderBy,
-               skip, top);
+               collectionService.getHigherCollections(visite, u, skip, top);
 
-         List<Collection> cols = new ArrayList<Collection> ();
+         List<Collection> cols = new ArrayList<>();
          Iterator<fr.gael.dhus.database.object.Collection> it =
             collections.iterator ();
          while (it.hasNext ())
@@ -140,12 +140,18 @@ public class CollectionMap extends AbstractDelegatingMap<String, Collection>
    {
       try
       {
-         User u = V1Util.getCurrentUser ();
-         return olingoManager.getSubCollectionsNumber (u, parentId, filter);
+         User u = Security.getCurrentUser();
+         CollectionSQLVisitor expV = new CollectionSQLVisitor();
+         DetachedCriteria visite = null;
+         if (filter != null)
+         {
+            visite = (DetachedCriteria) filter.accept(expV);
+         }
+         return collectionService.countHigherCollections(visite, u);
       }
       catch (Exception e)
       {
-         logger.error ("Error when getting SubCollections number", e);
+         LOGGER.error("Error when getting SubCollections number", e);
       }
       return -1;
    }

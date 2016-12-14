@@ -1,0 +1,43 @@
+  <link rel="import" href="../../../bower_components/polymer/polymer.html">
+  <link rel="import" href="../../http-manager/http-manager.html">
+  <link rel="import" href="component-a.html">
+  <link rel="import" href="component-b.html">  
+<dom-module id="demo-container">
+<template>
+  <style>
+    #container{
+      width: 100%;
+      height:200px;
+      background-color: gray;
+      display: inline-block;
+    }
+    h3 {
+      text-align: center;
+    }
+  </style>
+
+
+
+  <div id="demo-container">
+    <h3> HTTP MANAGER DEMO PAGE<h3>
+    <http-manager id="http-manager"></http-manager>
+    <httpcomp-a></httpcomp-a>
+    <httpcomp-b></httpcomp-b>
+    
+  </div>
+  
+
+</template>
+
+<script>
+  'use strict';
+  Polymer({
+    is: 'demo-container',
+
+    attached: function(){      
+      
+    }
+    
+  });
+</script>
+</dom-module>

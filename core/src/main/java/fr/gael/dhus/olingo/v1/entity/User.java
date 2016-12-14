@@ -19,26 +19,51 @@
  */
 package fr.gael.dhus.olingo.v1.entity;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import fr.gael.dhus.database.object.Country;
 import fr.gael.dhus.database.object.Role;
-import fr.gael.dhus.olingo.v1.V1Util;
+import fr.gael.dhus.olingo.Security;
+import fr.gael.dhus.olingo.v1.ExpectedException;
+import fr.gael.dhus.olingo.v1.ExpectedException.IncompleteDocException;
+import fr.gael.dhus.olingo.v1.ExpectedException.InvalidKeyException;
+import fr.gael.dhus.olingo.v1.ExpectedException.InvalidTargetException;
+import fr.gael.dhus.olingo.v1.ExpectedException.InvalidValueException;
+import fr.gael.dhus.olingo.v1.Model;
+import fr.gael.dhus.olingo.v1.entityset.UserEntitySet;
+import fr.gael.dhus.olingo.v1.map.impl.ConnectionMap;
+import fr.gael.dhus.olingo.v1.map.impl.RestrictionMap;
+import fr.gael.dhus.olingo.v1.map.impl.SystemRoleMap;
+import fr.gael.dhus.olingo.v1.map.impl.UserCartMap;
+import fr.gael.dhus.service.ProductCartService;
+import fr.gael.dhus.service.ProductService;
 import fr.gael.dhus.service.UserService;
 import fr.gael.dhus.service.exception.RequiredFieldMissingException;
 import fr.gael.dhus.service.exception.RootNotModifiableException;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import org.apache.olingo.odata2.api.edm.EdmEntitySet;
 import org.apache.olingo.odata2.api.ep.entry.ODataEntry;
 import org.apache.olingo.odata2.api.exception.ODataException;
-
-import fr.gael.dhus.olingo.v1.entityset.UserEntitySet;
+import org.apache.olingo.odata2.api.uri.NavigationSegment;
+import org.apache.olingo.odata2.api.uri.UriInfo;
+import org.apache.olingo.odata2.api.uri.info.DeleteUriInfo;
 
 /**
- * Product Bean. A product served by the DHuS.
+ * User Bean. A user on the DHuS.
  */
-public class User extends V1Entity
+public class User extends AbstractEntity
 {
+   /** To add product in this user's cart. */
+   private static final ProductService PRODUCT_SERVICE =
+         ApplicationContextProvider.getBean(ProductService.class);
+
+   /** To manages this user's cart. */
+   private static final ProductCartService PRODUCTCART_SERVICE =
+         ApplicationContextProvider.getBean(ProductCartService.class);
+
    private static final UserService USER_SERVICE =
          ApplicationContextProvider.getBean (UserService.class);
 
@@ -114,7 +139,6 @@ public class User extends V1Entity
       throw new ODataException ("Property '" + prop_name + "' not found.");
    }
 
-
    @Override
    public void updateFromEntry (ODataEntry entry) throws ODataException
    {
@@ -135,7 +159,7 @@ public class User extends V1Entity
          }
          else
          {
-            throw new ODataException ("Your e-mail address is not valid !");
+            throw new InvalidValueException(UserEntitySet.EMAIL, email);
          }
       }
 
@@ -164,7 +188,7 @@ public class User extends V1Entity
          }
          else
          {
-            throw new ODataException ("Unknown country in ISO norm !");
+            throw new InvalidValueException(UserEntitySet.COUNTRY, country);
          }
       }
 
@@ -219,7 +243,7 @@ public class User extends V1Entity
 
       try
       {
-         if (V1Util.getCurrentUser ().equals (this.user))
+         if (Security.getCurrentUser().equals(this.user))
          {
             USER_SERVICE.selfUpdateUser (this.user);
          } else
@@ -229,13 +253,110 @@ public class User extends V1Entity
       }
       catch (RootNotModifiableException e)
       {
-         throw new ODataException ("Cannot update root user !");
+         throw new ExpectedException("Cannot update root user !");
       }
       catch (RequiredFieldMissingException e)
       {
-         throw new ODataException ("User is not complete to be updated !");
+         throw new IncompleteDocException(e.getMessage());
       }
    }
+
+
+   @Override
+   public Object navigate(NavigationSegment ns) throws ODataException
+   {
+      Object res;
+
+      EdmEntitySet es = ns.getEntitySet();
+      if (es.getName().equals(Model.CONNECTION.getName()))
+      {
+         res = new ConnectionMap(this.getName());
+         if (!ns.getKeyPredicates().isEmpty())
+         {
+            UUID key = UUID.fromString(ns.getKeyPredicates().get(0).getLiteral());
+            res = ((ConnectionMap)res).get(key);
+         }
+      }
+      else if (es.getName().equals(Model.RESTRICTION.getName()))
+      {
+         res = new RestrictionMap(this.getName());
+         if (!ns.getKeyPredicates().isEmpty())
+         {
+            String key = ns.getKeyPredicates().get(0).getLiteral();
+            res = ((RestrictionMap)res).get(key);
+         }
+      }
+      else if (es.getName().equals(Model.SYSTEM_ROLE.getName()))
+      {
+         res = new SystemRoleMap(this.getName());
+         if (!ns.getKeyPredicates().isEmpty())
+         {
+            res = ((SystemRoleMap)res).get(ns.getKeyPredicates().get(0).getLiteral());
+         }
+      }
+      else if (es.getName().equals(Model.CONNECTION.getName()))
+      {
+         res = new ConnectionMap(getName());
+         if (!ns.getKeyPredicates().isEmpty())
+         {
+            UUID key = UUID.fromString(ns.getKeyPredicates().get(0).getLiteral());
+            res = ((ConnectionMap)res).get(key);
+         }
+      }
+      else if (es.getName().equals(Model.PRODUCT.getName()))
+      {
+         res = new UserCartMap(this.user.getUUID());
+         if (!ns.getKeyPredicates().isEmpty())
+         {
+            res = ((UserCartMap)res).get(ns.getKeyPredicates().get(0).getLiteral());
+         }
+      }
+      else
+      {
+         throw new InvalidTargetException(this.getClass().getSimpleName(), ns.getEntitySet().getName());
+      }
+
+      return res;
+   }
+
+   @Override
+   public void createLink(UriInfo link) throws ODataException
+   {
+      EdmEntitySet target_es = link.getTargetEntitySet();
+      if (!target_es.getName().equals(Model.PRODUCT.getName()))
+      {
+         throw new ODataException("Cannot create link from Users to " + target_es.getName());
+      }
+
+      String pdt_uuid_s = link.getTargetKeyPredicates().get(0).getLiteral();
+      fr.gael.dhus.database.object.Product pta = PRODUCT_SERVICE.getProduct(pdt_uuid_s);
+      if (pta == null)
+      {
+         throw new InvalidKeyException(pdt_uuid_s, this.getClass().getSimpleName());
+      }
+
+      PRODUCTCART_SERVICE.addProductToCart(this.user.getUUID(), pta.getId());
+   }
+
+   @Override
+   public void deleteLink(DeleteUriInfo link) throws ODataException
+   {
+      EdmEntitySet target_es = link.getTargetEntitySet();
+      if (!target_es.getName().equals(Model.PRODUCT.getName()))
+      {
+         throw new ODataException("Cannot create link from Users to " + target_es.getName());
+      }
+
+      String pdt_uuid_s = link.getTargetKeyPredicates().get(0).getLiteral();
+      fr.gael.dhus.database.object.Product pta = PRODUCT_SERVICE.getProduct(pdt_uuid_s);
+      if (pta == null)
+      {
+         throw new InvalidKeyException(pdt_uuid_s, this.getClass().getSimpleName());
+      }
+
+      PRODUCTCART_SERVICE.removeProductFromCart(this.user.getUUID(), pta.getId());
+   }
+
 
    public boolean isAuthorize (fr.gael.dhus.database.object.User user)
    {

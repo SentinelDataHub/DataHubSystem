@@ -24,28 +24,30 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hibernate.Hibernate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import fr.gael.dhus.database.dao.CollectionDao;
 import fr.gael.dhus.database.dao.ProductDao;
 import fr.gael.dhus.database.dao.UserDao;
-import fr.gael.dhus.database.dao.interfaces.DaoUtils;
 import fr.gael.dhus.database.object.Collection;
 import fr.gael.dhus.database.object.Product;
 import fr.gael.dhus.database.object.Role;
 import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.service.exception.CollectionNameExistingException;
 import fr.gael.dhus.service.exception.RequiredFieldMissingException;
+import fr.gael.dhus.system.config.ConfigurationManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.hibernate.Hibernate;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Restrictions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Collection Service provides connected clients with a set of method to
@@ -54,7 +56,7 @@ import fr.gael.dhus.service.exception.RequiredFieldMissingException;
 @Service
 public class CollectionService extends WebService
 {
-   private static Log logger = LogFactory.getLog (CollectionService.class);
+   private static final Logger LOGGER = LogManager.getLogger(CollectionService.class);
 
    @Autowired
    private CollectionDao collectionDao;
@@ -71,6 +73,9 @@ public class CollectionService extends WebService
    @Autowired
    private SearchService searchService;
 
+   @Autowired
+   private ConfigurationManager cfgManager;
+
    @PreAuthorize ("hasRole('ROLE_DATA_MANAGER')")
    @Transactional (readOnly=false, propagation=Propagation.REQUIRED)
    public Collection createCollection(Collection collection) throws
@@ -79,9 +84,6 @@ public class CollectionService extends WebService
       // Can user securityService.getCurrentUser() because
       // there is a required role.
       User user = securityService.getCurrentUser();
-      // Ensure root collection exists
-      if (collection.getParent ()==null)
-         collection.setParent (collectionDao.getRootCollection ());
       checkRequiredFields(collection);
       checkName(collection);
       return collectionDao.create (collection, user);
@@ -93,32 +95,24 @@ public class CollectionService extends WebService
          RequiredFieldMissingException
    {
       checkRequiredFields(collection);
-      Collection c = collectionDao.read (collection.getId ());
+      Collection c = collectionDao.read (collection.getUUID ());
 
       String old_name = c.getName();
       String new_name = collection.getName();
-
       c.setName(new_name);
       c.setDescription (collection.getDescription ());
-      collectionDao.update (c);
 
       if (!new_name.equals(old_name))
       {
-         int nb = collectionDao.countAuthorizedProducts(null, collection);
+         Iterator<Collection> collectionIterator =
+               collectionDao.getAllCollections ();
 
-         int top = DaoUtils.DEFAULT_ELEMENTS_PER_PAGE;
-         int loop = nb / top;
-         if (nb % top != 0) loop += 1;
-
-         Iterator<Product> products;
-         for (int i = 0; i < loop; i++)
+         while (collectionIterator.hasNext ())
          {
-            products = collectionDao
-                  .getAuthorizedProducts(null, c, null, null, (top * i), top)
-                  .iterator();
-            while (products.hasNext())
+            c = collectionIterator.next ();
+            for (Product product : c.getProducts ())
             {
-               searchService.index(products.next());
+               searchService.index (product);
             }
          }
       }
@@ -126,43 +120,22 @@ public class CollectionService extends WebService
 
    @PreAuthorize ("hasRole('ROLE_DATA_MANAGER')")
    @Transactional (readOnly=false, propagation=Propagation.REQUIRED)
-   public void deleteCollection(Long id)
+   public void deleteCollection(String uuid)
    {
-      Collection collection = collectionDao.read (id);
-      logger.info ("Removing collection " + collection.getName ());
-      
-      int skip=0;
-      int step=DaoUtils.DEFAULT_ELEMENTS_PER_PAGE;
-      
-      do
+      Collection collection = collectionDao.read (uuid);
+      LOGGER.info("Removing collection " + collection.getName ());
+      for (Product product : collection.getProducts ())
       {
-         List<Product>products = collectionDao.getAuthorizedProducts(null,
-            collection, null, null, (skip++)*step,
-            DaoUtils.DEFAULT_ELEMENTS_PER_PAGE);
-
-         if ((products==null) || products.isEmpty())
-            break;
-         
-         for (Product p:products)
-         {
-            searchService.index(p);
-         }
-      } while (true);
+         searchService.index (product);
+      }
       collectionDao.delete (collection);
    }
 
    @PreAuthorize ("hasAnyRole('ROLE_DATA_MANAGER','ROLE_SEARCH')")
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public Collection getRootCollection ()
+   public Collection getCollection (String uuid)
    {
-      return collectionDao.getRootCollection ();
-   }
-
-   @PreAuthorize ("hasAnyRole('ROLE_DATA_MANAGER','ROLE_SEARCH')")
-   @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public Collection getCollection (Long id)
-   {
-      return collectionDao.read (id);
+      return systemGetCollection (uuid);
    }
    
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
@@ -171,68 +144,39 @@ public class CollectionService extends WebService
       return collectionDao.getCollectionsOfProduct(product.getId());
    }
 
-   @PreAuthorize ("hasAnyRole('ROLE_DATA_MANAGER','ROLE_SEARCH','ROLE_UPLOAD')")
-   @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public List<Collection>getChildren (Long id)
-   {
-      // Can user securityService.getCurrentUser() because
-      // there is a required role.
-      User user = securityService.getCurrentUser();
-      if (id == null)
-         return getHigherCollections (user);
-
-      return collectionDao.getSubCollections (id, user);
-   }
-
-   @PreAuthorize ("hasAnyRole('ROLE_DATA_MANAGER','ROLE_SEARCH','ROLE_UPLOAD')")
-   @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public boolean hasChildren (Long cid)
-   {
-      // Can user securityService.getCurrentUser() because
-      // there is a required role.
-      User user = securityService.getCurrentUser();
-      return collectionDao.hasChildrenCollection (cid, user);
-   }
-
    @PreAuthorize ("hasRole('ROLE_DATA_MANAGER')")
    @Transactional (readOnly=false, propagation=Propagation.REQUIRED)
-   public void removeProducts (Long cid, Long[] pids)
+   public void removeProducts (String uuid, Long[] pids)
    {
-      collectionDao.removeProducts (cid, pids, null);
+      collectionDao.removeProducts (uuid, pids, null);
       long start = new Date ().getTime ();
       for (Long pid: pids)
       {
          searchService.index(productDao.read(pid));
       }
       long end = new Date ().getTime ();
-      logger.info ("[SOLR] Remove " + pids.length + 
+      LOGGER.info("[SOLR] Remove " + pids.length +
          " product(s) from collection spent " + (end-start) + "ms" );
    }
 
    @PreAuthorize ("hasRole('ROLE_DATA_MANAGER')")
    @Transactional (readOnly=false, propagation=Propagation.REQUIRED)
-   public void addProducts (Long cid, Long[] pids)
+   public void addProducts (String uuid, Long[] pids)
    {
       for (int i = 0; i < pids.length; i++)
       {
-         systemAddProduct (cid, pids[i], true);
+         systemAddProduct (uuid, pids[i], true);
       }
    }
 
    @Transactional (readOnly=false, propagation=Propagation.REQUIRED)
-   public void systemAddProduct (Long cid, Long pid, boolean followRights)
+   public void systemAddProduct (String uuid, Long pid, boolean followRights)
    {
-      Collection collection = collectionDao.read (cid);
+      Collection collection = collectionDao.read (uuid);
       Product product = productDao.read (pid);
 
       this.addProductInCollection(collection, product);
       searchService.index(product);
-      
-      Collection parent = collection.getParent ();
-      if (parent != null && !collectionDao.isRoot (parent))
-      {
-         systemAddProduct (parent.getId (), pid, followRights);
-      }
    }
    
    private void addProductInCollection (Collection collection, Product product)
@@ -245,12 +189,12 @@ public class CollectionService extends WebService
       }
    }
 
-   @PreAuthorize ("hasRole('ROLE_DATA_MANAGER')")
+   @PreAuthorize ("hasAnyRole('ROLE_DATA_MANAGER','ROLE_SEARCH')")
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public List<Long> getProductIds(Long cid)
+   public List<Long> getProductIds(String uuid)
    {
       User user = securityService.getCurrentUser();
-      return collectionDao.getProductIds (cid, user);
+      return collectionDao.getProductIds (uuid, user);
    }
 
    @PreAuthorize ("hasAnyRole('ROLE_DATA_MANAGER','ROLE_SEARCH')")
@@ -268,23 +212,21 @@ public class CollectionService extends WebService
    private void checkName (Collection collection)
       throws RequiredFieldMissingException, CollectionNameExistingException
    {
-      if (collection.getName () == null)
+      final String toCheck = collection.getName ();
+      if (toCheck == null)
       {
          throw new RequiredFieldMissingException (
             "At least one required field is empty.");
       }
-      Collection parent = collectionDao.getParent (collection);
-      List<Collection> subCollections =
-         collectionDao.getSubCollections (parent.getId (), null);
-      for (Collection subCollection : subCollections)
+
+      Iterator<Collection> it = collectionDao.getAllCollections ();
+      while (it.hasNext ())
       {
-         if (subCollection.getName ().equals (collection.getName ()))
+         final String name = it.next ().getName ();
+         if (toCheck.equals (name))
          {
-            String parentStr =
-               collectionDao.isRoot (parent) ? "root collection"
-                  : "subcollection of '" + parent.getName () + "'";
-            throw new CollectionNameExistingException ("A " + parentStr +
-               " is already named '" + collection.getName () + "'.");
+            throw new CollectionNameExistingException ("Collection name '" +
+                  collection.getName () + "' is already used.");
          }
       }
    }
@@ -300,104 +242,50 @@ public class CollectionService extends WebService
       }
    }
 
-   @PreAuthorize("isAuthenticated ()")
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public Set<Collection> getAuthorizedSubCollections (Long cid,
-         final User user)
+   public Product getProduct (String uuid, String collection_uuid, User u)
    {
-      HashSet<Collection> authorizedSubCollections = new HashSet<Collection> ();
-
-      if (user.getRoles ().contains (Role.DATA_MANAGER))
-      {
-         List<Collection> list;
-         if (cid == null)
-         {
-            list = collectionDao.getAllSubCollection (
-               collectionDao.getRootCollection ());
-         }
-         else
-         {
-            list = collectionDao.getAllSubCollection (collectionDao.read (cid));
-         }
-
-         for (Collection collection : list)
-         {
-            authorizedSubCollections.add (collection);
-         }
-         return authorizedSubCollections;
-      }
-
-      for (Collection subCollection : getChildren (cid))
-      {
-         if (collectionDao.getAuthorizedUsers (subCollection).contains (user))
-         {
-            authorizedSubCollections.add (subCollection);
-         }
-      }
-      return authorizedSubCollections;
+      Product p = productDao.getProductByUuid(uuid);
+      if (collectionDao.contains(collection_uuid, p.getId()))
+         return p;
+      return null;
    }
 
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public Product getProduct (String uuid, Long collection_id, User u)
+   public List<Product> getAuthorizedProducts (String uuid, User u)
    {
-      Product p = productDao.getProductByUuid(uuid, u);
-      if (collectionDao.contains(collection_id, p.getId()))
-         return p;
-      return null;
-   }                  
-
-   @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public List<Product> getAuthorizedProducts (Long cid, User u)
-   {
-      Collection collection = collectionDao.read (cid);
+      Collection collection = collectionDao.read (uuid);
       if (collection == null)
       {
          return Collections.emptyList ();
       }
-      return collectionDao.getAuthorizedProducts (u, collection);
-   }
 
-   @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public int countAuthorizedSubCollections (Collection c, User u)
-   {
-      if (c == null)
-         return getHigherCollections (u).size ();
-      return collectionDao.getSubCollections (c.getId (), u).size ();
-   }
-
-   @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public List<Collection> getHigherCollections (User user)
-   {
-      if (user.getRoles ().contains (Role.DATA_MANAGER))
+      List<Product> products = new LinkedList<> ();
+      Iterator<Long> it = getProductIds (collection.getUUID ()).iterator ();
+      while (it.hasNext ())
       {
-         return collectionDao.getAllSubCollection (collectionDao
-            .getRootCollection ());
-      }
-
-      ArrayList<Collection> result = new ArrayList<Collection> ();
-      List<Long> authCollectionIds =
-         collectionDao.getAuthorizedCollections (user.getId ());
-      for (Long collectionId : authCollectionIds)
-      {
-         Collection collection = collectionDao.read (collectionId);
-         Collection parent = collectionDao.getParent (collection);
-         if (parent != null &&
-            !collectionDao.getAuthorizedUsers (parent).contains (user))
+         Long pid = it.next ();
+         if (pid != null)
          {
-            result.add (collection);
+            Product p = productDao.read (pid);
+            if (p != null)
+            {
+               products.add (p);
+            }
          }
       }
-      return result;
+
+      return products;
    }
 
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public Long getCollectionByName (String collection_name)
+   public String getCollectionUUIDByName(String collection_name)
    {
-      return collectionDao.getCollectionByName (collection_name);
+      return collectionDao.getCollectionUUIDByName(collection_name);
    }
 
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public boolean hasAccessToCollection (Long cid, Long uid)
+   public boolean hasAccessToCollection (String cid, String uid)
    {
       User user = userDao.read (uid);
       if (user == null) return false;
@@ -406,15 +294,159 @@ public class CollectionService extends WebService
    }
 
    @Transactional (readOnly=true, propagation=Propagation.REQUIRED)
-   public boolean containsProduct (Long cid, Long pid)
+   public boolean containsProduct (String uuid, Long pid)
    {
-      if (cid == null) return false;
-      return collectionDao.contains (cid, pid);
+      if (uuid == null) return false;
+      return collectionDao.contains (uuid, pid);
    }
 
    @Transactional (readOnly=true)
    public List<Collection> getCollectionsOfProduct(Product p)
    {
       return collectionDao.getCollectionsOfProduct(p.getId());
+   }
+
+   /**
+    * Retrieves collections higher authorized collection of the given user in
+    * function of the given criteria.
+    *
+    * @param criteria criteria contains filter and order of required collection.
+    * @param user
+    * @param skip     number of skipped valid results.
+    * @param top      max of valid results.
+    * @return a list of {@link Collection}
+    */
+   @Transactional(readOnly = true)
+   public List<Collection> getHigherCollections (DetachedCriteria criteria,
+         User user, int skip, int top)
+   {
+      if (criteria == null)
+      {
+         criteria = DetachedCriteria.forClass (Collection.class);
+      }
+
+      List<String> cids = new ArrayList<> ();
+      if (cfgManager.isDataPublic () ||
+            user.getRoles ().contains (Role.DATA_MANAGER))
+      {
+         Iterator<Collection> it = collectionDao.getAllCollections ();
+         while (it.hasNext ())
+         {
+            cids.add (it.next ().getUUID ());
+         }
+      }
+      else
+      {
+         List<String> collections =
+               collectionDao.getAuthorizedCollections (user.getUUID ());
+         Iterator<String> it = collections.iterator ();
+         while (it.hasNext ())
+         {
+            cids.add (it.next ());
+         }
+      }
+
+      if (!cids.isEmpty())
+      {
+         criteria.add(Restrictions.in("uuid", cids));
+      }
+      return collectionDao.listCriteria (criteria, skip, top);
+   }
+
+   @Transactional(readOnly = true)
+   public int countHigherCollections (DetachedCriteria detached, User user)
+   {
+      return getHigherCollections (detached, user, 0, 0).size ();
+   }
+
+   /**
+    * Counts of authorized collections for the given user.
+    * @param user the user to filter collections.
+    * @return number of collections than can see the user.
+    */
+   @Transactional(readOnly = true)
+   public int countAuthorizedCollections (User user)
+   {
+      if (user == null)
+      {
+         throw new IllegalArgumentException ("User must not be null !");
+      }
+
+      if (cfgManager.isDataPublic () ||
+            user.getRoles ().contains (Role.DATA_MANAGER))
+      {
+         return productDao.count ();
+      }
+
+      return 0;
+   }
+
+   /**
+    * Retrieves all authorized collections for the given user.
+    *
+    * @param u the given user.
+    * @return a set of authorized collections.
+    */
+   @Transactional(readOnly = true)
+   public Set<Collection> getAuthorizedCollection (User u)
+   {
+      HashSet<Collection> collections = new HashSet<> ();
+
+      for (String cid : collectionDao.getAuthorizedCollections (u.getUUID ()))
+      {
+         Collection collection = collectionDao.read (cid);
+         if (collection != null)
+         {
+            collections.add (collection);
+         }
+      }
+
+      return collections;
+   }
+
+   /**
+    * Retrieves a collection by its name.
+    * <p>Checks also if the given user is authorized to access it.</p>
+    *
+    * @param name collection name.
+    * @param u    the current user.
+    * @return the named collection or null.
+    */
+   @Transactional(readOnly = true)
+   public Collection getAuthorizedCollectionByName (String name, User u)
+   {
+      if (name != null && u != null)
+      {
+         Collection collection = collectionDao.read (
+               getCollectionUUIDByName (name));
+         if (collection != null
+               && (cfgManager.isDataPublic () ||
+               collection.getAuthorizedUsers ().contains (u)))
+         {
+            return collection;
+         }
+      }
+      return null;
+   }
+
+   /**
+    * Retrieves all products contained in a collection.
+    * @return a set of products.
+    */
+   @Transactional(readOnly = true)
+   public Set<Product> getAllProductInCollection ()
+   {
+      Set<Product> products = new HashSet<> ();
+      Iterator<Collection> it = collectionDao.getAllCollections ();
+      while (it.hasNext ())
+      {
+         products.addAll (it.next ().getProducts ());
+      }
+      return products;
+   }
+
+   public Collection systemGetCollection (String id)
+   {
+      return collectionDao.read (id);
    }
 }

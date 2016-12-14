@@ -1,0 +1,122 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<!--
+map coder
+
+
+@demo demo/index.html
+-->
+
+<dom-module id="map-coder">
+
+<!-- VIEW  CODE HERE -->
+<template>
+    <!-- view code here -->
+</template>
+
+<!-- MODEL-CONTROLLER CODE -->
+<script>
+    (function() {
+       'use strict';
+       class MapCoder {
+
+          /**
+           * BeforeRegister method Polymer calls before creating the element.
+           * This method is where you shoud define the is property (element's name) and
+           * properties  object.
+           *
+           * @return {null}
+           */
+           beforeRegister() {
+               this.is = 'map-coder';
+
+               this.properties = {
+
+               };
+           }
+
+        createJTSMultipolygon(multipoly){
+
+          if(!multipoly) return '';
+          var jtsmultipoly='MULTIPOLYGON(';
+          for (var i=0; i<multipoly.length; i++)
+          {
+              var poly = multipoly[i];
+              jtsmultipoly+='((';
+              var ycoord;
+              var y0coord;
+              for(var j=0; j<poly.length-1; j++)
+              {
+                  if(poly[j][1] > 85.05)
+                      ycoord=85.05;
+                  else if(poly[j][1] < -85.05)
+                      ycoord=-85.05;
+                  else
+                      ycoord=poly[j][1];
+                  jtsmultipoly+=poly[j][0]+' '+ycoord+',';
+              }
+              if(poly[0][1] > 85.05)
+                  y0coord=85.05;
+              else if(poly[0][1] < -85.05)
+                  y0coord=-85.05;
+              else
+                  y0coord=poly[0][1];
+              jtsmultipoly+=(poly[0][0])+' '+y0coord+')),';
+          }
+          jtsmultipoly = jtsmultipoly.substring(0,jtsmultipoly.length-1)+')';
+//          console.log("jtsmultipoly: ", jtsmultipoly)  
+          return jtsmultipoly;
+        }
+
+
+          /**
+           *
+           * @return {null}
+           */
+          extractSpecificModel(genericModel) {
+            if(genericModel != null){
+            for(var i = 0; i < genericModel.length; i++){
+              genericModel[i].footprint = this.createJTSMultipolygon(genericModel[i].footprintGml);
+
+            }
+          }
+            return genericModel;
+          }
+
+
+
+       };
+
+      Polymer(MapCoder);
+
+    })();
+  </script>
+
+</dom-module>

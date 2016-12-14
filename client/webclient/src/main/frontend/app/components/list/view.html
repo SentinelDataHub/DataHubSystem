@@ -90,7 +90,7 @@
 
      .products-list{
         position: relative;
-        height: calc(100% - 85px);
+        height: calc(100% - 105px);
         width: 100%;
         background-color: white;
         overflow-y: auto;
@@ -108,7 +108,7 @@
 
      .list-header{
         position: relative;
-        height: 35px;
+        height: 55px;
         background-color: white;
         top: 0px;
         padding: 7px;
@@ -161,15 +161,34 @@
      }
 
      .add-all-to-cart:hover{
+        fill: gray;
+     }
+
+     .delete-all{
+        font-size: 23px;
+     }
+
+     .delete-all:hover{
         color:gray;
      }
+
 
     </style>
     <div ng-show="visibleList" id="list-container" class="list-container">
         <div ng-show="visibleList" class="products-list-container">
             <div  ng-show="visibleList" class="list-header">
-                <div ng-show="productCount" class="listtitle" style="color: #373b50; font-weight: bold; margin-left:5px;font-size: 14px;">
-                Display {{visualizedProductsFrom}} to {{visualizedProductsTo}} of {{productCount}} products.</div><div ng-show="showtoggle" ng-click="toggleExpandList()" style="width: 10px;height: 10px;position: absolute;float: right;top: 10px;right: 15px;" ng-class="toggleButtonClass" title="{{toggleExpandListTitle}}"></div><div class="listtitle" style="color: #373b50; font-weight: bold; margin-left:5px;" ng-hide="productCount">No products found.</div>
+                <div ng-show="productCount" class="listtitle" style="color: #373b50; font-weight: bold; margin-left:5px;margin-top:3px;font-size: 14px;">
+                <div>
+                    Display {{visualizedProductsFrom}} to {{visualizedProductsTo}} of {{productCount}} products. <br><span title="Order By {{sortedby}} {{order}}">Order By: {{sortedby}} </span>
+                    <span class="glyphicon glyphicon-arrow-up" ng-show="order === 'Ascending'" title="Order By {{sortedby}} {{order}}"></span>
+                    <span class="glyphicon glyphicon-arrow-down"ng-show="order === 'Descending'" title="Order By {{sortedby}} {{order}}"></span></div>
+                </div>
+                <div ng-show="productCount" class="listtitle" style=" margin-left:5px;position: absolute;float: right;top:10px;right: 35px;">                    
+                    <span ng-show="productCount" class="listtitle" style="color: #373b50; font-weight: bold; font-size: 14px;">
+                    {{selectLabel}}</span>
+                    <span class="glyphicon" ng-class="{ ' glyphicon-unchecked': !selectAll, 'glyphicon-check': selectAll }"  ng-click="toggleSelectAll(); $event.stopPropagation();" style="color: #373b50; font-weight: bold; margin-left:15px;" title="{{selectLabel}}"></span>
+                </div>
+                <div ng-show="showtoggle" ng-click="toggleExpandList()" style="width: 10px;height: 10px;position: absolute;float: right;top: 10px;right: 15px;" ng-class="toggleButtonClass" title="{{toggleExpandListTitle}}"></div><div class="listtitle" style="color: #373b50; font-weight: bold; margin-left:5px;" ng-hide="productCount">No products found.</div>
             </div>
             <request-done ng-show="visibleList" ></request-done>
             <div  ng-show="visibleList"id="product-list" class="products-list">
@@ -218,8 +237,9 @@
                         </span> 
                         <span  ng-show="visibleList" ng-click="hideList()" class="list-footer" style="float: right; padding-right: 10px; line-height:30px;" >CLOSE</span>
 
-                        <span ng-show="visibleList"  style="float: right; padding-right: 10px; line-height:30px;"  class="glyphicon glyphicon-shopping-cart add-all-to-cart" ng-click="addAllToCart()" title="Add selected products to cart"></span>
-                        
+                        <span ng-if="showDeleteButton" ng-show="visibleList"  style="float: right; padding-right: 10px; line-height:25px;"  class="glyphicon glyphicon-trash delete-all" ng-click="deleteAll()" title="Delete selected products "></span>
+
+                        <span ng-show="visibleList" id="add-all-to-cart" class="add-all-to-cart" style="float: right; padding-right: 10px; line-height:25px;"  ng-click="addAllToCart()" title="Add selected products to cart"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="add-all-to-cart" height="26" width="26" fill="#333" version="1.0" x="0px" y="0px" viewBox="0 0 32 32" enable-background="new 0 0 32 32" xml:space="preserve"><g><circle cx="25" cy="29" r="3"></circle><circle cx="11" cy="29" r="3"></circle><path d="M30,6H8.602L8,2C7.703,0.734,7.105,0,6,0H2C0.895,0,0,0.895,0,2s0.895,2,2,2h2.301L7,22c0.203,1.203,0.895,2,2,2h18   c1.105,0,1.75-0.906,2-2c0,0,2.835-13.227,2.94-13.66C32.28,6.891,31.104,6,30,6z M24,16h-4v4h-4v-4h-4v-4h4V8h4v4h4V16z"></path></g></svg></span>
                         
                     </div>
             </div>

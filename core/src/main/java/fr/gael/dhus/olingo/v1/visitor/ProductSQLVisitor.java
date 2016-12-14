@@ -19,22 +19,20 @@
  */
 package fr.gael.dhus.olingo.v1.visitor;
 
-import org.apache.olingo.odata2.api.edm.EdmTyped;
-import org.apache.olingo.odata2.api.uri.expression.PropertyExpression;
-
-import fr.gael.dhus.olingo.OlingoSQLVisitor;
-import fr.gael.dhus.olingo.v1.V1Model;
+import fr.gael.dhus.database.object.Product;
+import fr.gael.dhus.olingo.v1.SQLVisitor;
+import fr.gael.dhus.olingo.v1.Model;
 import fr.gael.dhus.olingo.v1.entityset.ItemEntitySet;
 import fr.gael.dhus.olingo.v1.entityset.NodeEntitySet;
 import fr.gael.dhus.olingo.v1.entityset.ProductEntitySet;
+import org.apache.olingo.odata2.api.edm.EdmTyped;
+import org.apache.olingo.odata2.api.uri.expression.PropertyExpression;
 
-public class ProductSQLVisitor extends OlingoSQLVisitor
+public class ProductSQLVisitor extends SQLVisitor
 {
-   private String prefix = null;
-
-   public ProductSQLVisitor (String prefix)
+   public ProductSQLVisitor ()
    {
-      this.prefix = prefix;
+      super(Product.class);
    }
 
    @Override
@@ -45,43 +43,73 @@ public class ProductSQLVisitor extends OlingoSQLVisitor
          throw new IllegalArgumentException ("Property not found: " +
                uri_literal);
 
-      if (uri_literal.equals (ItemEntitySet.ID)) return prefix + ".uuid";
+      Member member = null;
+      switch (uri_literal)
+      {
+         case ItemEntitySet.ID:
+         {
+            member = new Member ("uuid");
+            break;
+         }
+         case ItemEntitySet.NAME:
+         {
+            member = new Member ("identifier");
+            break;
+         }
+         case ItemEntitySet.CONTENT_LENGTH:
+         {
+            member = new Member ("download.size");
+            break;
+         }
+         case ProductEntitySet.CREATION_DATE:
+         {
+            member = new Member ("created");
+            break;
+         }
+         case ProductEntitySet.INGESTION_DATE:
+         {
+            member = new Member ("ingestionDate");
+            break;
+         }
+         case ProductEntitySet.CONTENT_GEOMETRY:
+         {
+            member = new Member ("footPrint");
+            break;
+         }
+         // Not used really, but needed to be here.
+         case ProductEntitySet.CONTENT_DATE:
+         {
+            break; // return null
+         }
+         case Model.TIME_RANGE_START:
+         {
+            member = new Member ("contentStart");
+            break;
+         }
+         case Model.TIME_RANGE_END:
+         {
+            member = new Member ("contentEnd");
+            break;
+         }
 
-      if (uri_literal.equals (ItemEntitySet.NAME))
-         return prefix + ".identifier";
+         // non filterable properties
+         case ProductEntitySet.EVICTION_DATE:
+         case ProductEntitySet.METALINK:
+         case ItemEntitySet.CONTENT_TYPE:
+         case NodeEntitySet.VALUE:
+         case NodeEntitySet.CHILDREN_NUMBER:
+         {
+            throw new IllegalArgumentException ("Property \"" + uri_literal +
+                  "\" is not filterable.");
+         }
 
-      if (uri_literal.equals (ItemEntitySet.CONTENT_LENGTH))
-         return prefix + ".download.size";
-
-      if (uri_literal.equals (ProductEntitySet.CREATION_DATE))
-         return prefix + ".created";
-
-      if (uri_literal.equals (ProductEntitySet.INGESTION_DATE))
-         return prefix + ".ingestionDate";
-
-      if (uri_literal.equals (ProductEntitySet.CONTENT_GEOMETRY))
-         return prefix + ".footPrint";
-
-      // Case of complex property ContentDate
-      // Not used really, but needed to be here.
-      if (uri_literal.equals (ProductEntitySet.CONTENT_DATE)) return "";
-      if (uri_literal.equals (V1Model.TIME_RANGE_START))
-         return prefix + ".contentStart";
-      if (uri_literal.equals (V1Model.TIME_RANGE_END))
-         return prefix + ".contentEnd";
-
-      if (uri_literal.equals (ProductEntitySet.EVICTION_DATE) ||
-         uri_literal.equals (ProductEntitySet.METALINK))
-         throw new IllegalArgumentException ("Property \"" + uri_literal +
-            "\" is a dynamic data and is not filterable.");
-
-      if (uri_literal.equals (ItemEntitySet.CONTENT_TYPE) ||
-         uri_literal.equals (NodeEntitySet.VALUE) ||
-         uri_literal.equals (NodeEntitySet.CHILDREN_NUMBER))
-         throw new IllegalArgumentException ("Property \"" + uri_literal +
-            "\" is not filterable.");
-
-      throw new IllegalArgumentException ("Property not supported: " +
-            uri_literal);
+         // Unsupported or invalid properties
+         default:
+         {
+            throw new IllegalArgumentException ("Property not supported: " +
+                  uri_literal);
+         }
+      }
+      return member;
    }
 }

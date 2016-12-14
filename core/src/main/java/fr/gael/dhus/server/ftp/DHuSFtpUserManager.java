@@ -17,17 +17,21 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-/**
- * 
- */
 package fr.gael.dhus.server.ftp;
 
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import fr.gael.dhus.database.object.User.PasswordEncryption;
+import fr.gael.dhus.service.UserService;
+import fr.gael.dhus.service.exception.UserBadEncryptionException;
+import fr.gael.dhus.spring.context.ApplicationContextProvider;
+import fr.gael.dhus.system.config.ConfigurationManager;
+
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.apache.ftpserver.ftplet.Authentication;
 import org.apache.ftpserver.ftplet.AuthenticationFailedException;
 import org.apache.ftpserver.ftplet.Authority;
@@ -40,11 +44,10 @@ import org.apache.ftpserver.usermanager.impl.BaseUser;
 import org.apache.ftpserver.usermanager.impl.ConcurrentLoginPermission;
 import org.apache.ftpserver.usermanager.impl.TransferRatePermission;
 import org.apache.ftpserver.usermanager.impl.WritePermission;
-import org.springframework.security.crypto.codec.Hex;
 
-import fr.gael.dhus.database.dao.UserDao;
-import fr.gael.dhus.database.object.User.PasswordEncryption;
-import fr.gael.dhus.service.exception.UserBadEncryptionException;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Restrictions;
+import org.springframework.security.crypto.codec.Hex;
 
 /**
  * @author pidancier
@@ -52,12 +55,13 @@ import fr.gael.dhus.service.exception.UserBadEncryptionException;
  */
 public class DHuSFtpUserManager implements UserManager
 {
-   private static Log logger = LogFactory.getLog (DHuSFtpUserManager.class);
-   private UserDao userDao;
+   private static final Logger LOGGER = LogManager.getLogger(DHuSFtpUserManager.class);
+
+   private UserService userService;
    
-   public DHuSFtpUserManager (UserDao user_dao)
+   public DHuSFtpUserManager (UserService userService)
    {
-      this.userDao = user_dao;
+      this.userService = userService;
    }
    
 
@@ -78,14 +82,14 @@ public class DHuSFtpUserManager implements UserManager
          String password = upauth.getPassword();
          User user = null;
          
-         logger.debug("Trying to log as " + username);
+         LOGGER.debug("Trying to log as " + username);
          
          try
          {
             user = getUserByName (username);
-                        
-            fr.gael.dhus.database.object.User u = userDao.getByName(username);
-            
+            fr.gael.dhus.database.object.User u = userService.getUserNoCheck (
+                  username);
+
             PasswordEncryption encryption = u.getPasswordEncryption ();
             if (encryption != PasswordEncryption.NONE) // when configurable
             {
@@ -157,7 +161,7 @@ public class DHuSFtpUserManager implements UserManager
    @Override
    public boolean doesExist(String name)
    {
-      return userDao.getByName(name) == null ? false: true;
+      return userService.getUserNoCheck (name) == null ? false: true;
    }
 
    /* (non-Javadoc)
@@ -166,7 +170,8 @@ public class DHuSFtpUserManager implements UserManager
    @Override
    public String getAdminName() throws FtpException
    {
-      return userDao.getRootUser().getUsername();
+      return ApplicationContextProvider.getBean (ConfigurationManager.class)
+            .getAdministratorConfiguration ().getName ();
    }
 
    /* (non-Javadoc)
@@ -175,10 +180,17 @@ public class DHuSFtpUserManager implements UserManager
    @Override
    public String[] getAllUserNames() throws FtpException
    {
-      List<fr.gael.dhus.database.object.User>users = userDao.readNotDeleted ();
-      List<String>names = new ArrayList<String>();
-      for (fr.gael.dhus.database.object.User u:users)
-         names.add(u.getUsername());
+      DetachedCriteria criteria = DetachedCriteria.forClass (
+            fr.gael.dhus.database.object.User.class);
+      criteria.add (Restrictions.eq ("deleted", false));
+
+      List<fr.gael.dhus.database.object.User> users = userService.getUsers (
+            criteria, 0, 0);
+      List<String> names = new LinkedList<> ();
+      for (fr.gael.dhus.database.object.User user : users)
+      {
+         names.add (user.getUsername ());
+      }
       return names.toArray(new String[names.size()]);
    }
 
@@ -190,7 +202,7 @@ public class DHuSFtpUserManager implements UserManager
    public User getUserByName(final String name) throws FtpException
    {
       if (name == null) return null;
-      fr.gael.dhus.database.object.User u = userDao.getByName(name);
+      fr.gael.dhus.database.object.User u = userService.getUserNoCheck (name);
       
       if (u==null) return null;
       
@@ -206,7 +218,7 @@ public class DHuSFtpUserManager implements UserManager
          !u.isDeleted());
       
       user.setHomeDirectory("/");
-      List<Authority> authorities = new ArrayList<Authority>();
+      List<Authority> authorities = new ArrayList<>();
       authorities.add(new WritePermission ());
       // No special limit
       int maxLogin = 0;

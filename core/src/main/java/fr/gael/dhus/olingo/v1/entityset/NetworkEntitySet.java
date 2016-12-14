@@ -42,12 +42,16 @@ import org.apache.olingo.odata2.api.edm.provider.SimpleProperty;
 
 import fr.gael.dhus.database.object.Role;
 import fr.gael.dhus.database.object.User;
-import fr.gael.dhus.olingo.v1.V1Model;
-import fr.gael.dhus.olingo.v1.V1Util;
+import fr.gael.dhus.olingo.Security;
+import fr.gael.dhus.olingo.v1.Model;
 import fr.gael.dhus.olingo.v1.entity.Network;
+import fr.gael.dhus.olingo.v1.entity.AbstractEntity;
+import fr.gael.dhus.olingo.v1.map.impl.NetworkMap;
 import fr.gael.dhus.server.http.valve.AccessValve;
+import java.util.Map;
+import org.apache.olingo.odata2.api.uri.KeyPredicate;
 
-public class NetworkEntitySet extends V1EntitySet<Network>
+public class NetworkEntitySet extends AbstractEntitySet<Network>
 {
    public static final String ENTITY_NAME = "Network";
 
@@ -55,7 +59,7 @@ public class NetworkEntitySet extends V1EntitySet<Network>
    public static final String ID = "Id";
 
    public static final FullQualifiedName ASSO_NETWORK_NETWORKSTATISTIC =
-      new FullQualifiedName (V1Model.NAMESPACE, "Network_NetworkStatistic");
+      new FullQualifiedName(Model.NAMESPACE, "Network_NetworkStatistic");
    public static final String ROLE_NETWORK_NETWORKSTATISTIC =
       "Network_NetworkStatistic";
    public static final String ROLE_NETWORKSTATISTIC_NETWORK =
@@ -90,7 +94,7 @@ public class NetworkEntitySet extends V1EntitySet<Network>
       List<NavigationProperty> navigationProperties =
          new ArrayList<NavigationProperty> ();
 
-      if (V1Util.getCurrentUser ().getRoles ().contains (Role.STATISTICS))
+      if (Security.currentUserHasRole(Role.STATISTICS))
       {
          navigationProperties.add (new NavigationProperty ()
             .setName ("NetworkStatistic")
@@ -108,14 +112,14 @@ public class NetworkEntitySet extends V1EntitySet<Network>
    {
       List<AssociationSet> associationSets = new ArrayList<AssociationSet> ();
 
-      if (V1Util.getCurrentUser ().getRoles ().contains (Role.STATISTICS))
+      if (Security.currentUserHasRole(Role.STATISTICS))
       {
          associationSets.add (new AssociationSet ()
             .setName (ASSO_NETWORK_NETWORKSTATISTIC.getName ())
             .setAssociation (ASSO_NETWORK_NETWORKSTATISTIC)
             .setEnd1 (
                new AssociationSetEnd ().setRole (ROLE_NETWORK_NETWORKSTATISTIC)
-                  .setEntitySet (V1Model.NETWORKSTATISTIC.getName ()))
+                  .setEntitySet(Model.NETWORKSTATISTIC.getName()))
             .setEnd2 (
                new AssociationSetEnd ().setRole (ROLE_NETWORKSTATISTIC_NETWORK)
                   .setEntitySet (getName ())));
@@ -128,13 +132,13 @@ public class NetworkEntitySet extends V1EntitySet<Network>
    {
       List<Association> associations = new ArrayList<Association> ();
 
-      if (V1Util.getCurrentUser ().getRoles ().contains (Role.STATISTICS))
+      if (Security.currentUserHasRole(Role.STATISTICS))
       {
       associations.add (new Association ()
          .setName (ASSO_NETWORK_NETWORKSTATISTIC.getName ())
          .setEnd1 (
             new AssociationEnd ()
-               .setType (V1Model.NETWORKSTATISTIC.getFullQualifiedName ())
+               .setType(Model.NETWORKSTATISTIC.getFullQualifiedName())
                .setRole (ROLE_NETWORK_NETWORKSTATISTIC)
                .setMultiplicity (EdmMultiplicity.ONE))
          .setEnd2 (
@@ -156,5 +160,24 @@ public class NetworkEntitySet extends V1EntitySet<Network>
    {
       return user.getRoles ().contains (Role.SYSTEM_MANAGER) ||
              user.getRoles ().contains (Role.STATISTICS);
+   }
+
+   @Override
+   public Map getEntities()
+   {
+      return new NetworkMap();
+   }
+
+   @Override
+   public AbstractEntity getEntity(KeyPredicate kp)
+   {
+      Integer key = Integer.parseInt(kp.getLiteral());
+      return (new NetworkMap()).get(key);
+   }
+
+   @Override
+   public boolean hasManyEntries()
+   {
+      return false;
    }
 }

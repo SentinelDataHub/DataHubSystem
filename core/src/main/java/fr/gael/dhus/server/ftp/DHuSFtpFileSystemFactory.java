@@ -27,20 +27,12 @@ import org.apache.ftpserver.ftplet.FileSystemView;
 import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.ftplet.User;
 
-import fr.gael.dhus.server.ftp.service.DHuSVFSService;
-
 /**
  * @author pidancier
  *
  */
 public class DHuSFtpFileSystemFactory implements FileSystemFactory
 {
-   private DHuSVFSService vfsService;
-   public DHuSFtpFileSystemFactory (DHuSVFSService vfs_service)
-   {
-      this.vfsService = vfs_service;
-   }
-
    /* (non-Javadoc)
     * @see org.apache.ftpserver.ftplet.FileSystemFactory#createFileSystemView(
     * org.apache.ftpserver.ftplet.User)
@@ -48,7 +40,7 @@ public class DHuSFtpFileSystemFactory implements FileSystemFactory
    @Override
    public FileSystemView createFileSystemView(User user) throws FtpException
    {
-      return new DHuSFtpProductViewByCollection (user, this.vfsService);
+      return new DHuSFtpProductViewByCollection (user);
    }
 
 }

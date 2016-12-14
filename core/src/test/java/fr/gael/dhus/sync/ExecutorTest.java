@@ -19,8 +19,6 @@
  */
 package fr.gael.dhus.sync;
 
-import fr.gael.dhus.sync.Synchronizer;
-import fr.gael.dhus.sync.Executor;
 import fr.gael.dhus.database.object.SynchronizerConf;
 import java.text.ParseException;
 
@@ -28,35 +26,22 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
 
-/** Tests for {@link Executor}. */
+/** Tests for {@link ExecutorImpl}. */
 public class ExecutorTest
 {
-   /** Tests the singleton pattern. */
-   @Test ()
-   public void testSingle ()
-   {
-      assertSame (Executor.getExecutor (), Executor.getExecutor ());
-   }
+   final ExecutorImpl r = new ExecutorImpl();
 
-   /**
-    * {@link Executor#addSynchronizer(Synchronizer)} must not accept a null
-    * parameter.
-    */
+   /** {@link Executor#addSynchronizer(Synchronizer)} must not accept a null parameter. */
    @Test(expectedExceptions={NullPointerException.class})
    public void testNullAddSynchronizer ()
    {
-      Executor r = Executor.getExecutor ();
       r.addSynchronizer (null);
    }
 
-   /**
-    * Tests {@link Executor#isBatchModeEnabled()} and
-    * {@link Executor#enableBatchMode(boolean)}.
-    */
+   /** Tests {@link Executor#isBatchModeEnabled()} and {@link Executor#enableBatchMode(boolean)}. */
    @Test
    public void testBatchModeFlag ()
    {
-      Executor r = Executor.getExecutor ();
       assertFalse (r.isBatchModeEnabled ());
       r.enableBatchMode (true);
       assertTrue (r.isBatchModeEnabled ());
@@ -98,7 +83,6 @@ public class ExecutorTest
    @Test
    public void testIsRunning () throws InterruptedException
    {
-      Executor r = Executor.getExecutor ();
       r.start (true);
       Thread.sleep (200);
       assertTrue (r.isRunning ());
@@ -107,13 +91,10 @@ public class ExecutorTest
       assertFalse (r.isRunning ());
    }
 
-   /**
-    * Tests if the {@link Executor} calls {@link Synchronizer#Synchronize()}.
-    */
+   /** Tests if the {@link Executor} calls {@link Synchronizer#Synchronize()}. */
    @Test (priority = 10)
    public void testSync () throws InterruptedException
    {
-      Executor r = Executor.getExecutor ();
       TestSync s = new TestSync (0);
       r.addSynchronizer (s);
       r.start (true);
@@ -127,7 +108,6 @@ public class ExecutorTest
    @Test (priority = 12)
    public void testAddSynchronizer () throws InterruptedException
    {
-      Executor r = Executor.getExecutor ();
       TestSync a = new TestSync (1);
       TestSync b = new TestSync (2);
       TestSync c = new TestSync (3);
@@ -148,7 +128,6 @@ public class ExecutorTest
    @Test (priority = 20)
    public void testTerminate () throws InterruptedException
    {
-      Executor r = Executor.getExecutor ();
       TestSync s = new TestSync(20);
       r.addSynchronizer (s);
       r.start (true);
@@ -161,7 +140,6 @@ public class ExecutorTest
    @Test (priority = 22)
    public void testStop () throws InterruptedException
    {
-      Executor r = Executor.getExecutor ();
       r.start (true);
       r.stop ();
       Thread.sleep (1200);

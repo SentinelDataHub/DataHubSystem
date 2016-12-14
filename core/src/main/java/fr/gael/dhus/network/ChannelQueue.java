@@ -27,7 +27,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import fr.gael.dhus.service.NetworkUsageService;
-
 import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
 
@@ -365,5 +364,4 @@ class ChannelQueue extends AbstractChannel
       }
 
    }
-
 } // End ChannelQueue class

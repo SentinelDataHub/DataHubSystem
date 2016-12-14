@@ -1,0 +1,149 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<script>
+(function() {
+
+    'use strict';
+
+    let singleton = Symbol();
+    let singletonEnforcer = Symbol();
+
+
+    class SchemaProvider {
+
+        /**
+         *  Semantic manager singleton constructor
+         */
+        constructor(enforcer) {
+            this.is = "schema-provider";
+            if (enforcer != singletonEnforcer)
+                throw "Cannot construct singleton; use SchemasContainer.instance!";
+        }
+
+        beforeRegister() {
+            this.is = "schema-provider";
+        }
+
+        /**
+         * @returns Singleton
+         */
+        static get instance() {
+            if (!this[singleton]) {
+                this[singleton] = new SchemaProvider(singletonEnforcer);
+                this[singleton].init();
+            }
+            return this[singleton];
+        }
+
+
+        /**
+         *  SchemaProvider initialization
+         *
+         * @param {} :
+         * @return {}
+         */
+        init() {
+            this.owcApp = document.querySelector('#owc-app');
+        }
+
+        /**
+         *  Get the schema from class name
+         *
+         * @param {String} className: the name of class
+         * @return {Object} schema associated with the class
+         */
+        get(className) {
+            var self = this;
+            var schema = this.owcApp.Owc.SchemaCache.instance.get(className);
+            var sp = className.substring(0, 2);
+            var name = className.replace('#', ':');
+            var sparqlQuery = "'PREFIX **: <http://www.esa.int/**#> PREFIX dhus: <http://www.gael.fr/dhus#> SELECT ?semaschema WHERE{ className dhus:semanticschema ?semaschema }'";
+            sparqlQuery = sparqlQuery.split('**').join(sp);
+            sparqlQuery = sparqlQuery.replace('className', name);
+            sparqlQuery = encodeURIComponent(sparqlQuery);
+            sparqlQuery = sparqlQuery.replace(/'/g, "%27");
+            sparqlQuery = sparqlQuery.replace(/:/g, "%3A");
+            self.newURL = self.owcApp.config.baseUrl + '/odata/v1/SparQL?query=' + sparqlQuery;
+            if (!schema) {
+                var url = self.owcApp.config.clientUrl + '/semantic_schema/' + className.replace('#', '23') + '.json';
+                return self.owcApp.httpManager.sendRequest('GET', self.newURL)
+                    .then(function(response) {
+                        var dirtyString = response.data;
+                        var cleanString = dirtyString.replace(/|&$%@<>()+/g, "");
+                        cleanString = cleanString.replace(/&amp;#x0D;/g, "");
+                        cleanString = cleanString.substring(cleanString.indexOf('{'), cleanString.lastIndexOf("}") + 1);
+                        var serverSchema = JSON.parse(cleanString);
+                        if (typeof serverSchema != 'object') {
+                            schema = self.owcApp.Owc.SchemaCache.instance.get('default');
+                            if (!schema) {
+                                var defaultUrl = self.owcApp.config.clientUrl + '/semantic_schema/default.json';
+                                return self.owcApp.httpManager.sendRequest('GET', defaultUrl)
+                                    .then(function(response) {
+                                        var defaultSchema = response.data;
+                                        if (!defaultSchema) return null;
+                                        self.owcApp.Owc.SchemaCache.instance.set('default', defaultSchema);
+                                        schema = defaultSchema;
+                                        return schema;
+                                    });
+                            } else {
+                                return new Promise(function(resolve, reject) {
+                                    resolve(serverSchema);
+                                });
+                            }
+
+
+                        } else {
+                            return new Promise(function(resolve, reject) {
+                                resolve(serverSchema);
+                            });
+                        }
+                    })
+                    .catch(function(response) {
+                        schema = self.owcApp.Owc.SchemaCache.instance.get('default');
+                        if (!schema) {
+                            var defaultUrl = self.owcApp.config.clientUrl + '/semantic_schema/default.json';
+                            return self.owcApp.httpManager.sendRequest('GET', defaultUrl)
+                                .then(function(response) {
+                                    var defaultSchema = response.data;
+                                    if (!defaultSchema) return null;
+                                    self.owcApp.Owc.SchemaCache.instance.set('default', defaultSchema);
+                                    schema = defaultSchema;
+                                    return schema;
+                                });
+                        }
+                    });
+            } else {
+                return new Promise(function(resolve, reject) {
+                    resolve(schema);
+                });
+            }
+        }
+    };
+    Polymer(SchemaProvider);
+    eu.serco.Owc.SchemaProvider = SchemaProvider;
+
+})();
+</script>

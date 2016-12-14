@@ -29,7 +29,7 @@ import fr.gael.dhus.olingo.v1.entityset.ItemEntitySet;
 /**
  * Item Bean. Base object of the data served by the DHuS.
  */
-public abstract class Item extends V1Entity
+public abstract class Item extends AbstractEntity
 {
    public static String ENTITY_NAME = "Item";
 

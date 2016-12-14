@@ -26,12 +26,15 @@ angular
   .module('DHuS-webclient')
 .factory('AdminUserService', function($http, UserModel, Logger){
     return {
-	userlistRequestUrl: "api/stub/admin/users?filter=:filter&offset=:offset&limit=:count",
+	  userlistRequestUrl: "api/stub/admin/users?filter=:filter&offset=:offset&limit=:count",
     usersCountRequestUrl: "api/stub/admin/users/count?filter=:filter",
     editRemoveUserRequestUrl: "api/stub/admin/users/:userid",
     createUserRequestUrl: "api/stub/admin/users",
     getCountriesUrl: "api/stub/countries",
-	filter: '',
+    updatePasswordUrl: "odata/v1/Users(':username')",
+    jsonParameter: "$format=json",
+    requestHeaders: {'Content-Type':'application/atom+xml','Accept':'application/json'},
+	  filter: '',
     offset: 0, 
     limit: 25,  
     setOffset: function(offset){
@@ -118,7 +121,7 @@ angular
       var self = this; 
       console.log('user to update', user);     
       return $http({
-        url: ApplicationConfig.baseUrl + self.editRemoveUserRequestUrl.replace(":userid",user.id),
+        url: ApplicationConfig.baseUrl + self.editRemoveUserRequestUrl.replace(":userid",user.uuid),
         method: "PUT", 
         contentType: 'application/json',         
         data: JSON.stringify(user),       
@@ -140,7 +143,35 @@ angular
         return $http({
             url: ApplicationConfig.baseUrl + self.getCountriesUrl,
             method: "GET"});                  
+    },
+
+    // private methods
+    _generateBodyFromModel: function(password){    
+      return '<entry xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns="http://www.w3.org/2005/Atom"> \
+        <title type="text">User</title> \
+        <category term="DHuS.User" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme"/> \
+        <content type="application/xml"> \
+            <m:properties> \
+                <d:Password>'+password+'</d:Password>' +                
+            '</m:properties> \
+        </content> \
+      </entry>';
+    },
+
+    updateUserPassword:function(user, pwd) {
+      var self = this;
+      return  $http({
+        url:ApplicationConfig.baseUrl + self.updatePasswordUrl.replace(":username",user),
+        method:"PUT",
+        data: self._generateBodyFromModel(pwd),
+        headers: self.requestHeaders
+      }).then(function(response){
+        return response;
+      });
+
     }
+
+
 
 	
 };

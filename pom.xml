@@ -4,14 +4,9 @@
 
    <modelVersion>4.0.0</modelVersion>
 
-   <parent>
-      <groupId>fr.gael.dhus</groupId>
-      <artifactId>dhus-parent</artifactId>
-   	  <version>0.9.1-osf</version>
-      <relativePath></relativePath>
-   </parent>
-
+   <groupId>fr.gael.dhus</groupId>
    <artifactId>dhus-suite</artifactId>
+   <version>0.12.5-6-osf</version>
    <packaging>pom</packaging>
 
    <name>DHuS - Suite</name>
@@ -19,41 +14,81 @@
    <inceptionYear>2013</inceptionYear>
 
    <modules>
-      <module>parent</module>
-      <module>liquibase-logs</module>
-      <module>solr</module>
       <module>core</module>
-      <module>client</module>
-      <module>addon</module>
-      <module>distribution</module>
+      <module>client/webclient</module>
+      <module>addon/sentinel-1</module>
+      <module>addon/sentinel-2</module>
+      <module>addon/sentinel-3</module>
    </modules>
-   
+
    <profiles>
       <profile>
+         <id>owc</id>
+         <modules>
+            <module>client/owc-client</module>
+         </modules>
+      </profile>
+       <profile>
+         <id>software</id>
+         <modules>
+            <module>distribution/software</module>
+         </modules>
+      </profile>
+      <profile>
          <id>sources</id>
-		   <build>
-		      <plugins>
-		         <plugin>
-		            <artifactId>maven-assembly-plugin</artifactId>
-		            <version>2.5.3</version>
-		            <configuration>
-		               <descriptors>
-		                  <descriptor>sources-assembly.xml</descriptor>
-		               </descriptors>
-		            </configuration>
-		            <executions>
-		               <execution>
-		                  <id>make-assembly</id>
-		                  <phase>package</phase>
-		                  <goals>
-		                     <goal>single</goal>
-		                  </goals>
-		               </execution>
-		            </executions>
-		         </plugin>
-		      </plugins>
-		   </build>
+         <build>
+            <plugins>
+               <plugin>
+                  <artifactId>maven-assembly-plugin</artifactId>
+                  <version>2.6</version>
+                  <configuration>
+                     <descriptors>
+                        <descriptor>distribution/sources/sources-assembly.xml</descriptor>
+                     </descriptors>
+                  </configuration>
+                  <executions>
+                     <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                           <goal>single</goal>
+                        </goals>
+                     </execution>
+                  </executions>
+               </plugin>
+            </plugins>
+         </build>
       </profile>
    </profiles>
+
+   <distributionManagement>
+      <repository>
+         <uniqueVersion>true</uniqueVersion>
+         <id>osf-releases</id>
+         <name>OSF Releases Repository</name>
+         <url>
+            https://copernicus.serco.eu/repository/nexus/content/repositories/releases/
+
+         </url>
+         <layout>default</layout>
+      </repository>
+      <site>
+         <id>gael-site</id>
+         <url>${site.baseUrl}/</url>
+      </site>
+   </distributionManagement>
+
+   <issueManagement>
+      <system>Jira</system>
+      <url>https://copernicus.serco.eu/jira-osf</url>
+   </issueManagement>
+
+   <scm>
+      <connection>scm:git:https://github.com/SercoSPA/DHuS</connection>
+      <developerConnection>scm:git:https://github.com/SercoSPA/DHuS</developerConnection>
+      <tag>HEAD</tag>
+      <url>https://github.com/SercoSPA/DHuS</url>
+   </scm>
+
 
 </project>

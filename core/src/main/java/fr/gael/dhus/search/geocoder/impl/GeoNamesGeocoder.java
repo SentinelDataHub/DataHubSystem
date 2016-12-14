@@ -19,8 +19,8 @@
  */
 package fr.gael.dhus.search.geocoder.impl;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.geonames.Toponym;
 import org.geonames.ToponymSearchCriteria;
 import org.geonames.ToponymSearchResult;
@@ -38,7 +38,7 @@ public class GeoNamesGeocoder implements Geocoder
    /**
     * A logger for this class.
     */
-   private static Log logger = LogFactory.getLog(GeoNamesGeocoder.class);
+   private static final Logger LOGGER = LogManager.getLogger(GeoNamesGeocoder.class);
 
    /**
     * The registered user name granting access to the GeoName Web Service.
@@ -93,7 +93,7 @@ public class GeoNamesGeocoder implements Geocoder
       }
       catch (Exception exception)
       {
-         logger.warn ("Error while performing GeoNames query: " +
+         LOGGER.warn("Error while performing GeoNames query: " +
             exception.getMessage ());
          return null;
       }

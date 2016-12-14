@@ -64,7 +64,7 @@ public class PreAuthFilter extends GenericFilterBean
    {
       if (logger.isDebugEnabled ())
       {
-         logger.debug ("Checking secure context token: " +
+         logger.debug("Checking secure context token: " +
             SecurityContextHolder.getContext ().getAuthentication ());
       }
 

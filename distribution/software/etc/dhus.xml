@@ -215,14 +215,22 @@
          <!-- Eviction configuration.
             maxDiskUsage: the maximum disk usage that can be allowed for evictable products
             maxEvictedProducts: the maximum evicted products when running an eviction
-            keepPeriod: the minimal time in days -->
+            keepPeriod: the minimal time in days
+            trashPath: path where to move deleted products
+         -->
          <eviction maxDiskUsage="80" maxEvictedProducts="1000"
-            keepPeriod="10" />
-         <!-- Definition of incoming folder path and the number of maximum subfolders of each stage -->
-         <incoming path="&varFolder;/incoming" maxFileNo="10" />
+            keepPeriod="10" trashPath=""/>
+         <!-- Definition of incoming folder path and the number of maximum subfolders of each stage
+            errorPath: path where to move products not ingested
+         -->
+         <incoming path="&varFolder;/incoming" maxFileNo="10" errorPath=""/>
       </archive>
       <!-- Definition of database path and where dumps are stored -->
-      <database path="&varFolder;/database/hsqldb" dumpPath="&varFolder;/database_dump" />
+      <database path="&varFolder;/database/hsqldb"
+                dumpPath="&varFolder;/database_dump"
+                cryptType=""
+                cryptKey=""
+      />
       <!-- Definition of system long name and short name. -->
       <name long="Data Hub Service" short="DHuS" />
       <!-- Processing configuration.

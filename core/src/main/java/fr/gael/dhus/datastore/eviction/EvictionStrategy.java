@@ -19,25 +19,21 @@
  */
 package fr.gael.dhus.datastore.eviction;
 
+import fr.gael.dhus.database.object.Eviction;
+import fr.gael.dhus.database.object.Product;
+
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
-
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import com.google.common.collect.ImmutableSet;
-
-import fr.gael.dhus.database.dao.interfaces.DaoUtils;
-import fr.gael.dhus.database.object.Eviction;
-import fr.gael.dhus.database.object.Product;
 
 /**
  * @author pidancier
@@ -50,7 +46,7 @@ public enum EvictionStrategy
          @Override
          public Set<Product> getProductsToEvict(Eviction eviction)
          {
-            return ImmutableSet.of();
+            return Collections.emptySet();
          }         
       },
    LRU  ("LRU",  "Least Recent Use Algorithm") 
@@ -68,7 +64,7 @@ public enum EvictionStrategy
             while (result.size () < max && it.hasNext ())
             {
                Product product = it.next ();
-               logger.info ("Product to evict \"" + product.getIdentifier () +
+               LOGGER.info("Product to evict \"" + product.getIdentifier () +
                      "\" - date " + product.getCreated ());
                result.add (product);
             }
@@ -77,7 +73,7 @@ public enum EvictionStrategy
          {
             result = Collections.emptySet ();
          }
-         logger.info ("Found " + result.size () + " product(s) to evict.");
+         LOGGER.info("Found " + result.size () + " product(s) to evict.");
          return result;
       }
    },
@@ -96,7 +92,7 @@ public enum EvictionStrategy
             while (result.size () < max && it.hasNext ())
             {
                Product product = it.next ();
-               logger.info ("Product to evict \"" + product.getIdentifier () +
+               LOGGER.info("Product to evict \"" + product.getIdentifier () +
                      "\" - date " + product.getCreated ());
                result.add (product);
             }
@@ -105,7 +101,7 @@ public enum EvictionStrategy
          {
             result = Collections.emptySet ();
          }
-         logger.info ("Found " + result.size () + " product(s) to evict.");
+         LOGGER.info("Found " + result.size () + " product(s) to evict.");
          return result;
       }
    }
@@ -130,7 +126,7 @@ public enum EvictionStrategy
    }
 
    
-   private static Log logger = LogFactory.getLog (EvictionStrategy.class);
+   private static final Logger LOGGER = LogManager.getLogger(EvictionStrategy.class);
    String mode;
    String description;
    

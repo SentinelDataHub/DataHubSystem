@@ -1,0 +1,399 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-list/iron-list.html">
+<!--
+This component is used to show products list when an user clicks on a specific date of products calendar
+
+
+@demo demo/index.html
+-->
+<dom-module id="calendar-details">
+    <template>
+        <style is="custom-style">
+        #calendar-details-header {
+            height: auto!important;            
+            margin-bottom: 5px;
+            overflow-y: auto;
+            @apply(--layout-vertical);
+            @apply(--layout-center-justified);
+        }
+
+        .child {
+            @apply(--layout-vertical);
+        }
+
+        .container {
+            @apply(--layout-horizontal);
+        }
+
+        .containerVertical {
+            @apply(--layout-vertical);
+        }
+
+        .flexchild {
+            @apply(--layout-flex-3);
+        }
+
+        #calendar-details-container {
+            height: var(--listheight, 500px);
+            width: var(--listwidth, 300px);
+            overflow-y: auto;
+            overflow-x: auto;
+            width: 100%!important;
+            /*height: 10px;*/
+        }
+
+        :host {
+            display: block;
+            height: 100%
+        }
+
+        iron-list {
+            background-color: var(--paper-grey-200, #fff);
+        }
+
+        .content {
+            height: 100% !important;
+        }
+
+        #calendarlist {
+            height: 100%;
+            overflow: hidden!important;
+            background-color: #fff;
+        }
+
+        .item {
+            @apply(--layout-horizontal);
+            /*padding: 20px;*/
+            border-radius: 8px;
+            background-color: white;
+            width: 96%;
+            height: 70px;
+            margin-bottom: 16px !important;
+        }
+
+        .title {
+            font-size: 15px;
+            margin-top: 5px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .product-title {
+            font-size: 14px;
+            font-weight: bold;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .owc-list-item-title {
+            position: absolute;
+            top: var(--owc-list-item-title-top, 20px);
+            left: var(--owc-list-item-title-left, 30px);
+            width: var(--owc-list-item-title-width, calc(100% - 50px));
+        }
+        </style>
+        <semantic-manager id="calendar-details-semantic-manager"></semantic-manager>
+        <owc-query id="calendar-details-query"></owc-query>
+        <generic-model id="calendar-details-generic-model"></generic-model>
+        <div id="calendar-details-header" class="child">
+            <div hidden$="{{!compute(productnumber)}}">
+                <div class="title">{{productnumber}} {{i18n(' product found on')}} {{selected_date}}</div>
+            </div>
+            <div hidden$="{{compute(productnumber)}}">
+                <div class="title">{{productnumber}} {{i18n(' products found on')}} {{selected_date}}</div>
+            </div>
+        </div>
+        <div id="calendar-details-container">
+            <div class="flexchild childVertical">
+                <owc-list id="calendar-details-list"></owc-list>
+                <list-coder id="calendar-details-coder"></list-coder>
+                <data-source id="calendar-details-datasource"></data-source>
+                <!-- <iron-list id="calendarlist" items="{{listmodel}}" as="item" style="width: 100%!important">
+                    <template>
+                        <div class="item">
+                            <div class="container">
+                                <div class="product-title owc-list-item-title" title="{{item.title}}">
+                                    {{item.title}}
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </iron-list> -->
+            </div>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class CalendarDetails {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}http://localhost:8081/odata/v1/Products?$select=Name,Id&$filter=IngestionDate%20ge%20datetime%272016-07-25T00:00:00%27%20and%20IngestionDate%20le%20datetime%272016-07-25T23:59:59%27&$format=json&$skip=0&$top=100
+             */
+            beforeRegister() {
+                this.is = 'calendar-details';
+                this._requestUrl = "/api/stub/products?filter=:filter&offset=:offset&limit=:limit&sortedby=:sortedby&order=:order";
+                //this._requestUrl = "/odata/v1/Products?$select=Name,Id&$filter=:filter&$format=json&$skip=:skip&$top=:top";
+                //this.filter = "ContentDate/Start%20gt%20datetime:startdate%20and%20ContentDate/Start%20lt%20datetime:enddate"
+                //this.filter = "beginPosition:[:startdate TO :enddate] AND endPosition:[:startdate TO :enddate]";
+                this.filter = "beginPosition:[:startdate TO :enddate] ";
+                this.options = {
+                    headers: [{
+                        name: "Accept",
+                        value: "application/json"
+                    }]
+                };
+                this.owcApp = document.querySelector('#owc-app');
+                this.skip = 0;
+                this.top = 0;
+                this.limit = 25;
+                this.sortedby = 'ingestiondate';
+                this.order = 'desc';
+
+                this.properties = {
+
+                    /**
+                     * This property contains the model of the product list ingested in the selected date
+                     *
+                     * @type {Object}
+                     */
+                    listmodel: {
+                        type: Array,
+                        value: [],
+                        notify: true
+                    },
+
+                    /**
+                     * This property contains the selected date to which the product list refers
+                     *
+                     * @type {Object}
+                     */
+                    selected_date: {
+                        type: String,
+                        notify: true
+                    },
+
+
+                    productnumber: {
+                        type: Number,
+                        value: 0,
+                        notify: true
+                    },
+
+
+                };
+
+            }
+
+            setModel(model) {
+                this.set('listmodel', []);
+                this.set('listmodel', model);
+                this.notifyPath('listmodel', model);
+
+                var event = document.createEvent('Event');
+                event.initEvent('resize', true, true);
+                document.dispatchEvent(event);
+
+            }
+
+            attached() {
+                var self = this;
+                this.loadDataFromServer();
+
+                setTimeout(function() {
+                    self.resize();
+                }, 0);
+
+            }
+
+
+            /**
+             * Resize method (called from navigation panel)
+             *
+             * @param {?Object} paramExample: method parameter sample
+             * @return {null}
+             */
+            resize() {
+                this.customStyle['--listheight'] = parseInt(this.parentPanel.getSize().height) + "px";
+                this.updateStyles();
+                this.customStyle['--listwidth'] = parseInt(this.parentPanel.getSize().width) + "px";
+                this.updateStyles();
+            }
+
+            /**
+             * generate url for request
+             *
+             * @param {String} filter
+             * @param {String} offset
+             * @param {String} limit
+             *
+             * @return {null}
+             */
+            _generateSearchRequest() {
+
+
+                var searchUrl = this._requestUrl;
+                var startdate = this.selected_date + "T00:00:00.000Z"
+                var enddate = this.selected_date + "T23:59:59.000Z"
+                var filter = this.filter.replace((new RegExp(":startdate", 'g')), startdate).replace((new RegExp(":enddate", 'g')), enddate);
+                searchUrl = searchUrl.replace(":offset", this.skip);
+                searchUrl = searchUrl.replace(":limit", this.limit);
+                searchUrl = searchUrl.replace(":filter", filter);
+                searchUrl = searchUrl.replace(":sortedby", this.sortedby);
+                searchUrl = searchUrl.replace(":order", this.order);
+
+                return searchUrl;
+            }
+
+            _generateFilter(){
+
+              var filter = "beginPosition:[:startdate TO :enddate] ";
+              var startdate = this.selected_date + "T00:00:00.000Z"
+              var enddate = this.selected_date + "T23:59:59.000Z"
+              return this.filter.replace((new RegExp(":startdate", 'g')), startdate).replace((new RegExp(":enddate", 'g')), enddate);
+
+
+            }
+
+            /**
+             * request: real http request
+             *
+             * @return {null}
+             */
+            request() {
+
+                var self = this,
+                    filter = this._filter,
+                    skip = this._skip,
+                    top = this._top;
+                var list = [];
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + self._generateSearchRequest()
+                ).then(function(response) {
+                    if (response.status == 200) {
+                        return response.data;
+
+                    } else
+                        return list;
+                });
+
+            }
+
+
+            /*
+             * This method is used to get data model for calendar
+             */
+            loadDataFromServer() {
+
+                var self = this,
+                    target = self.owcApp.utils.generateUUID(),
+                    owcquery = Polymer.dom(self.root).querySelector('#calendar-details-query'),
+                    list = Polymer.dom(self.root).querySelector('#calendar-details-list'),
+                    datasource = Polymer.dom(self.root).querySelector('#calendar-details-datasource'),
+                    semanticManager = Polymer.dom(self.root).querySelector('#calendar-details-semantic-manager'),
+                    genModel = Polymer.dom(self.root).querySelector('#calendar-details-generic-model'),
+                    listCoder = Polymer.dom(self.root).querySelector('#calendar-details-coder'),
+                    listContainer = Polymer.dom(self.root).querySelector('#calendar-details-container');
+
+                // semantic-manager
+                semanticManager.init();
+
+                datasource._pageSize = self.limit;
+                datasource._currentPage = self.skip;
+                datasource._bufferStart = self.skip;
+
+                datasource.setList(list);
+                datasource.setListSemanticManager(semanticManager);
+                datasource.setListContainer(listContainer); // the combo is the list container?
+                datasource.setOwcQuery(owcquery);
+                genModel.setTarget(target);
+                datasource.setGenericModel(genModel);
+                list.setTarget(target);
+                list.setCoder(listCoder);
+                list.setContainer(listContainer);
+                list.setGenericModel(genModel);
+                list.setDelegate(datasource);
+                owcquery.setText(this._generateFilter());
+
+                datasource.loadDataFromServer();
+                //datasource.setCombo(self);
+
+                //this.owcList.genericModel = null;
+                //genericModel.setModel(null);
+//-------------------//
+
+                // this.request()
+                //     .then(function(model) {
+                //
+                //         semanticManager.process(model)
+                //             .then(function(_model) {
+                //
+                //                 datasource.setGenericModel(genModel);
+                //                 datasource._genericModel.setModel(_model);
+                //                 datasource._bufferEnd = model.length -1;
+                //                 //list.setNewModel(_model);
+                //
+                //             });
+                //
+                //
+                //
+                //     });
+
+//-------------------//
+            }
+
+
+
+            /**
+             *   This method is used to verify if the list contains products or not
+             *
+             * @param {?Object} adfnumber: adf number
+             * @return {Boolean}: true if adf number is gt 0, false otherwise
+             */
+            compute(productnumber) {
+                var hasOneProduct = (this.productnumber > 1) ? false : true;
+                return hasOneProduct;
+
+            }
+
+        };
+
+        Polymer(CalendarDetails);
+
+    })();
+    </script>
+</dom-module>

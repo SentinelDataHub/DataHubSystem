@@ -19,13 +19,14 @@
  */
 package fr.gael.dhus.service;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import fr.gael.dhus.datastore.exception
-      .DataStoreLocalArchiveNotExistingException;
+import fr.gael.dhus.datastore.exception.DataStoreLocalArchiveNotExistingException;
 
 /**
  * Archive Service provides connected clients with a set of method
@@ -35,8 +36,8 @@ import fr.gael.dhus.datastore.exception
 @Service ("archiveService")
 public class ArchiveService extends WebService
 {
-   private static Logger logger = Logger.getLogger (ArchiveService.class);
-   
+   private static final Logger LOGGER = LogManager.getLogger(ArchiveService.class);
+
    @Autowired
    private ProductService productService;
 
@@ -56,7 +57,7 @@ public class ArchiveService extends WebService
       }
       catch (InterruptedException e)
       {
-         logger.warn("Synchronization stopped by the user.");
+         LOGGER.warn("Synchronization stopped by the user.");
       }
       return -1;
    }

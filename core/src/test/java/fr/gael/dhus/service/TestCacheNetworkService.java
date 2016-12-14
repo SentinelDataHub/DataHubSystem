@@ -53,30 +53,30 @@ public class TestCacheNetworkService
       String count_cache = "network_download_count";
       String size_cache = "network_download_size";
       User user = new User ();
-      user.setId (2L);
+      user.setUUID ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2");
       Calendar calendar = Calendar.getInstance ();
       calendar.set (2014, Calendar.JANUARY, 01);
       long period = System.currentTimeMillis () - calendar.getTime ().getTime ();
-
+      
       // test cache
       int r0 = networkService.countDownloadsByUserSince (user, period);
       Assert.assertEquals (r0, 2);
       int a0 = cacheManager.getCache (count_cache).get (
-            user.getId (), Integer.class);
+            user.getUUID (), Integer.class);
       Assert.assertEquals (a0, r0);
 
       long r1 = networkService.getDownloadedSizeByUserSince (user, period);
       Assert.assertEquals (r1, 514);
       long a1 = cacheManager.getCache (size_cache).get (
-            user.getId (), Long.class);
+            user.getUUID (), Long.class);
       Assert.assertEquals (a1, r1);
 
       // test cache eviction
       networkService.createDownloadUsage (64L, new Date (), user);
       Assert.assertNull (cacheManager.getCache (count_cache).get (
-            user.getId (), Integer.class));
+            user.getUUID (), Integer.class));
       Assert.assertNull (
-            cacheManager.getCache (size_cache).get (user.getId (), Long.class));
+            cacheManager.getCache (size_cache).get (user.getUUID (), Long.class));
    }
 
 }

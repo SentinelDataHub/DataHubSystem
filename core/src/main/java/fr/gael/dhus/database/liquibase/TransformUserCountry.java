@@ -35,7 +35,7 @@ import org.apache.logging.log4j.Logger;
 
 public class TransformUserCountry implements CustomTaskChange
 {
-    private static Logger logger = LogManager.getLogger ();
+    private static final Logger LOGGER = LogManager.getLogger(TransformUserCountry.class);
 
    @Override
    public String getConfirmationMessage ()
@@ -110,7 +110,7 @@ public class TransformUserCountry implements CustomTaskChange
             }
             else
             {
-               logger.warn("Unknown country for '"+res.getObject ("LOGIN")+"' : "+country);
+               LOGGER.warn("Unknown country for '"+res.getObject ("LOGIN")+"' : "+country);
             }
             getCountries.close ();
          }
@@ -118,7 +118,7 @@ public class TransformUserCountry implements CustomTaskChange
       }
       catch (Exception e)
       {
-         logger.error (
+         LOGGER.error(
                "Error during liquibase update 'TransformUserCountry'", e);
       }
    }

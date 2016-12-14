@@ -19,8 +19,8 @@
  */
 package fr.gael.dhus.messaging.mail;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,7 +37,7 @@ import fr.gael.dhus.system.config.ConfigurationManager;
 @Component
 public class EmailToUserListener implements UserListener
 {
-   private static Log logger = LogFactory.getLog (EmailToUserListener.class);
+   private static final Logger LOGGER = LogManager.getLogger(EmailToUserListener.class);
 
    @Autowired
    private ConfigurationManager cfgManager;
@@ -52,9 +52,7 @@ public class EmailToUserListener implements UserListener
    public void created (DaoEvent<User> element) 
    {
       User u = element.getElement ();
-      logger.debug ("User " + element.getElement ().getUsername () + 
-         " Created with password \""  + element.getElement ().getPassword () + 
-         "\"");
+      LOGGER.debug("User " + u.getUsername () + " Created");
 
       if (cfgManager.getMailConfiguration ().isOnUserCreate ())
       {
@@ -67,7 +65,7 @@ public class EmailToUserListener implements UserListener
          if (userDao.getPublicData ().equals (u.getUsername ()))
             return;
          
-         logger.debug ("Sending email to " + u.getEmail ());
+         LOGGER.debug("Sending email to " + u.getEmail ());
          if (u.getEmail () == null)
             throw new UnsupportedOperationException (
                "Missing Email in configuration: Cannot inform new user \"" +
@@ -82,7 +80,7 @@ public class EmailToUserListener implements UserListener
                "the "+ cfgManager.getNameConfiguration ().getShortName () +
                " system:\n" +
                cfgManager.getServerConfiguration ().getExternalUrl () +
-               "api/user/validation/" + userDao.computeUserCode (u) + "\n\n"  +
+               "validation/" + userDao.computeUserCode (u) + "\n\n"  +
                "For help requests please write to: " +
                cfgManager.getSupportConfiguration ().getMail () + "\n\n" +
                "Thanks for your registration,\n" +
@@ -113,7 +111,7 @@ public class EmailToUserListener implements UserListener
             throw new EmailNotSentException (
                "Cannot send email to " + u.getEmail (), e);
          }
-         logger.debug ("email sent.");
+         LOGGER.debug("email sent.");
       }
    }
 
@@ -126,7 +124,7 @@ public class EmailToUserListener implements UserListener
    @Override
    public void deleted (DaoEvent<User> element)
    {
-      logger.debug ("User " + element.getElement ().getUsername () + 
+      LOGGER.debug("User " + element.getElement ().getUsername () + 
       " Deleted.");
       User u = element.getElement ();
       // Do not send e-mail if user still not registered.
@@ -139,7 +137,7 @@ public class EmailToUserListener implements UserListener
                u.getUsername ()))
             return;
          
-         logger.debug ("Sending email to " + u.getEmail ());
+         LOGGER.debug("Sending email to " + u.getEmail ());
          if (u.getEmail () == null)
             throw new UnsupportedOperationException (
                "Missing Email in configuration: Cannot inform deleted user \"" +
@@ -167,7 +165,7 @@ public class EmailToUserListener implements UserListener
             throw new EmailNotSentException (
                "Cannot send email to " + u.getEmail (), e);
          }
-         logger.debug ("email sent.");
+         LOGGER.debug("email sent.");
       }
    }
 
@@ -175,7 +173,7 @@ public class EmailToUserListener implements UserListener
    public void register (DaoEvent<User> event)
    {
       User u = event.getElement ();
-      logger.debug ("User " + event.getElement ().getUsername () + 
+      LOGGER.debug("User " + event.getElement ().getUsername () + 
          " registered.");
       String support_mail = cfgManager.getSupportConfiguration ().getMail ();
 
@@ -208,7 +206,7 @@ public class EmailToUserListener implements UserListener
             "Cannot send registration notification email to " +
                   support_mail, e);
       }
-      logger.debug ("email sent.");
+      LOGGER.debug("email sent.");
    }
    
    private String getUserWelcome (User u)

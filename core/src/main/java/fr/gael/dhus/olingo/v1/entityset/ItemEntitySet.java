@@ -19,6 +19,7 @@
  */
 package fr.gael.dhus.olingo.v1.entityset;
 
+import fr.gael.dhus.database.object.User;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -35,7 +36,7 @@ import org.apache.olingo.odata2.api.edm.provider.SimpleProperty;
 
 import fr.gael.dhus.olingo.v1.entity.Item;
 
-public class ItemEntitySet extends V1EntitySet<Item>
+public class ItemEntitySet extends AbstractEntitySet<Item>
 {
    public static final String ENTITY_NAME = "Item";
 
@@ -77,5 +78,23 @@ public class ItemEntitySet extends V1EntitySet<Item>
       // TODO (OData v3) setOpenType(true) setAbstract(true)
       return new EntityType ().setName (ENTITY_NAME).setProperties (properties)
          .setKey (key);
+   }
+
+   @Override
+   public boolean isTopLevel()
+   {
+      return false;
+   }
+
+   @Override
+   public boolean isAuthorized(User user)
+   {
+      return false;
+   }
+
+   @Override
+   public boolean isAbstract()
+   {
+      return true;
    }
 }

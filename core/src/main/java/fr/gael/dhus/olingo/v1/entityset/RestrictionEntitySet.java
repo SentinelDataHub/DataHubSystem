@@ -34,10 +34,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class RestrictionEntitySet extends V1EntitySet<Restriction>
+public class RestrictionEntitySet extends AbstractEntitySet<Restriction>
 {
    public static final String ENTITY_NAME = "Restriction";
-   public static final String ID = "Id";
+   public static final String UUID = "UUID";
+   public static final String RESTRICTION_TYPE = "RestrictionType";
    public static final String REASON = "Reason";
 
    @Override
@@ -51,13 +52,19 @@ public class RestrictionEntitySet extends V1EntitySet<Restriction>
    {
       List<Property> properties = new ArrayList<> ();
 
-      SimpleProperty id = new SimpleProperty ();
-      id.setName (ID);
-      id.setType (EdmSimpleTypeKind.Int64);
-      id.setFacets (new Facets ().setNullable (false));
-      id.setCustomizableFeedMappings (new CustomizableFeedMappings ()
+      SimpleProperty uuid = new SimpleProperty ();
+      uuid.setName (UUID);
+      uuid.setType (EdmSimpleTypeKind.String);
+      uuid.setFacets (new Facets ().setNullable (false));
+      uuid.setCustomizableFeedMappings (new CustomizableFeedMappings ()
             .setFcTargetPath (EdmTargetPath.SYNDICATION_TITLE));
-      properties.add (id);
+      properties.add (uuid);
+
+      SimpleProperty restriction_type = new SimpleProperty ();
+      restriction_type.setName (RESTRICTION_TYPE);
+      restriction_type.setType (EdmSimpleTypeKind.String);
+      restriction_type.setFacets (new Facets ().setNullable (false));
+      properties.add (restriction_type);
 
       SimpleProperty reason = new SimpleProperty ();
       reason.setName (REASON);
@@ -67,7 +74,7 @@ public class RestrictionEntitySet extends V1EntitySet<Restriction>
 
       Key key = new Key ();
       List<PropertyRef> propertyRefs = Collections.singletonList (
-            new PropertyRef ().setName (ID));
+            new PropertyRef ().setName (UUID));
       key.setKeys (propertyRefs);
 
       EntityType entityType = new EntityType ();
@@ -76,5 +83,17 @@ public class RestrictionEntitySet extends V1EntitySet<Restriction>
       entityType.setKey (key);
 
       return entityType;
+   }
+
+   @Override
+   public boolean isTopLevel()
+   {
+      return false;
+   }
+
+   @Override
+   public boolean hasManyEntries()
+   {
+      return false;
    }
 }

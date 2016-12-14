@@ -27,8 +27,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 /**
  * Parse Solr query class
@@ -43,7 +43,7 @@ public class SolrQueryParser
    public static final int INDEX_VALUE   = 3;
    public static final int INDEX_TRAILER = 4;
 
-   private static Log logger = LogFactory.getLog (SolrQueryParser.class);
+   private static final Logger LOGGER = LogManager.getLogger(SolrQueryParser.class);
    
    private static String pfooter     = "([+-]?)";
    private static String pfield      = "(?:([\\w+\\*\\?]+):)?"; 
@@ -73,7 +73,7 @@ public class SolrQueryParser
    
    public static List<String[]>parse (String query)
    {
-      logger.debug ("Matching query : \"" + query + "\"");
+      LOGGER.debug("Matching query : \"" + query + "\"");
       
       List<String[]>list = new ArrayList<String[]>();
       Matcher matcher = PATTERN.matcher(query.trim());
@@ -88,13 +88,13 @@ public class SolrQueryParser
          strs[INDEX_TRAILER] = neverNull(matcher.group(4)).trim();
          list.add(strs);
          
-         if (logger.isDebugEnabled())
+         if (LOGGER.isDebugEnabled())
          {
-            logger.debug ("   \"" + strs[INDEX_ALL] + "\" is descabled as");
-            logger.debug ("      Footer  \"" + strs[INDEX_FOOTER]+ "\"");
-            logger.debug ("      Field   \"" + strs[INDEX_FIELD]+ "\"");
-            logger.debug ("      Value   \"" + strs[INDEX_VALUE]+ "\"");
-            logger.debug ("      Trailer \"" + strs[INDEX_TRAILER]+ "\"");
+            LOGGER.debug("   \"" + strs[INDEX_ALL] + "\" is descabled as");
+            LOGGER.debug("      Footer  \"" + strs[INDEX_FOOTER]+ "\"");
+            LOGGER.debug("      Field   \"" + strs[INDEX_FIELD]+ "\"");
+            LOGGER.debug("      Value   \"" + strs[INDEX_VALUE]+ "\"");
+            LOGGER.debug("      Trailer \"" + strs[INDEX_TRAILER]+ "\"");
          }
       }
       

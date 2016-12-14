@@ -21,7 +21,7 @@
  */
 angular.module('DHuS-webclient')
 
-.directive('loginDialog', function($location, AuthenticationService, UserInfoService, ConfigurationService) {
+.directive('loginDialog', function($location, AuthenticationService, UserInfoService, ConfigurationService, UserService) {
   return {
     restrict: 'AE',
     replace: true,
@@ -78,19 +78,36 @@ angular.module('DHuS-webclient')
             scope.login = function() {   
               var self = this;
               
-              AuthenticationService.login(scope.user.username, scope.user.password,self)
-      
-              .success(function(response){
-                  
-                  $('#loginModal').modal('hide');
-                  scope.userInfo.isLogged = true;
-                  ToastManager.success("Login successful");
+              AuthenticationService.login(scope.user.username, scope.user.password,self)      
+              .success(function(response){                
+                window.user = scope.user.username;       
+                ApplicationService.logged = true;   
+                ApplicationService.basicAuth = window.btoa(scope.user.username+':'+scope.user.password);   
+                     
+                UserService.getODataUser(scope.user.username).then(function(res){
+
+                  UserService.setUserModel(res);
+                  UserService.getODataUserRoles(scope.user.username).then(function(res){
+                    UserService.setUserRolesModel(res);
+                    scope.manageLoginResult();  
+                    ToastManager.success("Login successful");  
+
+                  },
+                  function(data){          
+                    scope.manageLoginResult();  
+                    ToastManager.warn("Login successful, but error occurred getting user information"); 
+                  });
+                },
+                function(data) {
+                  scope.manageLoginResult();  
+                  ToastManager.warn("Login successful, but error occurred getting user information");             
+                });                          
               })
               .error(function(response){
-                  ToastManager.error("Login failed");                                                
-                  $('#wronglogin').html('The username and password you entered don\'t match.');
+                ToastManager.error("Login failed");                                                
+                $('#wronglogin').html('The username and password you entered don\'t match.');
 
-              }); 
+              });
             };
 
             scope.close = function() {   
@@ -103,6 +120,13 @@ angular.module('DHuS-webclient')
               $('#loginModal').modal('hide');
               location.href = '#/self-registration';
 
+            };
+
+            scope.manageLoginResult = function() {   
+                                          
+              $('#loginModal').modal('hide');                  
+              scope.userInfo.isLogged = true;              
+              window.location.replace("#/home");
             };
 
             init();

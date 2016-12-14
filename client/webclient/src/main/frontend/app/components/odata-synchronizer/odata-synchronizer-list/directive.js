@@ -39,7 +39,7 @@ angular.module('DHuS-webclient')
           post: function(scope, iElem, iAttrs){
                         
 
-            scope.init = function () {    
+            scope.init = function () {
               ODataSynchronizerService.synchronizers()
                 .then(function(response) {             
                   var modelFromServer = response.data.d.results;
@@ -83,6 +83,7 @@ angular.module('DHuS-webclient')
              };
 
              scope.createOdataSynchronizer = function(){
+              
                 OdataSynchDetailsManager.getOdataSynchDetails(-1, true);
               };
 

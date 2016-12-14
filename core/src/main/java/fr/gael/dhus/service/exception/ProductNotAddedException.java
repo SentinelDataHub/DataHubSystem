@@ -31,4 +31,9 @@ public class ProductNotAddedException extends Exception
       super(msg);
    }
    
+   public ProductNotAddedException(String msg, Throwable cause)
+   {
+      super(msg, cause);
+   }
+   
 }

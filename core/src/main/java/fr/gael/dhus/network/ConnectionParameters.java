@@ -19,11 +19,11 @@
  */
 package fr.gael.dhus.network;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
-import fr.gael.dhus.database.dao.UserDao;
 import fr.gael.dhus.database.object.User;
+import fr.gael.dhus.service.UserService;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
 
 public class ConnectionParameters
@@ -31,11 +31,11 @@ public class ConnectionParameters
    /**
     * A logger for this class.
     */
-   private static Log logger = LogFactory.getLog(ConnectionParameters.class);
+   private static final Logger LOGGER = LogManager.getLogger(ConnectionParameters.class);
 
    private final TrafficDirection direction;
 
-   private UserDao userDao;
+   private UserService userService;
    private User user = null;
 
    private String serviceName = null;
@@ -43,16 +43,17 @@ public class ConnectionParameters
    
    ConnectionParameters(Builder builder) throws IllegalArgumentException
    {
-      if (this.userDao == null)
+      if (this.userService == null)
       {
          try
          {
-            this.userDao = ApplicationContextProvider.getBean (UserDao.class);
+            this.userService = 
+               ApplicationContextProvider.getBean (UserService.class);
          }
          catch (Exception exception)
          {
-            logger.error("Cannot get User DAO.");
-            logger.debug("Cannot get User DAO.", exception);
+            LOGGER.error("Cannot get User DAO.");
+            LOGGER.debug("Cannot get User DAO.", exception);
          }
       }
 
@@ -69,9 +70,16 @@ public class ConnectionParameters
       {
          this.user = builder.user;
       }
-      else if ((this.userDao != null) && (builder.userName != null))
+      else if ((this.userService != null) && (builder.userName != null))
       {
-         this.user = userDao.getByName(builder.userName);
+         try
+         {
+            this.user = userService.getUserNoCheck(builder.userName);
+         }
+         catch (Exception e)
+         {
+            this.user=null;
+         }
 
          if (this.user == null)
          {

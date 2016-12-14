@@ -1,0 +1,25 @@
+{
+	"sections": [{
+		"title": "account",
+		"component": "login-container",
+		"icon": "account-circle",
+		"width": "500px"
+	}, {
+		"title": "Combo Search",
+		"component": "combo-search-container",
+		"icon": "search",
+		"width": "1500px"
+	},{
+		"title": "Products and Events Calendar",
+		"component": "calendar-container",
+		"icon": "date-range",
+		"width": "500px"
+	},{
+		"title": "Settings",
+		"component": "settings-panel",
+		"icon": "settings",
+		"width": "500px"
+	}
+
+	]
+}

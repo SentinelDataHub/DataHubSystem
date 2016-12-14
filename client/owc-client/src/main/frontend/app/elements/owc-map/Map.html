@@ -1,0 +1,396 @@
+<link rel="import" href="DefaultMapConfig.html">
+<script>
+class Map {
+
+    activateSelection() {
+        this.dragBox.setActive(!this.activedSelection);
+        this.setActivedSelection(!this.activedSelection);
+        this.owcmap.setActiveSelection(this.activedSelection);
+    }
+
+    setModel(model) {
+
+        this.renderFootprintLayer(model);
+    }
+
+    sendSelectionCoordinates(coords) {
+        this.geoselection = coords;
+    }
+
+    polygon2String(polygon) {
+            var polygonString = 'POLYGON(('
+            for (var i = 0; i < polygon.length; i++) polygonString += ((polygon[i][0]) + ' ' + (polygon[i][1]) + ',');
+            return polygonString + (polygon[0][0]) + ' ' + (polygon[0][1]) + '))';
+        }
+        // from old dhus
+    processSelection(feature) {
+        var self = this;
+        var featureX = feature.clone();
+        var geometry = featureX.getGeometry();
+        geometry = geometry.transform(self.config.transformation.destination, self.config.transformation.source);
+        var extent = geometry.getExtent();
+        var top = extent[3];
+        var bottom = extent[1];
+        var left = extent[0];
+        var right = extent[2];
+        var leftWasNeg = false;
+        var rightWasPos = false;
+        var currentPolygonSearchString = '';
+        var polygon = {};
+        if (left < -180 & right > 180) {
+            currentPolygonSearchString = "( ";
+            currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                [-180, bottom],
+                [0, bottom],
+                [0, top],
+                [-180, top]
+            ]) + ')" OR ';
+            currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                [0, bottom],
+                [180, bottom],
+                [180, top],
+                [0, top]
+            ]) + ')" )';
+        } else {
+            while (left < -180) {
+                leftWasNeg = true;
+                left += 360;
+            }
+            while (right > 180) {
+                rightWasPos = true;
+                right -= 360;
+            }
+            if (right > left) {
+                if (right - left > 180) {
+                    currentPolygonSearchString = "( ";
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [left, bottom],
+                        [0, bottom],
+                        [0, top],
+                        [left, top]
+                    ]) + ')" OR ';
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [0, bottom],
+                        [right, bottom],
+                        [right, top],
+                        [0, top]
+                    ]) + ')" )';
+                } else if (leftWasNeg || rightWasPos) {
+                    currentPolygonSearchString = "( ";
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [-180, bottom],
+                        [0, bottom],
+                        [0, top],
+                        [-180, top]
+                    ]) + ')" OR ';
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [0, bottom],
+                        [180, bottom],
+                        [180, top],
+                        [0, top]
+                    ]) + ')" )';
+                } else {
+                    currentPolygonSearchString = "( ";
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [left, bottom],
+                        [right, bottom],
+                        [right, top],
+                        [left, top]
+                    ]) + ')" )';
+                }
+            } else {
+                if (left < 0) {
+                    currentPolygonSearchString = "( ";
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [left, bottom],
+                        [0, bottom],
+                        [0, top],
+                        [left, top]
+                    ]) + ')" OR ';
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [0, bottom],
+                        [180, bottom],
+                        [180, top],
+                        [0, top]
+                    ]) + ')" OR ';
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [-180, bottom],
+                        [right, bottom],
+                        [right, top],
+                        [-180, top]
+                    ]) + ')" )';
+                } else if (right > 0) {
+                    currentPolygonSearchString = "( ";
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [left, bottom],
+                        [180, bottom],
+                        [180, top],
+                        [left, top]
+                    ]) + ')" OR ';
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [-180, bottom],
+                        [0, bottom],
+                        [0, top],
+                        [-180, top]
+                    ]) + ')" OR ';
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [0, bottom],
+                        [right, bottom],
+                        [right, top],
+                        [0, top]
+                    ]) + ')" )';
+                } else {
+                    currentPolygonSearchString = "( ";
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [left, bottom],
+                        [180, bottom],
+                        [180, top],
+                        [left, top]
+                    ]) + ')" OR ';
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [-180, bottom],
+                        [right, bottom],
+                        [right, top],
+                        [-180, top]
+                    ]) + ')" )';
+                }
+            }
+        }
+        return currentPolygonSearchString;
+    }
+
+    setCurrentSelection(coords) {
+        var self = this;
+        //console.log('coords',coords);
+        if (self.sendSelectionCoordinates) {
+            self.sendSelectionCoordinates(coords);
+        } else {
+//            console.log("map", "[MAP] - sendSelectionCoordinates not implemented");
+            //console.error( "[MAP] - sendSelectionCoordinates not implemented");
+        }
+    }
+
+
+    setupBoxSelection() {
+        var self = this;
+        // todo: to move this style !!!!~!!!!
+        self.dragBox = new ol.interaction.DragBox({
+            condition: ol.events.condition.always,
+            style: new ol.style.Style({
+                fill: new ol.style.Fill({
+                    color: [255, 255, 255, 0.4]
+                }),
+                stroke: new ol.style.Stroke({
+                    color: [0, 0, 255, 1]
+                })
+            })
+        });
+        this.map.addInteraction(self.dragBox);
+        self.dragBox.on('boxend', function(e) {
+            var feature = new ol.Feature;
+            feature.setStyle(
+                // todo: to move this style !!!!~!!!!
+                new ol.style.Style({
+                    fill: new ol.style.Fill({
+                        color: [220, 142, 2, 0.5]
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: [220, 142, 2, 1]
+                    })
+                }));
+            feature.setGeometry(self.dragBox.getGeometry());
+            self.map.getLayers().item(2).setSource(new ol.source.Vector({
+                features: [feature],
+                wrapX: false
+            }));
+            self.setCurrentSelection(self.processSelection(feature));
+//            console.log("self.processSelection(feature)", self.processSelection(feature));
+            // self.query = self.geoselection;
+            // console.log("self.query",self.query);
+            // self.owcMap.query = self.query;
+            // console.log("self.owcMap.query",self.owcMap.query);
+            // self.owcMap.container.newQuery = self.query;
+            // console.log("self.owcMap.container.newQuery",self.owcMap.container.newQuery);
+//            console.log("MAP self.owcquery", self.owcquery);
+            self.owcquery.setFootprint(self.geoselection);
+            self.datasource.updateQuery();
+            //self.owcquery.footprint = self.geoselection;
+            // self.owcMap.updateSearch(self.newQuery.query);
+            // var dataSource = document.getElementById("mapdatasource");
+            // dataSource.loadDataFromServer(self.newQuery.query);
+        });
+        self.dragBox.on('boxstart', function(e) {
+            self.sendSelectionCoordinates(null);
+        });
+    }
+
+    generateLayer(model) {
+        var layersX = [];
+        for (var i = 0; i < model.sources.length; i++)
+            layersX.push(new ol.layer.Tile({
+                source: new ol.source[model.sources[i].class](model.sources[i].params)
+            }));
+        return new ol.layer.Group({
+            title: model.title,
+            type: model.type,
+            visible: model.visible,
+            layers: layersX,
+            wrapX: false
+        });
+    };
+    renderFootprintLayer(products) {
+        var self = this;
+        try{
+        var format = new ol.format.WKT();
+        var features = [];
+        for (var i = 0; i < products.length; i++) {
+            if (!products[i].footprint) continue;
+            var feature = format.readFeature(products[i].footprint);
+            feature.getGeometry().transform(self.config.transformation.source, self.config.transformation.destination);
+            feature.product = products[i];
+            feature.product.default_style = new ol.style.Style({
+                fill: new ol.style.Fill({
+                    color: [255, 255, 255, 0.4]
+                }),
+                stroke: new ol.style.Stroke({
+                    color: [0, 153, 255, 1],
+                    width: 1
+                })
+            })
+
+
+
+            feature.setStyle(feature.product.default_style);
+            features.push(feature);
+        }
+
+
+        this.map.getLayers().item(1).setSource(new ol.source.Vector({
+            features: features,
+            wrapX: false
+        }));
+        }catch(ex){}
+    }
+
+
+    generateUUID() {
+        var d = new Date().getTime();
+        var map = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = (d + Math.random() * 16) % 16 | 0;
+            d = Math.floor(d / 16);
+            return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+//        console.log("MAP ID ", map);
+        return map;
+    };
+    constructor(mapId) {
+
+
+        var self = this;
+        self.activedSelection = true;
+        self.config = {
+            defaultCenter: {
+                coordinates: [13.707047, 51.060086]
+            },
+            transformation: {
+                source: 'EPSG:4326',
+                destination: 'EPSG:3857'
+            },
+            bounds: [-180, -80, 180, 80],
+            defaultZoom: 4,
+            minZoom: 1.3,
+            maxZoom: 19,
+            layers: {
+                "Road": {
+                    "sources": [{
+                        "class": "OSM",
+                        "params": {
+                            "wrapX": false
+                        }
+                    }],
+                    "title": "Road",
+                    "type": "base",
+                    "visible": true
+                }
+            },
+            externalInterface: {
+                sendSelectionCoordinates: null
+            }
+        }
+
+
+//        console.log("self.config", self.config);
+        //self.config =  this.owcApp.Owc.DefaultMapConfig.instance;
+        self.geoselection = null;
+        // self.owcquery = document.getElementById('owc-query');
+        // self.owcMap = document.getElementById("cristina");
+        // this.datasource = document.getElementById('datasource');
+
+        self.map = new ol.Map({
+
+            /*interactions: ol.interaction.defaults().extend([dragAndDropInteraction]),*/
+
+            target: mapId,
+            layers: [
+                self.generateLayer(self.config.layers.Road), //0
+                new ol.layer.Vector({
+                    source: new ol.source.Vector({
+                            wrapX: false
+                        }) //1
+                }),
+                new ol.layer.Vector({
+                    source: new ol.source.Vector({
+                            wrapX: false
+                        }) //2
+                })
+
+            ],
+            view: new ol.View({
+                center: ol.proj.transform(self.config.defaultCenter.coordinates, self.config.transformation.source, self.config.transformation.destination),
+                zoom: self.config.defaultZoom,
+                minZoom: self.config.minZoom,
+                maxZoom: self.config.maxZoom,
+                extent: ol.proj.transformExtent(self.config.bounds, self.config.transformation.source, self.config.transformation.destination)
+            })
+
+        });
+        self.setupBoxSelection();
+        self.setupSelection();
+    }
+
+    clearSelection() {
+        //console.log("map", "clearSelection()");
+        this.map.getLayers().item(2).setSource(new ol.source.Vector({
+            features: [],
+            wrapX: false
+        }));
+    }
+
+    setupSelection() {
+        var self = this;
+        self.map.on('click', function(e) {
+            self.clearSelection();
+            self.owcquery.setFootprint("");
+        });
+    }
+
+    setDataSource(datasource) {
+        this.datasource = datasource;
+//        console.log("MAP this.datasource", this.datasource);
+    }
+
+    setOwcQuery(owcquery) {
+        this.owcquery = owcquery;
+//        console.log("MAP this.owcquery", this.owcquery);
+    }
+    setOwcMap(owcmap) {
+        this.owcmap = owcmap;
+//        console.log("MAP  this.owcmap", this.owcmap);
+    }
+
+    setActivedSelection(status) {
+        this.activedSelection = status;
+    }
+
+}
+</script>

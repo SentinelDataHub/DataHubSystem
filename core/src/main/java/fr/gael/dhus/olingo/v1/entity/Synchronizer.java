@@ -1,6 +1,6 @@
 /*
  * Data Hub Service (DHuS) - For Space data distribution.
- * Copyright (C) 2013,2014,2015 GAEL Systems
+ * Copyright (C) 2013,2014,2015,2016 GAEL Systems
  *
  * This file is part of DHuS software sources.
  *
@@ -20,14 +20,19 @@
 package fr.gael.dhus.olingo.v1.entity;
 
 import fr.gael.dhus.database.object.SynchronizerConf;
-import fr.gael.dhus.sync.SynchronizerStatus;
+import fr.gael.dhus.olingo.v1.ExpectedException;
+import fr.gael.dhus.olingo.v1.ExpectedException.IncompleteDocException;
+import fr.gael.dhus.olingo.v1.ExpectedException.InvalidTargetException;
+import fr.gael.dhus.olingo.v1.ExpectedException.InvalidValueException;
+import fr.gael.dhus.olingo.v1.ExpectedException.NoTargetException;
 import fr.gael.dhus.olingo.v1.Navigator;
-import fr.gael.dhus.olingo.v1.V1Model;
+import fr.gael.dhus.olingo.v1.Model;
 import fr.gael.dhus.olingo.v1.entityset.SynchronizerEntitySet;
 import fr.gael.dhus.service.CollectionService;
 import fr.gael.dhus.service.ISynchronizerService;
 import fr.gael.dhus.service.exception.InvokeSynchronizerException;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
+import fr.gael.dhus.sync.SynchronizerStatus;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -40,7 +45,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.StringTokenizer;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import org.apache.olingo.odata2.api.edm.Edm;
 import org.apache.olingo.odata2.api.edm.EdmEntitySet;
 import org.apache.olingo.odata2.api.ep.entry.ODataEntry;
@@ -55,10 +62,10 @@ import org.apache.olingo.odata2.api.uri.UriParser;
 /**
  * Synchronizer OData Entity.
  */
-public final class Synchronizer extends V1Entity
+public final class Synchronizer extends AbstractEntity
 {
    /** Log. */
-   private static final Logger LOGGER = Logger.getLogger (Synchronizer.class);
+   private static final Logger LOGGER = LogManager.getLogger(Synchronizer.class);
 
    /** Database Object. */
    private final SynchronizerConf syncConf;
@@ -111,13 +118,13 @@ public final class Synchronizer extends V1Entity
       if (schedule == null || schedule.isEmpty () || service_url == null ||
          service_url.isEmpty ())
       {
-         throw new ODataException ("Missing required parameter");
+         throw new IncompleteDocException();
       }
 
       if (request != null && !request.equals ("start") &&
          !request.equals ("stop"))
       {
-         throw new ODataException ("Unknown request " + request);
+         throw new InvalidValueException(SynchronizerEntitySet.REQUEST, request);
       }
 
       try
@@ -129,7 +136,7 @@ public final class Synchronizer extends V1Entity
       }
       catch (ParseException e)
       {
-         throw new ODataException (e);
+         throw new ExpectedException(e.getMessage());
       }
    }
 
@@ -146,9 +153,8 @@ public final class Synchronizer extends V1Entity
          return null;
       }
 
-      Long id = Long.parseLong (target);
       fr.gael.dhus.database.object.Collection c =
-         COLLECTION_SERVICE.getCollection (id);
+         COLLECTION_SERVICE.getCollection (target);
       if (c == null)
       {
          throw new ODataException (
@@ -187,6 +193,7 @@ public final class Synchronizer extends V1Entity
       boolean has_filter = props.containsKey(SynchronizerEntitySet.FILTER_PARAM);
       boolean has_collec = props.containsKey(SynchronizerEntitySet.SOURCE_COLLECTION);
       boolean has_last_date = props.containsKey(SynchronizerEntitySet.LAST_INGESTION_DATE);
+      boolean has_target_col = editsTargetCollection(odata_entry);
 
       String label = (String) props.remove(SynchronizerEntitySet.LABEL);
       String service_login = (String) props.remove(SynchronizerEntitySet.SERVICE_LOGIN);
@@ -198,7 +205,7 @@ public final class Synchronizer extends V1Entity
             (GregorianCalendar) props.remove(SynchronizerEntitySet.LAST_INGESTION_DATE);
 
       // Navigation
-      Collection target_collection = getTargetCollection (odata_entry);
+      Collection target_collection = getTargetCollection(odata_entry);
 
       for (String pname : props.keySet ())
       {
@@ -218,7 +225,7 @@ public final class Synchronizer extends V1Entity
             }
             else
             {
-               throw new ODataException ("Unknown request " + request);
+               throw new InvalidValueException(SynchronizerEntitySet.SCHEDULE, request);
             }
       }
 
@@ -230,7 +237,7 @@ public final class Synchronizer extends V1Entity
          }
          catch (ParseException ex)
          {
-            throw new ODataException (ex);
+            throw new ExpectedException(ex.getMessage());
          }
       }
 
@@ -277,10 +284,16 @@ public final class Synchronizer extends V1Entity
          this.syncConf.setConfig ("copy_product", copy_product.toString ());
       }
 
-      if (target_collection != null)
+      if (has_target_col)
       {
-         this.syncConf.setConfig ("target_collection", target_collection
-            .getId ().toString ());
+         if (target_collection == null)
+         {
+            this.syncConf.removeConfig("target_collection");
+         }
+         else
+         {
+            this.syncConf.setConfig("target_collection", target_collection.getUUID());
+         }
       }
 
       if (has_filter)
@@ -426,7 +439,34 @@ public final class Synchronizer extends V1Entity
       throw new ODataException ("Unknown property " + prop_name);
    }
 
-   private Collection getTargetCollection (ODataEntry entry)
+   @Override
+   public Object navigate(NavigationSegment ns) throws ODataException
+   {
+      Object res;
+
+      if (ns.getEntitySet().getName().equals(Model.COLLECTION.getName()))
+      {
+         res = getTargetCollection();
+         if (res == null)
+         {
+            throw new NoTargetException(SynchronizerEntitySet.TARGET_COLLECTION);
+         }
+      }
+      else
+      {
+         throw new InvalidTargetException(this.getClass().getSimpleName(), ns.getEntitySet().getName());
+      }
+
+      return res;
+   }
+
+   private static boolean editsTargetCollection(ODataEntry entry) throws ODataException
+   {
+      List<String> nll = entry.getMetadata().getAssociationUris(SynchronizerEntitySet.TARGET_COLLECTION);
+      return !(nll == null || nll.isEmpty());
+   }
+
+   private static Collection getTargetCollection(ODataEntry entry)
       throws ODataException
    {
       String navLinkName = SynchronizerEntitySet.TARGET_COLLECTION;
@@ -439,11 +479,16 @@ public final class Synchronizer extends V1Entity
             throw new ODataException (
                "A synchronizer accepts only one collection");
          }
+         String uri = nll.get(0);
+         // Nullifying
+         if (uri == null || uri.isEmpty())
+         {
+            return null;
+         }
 
-         Edm edm = RuntimeDelegate.createEdm (new V1Model ());
+         Edm edm = RuntimeDelegate.createEdm(new Model());
          UriParser urip = RuntimeDelegate.getUriParser (edm);
 
-         String uri = nll.get (0);
          List<PathSegment> path_segments = new ArrayList<> ();
 
          StringTokenizer st = new StringTokenizer (uri, "/");
@@ -461,10 +506,8 @@ public final class Synchronizer extends V1Entity
          EdmEntitySet sync_ees = uinfo.getStartEntitySet ();
          KeyPredicate kp = uinfo.getKeyPredicates ().get (0);
          List<NavigationSegment> ns_l = uinfo.getNavigationSegments ();
-         Navigator<Collection> nav =
-            new Navigator<Collection> (sync_ees, kp, ns_l, Collection.class);
 
-         Collection c = nav.navigate ();
+         Collection c = Navigator.<Collection>navigate(sync_ees, kp, ns_l, Collection.class);
 
          return c;
       }

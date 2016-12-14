@@ -1,5 +1,5 @@
-[	   
-	 {
+[      
+     {
         "matches": [
             {
                 "name": "Instrument",
@@ -10,41 +10,22 @@
             "fill": {
                 "color": [
                     0,
-                    0,
-                    255,
-                    0.4
+                    35,
+                    185,
+                    0.1
                 ]
             },
             "stroke": {
                 "color": [
                     0,
-                    0,
-                    255,
+                    35,
+                    185,
                     1
                 ],
-                "width": 1
+                "width": 1.5
             }
         },
         "selected_styles": {
-            "fill": {
-                "color": [
-                    0,
-                    0,
-                    255,
-                    0.6
-                ]
-            },
-            "stroke": {
-                "color": [
-                    0,
-                    0,
-                    255,
-                    1
-                ],
-                "width": 1
-            }
-        },
-        "highlighted_styles": {
             "fill": {
                 "color": [
                     0,
@@ -60,11 +41,30 @@
                     255,
                     1
                 ],
-                "width": 1
+                "width": 3.5
             }
         },
-        "label_style": "background-color: #191970 !important;",
-        "instrlabel_style": "background-color: #0000ff !important;"
+        "highlighted_styles": {
+            "fill": {
+                "color": [
+                    0,
+                    35,
+                    185,
+                    0.3
+                ]
+            },
+            "stroke": {
+                "color": [
+                    0,
+                    35,
+                    185,
+                    1
+                ],
+                "width": 3
+            }
+        },
+        "label_style": "background-color: #0000FF !important;",
+        "instrlabel_style": "background-color: #002387 !important;"
     },
     {
         "matches": [
@@ -76,62 +76,62 @@
         "styles": {
             "fill": {
                 "color": [
-                    128,
-                    5,
-                    23,
-                    0.4
+                    192,
+                    64,
+                    0,
+                    0.1
                 ]
             },
             "stroke": {
                 "color": [
-                    128,
-                    5,
-                    23,
+                    192,
+                    64,
+                    0,
                     1
                 ],
-                "width": 1
+                "width": 1.5
             }
         },
         "selected_styles": {
             "fill": {
                 "color": [
-                    128,
-                    5,
-                    23,
-                    0.6
-                ]
-            },
-            "stroke": {
-                "color": [
-                    128,
-                    5,
-                    23,
-                    1
-                ],
-                "width": 1
-            }
-        },
-        "highlighted_styles": {
-            "fill": {
-                "color": [
-                    128,
-                    5,
-                    23,
+                    255,
+                    127,
+                    0,
                     0.3
                 ]
             },
             "stroke": {
                 "color": [
-                    128,
-                    5,
-                    23,
+                    255,
+                    127,
+                    0,
                     1
                 ],
-                "width": 1
+                "width": 3.5
             }
         },
-        "label_style": "background-color: #191970 !important;",
-        "instrlabel_style": "background-color: #800517 !important;"
+        "highlighted_styles": {
+            "fill": {
+                "color": [
+                    192,
+                    64,
+                    0,
+                    0.3
+                ]
+            },
+            "stroke": {
+                "color": [
+                    192,
+                    64,
+                    0,
+                    1
+                ],
+                "width": 3
+            }
+        },
+        "label_style": "background-color: #0000FF !important;",
+        "instrlabel_style": "background-color: #C04000 !important;"
     },
     {
         "matches": [
@@ -143,62 +143,62 @@
         "styles": {
             "fill": {
                 "color": [
-                    248,
-                    114,
-                    23,
-                    0.4
+                    125,
+                    0,
+                    125,
+                    0.1
                 ]
             },
             "stroke": {
                 "color": [
-                    248,
-                    114,
-                    23,
+                    125,
+                    0,
+                    125,
                     1
                 ],
-                "width": 1
+                "width": 1.5
             }
         },
         "selected_styles": {
             "fill": {
                 "color": [
-                    248,
-                    114,
-                    23,
-                    0.6
-                ]
-            },
-            "stroke": {
-                "color": [
-                    248,
-                    114,
-                    23,
-                    1
-                ],
-                "width": 1
-            }
-        },
-        "highlighted_styles": {
-            "fill": {
-                "color": [
-                    248,
-                    114,
-                    23,
+                    255,
+                    0,
+                    255,
                     0.3
                 ]
             },
             "stroke": {
                 "color": [
-                    248,
-                    114,
-                    23,
+                    255,
+                    0,
+                    255,
                     1
                 ],
-                "width": 1
+                "width": 3.5
             }
         },
-        "label_style": "background-color: #191970 !important;",
-        "instrlabel_style": "background-color: #f87217 !important;"
+        "highlighted_styles": {
+            "fill": {
+                "color": [
+                    125,
+                    0,
+                    125,
+                    0.3
+                ]
+            },
+            "stroke": {
+                "color": [
+                    125,
+                    0,
+                    125,
+                    1
+                ],
+                "width": 3
+            }
+        },
+        "label_style": "background-color: #0000FF !important;",
+        "instrlabel_style": "background-color: #800080 !important;"
     },
     {
         "matches": [
@@ -612,58 +612,58 @@
         "styles": {
             "fill": {
                 "color": [
-                    0,
-                    255,
-                    0,
-                    0.4
+                    23,
+                    114,
+                    69,
+                    0.1
                 ]
             },
             "stroke": {
                 "color": [
-                    0,
-                    255,
-                    0,
+                    23,
+                    114,
+                    69,
                     1
                 ],
-                "width": 1
+                "width": 1.5
             }
         },
         "selected_styles": {
             "fill": {
                 "color": [
-                    0,
+                    173,
                     255,
-                    0,
-                    0.6
-                ]
-            },
-            "stroke": {
-                "color": [
-                    0,
-                    255,
-                    0,
-                    1
-                ],
-                "width": 1
-            }
-        },
-        "highlighted_styles": {
-            "fill": {
-                "color": [
-                    0,
-                    255,
-                    0,
+                    47,
                     0.3
                 ]
             },
             "stroke": {
                 "color": [
-                    0,
-                    255,
-                    0,
+                    3,
+                    192,
+                    60,
                     1
                 ],
-                "width": 1
+                "width": 3.5
+            }
+        },
+        "highlighted_styles": {
+            "fill": {
+                "color": [
+                    23,
+                    114,
+                    69,
+                    0.3
+                ]
+            },
+            "stroke": {
+                "color": [
+                    23,
+                    114,
+                    69,
+                    1
+                ],
+                "width": 3
             }
         },
         "label_style": "background-color: #0f9d58 !important",
@@ -679,42 +679,23 @@
         "styles": {
             "fill": {
                 "color": [
-                    255,
-                    0,
-                    0,
-                    0.4
+                    179,
+                    27,
+                    27,
+                    0.1
                 ]
             },
             "stroke": {
                 "color": [
-                    255,
-                    0,
-                    0,
+                    179,
+                    27,
+                    27,
                     1
                 ],
-                "width": 1
+                "width": 1.5
             }
         },
         "selected_styles": {
-            "fill": {
-                "color": [
-                    255,
-                    0,
-                    0,
-                    0.6
-                ]
-            },
-            "stroke": {
-                "color": [
-                    255,
-                    0,
-                    0,
-                    1
-                ],
-                "width": 1
-            }
-        },
-        "highlighted_styles": {
             "fill": {
                 "color": [
                     255,
@@ -730,7 +711,26 @@
                     0,
                     1
                 ],
-                "width": 1
+                "width": 3.5
+            }
+        },
+        "highlighted_styles": {
+            "fill": {
+                "color": [
+                    179,
+                    27,
+                    27,
+                    0.3
+                ]
+            },
+            "stroke": {
+                "color": [
+                    179,
+                    27,
+                    27,
+                    1
+                ],
+                "width": 3
             }
         },
         "label_style": "background-color: #dc143c !important;",

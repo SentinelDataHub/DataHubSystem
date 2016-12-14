@@ -19,17 +19,14 @@
  */
 package fr.gael.dhus.service;
 
-import fr.gael.dhus.database.dao.SynchronizerDao;
-import fr.gael.dhus.database.object.SynchronizerConf;
-import fr.gael.dhus.database.object.config.system.ExecutorConfiguration;
-import fr.gael.dhus.sync.Executor;
-import fr.gael.dhus.sync.Synchronizer;
-import fr.gael.dhus.sync.SynchronizerStatus;
-import fr.gael.dhus.server.http.web.WebPostProcess;
-import fr.gael.dhus.service.exception.InvokeSynchronizerException;
-import fr.gael.dhus.system.config.ConfigurationManager;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.Iterator;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextClosedEvent;
@@ -37,11 +34,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.text.ParseException;
-import java.util.Date;
-import java.util.Iterator;
+import fr.gael.dhus.DHuS;
+import fr.gael.dhus.database.dao.SynchronizerDao;
+import fr.gael.dhus.database.object.SynchronizerConf;
+import fr.gael.dhus.database.object.config.system.ExecutorConfiguration;
+import fr.gael.dhus.service.exception.InvokeSynchronizerException;
+import fr.gael.dhus.sync.Executor;
+import fr.gael.dhus.sync.MetaExecutor;
+import fr.gael.dhus.sync.Synchronizer;
+import fr.gael.dhus.sync.SynchronizerStatus;
+import fr.gael.dhus.system.config.ConfigurationManager;
 
 /**
  * Manages the {@link Executor}, {@link Synchronizer} and
@@ -49,11 +51,10 @@ import java.util.Iterator;
  */
 @Service
 public class SynchronizerService
-      extends WebPostProcess
       implements ISynchronizerService
 {
    /** Log. */
-   private static final Logger LOGGER = Logger.getLogger (SynchronizerService.class);
+   private static final Logger LOGGER = LogManager.getLogger(SynchronizerService.class);
 
    /** Manages {@link SynchronizerConf}. */
    @Autowired
@@ -67,7 +68,7 @@ public class SynchronizerService
    private SecurityService secu;
 
    /** An instance of {@link Executor}, running the synchronization. */
-   private final Executor executor = Executor.getExecutor ();
+   private final Executor executor = MetaExecutor.getInstance();
 
    /**
     * Returns the status of the {@link Executor}.
@@ -198,13 +199,8 @@ public class SynchronizerService
          {
             if (sc.getActive ())
             {
-               Synchronizer s = instanciate (sc);
-               executor.removeSynchronizer (s);
+               executor.removeSynchronizer (sc);
             }
-         }
-         catch (InvokeSynchronizerException e)
-         {
-            LOGGER.error ("Failed to invoke a synchronizer", e);
          }
          finally
          {
@@ -256,21 +252,15 @@ public class SynchronizerService
       SynchronizerConf sc = synchronizerDao.read (id);
       if (sc != null && sc.getActive ())
       {
-         try
-         {
+         try {
             // Removes the synchronizer from the Executor
-            Synchronizer sdummy = instanciate (sc);
-            Synchronizer s = executor.removeSynchronizer (sdummy);
+            Synchronizer s = executor.removeSynchronizer (sc);
             if (s != null && s.getSynchronizerConf () != null)
             {
                sc = s.getSynchronizerConf ();
             }
             LOGGER.info("Synchronizer#" + sc.getId() +
                   " stopped by user " + secu.getCurrentUser().getUsername());
-         }
-         catch (InvokeSynchronizerException e)
-         {
-            LOGGER.debug ("Failed to invoke a synchronizer", e);
          }
          finally
          {
@@ -430,9 +420,13 @@ public class SynchronizerService
       }
       catch (InvocationTargetException ex)
       {
+         String cause = ex.getCause().getMessage();
+         if (cause == null || cause.isEmpty())
+         {
+            cause = ex.getCause().toString();
+         }
          throw new InvokeSynchronizerException (
-               type + " has thrown an exception while being invoked, cause: " +
-               ex.getCause ().getMessage (), ex);
+               type + " has thrown an exception while being invoked, cause: " + cause, ex);
       }
    }
 
@@ -456,10 +450,10 @@ public class SynchronizerService
 
    /**
     * Starts the {@link Executor} after every webapps have been installed.
+    * Called by main start in {@link DHuS}
     * <b>YOU MUST NOT CALL THIS METHOD!</b>
     */
-   @Override
-   public void launch ()
+   public void init()
    {
       // Starts the Executor if not started yet
       if (!this.executor.isRunning ())

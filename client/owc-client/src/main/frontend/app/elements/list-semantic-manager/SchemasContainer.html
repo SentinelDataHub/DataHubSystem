@@ -1,0 +1,198 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+-->
+
+
+<script>
+    (function() {
+
+      'use strict';
+
+      let singleton = Symbol();
+      let singletonEnforcer = Symbol();
+
+
+      class SchemasContainer{
+
+          /**
+           *  Semantic manager singleton constructor
+           *
+           */
+          constructor(enforcer) {
+            this.is = "schemas-container";
+            if(enforcer != singletonEnforcer)
+              throw "Cannot construct singleton; use SchemasContainer.instance!";
+          }
+
+          beforeRegister() {
+            this.is = "schemas-container";
+          }
+
+          /**
+           * @returns Singleton
+           */
+          static get instance() {
+              if (!this[singleton]) {
+                  this[singleton] = new SchemasContainer(singletonEnforcer);
+                  this[singleton].init();
+              }
+              return this[singleton];
+          }
+
+          /**
+           * initialization of SchemasContainer
+           *
+           * @param {} :
+           * @return {}
+           */
+          init() {
+            this.owcApp = document.querySelector('#owc-app');
+            this.container = {};
+            this.container['s3#product'] = {
+          		"productsExtractor": {
+          			"absolutePath": "/"
+          		},
+          		"model": {
+          			"@type": "Array",
+          			"valuesExtractor": [{
+          				"@id": "id",
+          				"@type": "Object",
+          				"valueExtractor": {
+          					"relativePath": "id"
+          				}
+          			},{
+          				"@id": "uuid",
+          				"@type": "Object",
+          				"valueExtractor": {
+          					"relativePath": "uuid"
+          				}
+          			},{
+          				"@id": "title",
+          				"@type": "String",
+          				"valueExtractor": {
+          					"relativePath": "identifier"
+          				}
+          			}, {
+          				"@id": "footprint",
+          				"@type": "Object",
+          				"valueExtractor": {
+          					"relativePath": "footprint"
+          				}
+          			}, {
+          				"@id": "quicklook",
+          				"@type": "Object",
+          				"valueExtractor": {
+          					"relativePath": "quicklook"
+          				}
+          			}, {
+          				"@id": "attributes",
+          				"@type": "Array",
+          				"valuesExtractor": [{
+          					"@id": "Data",
+          					"@type": "Object",
+          					"valueExtractor": {
+          						"@type": "Array",
+          						"relativePath": "indexes",
+          						"findWhere": {
+          							"name": "summary"
+          						},
+          						"valueExtractor": {
+          							"@type": "Array",
+          							"relativePath": "children",
+          							"findWhere": {
+          								"name": "Date"
+          							},
+          							"valueExtractor": {
+
+          								"relativePath": "value"
+          							}
+          						}
+          					}
+          				},
+                  {
+                    "@id": "Size",
+                    "@type": "Object",
+                    "valueExtractor": {
+                      "@type": "Array",
+                      "relativePath": "indexes",
+                      "findWhere": {
+                        "name": "summary"
+                      },
+                      "valueExtractor": {
+                        "@type": "Array",
+                        "relativePath": "children",
+                        "findWhere": {
+                          "name": "Size"
+                        },
+                        "valueExtractor": {
+
+                          "relativePath": "value"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "@id": "relative_orbit",
+                    "@type": "Object",
+                    "valueExtractor": {
+                      "@type": "Array",
+                      "relativePath": "indexes",
+                      "findWhere": {
+                        "name": "product"
+                      },
+                      "valueExtractor": {
+                        "@type": "Array",
+                        "relativePath": "children",
+                        "findWhere": {
+                          "name": "Relative pass (stop)"
+                        },
+                        "valueExtractor": {
+                          "relativePath": "value"
+                        }
+                      }
+                    }
+                  }]
+          			}]
+          		}
+            };
+
+          }
+
+          get(className){
+            var self = this;
+            return new Promise(function (resolve, reject) {
+               resolve(self.container[className]);
+             });
+          }
+
+        };
+
+
+        Polymer(SchemasContainer);
+        eu.serco.Owc.SchemasContainer = SchemasContainer;
+
+      })();
+
+</script>

@@ -7,30 +7,23 @@
 
    <modelVersion>4.0.0</modelVersion>
 
-   <parent>
-      <groupId>fr.gael.dhus</groupId>
-      <artifactId>dhus-parent</artifactId>
-      <version>0.9.1-osf</version>
-   </parent>
-
-   <artifactId>dhus-web-client</artifactId>
-   <packaging>jar</packaging>
-   <name>DHuS - Web Client</name>
-
    <properties>
+      <dhus.core>0.12.5-6-osf</dhus.core>
       <tomcat.port>8080</tomcat.port>
    </properties>
 
-   <dependencies>
-      <dependency>
-         <groupId>javax.servlet</groupId>
-         <artifactId>javax.servlet-api</artifactId>
-         <version>3.0.1</version>
-      </dependency>
+   <artifactId>dhus-web-client</artifactId>
+   <groupId>fr.gael.dhus</groupId>
+   <packaging>jar</packaging>
+   <version>0.12.5-6-osf</version>
 
+   <name>DHuS - Web Client</name>
+
+   <dependencies>
       <dependency>
          <groupId>fr.gael.dhus</groupId>
          <artifactId>dhus-core</artifactId>
+         <version>${dhus.core}</version>
          <scope>provided</scope>
          <exclusions>
             <exclusion>
@@ -39,13 +32,12 @@
             </exclusion>
          </exclusions>
       </dependency>
-
    </dependencies>
 
 
 
    <build>
-   
+
       <!-- Clean frontend -->
 
       <plugins>
@@ -102,13 +94,13 @@
                   </goals>
                </execution>
                <execution>
-                  <id>npm install</id>
+                  <id>npm-install</id>
                   <goals>
                      <goal>npm</goal>
                   </goals>
                </execution>
                <execution>
-                  <id>bower install</id>
+                  <id>bower-install</id>
                   <goals>
                      <goal>bower</goal>
                   </goals>
@@ -161,32 +153,82 @@
             </configuration>
          </plugin>
 
-         <!-- Generate the Jar -->
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.2</version>
+            <configuration>
+               <source>1.7</source>
+               <target>1.7</target>
+               <encoding>ISO-8859-1</encoding>
+               <compilerArgs>
+                  <arg>-Xlint:all,-options,-path</arg>
+               </compilerArgs>
+            </configuration>
+         </plugin>
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-jar-plugin</artifactId>
-            <version>2.4</version>
+            <version>2.5</version>
+            <configuration>
+               <archive>
+                  <manifest>
+                     <addDefaultImplementationEntries>
+                        true
+                     </addDefaultImplementationEntries>
+                  </manifest>
+               </archive>
+            </configuration>
          </plugin>
-
       </plugins>
    </build>
 
-    <distributionManagement>
-        <repository>
-            <uniqueVersion>true</uniqueVersion>
-            <id>osf-releases</id>
-            <name>OSF Main Repository</name>
-            <url>
-                https://copernicus.serco.eu/repository/nexus/content/repositories/releases/
-            </url>
-            <layout>default</layout>
-        </repository>
-        <snapshotRepository>
-        <id>dhus-SNAPSHOT</id>
-        <url>https://copernicus.serco.eu/repository/nexus/content/repositories/dhus-SNAPSHOT</url>
-        </snapshotRepository>
-    </distributionManagement>
+   <repositories>
+   <repository>
+          <id>osf-releases</id>
+          <name>Releases Repository</name>
+          <url>
+             https://copernicus.serco.eu/repository/nexus/content/repositories/releases/
+          </url>
+      </repository>
+      <repository>
+         <id>osf-public</id>
+         <name>OSF Public Repository</name>
+         <url>
+            https://copernicus.serco.eu/repository/nexus/content/groups/public
+         </url>
+         <layout>default</layout>
+      </repository>
+   </repositories>
 
-    
+   <distributionManagement>
+      <repository>
+         <uniqueVersion>true</uniqueVersion>
+         <id>osf-releases</id>
+         <name>OSF Releases Repository</name>
+         <url>
+            https://copernicus.serco.eu/repository/nexus/content/repositories/releases/
+
+         </url>
+         <layout>default</layout>
+      </repository>
+      <site>
+         <id>gael-site</id>
+         <url>${site.baseUrl}/</url>
+      </site>
+   </distributionManagement>
+
+   <issueManagement>
+      <system>Jira</system>
+      <url>https://copernicus.serco.eu/jira-osf</url>
+   </issueManagement>
+
+   <scm>
+      <connection>scm:git:https://github.com/SercoSPA/DHuS</connection>
+      <developerConnection>scm:git:https://github.com/SercoSPA/DHuS</developerConnection>
+      <tag>HEAD</tag>
+      <url>https://github.com/SercoSPA/DHuS</url>
+   </scm>
+
 
 </project>

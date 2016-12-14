@@ -26,7 +26,8 @@ import liquibase.exception.CustomChangeException;
 import liquibase.exception.SetupException;
 import liquibase.exception.ValidationErrors;
 import liquibase.resource.ResourceAccessor;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.security.crypto.codec.Hex;
 
 import java.security.MessageDigest;
@@ -36,7 +37,7 @@ import java.util.HashMap;
 
 public class ForceEncryptPassword implements CustomTaskChange
 {
-   private final Logger logger = Logger.getLogger (ForceEncryptPassword.class);
+   private static final Logger LOGGER = LogManager.getLogger(ForceEncryptPassword.class);
 
    @Override
    public void execute (Database database) throws CustomChangeException
@@ -78,8 +79,7 @@ public class ForceEncryptPassword implements CustomTaskChange
             int updated =  statement.executeUpdate (query);
             if (updated != 1)
             {
-               logger.warn (
-                     updated + " encryption update perform on user : " + login);
+               LOGGER.warn(updated + " encryption update perform on user : " + login);
             }
             statement.close ();
          }

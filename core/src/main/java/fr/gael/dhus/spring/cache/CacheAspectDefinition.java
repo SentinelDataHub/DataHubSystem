@@ -19,11 +19,11 @@
  */
 package fr.gael.dhus.spring.cache;
 
-import org.apache.log4j.Logger;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -31,8 +31,6 @@ import org.springframework.cache.CacheManager;
 @Aspect
 public class CacheAspectDefinition
 {
-   private final Logger logger = Logger.getLogger (CacheAspectDefinition.class);
-
    @Autowired
    private CacheManager cacheManager;
 
@@ -58,11 +56,11 @@ public class CacheAspectDefinition
          synchronized (cache)
          {
             Integer old_value = cache.get (annotation.key (), Integer.class);
+            cache.clear ();
             if (old_value == null)
             {
-               old_value = 0;
+               return;
             }
-            cache.clear ();
             cache.put (annotation.key (), (old_value + annotation.value ()));
          }
       }

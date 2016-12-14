@@ -19,17 +19,18 @@
  */
 package fr.gael.dhus.service.job;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import fr.gael.dhus.DHuS;
-import fr.gael.dhus.database.object.Product;
 import fr.gael.dhus.datastore.eviction.EvictionManager;
 import fr.gael.dhus.system.config.ConfigurationManager;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Autowired by {@link AutowiringJobFactory}
@@ -37,7 +38,7 @@ import fr.gael.dhus.system.config.ConfigurationManager;
 @Component
 public class EvictionJob extends AbstractJob
 {
-   private static Log logger = LogFactory.getLog (EvictionJob.class);
+   private static final Logger LOGGER = LogManager.getLogger(EvictionJob.class);
    private static boolean running = false;
    
    @Autowired
@@ -59,10 +60,10 @@ public class EvictionJob extends AbstractJob
    {
       if (!configurationManager.getEvictionCronConfiguration ().isActive ())
          return;
-      logger.info ("SCHEDULER : Products eviction.");
+      LOGGER.info("SCHEDULER : Products eviction.");
       if (!DHuS.isStarted ())
       {
-         logger.warn("SCHEDULER : Not run while system not fully initialized.");
+         LOGGER.warn("SCHEDULER : Not run while system not fully initialized.");
          return;
       }
       if (!running)
@@ -75,7 +76,7 @@ public class EvictionJob extends AbstractJob
             evictionManager.computeNextProducts ();
             evictionManager.doEvict ();
             
-            logger.info ("SCHEDULER : Products eviction done - " + 
+            LOGGER.info("SCHEDULER : Products eviction done - " + 
                      (System.currentTimeMillis ()-start) + "ms");
          }
          finally
@@ -85,7 +86,7 @@ public class EvictionJob extends AbstractJob
       }
       else
       {
-         logger.warn ("SCHEDULER : Previous products eviction " +
+         LOGGER.warn("SCHEDULER : Previous products eviction " +
                "is still running (aborted).");
       }
    }

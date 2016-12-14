@@ -26,7 +26,10 @@ import org.apache.commons.mail.Email;
 import org.apache.commons.mail.EmailAttachment;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.MultiPartEmail;
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,18 +44,18 @@ import fr.gael.dhus.system.config.ConfigurationManager;
 @Component
 public class MailServer implements MailServerInterface
 {
-   private static Logger logger = Logger.getLogger(MailServer.class);
-   
+   private static final Logger LOGGER = LogManager.getLogger(MailServer.class);
+
    @Autowired
    private ConfigurationManager cfgManager;
-   
+
    public void send (Email email, String to, String cc, String bcc,
          String subject)
       throws EmailException
    {
       email.setHostName (getSmtpServer ());
       email.setSmtpPort (getPort());
-      if (getUsername () != null)
+      if ((getUsername () != null) && !getUsername().isEmpty())
       {
          email.setAuthentication (getUsername(), getPassword());
       }
@@ -72,7 +75,7 @@ public class MailServer implements MailServerInterface
          }
          catch(AddressException e)
          {           
-            logger.error ("Cannot configure Reply-to (" + getReplyto() + 
+            LOGGER.error("Cannot configure Reply-to (" + getReplyto() +
                   ") into the mail: " + e.getMessage());
          }
       }
@@ -100,7 +103,7 @@ public class MailServer implements MailServerInterface
       }
       catch (EmailException e)
       {
-         logger.error ("Cannot send email: " + e.getMessage());
+         LOGGER.error("Cannot send email: " + e.getMessage());
          throw e;
       }
    }

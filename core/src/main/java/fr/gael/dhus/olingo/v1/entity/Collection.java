@@ -19,22 +19,26 @@
  */
 package fr.gael.dhus.olingo.v1.entity;
 
+import fr.gael.dhus.olingo.v1.Expander;
+import fr.gael.dhus.olingo.v1.ExpectedException.InvalidTargetException;
+import fr.gael.dhus.olingo.v1.Model;
+import fr.gael.dhus.olingo.v1.entityset.CollectionEntitySet;
+import fr.gael.dhus.olingo.v1.map.impl.CollectionProductsMap;
+import java.util.Collections;
+
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.olingo.odata2.api.exception.ODataException;
-
-import fr.gael.dhus.olingo.v1.entityset.CollectionEntitySet;
-import fr.gael.dhus.olingo.v1.map.impl.CollectionMap;
-import fr.gael.dhus.olingo.v1.map.impl.CollectionProductsMap;
+import org.apache.olingo.odata2.api.uri.NavigationSegment;
 
 /**
- * Collection Bean. A collection of Products. Can have subCollections.
+ * Collection Bean. A collection of Products.
  */
-public class Collection extends V1Entity
+public class Collection extends AbstractEntity
 {
-   private fr.gael.dhus.database.object.Collection collection;
-   private Map<String, Collection> collections;
+   private final fr.gael.dhus.database.object.Collection collection;
    private Map<String, Product> products;
 
    public Collection (fr.gael.dhus.database.object.Collection collection)
@@ -42,9 +46,9 @@ public class Collection extends V1Entity
       this.collection = collection;
    }
 
-   public Long getId ()
+   public String getUUID ()
    {
-      return collection.getId ();
+      return collection.getUUID ();
    }
 
    public String getName ()
@@ -58,20 +62,6 @@ public class Collection extends V1Entity
    }
 
    /**
-    * Returns its children collections.
-    * 
-    * @return a view on the Collection Service.
-    */
-   public Map<String, Collection> getCollections ()
-   {
-      if (collections == null)
-      {
-         collections = new CollectionMap (collection.getId ());
-      }
-      return collections;
-   }
-
-   /**
     * Returns its products.
     * 
     * @return a view on the Product Service.
@@ -80,7 +70,7 @@ public class Collection extends V1Entity
    {
       if (products == null)
       {
-         products = new CollectionProductsMap (collection.getId ());
+         products = new CollectionProductsMap (collection.getUUID ());
       }
       return products;
    }
@@ -90,7 +80,7 @@ public class Collection extends V1Entity
    {
       Map<String, Object> res = new HashMap<> ();
       res.put (CollectionEntitySet.NAME, getName ());
-      res.put (CollectionEntitySet.ID, getId ());
+      res.put (CollectionEntitySet.UUID, getUUID ());
       res.put (CollectionEntitySet.DESCRIPTION, getDescription ());
       return res;
    }
@@ -106,4 +96,42 @@ public class Collection extends V1Entity
       throw new ODataException ("Property '" + prop_name +
          "' not found in entity Collection.");
    }
+
+   @Override
+   public Object navigate(NavigationSegment ns) throws ODataException
+   {
+      Object res;
+
+      if (ns.getEntitySet().getName().equals(Model.PRODUCT.getName()))
+      {
+         res = this.getProducts();
+         if (!ns.getKeyPredicates().isEmpty())
+         {
+            res = ((CollectionProductsMap)res).get(ns.getKeyPredicates().get(0).getLiteral());
+         }
+      }
+      else
+      {
+         throw new InvalidTargetException(this.getClass().getSimpleName(), ns.getEntitySet().getName());
+      }
+
+      return res;
+   }
+
+   @Override
+   public List<String> getExpandableNavLinkNames()
+   {
+      return Collections.singletonList("Products");
+   }
+
+   @Override
+   public List<Map<String, Object>> expand(String navlink_name, String self_url)
+   {
+      if (navlink_name.equals("Products"))
+      {
+         return Expander.mapToData(getProducts(), self_url);
+      }
+      return super.expand(navlink_name, self_url);
+   }
+
 }

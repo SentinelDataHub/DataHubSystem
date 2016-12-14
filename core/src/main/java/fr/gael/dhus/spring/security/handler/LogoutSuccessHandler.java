@@ -25,8 +25,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
@@ -37,8 +38,7 @@ import fr.gael.dhus.spring.security.authentication.ProxyWebAuthenticationDetails
 public class LogoutSuccessHandler implements
    org.springframework.security.web.authentication.logout.LogoutSuccessHandler
 {
-   private static final Log LOGGER = LogFactory
-      .getLog (LogoutSuccessHandler.class);
+   private static final Logger LOGGER = LogManager.getLogger(LogoutSuccessHandler.class);
 
    @Override
    public void onLogoutSuccess (HttpServletRequest request,

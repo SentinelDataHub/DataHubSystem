@@ -23,7 +23,10 @@ import fr.gael.dhus.database.object.MetadataIndex;
 import fr.gael.dhus.database.object.Product;
 import fr.gael.dhus.database.object.Role;
 import fr.gael.dhus.util.TestContextLoader;
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -60,8 +63,7 @@ import java.util.SortedSet;
 public class TestCacheProductService
       extends AbstractTransactionalTestNGSpringContextTests
 {
-   private static final Logger LOGGER =
-         Logger.getLogger (TestCacheProductService.class);
+   private static final Logger LOGGER = LogManager.getLogger(TestCacheProductService.class);
 
    @Autowired
    private ProductService productService;
@@ -156,11 +158,11 @@ public class TestCacheProductService
    {
       fr.gael.dhus.database.object.Collection c =
             new fr.gael.dhus.database.object.Collection ();
-      c.setId (1L);
+      c.setUUID ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1");
       c.setName ("Asia");
       String cache_name = "product_count";
-      String filter = "prod_";
-      Object filter_collection_key = Arrays.asList (filter, c.getId ());
+      String filter = "upper(p.identifier) LIKE upper('%prod_%')";
+      Object filter_collection_key = Arrays.asList (filter, c.getUUID ());
       Object filter_key = Arrays.asList (filter, null);
       Object all_key = "all";
       Cache cache;
@@ -170,7 +172,7 @@ public class TestCacheProductService
       cache = cacheManager.getCache (cache_name);
       Assert.assertEquals (
             cache.get (filter_collection_key, Integer.class), expected);
-      expected = productService.count (null, filter);
+      expected = productService.count ((fr.gael.dhus.database.object.Collection)null, filter);
       Assert.assertEquals (cache.get (filter_key, Integer.class), expected);
 
       // count (String)
@@ -180,12 +182,12 @@ public class TestCacheProductService
 
       // count (String, Long)
       clearCache ();
-      expected = productService.count (filter, c.getId ());
+      expected = productService.count (filter, c.getUUID ());
       Assert.assertEquals (
             cache.get (filter_collection_key, Integer.class), expected);
 
       // countAuthorizedProducts ()
-      expected = productService.countAuthorizedProducts ();
+      expected = productService.count ();
       Assert.assertEquals (cache.get (all_key, Integer.class), expected);
 
       // addProduct (Product)
@@ -199,23 +201,14 @@ public class TestCacheProductService
       // TODO too hard to simulate the call ProductService.processProduct
 
       // deleteProduct (Long)
-      expected = productService.countAuthorizedProducts () - 1;
+      expected = productService.count () - 1;
       productService.deleteProduct (7L);
       Assert.assertEquals (cache.get (all_key, Integer.class), expected);
 
       // systemDeleteProduct (Long)
-      expected = productService.countAuthorizedProducts () - 1;
+      expected = productService.count () - 1;
       productService.systemDeleteProduct (6L);
       Assert.assertEquals (cache.get (all_key, Integer.class), expected);
-
-      // processUnprocessed
-      productService.countAuthorizedProducts ();
-      productService.count (filter);
-      productService.count (filter, c.getId ());
-      productService.processUnprocessed (false);
-      Assert.assertNull (cache.get (all_key));
-      Assert.assertNull (cache.get (filter_key));
-      Assert.assertNull (cache.get (filter_collection_key));
    }
 
    @Test
@@ -251,16 +244,10 @@ public class TestCacheProductService
       product = productService.getProduct (uuid);
       Assert.assertEquals (product, cache.get (uuid, Product.class));
 
-      // getProduct (URL)
-      URL path = new URL ("file:/home/lambert/test/prod6");
-      product = productService.getProduct (path);
-      Assert.assertEquals (cache.get (path, Product.class), product);
-
       // addProduct (Product)
       productService.addProduct (productTest);
       Assert.assertNull (cache.get (pid, Product.class));
       Assert.assertNull (cache.get (uuid, Product.class));
-      Assert.assertNull (cache.get (path, Product.class));
 
       // addProduct (URL, User, List, String, Scanner, FileScannerWrapper)
       // TODO too hard to simulate the call ProductService.processProduct
@@ -284,14 +271,8 @@ public class TestCacheProductService
    public void testProductsCache ()
    {
       String cache_name = "products";
-      List<Product> products;
-
-      // getProducts (Collection, String, String, int, int)
-      products = productService.getProducts (
-            null, null, null, -1, -1);
       Cache cache = cacheManager.getCache (cache_name);
-      Object key1 = Arrays.asList (null, null, null, -1, -1);
-      Assert.assertEquals (cache.get (key1, List.class), products);
+      List<Product> products;
 
       // getProducts (List<Long>)
       Object key2 = Arrays.asList (0L, 5L, 6L, 7L);
@@ -300,7 +281,6 @@ public class TestCacheProductService
 
       // addProduct (Product)
       productService.addProduct (productTest);
-      Assert.assertNull (cache.get (key1, List.class));
       Assert.assertNull (cache.get (key2, List.class));
 
       // addProduct (URL, User, List, String, Scanner, FileScannerWrapper)

@@ -19,54 +19,68 @@
  */
 package fr.gael.dhus.olingo.v1.visitor;
 
-import fr.gael.dhus.olingo.OlingoFunctionalVisitor;
+import fr.gael.dhus.olingo.v1.FunctionalVisitor;
 import fr.gael.dhus.olingo.v1.entity.Connection;
 import fr.gael.dhus.olingo.v1.entityset.ConnectionEntitySet;
-import fr.gael.dhus.util.functional.ComparatorTransformer;
-
 import java.util.Date;
 
 import org.apache.commons.collections4.Transformer;
 
 import org.apache.olingo.odata2.api.edm.EdmTyped;
-import org.apache.olingo.odata2.api.uri.expression.OrderExpression;
 import org.apache.olingo.odata2.api.uri.expression.PropertyExpression;
-import org.apache.olingo.odata2.api.uri.expression.SortOrder;
 
 /**
- * Implements the `visitProperty` method of abstract class OlingoFunctionalVisitor.
- * Allows us to convert an OlingoExpressionTree to an ExecutableExpressionTree using the
+ * Implements the `visitProperty` method of abstract class 
  * OlingoFunctionalVisitor.
+ * Allows us to convert an OlingoExpressionTree to an ExecutableExpressionTree 
+ * using the OlingoFunctionalVisitor.
  */
-public class ConnectionFunctionalVisitor extends OlingoFunctionalVisitor
+public class ConnectionFunctionalVisitor extends FunctionalVisitor
 {
 
    @Override
-   public Object visitProperty(PropertyExpression pe, String uri_literal, EdmTyped edm_property)
+   public Object visitProperty(PropertyExpression pe, String uri_literal,
+      EdmTyped edm_property)
    {
-      // Returns Transformer<Connection, Object> to provide the requested property `uri_literal`.
+      // Returns Transformer<Connection, Object> to provide the requested
+      // property `uri_literal`.
       Transformer<Connection, ? extends Object> res;
       switch (uri_literal)
       {
-         case ConnectionEntitySet.ID:       res = new IdProvider();       break;
-         case ConnectionEntitySet.DATE:     res = new DateProvider();     break;
-         case ConnectionEntitySet.REMOTEIP: res = new RemoteIpProvider(); break;
-         case ConnectionEntitySet.REQUEST:  res = new RequestProvider();  break;
-         case ConnectionEntitySet.DURATION: res = new DurationProvider(); break;
+         case ConnectionEntitySet.ID:
+            res = new IdProvider();
+            break;
+         case ConnectionEntitySet.DATE:
+            res = new DateProvider();
+            break;
+         case ConnectionEntitySet.REMOTEIP:
+            res = new RemoteIpProvider();
+            break;
+         case ConnectionEntitySet.REQUEST:
+            res = new RequestProvider();
+            break;
+         case ConnectionEntitySet.DURATION:
+            res = new DurationProvider();
+            break;
+         case ConnectionEntitySet.CONTENT_LENGTH:
+            res = new ContentLengthProvider();
+            break;
+         case ConnectionEntitySet.WRITTEN_CONTENT_LENGTH:
+            res = new WrittenContentLengthProvider();
+            break;
+         case ConnectionEntitySet.STATUS:
+            res = new StatusProvider();
+            break;
+         case ConnectionEntitySet.STATUS_MESSAGE:
+            res = new StatusMessageProvider();
+            break;
 
-         default: throw new UnsupportedOperationException("Unknown property: " + uri_literal);
+         default:
+            throw new UnsupportedOperationException("Unknown property: " + 
+               uri_literal);
       }
 
       return ExecutableExpressionTree.Node.createLeave(res);
-   }
-
-   @Override
-   public Object visitOrder(OrderExpression oe, Object filter, SortOrder sort_order)
-   {
-      ExecutableExpressionTree.Node param = ExecutableExpressionTree.Node.class.cast(filter);
-      Transformer cmp = new ComparatorTransformer(sort_order == SortOrder.desc);
-
-      return ExecutableExpressionTree.Node.createDuoNode(cmp, param, param);
    }
 
    // Connection to Id function
@@ -90,7 +104,8 @@ public class ConnectionFunctionalVisitor extends OlingoFunctionalVisitor
    }
 
    // Connection to RemoteIp
-   private static class RemoteIpProvider implements Transformer<Connection, String>
+   private static class RemoteIpProvider 
+      implements Transformer<Connection, String>
    {
       @Override
       public String transform(Connection u)
@@ -100,7 +115,8 @@ public class ConnectionFunctionalVisitor extends OlingoFunctionalVisitor
    }
 
    // Connection to Request
-   private static class RequestProvider implements Transformer<Connection, String>
+   private static class RequestProvider
+      implements Transformer<Connection, String>
    {
       @Override
       public String transform(Connection u)
@@ -110,12 +126,56 @@ public class ConnectionFunctionalVisitor extends OlingoFunctionalVisitor
    }
 
    // Connection to Duration
-   private static class DurationProvider implements Transformer<Connection, Double>
+   private static class DurationProvider
+      implements Transformer<Connection, Double>
    {
       @Override
       public Double transform(Connection u)
       {
          return u.getDurationMs();
+      }
+   }
+   
+   // Connection to Status
+   private static class StatusProvider
+      implements Transformer<Connection, String>
+   {
+      @Override
+      public String transform(Connection u)
+      {
+         return u.getConnectionStatus();
+      }
+   }
+   // Connection to StatusMessage
+   private static class StatusMessageProvider
+      implements Transformer<Connection, String>
+   {
+      @Override
+      public String transform(Connection u)
+      {
+         return u.getConnectionStatusMessage();
+      }
+   }
+   
+   // Connection to Content length
+   private static class ContentLengthProvider
+      implements Transformer<Connection, Long>
+   {
+      @Override
+      public Long transform(Connection u)
+      {
+         return u.getContentLength();
+      }
+   }
+   
+   // Connection to Content length
+   private static class WrittenContentLengthProvider
+      implements Transformer<Connection, Long>
+   {
+      @Override
+      public Long transform(Connection u)
+      {
+         return u.getWrittenContentLength();
       }
    }
 }

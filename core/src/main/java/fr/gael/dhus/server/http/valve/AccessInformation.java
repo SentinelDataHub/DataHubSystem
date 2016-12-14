@@ -37,7 +37,10 @@ public class AccessInformation implements Comparable<AccessInformation>
    Long startTimestamp;
    Long endTimestamp;
    Date startDate;
-   
+   ConnectionStatus connectionStatus;
+   long reponseSize;
+   long writtenResponseSize;
+
    public String getRemoteAddress()
    {
       return remoteAddress;
@@ -54,7 +57,7 @@ public class AccessInformation implements Comparable<AccessInformation>
    {
       this.localAddress = local;
    }
-   
+
    public String getRemoteHost ()
    {
       return remoteHost;
@@ -96,7 +99,7 @@ public class AccessInformation implements Comparable<AccessInformation>
    {
       this.startTimestamp = timestamp;
    }
-   
+
    public Long getEndTimestamp()
    {
       return endTimestamp;
@@ -105,7 +108,7 @@ public class AccessInformation implements Comparable<AccessInformation>
    {
       this.endTimestamp = timestamp;
    }
-   
+
    public Date getStartDate ()
    {
       return startDate;
@@ -115,15 +118,39 @@ public class AccessInformation implements Comparable<AccessInformation>
       this.startDate = start;
    }
 
+   public ConnectionStatus getConnectionStatus()
+   {
+      return this.connectionStatus;
+   }
+   public void setConnectionStatus(ConnectionStatus connection_status)
+   {
+      this.connectionStatus = connection_status;
+   }
+
    @Override
    public String toString()
    {
-      String date = "[" + AccessValve.twoDigit(getDurationMs ()) + "ms]";
+      String status = "";
+      String duration = "";
+      if (getConnectionStatus()!=null)
+      {
+         Status _status = getConnectionStatus().getStatus();
+         status = _status.name();
+         if (_status.equals(Status.PENDING))
+         {
+            duration = "[          -]";
+         }
+      }
+      
+      if (duration.isEmpty())
+         duration = "[" + AccessValve.twoDigit(getDurationMs()) + "ms]";
+      
       String username = this.getUsername()==null?"-":this.getUsername();
       String remote = this.getRemoteAddress()==null?"-":this.getRemoteAddress();
       String request= this.getRequest()==null?"-":this.getRequest();
 
-      return date + " " + username + " (" + remote + ") " + request;
+      return duration + " " + username + " (" + remote + ") -" + status + "- " +
+      request;
    }
 
    /**
@@ -150,28 +177,73 @@ public class AccessInformation implements Comparable<AccessInformation>
       return duration;
    }
 
-   
+
+   public long getReponseSize()
+   {
+      return reponseSize;
+   }
+   public void setReponseSize(long reponseSize)
+   {
+      this.reponseSize = reponseSize;
+   }
+   public long getWrittenResponseSize()
+   {
+      return writtenResponseSize;
+   }
+   public void setWrittenResponseSize(long writtenResponseSize)
+   {
+      this.writtenResponseSize = writtenResponseSize;
+   }
    @Override
    public int compareTo(AccessInformation ai)
    {
       return getStartTimestamp().compareTo(ai.getStartTimestamp());
    }
-   
-   public int size ()
+
+   public enum Status { PENDING, SUCCESS, FAILURE };
+   public interface ConnectionStatus
    {
-      int size =
-         // endTimestamp
-         (Long.SIZE/8) +
-         // startTimestamp
-         (Long.SIZE/8) +
-         // localAddress
-         ((localAddress==null)?0:localAddress.length()) +
-         ((localHost==null)?0:localHost.length()) +
-         ((remoteAddress==null)?0:remoteAddress.length()) +
-         ((remoteHost==null)?0:remoteHost.length()) +
-         ((request==null)?0:request.length()) +
-         ((username==null)?0:username.length());
-      return size;
-         
+      public Status getStatus ();
    }
+
+   public static class SuccessConnectionStatus implements ConnectionStatus
+   {
+      public Status getStatus ()
+      {
+         return Status.SUCCESS;
+      }
+   }
+   
+   public static class PendingConnectionStatus implements ConnectionStatus
+   {
+      public Status getStatus()
+      {
+         return Status.PENDING;
+      }
+   }
+
+
+   public static class FailureConnectionStatus implements ConnectionStatus
+   {
+      private Throwable exception;
+      public FailureConnectionStatus(Throwable e)
+      {
+         this.exception = e;
+      }
+
+      public Status getStatus ()
+      {
+         return Status.FAILURE;
+      }
+      public Throwable getException()
+      {
+         return exception;
+      }
+
+      public void setException(Throwable exception)
+      {
+         this.exception = exception;
+      }
+   }
+
 }

@@ -14,7 +14,7 @@
    <groupId>eu.serco.xmf.drb</groupId>
    <artifactId>dhus-addon-sentinel-2</artifactId>
    <packaging>jar</packaging>
-   <version>1.0.6</version>
+   <version>1.1.5</version>
 
    <name>DHuS - Sentinel-2 addon</name>
 
@@ -31,22 +31,64 @@
          <version>1.7</version>
       </dependency>
       <dependency>
-         <groupId>eu.serco.xmf.drb</groupId>
-         <artifactId>drbx-cortex-topic-sentinel-2</artifactId>
-         <version>2.0.3</version>
+         <groupId>fr.gael.drb.cortex.sentinel-2</groupId>
+         <artifactId>drbx-cortex-topic-sentinel-2-level-1b</artifactId>
+         <version>1.0.2</version>
+      </dependency>
+      <dependency>
+         <groupId>fr.gael.drb.cortex.sentinel-2</groupId>
+         <artifactId>drbx-cortex-topic-sentinel-2-level-1c</artifactId>
+         <version>1.0.2</version>
+      </dependency>
+      <dependency>
+         <groupId>fr.gael.drb.cortex.sentinel-2</groupId>
+         <artifactId>drbx-cortex-topic-sentinel-2-level-2a</artifactId>
+         <version>1.0.2</version>
       </dependency>
       <dependency>
          <groupId>fr.gael.drb</groupId>
          <artifactId>drbx-impl-jp2k</artifactId>
-         <version>1.0.1</version>
+         <version>2.1.2</version>
       </dependency>
-      
+
       <!-- Geotools -->
-      
+
+      <dependency>
+         <groupId>fr.gael.drb</groupId>
+         <artifactId>drbx-cortex-topic-safe</artifactId>
+         <version>1.0.3</version>
+      </dependency>
    </dependencies>
 
    <build>
       <plugins>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.2</version>
+            <configuration>
+               <source>1.7</source>
+               <target>1.7</target>
+               <encoding>ISO-8859-1</encoding>
+               <compilerArgs>
+                  <arg>-Xlint:all,-options,-path</arg>
+               </compilerArgs>
+            </configuration>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <version>2.5</version>
+            <configuration>
+               <archive>
+                  <manifest>
+                     <addDefaultImplementationEntries>
+                        true
+                     </addDefaultImplementationEntries>
+                  </manifest>
+               </archive>
+            </configuration>
+         </plugin>
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-source-plugin</artifactId>
@@ -78,7 +120,6 @@
       </plugins>
    </build>
 
-
    <distributionManagement>
       <repository>
          <uniqueVersion>true</uniqueVersion>
@@ -90,7 +131,7 @@
          <layout>default</layout>
       </repository>
    </distributionManagement>
-   
+
    <repositories>
       <repository>
          <id>osf-public</id>

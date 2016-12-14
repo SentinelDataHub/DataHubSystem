@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class SystemRole extends V1Entity
+public class SystemRole extends AbstractEntity
 {
    private Role role;
 

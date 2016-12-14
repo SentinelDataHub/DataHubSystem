@@ -19,13 +19,15 @@
  */
 package fr.gael.dhus.olingo;
 
+import fr.gael.dhus.util.http.HttpAsyncClientProducer;
+import fr.gael.dhus.util.http.InterruptibleHttpClient;
+import fr.gael.dhus.util.http.Timeouts;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,8 +35,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.log4j.Logger;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.apache.http.impl.nio.client.HttpAsyncClients;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import org.apache.olingo.odata2.api.edm.Edm;
 import org.apache.olingo.odata2.api.edm.EdmEntitySet;
 import org.apache.olingo.odata2.api.edm.EdmException;
@@ -59,10 +73,9 @@ import org.apache.olingo.odata2.api.uri.UriSyntaxException;
  */
 public class ODataClient
 {
-   private static final Logger LOGGER = Logger.getLogger(ODataClient.class);
-   
-   public static final boolean PRINT_RAW_CONTENT = false;
-   
+   private static final Logger LOGGER = LogManager.getLogger(ODataClient.class);
+
+   private final InterruptibleHttpClient httpClient = new InterruptibleHttpClient(new ClientProducer());
    private final URI serviceRoot;
    private final String username;
    private final String password;
@@ -142,6 +155,10 @@ public class ODataClient
             
             break;
          }
+         catch (InterruptedException ex)
+         {
+            break;
+         }
          catch (HttpException | EntityProviderException e)
          {
             LOGGER.debug ("URL not root "+svc, e);
@@ -175,9 +192,10 @@ public class ODataClient
     * @throws UriSyntaxException violation of the OData URI construction rules.
     * @throws UriNotMatchingException URI parsing exception.
     * @throws ODataException encapsulate the OData exceptions described above.
+    * @throws InterruptedException if running thread has been interrupted.
     */
    public ODataFeed readFeed(String resource_path,
-      Map<String, String> query_parameters) throws IOException, ODataException
+      Map<String, String> query_parameters) throws IOException, ODataException, InterruptedException
    {
       if (resource_path == null || resource_path.isEmpty ())
          throw new IllegalArgumentException (
@@ -214,9 +232,10 @@ public class ODataClient
     * @throws UriSyntaxException violation of the OData URI construction rules.
     * @throws UriNotMatchingException URI parsing exception.
     * @throws ODataException encapsulate the OData exceptions described above.
+    * @throws InterruptedException if running thread has been interrupted.
     */
    public ODataEntry readEntry(String resource_path,
-      Map<String, String> query_parameters) throws IOException, ODataException
+      Map<String, String> query_parameters) throws IOException, ODataException, InterruptedException
    {
       if (resource_path == null || resource_path.isEmpty ())
          throw new IllegalArgumentException (
@@ -543,115 +562,32 @@ public class ODataClient
     * 
     * @throws HttpException if the server emits an HTTP error code.
     * @throws IOException if an error occurred connecting to the server.
+    * @throws InterruptedException if running thread has been interrupted.
     */
    private InputStream execute (String absolute_uri,
       ContentType content_type, String http_method)
-      throws IOException
+      throws IOException, InterruptedException
    {
-      URL url = new URL (absolute_uri);
-      HttpURLConnection connection = (HttpURLConnection) url.openConnection ();
-      
-      // HTTP Basic Authentication.
-      String userpass = this.username + ":" + this.password;
-      String basicAuth = "Basic " + 
-         new String(new Base64 ().encode (userpass.getBytes ()));
-      connection.setRequestProperty ("Authorization", basicAuth);
-      
-      // GET, POST, ...
-      connection.setRequestMethod (http_method);
-      
+      // FIXME: only 'GET' http method is currently supported
+      HttpGet get = new HttpGet(absolute_uri);
       // `Accept` for GET, `Content-Type` for POST and PUT.
-      connection.setRequestProperty ("Accept", content_type.type ());
-      
-      connection.connect ();
-      
-      int resp_code = connection.getResponseCode ();
-      // 2XX == success, 3XX == redirect (handled by the HTTPUrlConnection)
-      if (resp_code == 200)
+      get.addHeader("Accept", content_type.type ());
+
+      InterruptibleHttpClient.MemoryIWC mem_iwc = new InterruptibleHttpClient.MemoryIWC();
+
+      HttpResponse resp = httpClient.interruptibleRequest(get, mem_iwc);
+      int resp_code = resp.getStatusLine().getStatusCode();
+
+      if (resp_code != 200)
       {
-         InputStream content = connection.getInputStream ();
-         
-         content = logRawContent (
-            http_method + " request on uri '" +
-            absolute_uri + "' with content:\n",
-            content, "\n");
-         
-         return content;
+         throw new HttpException(resp_code, resp.getStatusLine().getReasonPhrase());
       }
-      else if (resp_code >= 300 && resp_code < 400)
-      {
-         // HttpURLConnection should follow redirections automatically,
-         // but won't follow if the protocol changes.
-         // See https://bugs.openjdk.java.net/browse/JDK-4620571
-         // If the scheme has changed (http -> https) follow the redirection.
-         
-         String redi_uri = connection.getHeaderField ("Location");
-         
-         if (redi_uri == null || redi_uri.isEmpty ())
-            throw new HttpException (connection.getResponseCode (),
-               connection.getResponseMessage () + " redirection failure.");
-         
-         if (!redi_uri.startsWith ("https"))
-            throw new HttpException (connection.getResponseCode (),
-               connection.getResponseMessage () + " unsecure redirection.");
-         
-         LOGGER.debug ("Attempting redirection to "+redi_uri);
-         connection.disconnect ();
-         
-         return execute (redi_uri, content_type, http_method);
-      }
-      else
-      {
-         throw new HttpException (connection.getResponseCode (),
-            connection.getResponseMessage ());
-      }
-   }
-   
-   /**
-    * Only log content if {@link #PRINT_RAW_CONTENT} is flagged as true.
-    * 
-    * @param prefix at the beginning of the log line.
-    * @param content the content to log.
-    * @param suffix at the end of the log line.
-    * @return a new InputStream to read from.
-    * @throws IOException may occur while reading in {@code content}.
-    */
-   private InputStream logRawContent (String prefix, InputStream content, 
-      String suffix) throws IOException
-   {
-      if (PRINT_RAW_CONTENT)
-      {
-         byte[] buffer = streamToArray (content);
-         // Caution! bad output possible if `content` contains binary data.
-         LOGGER.info (prefix + new String (buffer, "UTF-8") + suffix);
-         return new ByteArrayInputStream (buffer);
-      }
+
+      InputStream content = new ByteArrayInputStream(mem_iwc.getBytes());
+
       return content;
    }
-   
-   /**
-    * Transforms passed stream into array of bytes.
-    * 
-    * @param stream the stream to read.
-    * @return an array of bytes.
-    * @throws IOException if an error occurred while reading the stream.
-    */
-   private byte[] streamToArray (InputStream stream) throws IOException
-   {
-      byte[] result = new byte[0];
-      byte[] tmp = new byte[8192];
-      int readCount;
-      while ((readCount = stream.read (tmp)) > 0)
-      {
-         byte[] innerTmp = new byte[result.length + readCount];
-         System.arraycopy (result, 0, innerTmp, 0, result.length);
-         System.arraycopy (tmp, 0, innerTmp, result.length, readCount);
-         result = innerTmp;
-      }
-      stream.close ();
-      return result;
-   }
-   
+
    /**
     * Signals that an HTTP request failed.
     */
@@ -693,7 +629,31 @@ public class ODataClient
          return this.statusCode;
       }
    }
-   
+
+   /** Creates a client producer that produces HTTP Basic auth aware clients. */
+   class ClientProducer implements HttpAsyncClientProducer
+   {
+      @Override
+      public CloseableHttpAsyncClient generateClient ()
+      {
+         CredentialsProvider credsProvider = new BasicCredentialsProvider();
+         credsProvider.setCredentials(new AuthScope (AuthScope.ANY),
+                  new UsernamePasswordCredentials(username, password));
+         RequestConfig rqconf = RequestConfig.custom()
+               .setCookieSpec(CookieSpecs.DEFAULT)
+               .setSocketTimeout(Timeouts.SOCKET_TIMEOUT)
+               .setConnectTimeout(Timeouts.CONNECTION_TIMEOUT)
+               .setConnectionRequestTimeout(Timeouts.CONNECTION_REQUEST_TIMEOUT)
+               .build();
+         CloseableHttpAsyncClient res = HttpAsyncClients.custom ()
+               .setDefaultCredentialsProvider (credsProvider)
+               .setDefaultRequestConfig(rqconf)
+               .build ();
+         res.start ();
+         return res;
+      }
+   }
+
    /**
     * Returned by {@link ODataClient#whatIs(URI)}.
     */

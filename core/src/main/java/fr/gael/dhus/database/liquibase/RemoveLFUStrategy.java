@@ -34,7 +34,7 @@ import org.apache.logging.log4j.Logger;
 
 public class RemoveLFUStrategy implements CustomTaskChange
 {
-    private static Logger logger = LogManager.getLogger ();
+    private static final Logger LOGGER = LogManager.getLogger(RemoveLFUStrategy.class);
 
    @Override
    public String getConfirmationMessage ()
@@ -94,7 +94,7 @@ public class RemoveLFUStrategy implements CustomTaskChange
       }
       catch (Exception e)
       {
-         logger.error ("Error during liquibase update 'removeLFUStrategy'", e);
+         LOGGER.error("Error during liquibase update 'removeLFUStrategy'", e);
       }
    }
 }

@@ -19,12 +19,12 @@
  */
 package fr.gael.dhus.database;
 
-import fr.gael.dhus.database.dao.UserDao;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import fr.gael.dhus.database.dao.EvictionDao;
+import fr.gael.dhus.database.dao.UserDao;
 import fr.gael.dhus.database.object.Eviction;
 
 @Component

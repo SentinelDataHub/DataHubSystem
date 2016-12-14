@@ -23,6 +23,7 @@ import fr.gael.dhus.service.MetadataTypeService;
 import fr.gael.dhus.service.metadata.SolrField;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +31,8 @@ import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.SolrConfig;
@@ -53,7 +55,7 @@ import org.xml.sax.SAXException;
 @Component(value = "solrInitializer")
 public class SolrInitializer
 {
-   private static final Logger LOGGER = Logger.getLogger(SolrInitializer.class);
+   private static final Logger LOGGER = LogManager.getLogger(SolrInitializer.class);
 
    private static final String SOLR_CONFIG_NAME = "solrconfig.xml";
 
@@ -62,6 +64,9 @@ public class SolrInitializer
    private static final int STORED      = 0x00000004;
    private static final int MULTIVALUED = 0x00000200;
    private static final int REQUIRED    = 0x00001000;
+   // In Solr and DHuS, all Solr field types are indexed and stored by default.
+   private static final int DEFAULT     = INDEXED | STORED;
+   private static final int ALLOPTS     = INDEXED | STORED | MULTIVALUED | REQUIRED;
 
    /** The MetadataTypeService holds solr field informations. */
    @Autowired
@@ -78,7 +83,7 @@ public class SolrInitializer
     * @throws IOException An error occured while accessing schema.xml
     * @throws SAXException An error occured while parsing schema.xml
     */
-   public void createSchema(String path_to_coredir, String path_to_schema)
+   public void createSchema(Path path_to_coredir, String path_to_schema)
          throws ParserConfigurationException, IOException, SAXException
    {
       SolrConfig sc = new SolrConfig(path_to_coredir, SOLR_CONFIG_NAME, null);
@@ -95,26 +100,69 @@ public class SolrInitializer
       for (SolrField solrf: solrfm.values())
       {
          Map<String, Object> options = new HashMap<>();
-         int metadata_properties = 0;
-         if (solrf.isIndexed() != null && solrf.isIndexed())
+         int metadata_properties = DEFAULT;
+
+         if (solrf.isStored() != null)
          {
-            options.put("indexed", true);
-            metadata_properties |= INDEXED;
+            if (solrf.isStored())
+            {
+               options.put("stored", true);
+            }
+            else
+            {
+               options.put("stored", false);
+               metadata_properties &= ~STORED;
+            }
          }
-         if (solrf.isRequired() != null && solrf.isRequired())
+
+         if (solrf.isIndexed() != null)
          {
-            options.put("required", true);
-            metadata_properties |= REQUIRED;
+            if (solrf.isIndexed())
+            {
+               options.put("indexed", true);
+            }
+            else
+            {
+               options.put("indexed", false);
+               metadata_properties &= ~INDEXED;
+            }
          }
-         if (solrf.isMultiValued() != null && solrf.isMultiValued())
+
+         if (solrf.isRequired() != null)
          {
-            options.put("multiValued", true);
-            metadata_properties |= MULTIVALUED;
+            if (solrf.isRequired())
+            {
+               options.put("required", true);
+               metadata_properties |= REQUIRED;
+            }
+            else
+            {
+               options.put("required", false);
+            }
          }
-         if (solrf.isStored() != null && solrf.isStored())
+
+         if (solrf.isMultiValued() != null)
          {
-            options.put("stored", true);
-            metadata_properties |= STORED;
+            if (solrf.isMultiValued())
+            {
+               options.put("multiValued", true);
+               metadata_properties |= MULTIVALUED;
+            }
+            else
+            {
+               options.put("multiValued", false);
+            }
+         }
+
+         if (LOGGER.isDebugEnabled())
+         {
+            StringBuilder sb = new StringBuilder("solr field: ").append(solrf.getName());
+            sb.append(       "  type=").append(solrf.getType());
+            sb.append(     "  stored=").append((metadata_properties & STORED) > 0);
+            sb.append(    "  indexed=").append((metadata_properties & INDEXED) > 0);
+            sb.append(   "  required=").append((metadata_properties & REQUIRED) > 0);
+            sb.append("  multiValued=").append((metadata_properties & MULTIVALUED) > 0);
+            LOGGER.debug(sb.toString());
          }
 
          SchemaField schemaf;
@@ -136,7 +184,7 @@ public class SolrInitializer
 
             int schema_properties = schemaf.getProperties();
             // If already defined with a different properties: fatal error!
-            if ((schema_properties & metadata_properties) != metadata_properties)
+            if ((schema_properties & ALLOPTS) != metadata_properties)
             {
                String msg = new StringBuilder()
                      .append("Conflicting solr field '")

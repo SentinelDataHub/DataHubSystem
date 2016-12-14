@@ -19,17 +19,20 @@
  */
 package fr.gael.dhus.olingo.v1.entity;
 
+import fr.gael.dhus.olingo.v1.ExpectedException.InvalidTargetException;
+import fr.gael.dhus.olingo.v1.Model;
+import fr.gael.dhus.olingo.v1.entityset.NetworkEntitySet;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.olingo.odata2.api.exception.ODataException;
-
-import fr.gael.dhus.olingo.v1.entityset.NetworkEntitySet;
+import org.apache.olingo.odata2.api.uri.NavigationSegment;
 
 /**
- * Product Bean. A product served by the DHuS.
+ * Network Bean.
  */
-public class Network extends V1Entity
+public class Network extends AbstractEntity
 {
    public Network ()
    {
@@ -49,4 +52,22 @@ public class Network extends V1Entity
       if (prop_name.equals (NetworkEntitySet.ID)) return 0;
       throw new ODataException ("Property '" + prop_name + "' not found.");
    }
+
+   @Override
+   public Object navigate(NavigationSegment ns) throws ODataException
+   {
+      Object res;
+
+      if (ns.getEntitySet().getName().equals(Model.NETWORKSTATISTIC.getName()))
+      {
+         res = new NetworkStatistic();
+      }
+      else
+      {
+         throw new InvalidTargetException(this.getClass().getSimpleName(), ns.getEntitySet().getName());
+      }
+
+      return res;
+   }
+
 }

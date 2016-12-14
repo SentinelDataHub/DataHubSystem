@@ -663,23 +663,7 @@
             <solrField name="onlinequalitycheck"
                        type="string"/>
          </metadataType>
-         
-         <metadataType id="GMLfootprint"
-                       name="Footprint"
-                       contentType="application/gml+xml"
-                       category="product">
-            <solrField name="gmlfootprint"
-                       type="string"/>
-         </metadataType>
-
-         <metadataType id="footprint"
-                       name="JTS footprint"
-                       contentType="application/jts"
-                       category="product">
-            <solrField name="footprint"
-                       type="location_rpt"/>
-         </metadataType> 
-         
+                  
          <metadataType id="olcilevel"
                        name="olci level"
                        contentType="text/plain"
@@ -696,15 +680,8 @@
 	      ]]>
 		</dhus:identifier>
       <dhus:metadataExtractor  rdf:parseType="Literal">
-         <![CDATA[         	             
-         declare namespace utils="java:fr.gael.drb.cortex.topic.sentinel3.Sentinel3Utils";
-         declare namespace bd="java:fr.gael.drb.cortex.topic.sentinel3.MetadataBuilder";                                                             
-         
-         declare function local:footprint() as xs:string*{
-            fn:data(*[matches (name(), "xfdumanifest.xml")]/XFDU/metadataSection/metadataObject[@ID="measurementFrameSet"]/
-                 metadataWrap/xmlData/frameSet/footPrint/posList)
-         };
-         
+         <![CDATA[
+         declare namespace utils="java:fr.gael.drb.cortex.topic.sentinel3.Sentinel3Utils";     	                      
          <!-- It's requested to compute real product size, instead of product size reported
          in manifest file  -->
          declare function local:computeSizes ($path, $base as item()*) as item()*
@@ -718,15 +695,15 @@
                   data($child/@size), $base
          };     
          
-         declare variable $instrument as xs:string := data(xfdumanifest.xml/XFDU/metadataSection/
-                metadataObject[@ID="platform"]/metadataWrap/xmlData/
+         declare variable $instrument as xs:string := data(xfdumanifest.xml/
+            XFDU/metadataSection/metadataObject[@ID="platform"]/metadataWrap/xmlData/
                 platform/instrument/familyName/@abbreviation);
 
-	declare variable $product_type as xs:string :=fn:data(xfdumanifest.xml/XFDU/metadataSection/
-                metadataObject[@ID="generalProductInformation"]/metadataWrap/xmlData/
+	      declare variable $product_type as xs:string :=fn:data(xfdumanifest.xml/
+            XFDU/metadataSection/metadataObject[@ID="generalProductInformation"]/metadataWrap/xmlData/
                 generalProductInformation/productType);         
 
-	declare variable $level as xs:integer := fn:substring (name(),8,1);
+	      declare variable $level as xs:integer := fn:substring (name(),8,1);
 				                                                             
 	                    
          <!-- SATELLITE NAME -->
@@ -1243,58 +1220,7 @@
             {data(xfdumanifest.xml/XFDU/metadataSection/
                 metadataObject[fn:matches(@ID,".+QualityInformation")]/
                 metadataWrap/xmlData/qualityInformation/extension/productQuality/onlineQualityCheck)}
-         </metadata>,   
-                  
-                 
-        <!-- S3 FOOTPRINT BEGIN FOR NON OLCI LEVEL 0 -->
-        let $instr:=0      
-		return 		
-		(
-		  if($instrument="OLCI" and $level = 0 ) then		  
-		  (
-			  <metadata
-            category=""
-            name="olci level"
-            type="text/plain">
-            S3
-         	</metadata>
-	        )
-	        else
-	        (        	                                 
-	         <metadata
-	           queryable="GMLfootprint"
-	           category="product"
-	           name="Footprint"
-	           type="application/gml+xml">
-	              <gml:Polygon xmlns:gml="http://www.opengis.net/gml"
-	                           srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">
-	                 <gml:outerBoundaryIs>
-	                    <gml:LinearRing>
-	                       <gml:coordinates>
-	                           {
-	                                utils:points2GML(local:footprint())
-	                            }
-	                       </gml:coordinates>
-	                    </gml:LinearRing>
-	                 </gml:outerBoundaryIs>
-	              </gml:Polygon>
-	        </metadata>,
-	
-	        <!-- JTS FOOTPRINT -->
-	        <metadata
-	           queryable="footprint"
-	           category="product"
-	           name="JTS footprint"
-	           type="application/jts">
-	              {
-	                    concat ("POLYGON ((",utils:points2JTS(local:footprint()),"))")
-	              }
-	        </metadata>	       
-          )	                    
-		)
-		
-         <!-- S3 FOOTPRINT END -->
-                                           
+         </metadata>                                           
       ]]>
       </dhus:metadataExtractor>
    </rdf:Description>

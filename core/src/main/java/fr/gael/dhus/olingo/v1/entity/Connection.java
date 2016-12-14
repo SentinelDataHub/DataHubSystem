@@ -19,20 +19,26 @@
  */
 package fr.gael.dhus.olingo.v1.entity;
 
+import fr.gael.dhus.olingo.v1.ExpectedException.InvalidTargetException;
+import fr.gael.dhus.olingo.v1.Model;
+import fr.gael.dhus.olingo.v1.entityset.ConnectionEntitySet;
+import fr.gael.dhus.olingo.v1.map.impl.UserMap;
+import fr.gael.dhus.server.http.valve.AccessInformation;
+import fr.gael.dhus.server.http.valve.AccessInformation.FailureConnectionStatus;
+import fr.gael.dhus.server.http.valve.AccessInformation.Status;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import org.apache.olingo.odata2.api.exception.ODataException;
-
-import fr.gael.dhus.olingo.v1.entityset.ConnectionEntitySet;
-import fr.gael.dhus.server.http.valve.AccessInformation;
+import org.apache.olingo.odata2.api.uri.NavigationSegment;
 
 /**
  * Connection Bean. Connection informations served by the DHuS.
  */
-public class Connection extends V1Entity
+public class Connection extends AbstractEntity
 {
    protected final AccessInformation accessInformation;
    protected final UUID uuid;
@@ -72,17 +78,50 @@ public class Connection extends V1Entity
    {
       return accessInformation.getDurationMs();
    }
+   
+   public String getConnectionStatus()
+   {
+      return accessInformation.getConnectionStatus()==null ? "UNKNOWN" :
+         accessInformation.getConnectionStatus().getStatus().name();
+   }
+   public String getConnectionStatusMessage()
+   {
+      if ((accessInformation.getConnectionStatus()!=null) &&
+          (accessInformation.getConnectionStatus().getStatus()==Status.FAILURE))
+      {
+         FailureConnectionStatus status = (FailureConnectionStatus)
+            accessInformation.getConnectionStatus();
+         if (status.getException()!=null)
+            return status.getException().getMessage();
+      }
+      return null;
+   }
+   
+   public long getContentLength ()
+   {
+      return accessInformation.getReponseSize();
+   }
+   
+   public long getWrittenContentLength ()
+   {
+      return accessInformation.getWrittenResponseSize();
+   }
+
 
    @Override
-   public Map<String, Object> toEntityResponse (String root_url)
+   public Map<String, Object> toEntityResponse(String root_url)
    {
-      Map<String, Object> res = new HashMap<> ();
-      res.put (ConnectionEntitySet.ID, uuid.toString ());
-      res.put (ConnectionEntitySet.DATE, accessInformation.getStartDate ());
-      res.put (ConnectionEntitySet.REMOTEIP,
-         accessInformation.getRemoteAddress ());
-      res.put (ConnectionEntitySet.REQUEST, accessInformation.getRequest ());
-      res.put (ConnectionEntitySet.DURATION, accessInformation.getDurationMs ());
+      Map<String, Object>res = new HashMap<>();
+      res.put(ConnectionEntitySet.ID,       uuid.toString());
+      res.put(ConnectionEntitySet.DATE,     getStartDate());
+      res.put(ConnectionEntitySet.REMOTEIP, getRemoteAddress());
+      res.put(ConnectionEntitySet.REQUEST,  getRequest());
+      res.put(ConnectionEntitySet.DURATION, getDurationMs());
+      res.put(ConnectionEntitySet.CONTENT_LENGTH, getContentLength());
+      res.put(ConnectionEntitySet.WRITTEN_CONTENT_LENGTH,
+           getWrittenContentLength());
+      res.put(ConnectionEntitySet.STATUS, getConnectionStatus());
+      res.put(ConnectionEntitySet.STATUS_MESSAGE, getConnectionStatusMessage());
       return res;
    }
 
@@ -91,14 +130,40 @@ public class Connection extends V1Entity
    {
       if (prop_name.equals (ConnectionEntitySet.ID)) return uuid;
       if (prop_name.equals (ConnectionEntitySet.DATE))
-         return accessInformation.getStartDate ();
+         return getStartDate ();
       if (prop_name.equals (ConnectionEntitySet.REMOTEIP))
-         return accessInformation.getRemoteAddress ();
+         return getRemoteAddress ();
       if (prop_name.equals (ConnectionEntitySet.REQUEST))
-         return accessInformation.getRequest ();
+         return getRequest ();
       if (prop_name.equals (ConnectionEntitySet.DURATION))
-         return accessInformation.getDurationMs ();
+         return getDurationMs ();
+      if (prop_name.equals (ConnectionEntitySet.CONTENT_LENGTH))
+         return getContentLength();
+      if (prop_name.equals (ConnectionEntitySet.WRITTEN_CONTENT_LENGTH))
+         return getWrittenContentLength();
+      if (prop_name.equals (ConnectionEntitySet.STATUS))
+         return getConnectionStatus ();
+      if (prop_name.equals (ConnectionEntitySet.STATUS_MESSAGE))
+         return getConnectionStatusMessage ();
 
       throw new ODataException ("Property '" + prop_name + "' not found.");
    }
+
+   @Override
+   public Object navigate(NavigationSegment ns) throws ODataException
+   {
+      Object res;
+
+      if (ns.getEntitySet().getName().equals(Model.USER.getName()))
+      {
+         res = new UserMap().get(getUsername());
+      }
+      else
+      {
+         throw new InvalidTargetException(this.getClass().getSimpleName(), ns.getEntitySet().getName());
+      }
+
+      return res;
+   }
+
 }

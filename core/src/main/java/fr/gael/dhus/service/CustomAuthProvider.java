@@ -19,8 +19,8 @@
  */
 package fr.gael.dhus.service;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.springframework.security.authentication
       .UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao
@@ -37,7 +37,7 @@ import fr.gael.dhus.database.object.User.PasswordEncryption;
 
 public class CustomAuthProvider extends DaoAuthenticationProvider
 {
-   private static Log logger = LogFactory.getLog (CustomAuthProvider.class);
+   private static final Logger LOGGER = LogManager.getLogger(CustomAuthProvider.class);
 
    @Override
    protected void additionalAuthenticationChecks (UserDetails user_details,
@@ -54,7 +54,7 @@ public class CustomAuthProvider extends DaoAuthenticationProvider
          }
          catch (Exception e)
          {
-            logger.warn ("Algorithm " +
+            LOGGER.warn("Algorithm " +
                u.getPasswordEncryption ().getAlgorithmKey () +
                " was not found. Trying with no encryption.");
          }

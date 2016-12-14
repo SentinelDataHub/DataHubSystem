@@ -28,7 +28,7 @@
 
     <test name="Data Store" preserve-order="true">
         <classes>
-            <class name="fr.gael.dhus.datastore.DefaultDataStoreTest" />
+            <class name="fr.gael.dhus.datastore.FileSystemDataStoreTest" />
             <class name="fr.gael.dhus.datastore.HierarchicalDirectoryBuilderTest" />
             <class name="fr.gael.dhus.datastore.scanner.ScannerFactoryTest" />
             <class name="fr.gael.dhus.datastore.scanner.AbstractScannerTest"/>
@@ -58,6 +58,7 @@
    <test name="test-utils">
       <classes>
          <class name="fr.gael.dhus.util.BlockingObjectTest" />
+         <class name="fr.gael.dhus.database.object.UserTest"/>
       </classes>
    </test>
 </suite>

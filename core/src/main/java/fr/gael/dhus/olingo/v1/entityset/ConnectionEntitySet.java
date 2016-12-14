@@ -42,12 +42,17 @@ import org.apache.olingo.odata2.api.edm.provider.SimpleProperty;
 
 import fr.gael.dhus.database.object.Role;
 import fr.gael.dhus.database.object.User;
-import fr.gael.dhus.olingo.v1.V1Model;
-import fr.gael.dhus.olingo.v1.V1Util;
+import fr.gael.dhus.olingo.Security;
+import fr.gael.dhus.olingo.v1.Model;
 import fr.gael.dhus.olingo.v1.entity.Connection;
+import fr.gael.dhus.olingo.v1.entity.AbstractEntity;
+import fr.gael.dhus.olingo.v1.map.impl.ConnectionMap;
 import fr.gael.dhus.server.http.valve.AccessValve;
+import java.util.Map;
+import java.util.UUID;
+import org.apache.olingo.odata2.api.uri.KeyPredicate;
 
-public class ConnectionEntitySet extends V1EntitySet<Connection>
+public class ConnectionEntitySet extends AbstractEntitySet<Connection>
 {
    public static final String ENTITY_NAME = "Connection";
 
@@ -57,9 +62,13 @@ public class ConnectionEntitySet extends V1EntitySet<Connection>
    public static final String REMOTEIP = "RemoteIp";
    public static final String REQUEST = "Request";
    public static final String DURATION = "Duration";
+   public static final String CONTENT_LENGTH = "ContentLength";
+   public static final String WRITTEN_CONTENT_LENGTH = "WrittenContentLength";
+   public static final String STATUS = "Status";
+   public static final String STATUS_MESSAGE = "Message";
 
    public static final FullQualifiedName ASSO_CONNECTION_USER =
-      new FullQualifiedName (V1Model.NAMESPACE, "Connection_User");
+      new FullQualifiedName(Model.NAMESPACE, "Connection_User");
    public static final String ROLE_CONNECTION_USER = "Connection_User";
    public static final String ROLE_USER_CONNECTIONS = "User_Connections";
 
@@ -91,12 +100,21 @@ public class ConnectionEntitySet extends V1EntitySet<Connection>
          EdmSimpleTypeKind.String));
       properties.add (new SimpleProperty ().setName (DURATION).setType (
          EdmSimpleTypeKind.Double));
+      properties.add (new SimpleProperty ().setName (CONTENT_LENGTH).setType (
+         EdmSimpleTypeKind.Int64));
+      properties.add (new SimpleProperty ().setName (WRITTEN_CONTENT_LENGTH).
+         setType (EdmSimpleTypeKind.Int64));
+      properties.add (new SimpleProperty ().setName (STATUS).setType (
+            EdmSimpleTypeKind.String));
+      properties.add (new SimpleProperty ().setName (STATUS_MESSAGE).setType (
+            EdmSimpleTypeKind.String).
+            setFacets (new Facets ().setNullable (true)));
 
       // Navigation Properties
       List<NavigationProperty> navigationProperties =
          new ArrayList<NavigationProperty> ();
 
-      if (V1Util.getCurrentUser ().getRoles ().contains (Role.SYSTEM_MANAGER))
+      if (Security.currentUserHasRole(Role.SYSTEM_MANAGER))
       {
       navigationProperties.add (new NavigationProperty ().setName ("User")
          .setRelationship (ASSO_CONNECTION_USER)
@@ -117,14 +135,14 @@ public class ConnectionEntitySet extends V1EntitySet<Connection>
    {
       List<AssociationSet> associationSets = new ArrayList<AssociationSet> ();
 
-      if (V1Util.getCurrentUser ().getRoles ().contains (Role.SYSTEM_MANAGER))
+      if (Security.currentUserHasRole(Role.SYSTEM_MANAGER))
       {
       associationSets.add (new AssociationSet ()
          .setName (ASSO_CONNECTION_USER.getName ())
          .setAssociation (ASSO_CONNECTION_USER)
          .setEnd1 (
-            new AssociationSetEnd ().setRole (ROLE_CONNECTION_USER).setEntitySet (
-               V1Model.USER.getName ()))
+            new AssociationSetEnd ().setRole (ROLE_CONNECTION_USER)
+               .setEntitySet(Model.USER.getName()))
          .setEnd2 (
             new AssociationSetEnd ().setRole (ROLE_USER_CONNECTIONS)
                .setEntitySet (getName ())));
@@ -137,13 +155,13 @@ public class ConnectionEntitySet extends V1EntitySet<Connection>
    {
       List<Association> associations = new ArrayList<Association> ();
 
-      if (V1Util.getCurrentUser ().getRoles ().contains (Role.SYSTEM_MANAGER))
+      if (Security.currentUserHasRole(Role.SYSTEM_MANAGER))
       {
       associations.add (new Association ()
          .setName (ASSO_CONNECTION_USER.getName ())
          .setEnd1 (
             new AssociationEnd ()
-               .setType (V1Model.USER.getFullQualifiedName ())
+               .setType(Model.USER.getFullQualifiedName())
                .setRole (ROLE_CONNECTION_USER)
                .setMultiplicity (EdmMultiplicity.ONE))
          .setEnd2 (
@@ -165,5 +183,18 @@ public class ConnectionEntitySet extends V1EntitySet<Connection>
    {
       return user.getRoles ().contains (Role.SYSTEM_MANAGER) ||
              user.getRoles ().contains (Role.STATISTICS);
+   }
+
+   @Override
+   public Map getEntities()
+   {
+      return new ConnectionMap();
+   }
+
+   @Override
+   public AbstractEntity getEntity(KeyPredicate kp)
+   {
+      UUID key = UUID.fromString(kp.getLiteral());
+      return (new ConnectionMap()).get(key);
    }
 }

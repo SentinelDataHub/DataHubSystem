@@ -22,58 +22,52 @@
 package fr.gael.dhus.webclient;
 
 //import fr.gael.dhus.gwt.services.annotation.RPCService;
-import fr.gael.dhus.server.http.web.WebApplication;
-import fr.gael.dhus.server.http.web.WebComponent;
-import fr.gael.dhus.server.http.web.WebServlet;
+
+import fr.gael.dhus.server.http.webapp.WebApp;
+import fr.gael.dhus.server.http.webapp.WebApplication;
+import java.io.File;
+import java.io.IOException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.net.URL;
+import org.springframework.stereotype.Component;
 
-@WebComponent
+@Component
+@WebApp(name = "",welcomeFiles="home")
 public class WebClientWebapp extends WebApplication
 {
    private static Log logger = LogFactory.getLog (WebClientWebapp.class);
 
-   @Override
-   public void init ()
+  
+     @Override
+   public void configure(String dest_folder) throws IOException
    {
-      this.name = "";
-      this.servlets = new ArrayList<WebServlet> ();
-      this.welcomeFiles = new ArrayList<String> ();
-
-      servlets.add (new GUIClientWebServlet ("home", "/home"));
-      welcomeFiles.add ("home");
-
-/*
-      ClassPathScanningCandidateComponentProvider scan =
-         new ClassPathScanningCandidateComponentProvider (false);
-      scan.addIncludeFilter (new AnnotationTypeFilter (RPCService.class));*/
-
-   }
-/*
-   private class RPCServlet extends WebServlet
-   {
-      protected RPCServlet (Servlet servlet, String servletName,
-         String urlPattern)
+      String configurationFolder = "fr/gael/dhus/webclient";
+      URL u = Thread.currentThread ().getContextClassLoader ().getResource (
+            configurationFolder);
+      if (u != null && "jar".equals (u.getProtocol ()))
       {
-         this.servlet = servlet;
-         this.servletName = servletName;
-         this.urlPattern = urlPattern;
+         extractJarFolder(u, configurationFolder, dest_folder);
       }
-   }*/
-
-   private class GUIClientWebServlet extends WebServlet
-   {
-      protected GUIClientWebServlet (String servletName, String urlPattern)
+      else if (u != null)
       {
-         this.servlet = new WebClientServlet();
-         this.servletName = servletName;
-         this.urlPattern = urlPattern;
+         File webAppFolder = new File(dest_folder);
+         copyFolder(new File(u.getFile ()), webAppFolder);
       }
+    
    }
 
+    @Override
+    public boolean hasWarStream() {
+       return true;
+    }
+
+    @Override
+    public void checkInstallation() throws Exception {
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 
    @Override
    public InputStream getWarStream ()

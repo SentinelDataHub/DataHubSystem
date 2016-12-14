@@ -19,9 +19,12 @@
  */
 package fr.gael.dhus.service.job;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,8 +38,8 @@ import fr.gael.dhus.system.config.ConfigurationManager;
 @Component
 public class DumpDatabaseJob extends AbstractJob
 {
-   private static Logger logger=Logger.getLogger (DumpDatabaseJob.class);
-   
+   private static final Logger LOGGER = LogManager.getLogger(DumpDatabaseJob.class);
+
    @Autowired
    private SystemService systemService;
 
@@ -57,14 +60,14 @@ public class DumpDatabaseJob extends AbstractJob
       if (!configurationManager.getDumpDatabaseCronConfiguration ().isActive ())
          return;
       long start = System.currentTimeMillis ();
-      logger.info ("SCHEDULER : Dumps of database.");
+      LOGGER.info("SCHEDULER : Dumps of database.");
       if (!DHuS.isStarted ())
       {
-         logger.warn("SCHEDULER : Not run while system not fully initialized.");
+         LOGGER.warn("SCHEDULER : Not run while system not fully initialized.");
          return;
       }
       systemService.dumpDatabase ();
-      logger.info ("SCHEDULER : Dumps of database done - " + 
+      LOGGER.info("SCHEDULER : Dumps of database done - " +
          (System.currentTimeMillis ()-start) + "ms");
    }
 }

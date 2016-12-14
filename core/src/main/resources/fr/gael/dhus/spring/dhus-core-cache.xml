@@ -34,7 +34,7 @@
    <bean id="cacheBuilder" class="com.google.common.cache.CacheBuilder"
       factory-method="from">
       <constructor-arg 
-         value="maximumSize=100000, expireAfterAccess=5h, expireAfterWrite=10h" />
+         value="maximumSize=1000, expireAfterAccess=5h, expireAfterWrite=10h" />
    </bean>
    
    <cache:annotation-driven/>

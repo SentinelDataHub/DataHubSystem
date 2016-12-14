@@ -20,30 +20,32 @@
 package fr.gael.dhus;
 
 import java.io.IOException;
-import java.io.PrintStream;
+import java.net.URL;
 import java.util.Map;
 import java.util.TimeZone;
 
-import fr.gael.dhus.service.ISynchronizerService;
-import fr.gael.dhus.service.SystemService;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import fr.gael.dhus.database.DatabasePostInit;
 import fr.gael.dhus.datastore.IncomingManager;
 import fr.gael.dhus.search.SolrDao;
 import fr.gael.dhus.server.http.TomcatException;
 import fr.gael.dhus.server.http.TomcatServer;
-import fr.gael.dhus.server.http.WebApplication;
-import fr.gael.dhus.server.http.web.WebPostProcess;
-import fr.gael.dhus.server.http.web.WebServlet;
+import fr.gael.dhus.server.http.webapp.WebApplication;
+import fr.gael.dhus.service.ISynchronizerService;
+import fr.gael.dhus.service.SystemService;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
-import fr.gael.dhus.util.LoggingOutputStream;
 import fr.gael.drb.impl.DrbFactoryResolver;
 import fr.gael.drbx.cortex.DrbCortexMetadataResolver;
 import fr.gael.drbx.cortex.DrbCortexModel;
+
+import net.sf.ehcache.CacheManager;
+
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.io.IoBuilder;
 
 /**
  * DHuS Main class.
@@ -54,7 +56,7 @@ import fr.gael.drbx.cortex.DrbCortexModel;
 public class DHuS
 {
    /** Logger. */
-   private static final Log LOGGER = LogFactory.getLog (DHuS.class);
+   private static final Logger LOGGER;
 
    /** {@code true} if the DHuS is started. */
    private static boolean started = false;
@@ -64,6 +66,17 @@ public class DHuS
 
    //** FTP server. */
    //private static FtpServer ftp;
+
+   static
+   {
+      // Sets up the JUL --> Log4J brigde
+      System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
+      LOGGER = LogManager.getLogger(DHuS.class);
+
+      // Transfer System.err in logger
+      IoBuilder iob = IoBuilder.forLogger(LOGGER).setAutoFlush(true).setLevel(Level.ERROR);
+      System.setErr(iob.buildPrintStream());
+   }
 
    /** Hide utility class constructor. */
    private DHuS () {}
@@ -80,9 +93,6 @@ public class DHuS
    /** Starts the DHuS (starts Tomcat, creates the Spring application context. */
    public static void start ()
    {
-      // Transfer System.err in logger
-      System.setErr (new PrintStream(new LoggingOutputStream (LOGGER), true));
-
       String version = DHuS.class.getPackage ().getImplementationVersion ();
 
       // Force ehcache not to call home
@@ -119,6 +129,16 @@ public class DHuS
             }
          }
       }));
+
+      LOGGER.info ("Loading DHuS cache configuration");
+      URL cache_config_url = DHuS.class.getResource ("/dhus_ehcache.xml");
+      if (cache_config_url == null)
+      {
+         throw new IllegalStateException (
+               "DHuS can not be run without a cache configuration");
+      }
+      CacheManager.newInstance (cache_config_url);
+
 
       // Always add JMSAppender
       //Logger rootLogger = LogManager.getRootLogger ();
@@ -186,10 +206,11 @@ public class DHuS
          {
             server.install (webapps.get (beanName));
          }
-
-         fr.gael.dhus.server.http.web.WebApplication.installAll (server);
-         WebServlet.installAll (server);
-         WebPostProcess.launchAll ();
+         
+         DatabasePostInit dbInit = ApplicationContextProvider.getBean (DatabasePostInit.class);
+         dbInit.init ();
+         ISynchronizerService syncService = ApplicationContextProvider.getBean (ISynchronizerService.class);
+         syncService.init ();
 
          LOGGER.info ("Server is ready...");
          started = true;
@@ -197,12 +218,14 @@ public class DHuS
          //InitializableComponent.initializeAll ();
          //logger.info (new Message(MessageType.SYSTEM, "Server is ready..."));
          server.await ();
+         context.close ();
       }
       catch (Exception e)
       {
          LOGGER.error ("Cannot start system.", e);
          //logger.error (new Message(MessageType.SYSTEM, "Cannot start DHuS."), e);
          //ftp.stop ();
+         if (context != null) context.close ();
          System.exit (1);
       }
    }

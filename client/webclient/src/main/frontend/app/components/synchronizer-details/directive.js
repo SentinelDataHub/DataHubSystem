@@ -38,7 +38,9 @@ angular.module('DHuS-webclient')
           post: function(scope, iElem, iAttrs){            
             scope.synch = {};
             scope.checkFields = true;            
-            scope.isNew = false;                               
+            scope.isNew = false;
+            scope.synch.request = 'false';
+            
             OdataSynchDetailsManager.setOdataSynchDetails(function(id, isNew){scope.getSynchronizerDetails(id, isNew)});                             
 
             function initSynchronizer(id, isNew) { 
@@ -101,6 +103,22 @@ angular.module('DHuS-webclient')
                 $('#synchDetails').modal('show');                      
               
             };  
+            
+            $('#synchDetails').on('shown.bs.modal', function (e) {
+                //if(!scope.collectionsName){
+                ODataSynchronizerService.collections().then(function (synchronizersCollections) {
+                        var collectionsName = [];
+                        for(var i = 0; i < synchronizersCollections.data.d.results.length;i++){
+                            collectionsName.push(synchronizersCollections.data.d.results[i].Name);
+                        }
+                        scope.collectionsName = collectionsName;
+                        
+                        
+                    });
+                
+            //}
+            });
+            
 
             scope.checkPassword= function(){
               $('#serviceConfirmPwd').css('display','none');
@@ -193,7 +211,6 @@ angular.module('DHuS-webclient')
               });              
             };
 
-            
 
             scope.updateSynchronizer = function() { 
               var removeCollection = false;
@@ -234,7 +251,7 @@ angular.module('DHuS-webclient')
               scope.synch.serviceLoginPassword='';
               scope.synch.schedule='';
               scope.synch.remoteIncoming='';
-              scope.synch.request='';              
+              scope.synch.request='stop';              
               scope.synch.collections='';  
               scope.synch.pagesize='';   
               scope.synch.copyproduct = '';

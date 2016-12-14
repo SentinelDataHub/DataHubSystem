@@ -25,18 +25,16 @@ import java.util.ArrayList;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import fr.gael.dhus.database.dao.ActionRecordWritterDao;
 import fr.gael.dhus.database.object.Collection;
 import fr.gael.dhus.database.object.User;
-import fr.gael.dhus.datastore.DefaultDataStore;
 import fr.gael.dhus.datastore.IncomingManager;
 import fr.gael.dhus.messaging.jms.Message;
 import fr.gael.dhus.messaging.jms.Message.MessageType;
@@ -47,11 +45,8 @@ import fr.gael.dhus.service.exception.UploadingException;
 @Service
 public class ProductUploadService extends WebService
 {
-   private static Log logger = LogFactory.getLog (ProductUploadService.class);
-   
-   @Autowired
-   private ActionRecordWritterDao actionRecordWritterDao;
-   
+   private static final Logger LOGGER = LogManager.getLogger(ProductUploadService.class);
+
    @Autowired
    private SecurityService securityService;
    
@@ -64,25 +59,22 @@ public class ProductUploadService extends WebService
    @Autowired
    private IncomingManager incomingManager;
       
-   @Autowired
-   private DefaultDataStore dataStore;
-
    // throws UploadingException, UserNotExistingException
    @PreAuthorize("hasRole('ROLE_UPLOAD')")
    @Transactional (propagation=Propagation.REQUIRED)
-   public void upload (Long user_id, FileItem product,
-         ArrayList<Long> collection_ids) throws UploadingException,
+   public void upload (FileItem product,
+         ArrayList<String> collection_uuids) throws UploadingException,
          RootNotModifiableException, ProductNotAddedException
    {
       //userService.getUser (userId);
       User owner = securityService.getCurrentUser ();
       ArrayList<Collection> collections = new ArrayList<> ();
-      for (Long cId : collection_ids)
+      for (String uuid : collection_uuids)
       {
          Collection c;
 //         try
 //         {
-            c = collectionService.getCollection (cId);
+            c = collectionService.getCollection (uuid);
 //         }
 //         catch (CollectionNotExistingException e)
 //         {
@@ -94,10 +86,8 @@ public class ProductUploadService extends WebService
       String fileName = product.getName ();
       try
       {
-         logger.info (new Message(MessageType.UPLOADS, owner.getUsername () + 
+         LOGGER.info(new Message(MessageType.UPLOADS, owner.getUsername () + 
             " tries to upload product '" +fileName+ "'"));
-         actionRecordWritterDao
-            .uploadStart (fileName, owner.getUsername ());
          if (fileName != null)
          {
             fileName = FilenameUtils.getName (fileName);
@@ -139,8 +129,6 @@ public class ProductUploadService extends WebService
 //      }      
       catch (Exception e)
       {
-         actionRecordWritterDao.uploadFailed (fileName,
-            owner.getUsername ());
          throw new UploadingException ("An error occured when uploading '" +
             fileName + "'", e);
       }

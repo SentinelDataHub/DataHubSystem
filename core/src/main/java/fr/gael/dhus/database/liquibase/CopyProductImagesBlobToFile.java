@@ -29,8 +29,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 import org.apache.commons.compress.utils.IOUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import liquibase.change.custom.CustomTaskChange;
 import liquibase.database.Database;
@@ -42,8 +43,7 @@ import liquibase.resource.ResourceAccessor;
 
 public class CopyProductImagesBlobToFile implements CustomTaskChange
 {
-   private static Log logger = LogFactory.getLog (
-         CopyProductImagesBlobToFile.class);
+   private static final Logger LOGGER = LogManager.getLogger(CopyProductImagesBlobToFile.class);
 
    @Override
    public String getConfirmationMessage ()
@@ -101,7 +101,7 @@ public class CopyProductImagesBlobToFile implements CustomTaskChange
                
             if (download_path == null)
             {
-               logger.error ("No download path for product '" + 
+               LOGGER.error("No download path for product '" + 
                   product_path + "': product images not managed");
                continue;
             }
@@ -134,7 +134,7 @@ public class CopyProductImagesBlobToFile implements CustomTaskChange
                      }
                      catch (Exception e)
                      {
-                        logger.warn ("Cannot close Statement !");
+                        LOGGER.warn("Cannot close Statement !");
                      }
                }
             }
@@ -164,7 +164,7 @@ public class CopyProductImagesBlobToFile implements CustomTaskChange
                      }
                      catch (Exception e)
                      {
-                        logger.warn ("Cannot close Statement !");
+                        LOGGER.warn("Cannot close Statement !");
                      }
                }
             }
@@ -179,7 +179,7 @@ public class CopyProductImagesBlobToFile implements CustomTaskChange
          }
          catch (Exception e)
          {
-            logger.error ("Cannot perform database checkpoint defrag command",
+            LOGGER.error("Cannot perform database checkpoint defrag command",
                   e);
          }
          finally
@@ -191,7 +191,7 @@ public class CopyProductImagesBlobToFile implements CustomTaskChange
                }
                catch (Exception e)
                {
-                  logger.warn ("Cannot close Statement !", e);
+                  LOGGER.warn("Cannot close Statement !", e);
                }
          }
       }
@@ -209,7 +209,7 @@ public class CopyProductImagesBlobToFile implements CustomTaskChange
             }
             catch (Exception e)
             {
-               logger.warn ("Cannot close ResultSet !");
+               LOGGER.warn("Cannot close ResultSet !");
             }
          }
          if (products!=null)
@@ -220,7 +220,7 @@ public class CopyProductImagesBlobToFile implements CustomTaskChange
             }
             catch (Exception e)
             {
-               logger.warn ("Cannot close Statement !");
+               LOGGER.warn("Cannot close Statement !");
             }
          }
          //if (db_connection!=null) try { db_connection.close (); }
@@ -244,7 +244,7 @@ public class CopyProductImagesBlobToFile implements CustomTaskChange
       }
       catch (Exception e) 
       {
-         logger.error ("Cannot copy blob into '" + out + "'.", e);
+         LOGGER.error("Cannot copy blob into '" + out + "'.", e);
       }
       finally
       {
@@ -256,7 +256,7 @@ public class CopyProductImagesBlobToFile implements CustomTaskChange
             }
             catch (IOException e)
             {
-               logger.warn ("Cannot close InputStream !");
+               LOGGER.warn("Cannot close InputStream !");
             }
          }
          if (bos != null)
@@ -267,7 +267,7 @@ public class CopyProductImagesBlobToFile implements CustomTaskChange
             }
             catch (IOException e)
             {
-               logger.warn ("Cannot close BufferedOutputStream !");
+               LOGGER.warn("Cannot close BufferedOutputStream !");
             }
          }
          if (os != null)
@@ -278,7 +278,7 @@ public class CopyProductImagesBlobToFile implements CustomTaskChange
             }
             catch (IOException e)
             {
-               logger.warn ("Cannot close OutputStream !");
+               LOGGER.warn("Cannot close OutputStream !");
             }
          }
       }

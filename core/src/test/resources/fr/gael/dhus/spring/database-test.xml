@@ -49,8 +49,6 @@
             <prop key="hibernate.show_sql">false</prop>
             <prop key="hibernate.format_sql">true</prop>
             <prop key="hibernate.query.substitutions">true 1, false 0, yes 'Y', no 'N'</prop>
-            <prop key="hibernate.cache.provider_class">org.hibernate.cache.EhCacheProvider</prop>
-            <prop key="hibernate.cache.use_second_level_cache">true</prop>
             <prop key="javax.persistence.validation.mode">none</prop>
          </props>
       </property>

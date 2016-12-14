@@ -1,0 +1,8 @@
+{
+  "suites": ["./test"],
+  "webserver": {
+    "pathMappings": [
+      {"/components/message-broker/bower_componets": "bower_components"}
+    ]
+  }
+}

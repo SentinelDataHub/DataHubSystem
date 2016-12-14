@@ -19,15 +19,18 @@
  */
 package fr.gael.dhus.service;
 
-import fr.gael.dhus.database.object.SynchronizerConf;
-import fr.gael.dhus.sync.Synchronizer;
-import fr.gael.dhus.sync.SynchronizerStatus;
-import fr.gael.dhus.service.exception.InvokeSynchronizerException;
+import java.text.ParseException;
+import java.util.Iterator;
+
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
 
-import java.text.ParseException;
-import java.util.Iterator;
+import fr.gael.dhus.DHuS;
+import fr.gael.dhus.database.object.SynchronizerConf;
+import fr.gael.dhus.service.exception.InvokeSynchronizerException;
+import fr.gael.dhus.sync.Executor;
+import fr.gael.dhus.sync.Synchronizer;
+import fr.gael.dhus.sync.SynchronizerStatus;
 
 public interface ISynchronizerService extends
       ApplicationListener<ContextClosedEvent>
@@ -168,4 +171,11 @@ public interface ISynchronizerService extends
     * @return status.
     */
    SynchronizerStatus getStatus(SynchronizerConf sc);
+
+   /**
+    * Starts the {@link Executor} after every webapps have been installed.
+    * Called by main start in {@link DHuS}
+    * <b>YOU MUST NOT CALL THIS METHOD!</b>
+    */
+   void init ();
 }

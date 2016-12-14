@@ -31,6 +31,7 @@ import org.apache.log4j.Logger;
 import com.ibm.icu.math.BigDecimal;
 
 import fr.gael.drbx.image.DrbImage;
+import gov.nasa.worldwind.geom.coords.MGRSCoord;
 import gov.nasa.worldwind.geom.coords.TMCoord;
 import gov.nasa.worldwind.geom.coords.UTMCoord;
 
@@ -84,6 +85,12 @@ public class DrbImageManager
       while (it_images.hasNext())
       {
          DrbImage image = it_images.next();
+         if (!checkImage(image, true))
+         {
+            logger.error("Image \"" + image.getName() + 
+               "\" not supported: skiped.");
+            continue;
+         }
          this.add (image, this.layout);
       }
    }
@@ -135,6 +142,82 @@ public class DrbImageManager
       }
       return table;
    }
+
+   /**
+    * Extracts the band if from the image name (filename). This method manages
+    * both S2 old and new compact formats. 
+    * @param name the image filename.
+    * @return the band identifier matching 'B\d\d'
+    */
+   String getBandIdFromName (String name)
+   {
+      String band_id = "no_band";
+      String b = null;
+      // Case of compact format
+      if (!name.matches("S2._.*"))
+          b = name.substring(23, 26);
+      else // case of Old format
+         b = name.substring(56, 59);
+
+      if (b.matches("B\\d\\d"))
+         band_id = b;
+      
+      return band_id;
+   }
+   
+   /**
+    * Extracts the MGRS code from the image name (filename). This method manages
+    * both S2 old and new compact formats. 
+    * @param name the image filename.
+    * @return the MGRS string
+    */
+   String getMGRSFromName (String name)
+   {
+      String mgrs = null;
+      // Case of compact format
+      if (!name.matches("S2._.*"))
+          mgrs = name.substring(1, 6);
+      else // case of Old format
+         mgrs = name.substring(50, 55);
+      
+      return mgrs;
+   }
+   
+   /**
+    * Check if the given image is well supported by this algorithm. 
+    * @param image the image to check.
+    * @return true if supported, false otherwise.
+    */
+   boolean checkImage (DrbImage image, boolean verbose)
+   {
+      if ((image == null) || (image.getName() == null))
+      {
+         if (verbose) logger.error("Wrong input image.");
+         return false;
+      }
+      return checkFilename(image.getName(), verbose);
+   }
+   
+   boolean checkFilename (String filename, boolean verbose)
+   {
+      try
+      {
+         String mgrs = getMGRSFromName(filename);
+         if (mgrs==null) new NullPointerException("MGRS string not extracted.");
+         MGRSCoord.fromString(mgrs);
+      }
+      catch (Exception e)
+      {
+         if (verbose)
+         {
+            logger.error("Wrong input image file (" + e.getMessage() + ").");
+         }
+         return false;
+      }
+      return true;
+   }
+
+
    
    BigDecimal getNextNorthing (BigDecimal current, Zones map)
    {
@@ -152,19 +235,12 @@ public class DrbImageManager
    class Bands extends TreeMap<String, DrbImage> 
    {
       private static final long serialVersionUID = 1L;
+      
       public int put(DrbImage image)
       {
          String name = image.getName();
          // Extracts the band_ID
-         String band_id = "no_band";
-         try
-         {
-            band_id = name.substring(56, 59);
-         }
-         catch (ArrayIndexOutOfBoundsException aobe)
-         {
-            // Nothing to do, use default
-         }
+         String band_id = getBandIdFromName(name);
          
          if (!containsKey(band_id))
          {
@@ -269,7 +345,7 @@ public class DrbImageManager
       public int put(DrbImage image)
       {
          String name = image.getName();
-         String mgrs = name.substring(50, 55);
+         String mgrs = getMGRSFromName(name);
          
          // Retrieve lat/lon location of this image
          TMCoord coord = Coordinates.tmFromMgrs(mgrs, getCentralMeridian());
@@ -377,12 +453,17 @@ public class DrbImageManager
          TreeMap<Integer, UTMCoord>zones = new TreeMap<Integer, UTMCoord>();
          for (DrbImage image:images)
          {
+            // If image not supported, try next one...
+            if (!checkImage(image, false)) continue;
+            
             String name = image.getName();
-            String mgrs = name.substring(50, 55);
+            String mgrs = getMGRSFromName(name);
          
             UTMCoord coord = Coordinates.utmFromMgrs(mgrs);
             zones.put(coord.getZone(), coord);
          }
+         // Case of no image/no zone available.
+         if (zones.isEmpty()) return 0.0;
          
          int zone_cursor = zones.size()/2;
          Integer zone = zones.keySet().iterator().next();

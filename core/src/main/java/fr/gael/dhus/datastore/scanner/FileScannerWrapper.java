@@ -3,40 +3,44 @@ package fr.gael.dhus.datastore.scanner;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import fr.gael.dhus.service.FileScannerService;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
-import fr.gael.dhus.database.dao.FileScannerDao;
 import fr.gael.dhus.database.object.FileScanner;
 import fr.gael.dhus.database.object.Product;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
 
 public class FileScannerWrapper
 {
-   private static Log logger = LogFactory.getLog (FileScannerWrapper.class);
-   
-   fr.gael.dhus.database.object.FileScanner persistentScanner;
+   private static final Logger LOGGER = LogManager.getLogger(FileScannerWrapper.class);
 
-   int startCounter =0;
-   int endCounter =0;
-   int errorCounter =0;
-   int totalProcessed;
+   final Long fs_id;
+   final AtomicInteger startCounter;
+   final AtomicInteger endCounter;
+   final AtomicInteger errorCounter;
+   final AtomicInteger totalProcessed;
    String scannerStatus;
    String scannerMessage;
    String processingErrors = "";
 
-   public FileScannerWrapper (FileScanner persistent_scanner)
+   public FileScannerWrapper (final FileScanner persistent_scanner)
    {
-      this.persistentScanner = persistent_scanner;
+      this.startCounter = new AtomicInteger (0);
+      this.endCounter = new AtomicInteger (0);
+      this.errorCounter = new AtomicInteger (0);
+      this.totalProcessed = new AtomicInteger (0);
+
+      this.fs_id = persistent_scanner.getId ();
    }
 
    /**
     * Case of error during processing: informations are accumulated to be
     * displayed to the user.
-    * @param event
     */
-   public synchronized void error (Product p, Exception e)
+   public synchronized void error (Product p, Throwable e)
    {
       if ((e!=null) && (e.getMessage ()!=null))
       {
@@ -50,13 +54,13 @@ public class FileScannerWrapper
                message="(" + file + ")";
             }
          }
-         processingErrors +=e.getMessage () + message + "<br>";
+         processingErrors +=e.getMessage () + message + "<br>\n";
       }
-      errorCounter++;
+      errorCounter.incrementAndGet ();
 
       // As far as endIngestion is not called in case of error, it is
       // necessary to run it manually.
-      if ((endCounter + errorCounter) >= getTotalProcessed ())
+      if ((endCounter.get () + errorCounter.get ()) >= getTotalProcessed ())
       {
          processingsDone(null);
       }
@@ -65,9 +69,8 @@ public class FileScannerWrapper
     * Called on fatal error: the scanner crashed and no processing
     * are expected passed this event. scanner status forced to ERROR,
     * and error message is reported.
-    * @param event
     */
-   public void fatalError (Exception e)
+   public synchronized void fatalError (Throwable e)
    {
       // Force the scanner status to ERROR.
       scannerStatus = fr.gael.dhus.database.object.FileScanner.STATUS_ERROR;
@@ -76,30 +79,28 @@ public class FileScannerWrapper
 
    /**
     * Called at products ingestion start.
-    * @param event
     */
-   public void startIngestion ()
+   public synchronized void startIngestion ()
    {
-      startCounter++;
+      startCounter.incrementAndGet ();
    }
 
    /**
     * End of a product ingestion: check if the scanner is finished, and all
     * processing are completed, in this case, it modifies the scanner status
     * and message to inform user of finished processings.
-    * @param event
     */
-   public void endIngestion ()
+   public synchronized void endIngestion ()
    {
-      endCounter++;
-      logger.info ("End of product ingestion: processed=" +
-            endCounter + ", error="  + errorCounter + ", inbox=" +
-         (totalProcessed-(endCounter + errorCounter)) +
-         ", total=" + totalProcessed + ".");
+      endCounter.incrementAndGet ();
+      LOGGER.info("End of product ingestion: processed=" +
+            endCounter.get () + ", error="  + errorCounter.get () + ", inbox=" +
+         (totalProcessed.get () - (endCounter.get () + errorCounter.get ())) +
+         ", total=" + totalProcessed.get () + ".");
 
       // Total number of product processed shall be coherent with
       // passed/non-passed number of products.
-      if ((endCounter + errorCounter) >= getTotalProcessed ())
+      if ((endCounter.get () + errorCounter.get ()) >= getTotalProcessed ())
       {
          this.scannerStatus = FileScanner.STATUS_OK;
          processingsDone(null);
@@ -122,8 +123,8 @@ public class FileScannerWrapper
       // If all processing started are finished and all processing
       // provided by the scanner to the processing manager are taken into
       // account.
-      if ((startCounter == (endCounter + errorCounter)) &&
-          (startCounter == getTotalProcessed ()))
+      if ((startCounter.get () >= (endCounter.get () + errorCounter.get ())) &&
+          (startCounter.get () >= getTotalProcessed ()))
       {
          processingsDone(null);
       }
@@ -132,44 +133,39 @@ public class FileScannerWrapper
    /**
     * Notifies the scanner that the processings are done.
     */
-   private synchronized void processingsDone(String ended_message)
+   protected synchronized void processingsDone(String ended_message)
    {
-      logger.info (
+      LOGGER.info(
          "Scanner and processings are completed: update the UI status.");
       SimpleDateFormat sdf = new SimpleDateFormat (
          "EEEE dd MMMM yyyy - HH:mm:ss", Locale.ENGLISH);
 
       String processing_message = "Ingestion completed at " +
-         sdf.format (new Date ()) + "<br>with " + endCounter +
-         " products processed and " + errorCounter +
-         " error" + (errorCounter >1?"s":"") +
-         " during this processing.<br>";
+         sdf.format (new Date ()) + "<br>\nwith " + endCounter.get () +
+         " products processed and " + errorCounter.get () +
+         " error" + (errorCounter.get () >1?"s":"") +
+         " during this processing.<br>\n";
 
       if (!processingErrors.isEmpty ())
-         processing_message += "<u>Processing error(s):</u><br>" +
+         processing_message += "<u>Processing error(s):</u><br>\n" +
                processingErrors;
 
       if (ended_message!= null)
       {
-         processing_message += ended_message + "<br>";
+         processing_message += ended_message + "<br>\n";
       }
 
-      FileScannerDao fileScannerDao =
-         ApplicationContextProvider.getBean (FileScannerDao.class);
-      
-      persistentScanner=fileScannerDao.read (persistentScanner.getId ());
-      if (persistentScanner != null)
+      FileScannerService fs_service =
+         ApplicationContextProvider.getBean (FileScannerService.class);
+      if (fs_id != null)
       {
          // Set the scanner info
+         FileScanner persistentScanner = fs_service.getFileScanner (fs_id);
          persistentScanner.setStatus (scannerStatus);
          persistentScanner.setStatusMessage (truncateMessageForDB(
             persistentScanner.getStatusMessage () + scannerMessage +
-            "<br>" + processing_message));
-         fileScannerDao.update (persistentScanner);
-      }
-      else
-      {
-         logger.error ("Scanner has been removed.");
+            "<br>\n" + processing_message));
+         fs_service.updateFileScanner (persistentScanner);
       }
    }
 
@@ -185,17 +181,17 @@ public class FileScannerWrapper
     */
    public int getTotalProcessed ()
    {
-      return totalProcessed;
+      return totalProcessed.get ();
    }
 
    public void setTotalProcessed (int total_processed)
    {
-      this.totalProcessed = total_processed;
+      totalProcessed.set (total_processed);
    }
 
    public void incrementTotalProcessed ()
    {
-      this.totalProcessed++;
+      totalProcessed.incrementAndGet ();
    }
 
    /**

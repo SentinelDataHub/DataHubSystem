@@ -19,6 +19,7 @@
  */
 package fr.gael.dhus.util;
 
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,6 +28,13 @@ import java.util.Map.Entry;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -89,6 +97,12 @@ public class MetalinkBuilder
     */
    public static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
    
+   /** Single static instance of DocBuilder because ServiceLoader is slow. */
+   private static final DocumentBuilder DOC_BUILDER;
+   
+   /** Single static instance of Transformer because ServiceLoader is slow. */
+   private static final Transformer TRANSFORMER;
+   
    private String generator = null;
    
    /** Contains an IRI and has a boolean attribute. */
@@ -103,15 +117,30 @@ public class MetalinkBuilder
    private final ArrayList<MetalinkFileBuilder> files =
          new ArrayList<MetalinkFileBuilder> ();
    
+   static {
+      try
+      {
+         DOC_BUILDER = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+         TRANSFORMER = TransformerFactory.newInstance().newTransformer();
+         TRANSFORMER.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+      }
+      catch (ParserConfigurationException ex)
+      {
+         throw new Error("Cannot instanciate DocBuilder with default configuration", ex);
+      }
+      catch (TransformerConfigurationException ex)
+      {
+         throw new Error("Cannot instanciate Transformer with default configuration", ex);
+      }
+   }
+   
    /**
     * Builds the XML document.
     * @return A non-null instance of Document containing the whole XML tree.
-    * @throws ParserConfigurationException The underlying XML implementation
-    * may throw this exception.
     * @throws IllegalStateException if there is not file and/or no url in a
     * file.
     */
-   public Document build () throws ParserConfigurationException
+   public Document build ()
    {
       // Validating
       if (files.size () == 0)
@@ -120,9 +149,7 @@ public class MetalinkBuilder
          if (fb.url.size () == 0)
             throw new IllegalStateException ("MetalinkFileBuilder has no url.");
       
-      DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-      DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-      Document doc = docBuilder.newDocument();
+      Document doc = DOC_BUILDER.newDocument();
       
       // Root of the XML document
       Element rootElement = doc.createElement("metalink");
@@ -146,6 +173,21 @@ public class MetalinkBuilder
          fb.build (doc, rootElement);
       
       return doc;
+   }
+   
+   /**
+    * Builds and stringify this metalink document.
+    * @param indent {@code true} if the returned XML doc must be indented.
+    * @return an XML doc as string.
+    * @throws TransformerException if the stringification failed.
+    */
+   public String buildToString(boolean indent) throws TransformerException
+   {
+      StringWriter sw = new StringWriter();
+      TRANSFORMER.setOutputProperty(OutputKeys.INDENT, (indent)? "yes": "no");
+      Document doc = build();
+      TRANSFORMER.transform(new DOMSource(doc), new StreamResult(sw));
+      return sw.toString();
    }
    
    /**

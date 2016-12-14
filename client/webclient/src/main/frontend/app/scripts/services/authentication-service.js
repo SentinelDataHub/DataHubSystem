@@ -37,27 +37,14 @@ angular
       });
     },
     login: function(username, password, delegate){
-      var self = this;
+      var self = this;      
       return http({
         url: ApplicationConfig.baseUrl + self.loginUrl,
         method: "POST",
         contentType: 'application/x-www-form-urlencoded',
         data: $.param({"login_username": username, "login_password": password}),
         headers: {'Content-Type': 'application/x-www-form-urlencoded', 'Authorization' :"Basic " +window.btoa(username+':'+password) }
-      })
-      .success(function(response){
-        window.user = self.username;       
-        ApplicationService.logged = true;   
-        ApplicationService.basicAuth = window.btoa(username+':'+password);        
-        UserService.getUser().then(function(model){
-          UserService.model = model;
-        });        
-        window.location.replace("#/home");
-        self.odataAuthTest();
-      })
-      .error(function(){
-        //delegate.showMessage("The email and password you entered don't match.");
-      });
+      });      
     },
     showLogin: function(){},
     setLoginMethod: function(method){

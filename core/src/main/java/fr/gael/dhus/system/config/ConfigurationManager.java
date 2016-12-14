@@ -19,41 +19,16 @@
  */
 package fr.gael.dhus.system.config;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.ValidationEvent;
-import javax.xml.bind.ValidationEventHandler;
-import javax.xml.transform.stream.StreamSource;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
-
-import fr.gael.dhus.database.dao.CollectionDao;
 import fr.gael.dhus.database.dao.ConfigurationDao;
 import fr.gael.dhus.database.dao.EvictionDao;
 import fr.gael.dhus.database.dao.UserDao;
-import fr.gael.dhus.database.object.Collection;
 import fr.gael.dhus.database.object.Eviction;
 import fr.gael.dhus.database.object.Role;
 import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.database.object.config.Configuration;
-import fr.gael.dhus.database.object.config.cron
-      .ArchiveSynchronizationCronConfiguration;
+import fr.gael.dhus.database.object.config.cron.ArchiveSynchronizationCronConfiguration;
 import fr.gael.dhus.database.object.config.cron.CleanDatabaseCronConfiguration;
-import fr.gael.dhus.database.object.config.cron
-      .CleanDatabaseDumpCronConfiguration;
+import fr.gael.dhus.database.object.config.cron.CleanDatabaseDumpCronConfiguration;
 import fr.gael.dhus.database.object.config.cron.DumpDatabaseCronConfiguration;
 import fr.gael.dhus.database.object.config.cron.EvictionCronConfiguration;
 import fr.gael.dhus.database.object.config.cron.FileScannersCronConfiguration;
@@ -85,13 +60,31 @@ import fr.gael.dhus.database.object.config.system.TomcatConfiguration;
 import fr.gael.dhus.datastore.eviction.EvictionStrategy;
 import fr.gael.dhus.messaging.jms.Message;
 import fr.gael.dhus.messaging.jms.Message.MessageType;
+import fr.gael.dhus.server.ScalabilityManager;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Date;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.ValidationEvent;
+import javax.xml.bind.ValidationEventHandler;
+import javax.xml.transform.stream.StreamSource;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 @Service
 public class ConfigurationManager implements InitializingBean
 {      
-   @Autowired
-   private CollectionDao collectionDao;
-   
    @Autowired
    private ConfigurationDao configurationDao;
    
@@ -104,6 +97,9 @@ public class ConfigurationManager implements InitializingBean
    @Autowired
    private ConfigurationLoader configLoader;
    
+   @Autowired
+   private ScalabilityManager scalabilityManager;
+
    /**
     * Configuration containing only non stored fields.
     * See {@link Transient} fields of {@link Configuration} Object and its 
@@ -134,46 +130,37 @@ public class ConfigurationManager implements InitializingBean
          configurationDao.create(loadedConf);        
       }
 
-      AdministratorConfiguration cfg = loadedConf.getSystemConfiguration ()
-            .getAdministratorConfiguration ();
-      User rootUser = userDao.getByName (cfg.getName ());
-      if (rootUser != null)
+      if (!scalabilityManager.isActive () || scalabilityManager.isMaster ())
       {
-         // If root User exists, update his roles by security
-         ArrayList<Role> roles = new ArrayList<Role> ();
-         for (Role role : Role.values ())
-            roles.add (role);
-         rootUser.setRoles (roles);
-         userDao.update (rootUser);
-      }
-      else
-      {
-         // Create it
-         rootUser = new User ();
-         rootUser.setUsername (cfg.getName ());
-         rootUser.setPassword (cfg.getPassword ());
-         rootUser.setCreated (new Date ());
-         ArrayList<Role> roles = new ArrayList<Role> ();
-         for (Role role : Role.values ())
-            roles.add (role);
-         rootUser.setRoles (roles);
-         rootUser.setDomain ("Other");
-         rootUser.setSubDomain ("System");
-         rootUser.setUsage ("Other");
-         rootUser.setSubUsage ("System");
-         userDao.create (rootUser);
-      }
-       
-      // Then create the root Collection
-      if (collectionDao.getRootCollection () == null)
-      {
-         Collection rootCollection = new Collection ();
-         HashSet<User> users = new HashSet<User> ();
-         rootCollection.setDescription ("Root of all the collections");
-         rootCollection.setName (Collection.ROOT_NAME);
-         users.add (rootUser);
-         rootCollection.setAuthorizedUsers (users);
-         collectionDao.create (rootCollection);
+         AdministratorConfiguration cfg = loadedConf.getSystemConfiguration ()
+               .getAdministratorConfiguration ();
+         User rootUser = userDao.getByName (cfg.getName ());
+         if (rootUser != null)
+         {
+            // If root User exists, update his roles by security
+            ArrayList<Role> roles = new ArrayList<Role> ();
+            for (Role role : Role.values ())
+               roles.add (role);
+            rootUser.setRoles (roles);
+            userDao.update (rootUser);
+         }
+         else
+         {
+            // Create it
+            rootUser = new User ();
+            rootUser.setUsername (cfg.getName ());
+            rootUser.setPassword (cfg.getPassword ());
+            rootUser.setCreated (new Date ());
+            ArrayList<Role> roles = new ArrayList<Role> ();
+            for (Role role : Role.values ())
+               roles.add (role);
+            rootUser.setRoles (roles);
+            rootUser.setDomain ("Other");
+            rootUser.setSubDomain ("System");
+            rootUser.setUsage ("Other");
+            rootUser.setSubUsage ("System");
+            userDao.create (rootUser);
+         }
       }
          
       // Store the default eviction settings
@@ -401,8 +388,8 @@ public class ConfigurationManager implements InitializingBean
    @Component ("configurationLoader")
    static class ConfigurationLoader implements InitializingBean
    {
-      private Logger logger = LogManager.getLogger ();
-               
+      private static final Logger LOGGER = LogManager.getLogger(ConfigurationLoader.class);
+
       /**
        * Configuration containing only non stored fields.
        * See {@link Transient} fields of {@link Configuration} Object and 
@@ -479,7 +466,7 @@ public class ConfigurationManager implements InitializingBean
             "fr.gael.dhus.database.object.config");
          Unmarshaller unmarshaller = context.createUnmarshaller ();
          
-         logger.info ("Loading configuration from " + 
+         LOGGER.info("Loading configuration from " +
             configuration.toExternalForm ());
          
          /* Validation fails ! */
@@ -498,14 +485,14 @@ public class ConfigurationManager implements InitializingBean
                      case ValidationEvent.WARNING:
                      case ValidationEvent.ERROR:
                      case ValidationEvent.FATAL_ERROR:
-                        logger.error (new Message (MessageType.SYSTEM,
+                        LOGGER.error(new Message (MessageType.SYSTEM,
                            "Configuration parsing failure at line " +
                            event.getLocator ().getLineNumber () + ", column " +
                            event.getLocator ().getColumnNumber () + ": " +
                            event.getMessage ()));
                         break;
                      default:
-                        logger.warn ("Invalid configuration validation event!");
+                        LOGGER.warn("Invalid configuration validation event!");
                         break;
                   }
                   return false;
@@ -543,6 +530,27 @@ public class ConfigurationManager implements InitializingBean
       {
          return notStoredPartOfConfiguration.getSystemConfiguration ().
             getDatabaseConfiguration ().getSettings ();
+      }
+
+      // Use in dhus-core-database.xml
+      public String getDatabaseEncryption ()
+      {
+         DatabaseConfiguration db_conf = notStoredPartOfConfiguration
+               .getSystemConfiguration ().getDatabaseConfiguration ();
+         String encryption_type = db_conf.getCryptType ();
+         String encryption_key = db_conf.getCryptKey ();
+
+         if (encryption_key == null || encryption_key.trim ().isEmpty () ||
+               encryption_type == null || encryption_type.trim ().isEmpty ())
+         {
+            return "";
+         }
+
+         StringBuilder sb = new StringBuilder ();
+         sb.append ("crypt_type=").append (encryption_type).append (';')
+               .append ("crypt_key=").append (encryption_key);
+
+         return sb.toString ();
       }
       
       public Configuration getLoadedConfiguration ()

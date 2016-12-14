@@ -29,62 +29,108 @@ public class ServerConfiguration extends AbstractServerConfiguration
    {
       return "http";
    }
-   
-   private String getLocalHost ()
+
+   private String getLocalHost()
    {
       return "localhost";
    }
 
-   private int getPort ()
+   private int getPort(boolean alt)
    {
       TomcatServer server =
          (TomcatServer) ApplicationContextProvider.getBean (TomcatServer.class);
-      return server.getPort ();
+      if (alt)
+      {
+         return server.getAltPort();
+      }
+      else
+      {
+         return server.getPort();
+      }
    }
-   
-   public String getUrl ()
-   {
-      String protocol = getProtocol ();
-      int port = getPort ();
-      String url = protocol + "://" + getLocalHost ();
 
-      if ( (port == 0) ||
-         ( (port == 80) && (protocol.equalsIgnoreCase ("http"))) ||
-         ( (port == 443) && (protocol.equalsIgnoreCase ("https"))))
+   public String buildUrl(boolean local)
+   {
+      String protocol = getProtocol();
+      int port = getPort(local);
+      String url = protocol + "://" + getLocalHost();
+
+      if ((port == 0) ||
+         ((port == 80)  && (protocol.equalsIgnoreCase("http"))) ||
+         ((port == 443) && (protocol.equalsIgnoreCase("https"))))
       {
          url += "/";
       }
       else
+      {
          url += ":" + port + "/";
+      }
 
       return url;
+   }
+   
+   private boolean hasExternalConf ()
+   {
+      return externalServerConfiguration.getHost () != null && 
+               !externalServerConfiguration.getHost ().trim ().isEmpty ();
+   }
+
+   /**
+    * URL to the default connector (first defined in server.xml)
+    * @return URL to this instance of Tomcat.
+    */
+   public String getUrl()
+   {
+      return buildUrl(false);
+   }
+
+   /**
+    * If there is more than one connector, uses the port of the second connector.
+    * Otherwise use the only available connector
+    * @return URL to this instance of Tomcat.
+    */
+   public String getLocalUrl()
+   {
+      return buildUrl(true);
    }
 
    public String getExternalHostname ()
    {
       String extHost = externalServerConfiguration.getHost ();
-      extHost =
-         (extHost == null || extHost.trim ().isEmpty ()) ? getLocalHost () : extHost;
+      extHost = hasExternalConf () ? extHost : getLocalHost ();
       return extHost;
    }
 
    public String getExternalProtocol ()
    {
       String extProtocol = externalServerConfiguration.getProtocol ();
-      extProtocol =
-         (extProtocol == null || extProtocol.trim ().isEmpty ()) ?
-               getProtocol () : extProtocol;
+      extProtocol = hasExternalConf () ? extProtocol : getProtocol ();
       return extProtocol;
+   }
+   
+   public int getExternalPort ()
+   {
+      int extPort = externalServerConfiguration.getPort ();
+      extPort = extPort == 0 ? 80 : extPort;
+      extPort = hasExternalConf() ? extPort : getPort(false);
+      return extPort;
+   }
+   
+   public String getExternalPath ()
+   {
+      String extPath = externalServerConfiguration.getPath ();
+      extPath = hasExternalConf () ? extPath : "";
+      return extPath;
    }
 
    public String getExternalUrl ()
    {
       String extProtocol = getExternalProtocol ();
 
-      int extPort = externalServerConfiguration.getPort ();
-      extPort = (extPort <= 0) ? getPort () : extPort;
+      int extPort = externalServerConfiguration.getPort();
+      extPort = (extPort <= 0) ? getPort(false) : extPort;
 
-      String extPath = externalServerConfiguration.getPath ();
+      String extPath = getExternalPath ();
 
       String extHost = getExternalHostname ();
 

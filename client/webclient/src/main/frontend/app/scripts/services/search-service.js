@@ -27,7 +27,11 @@ angular
     textQuery: '',
     geoselection: '', 
     advancedFilter: '',
-    missionFilter:'', 
+    missionFilter:'',
+    sortedby : '',
+    sortedName:'',
+    order:'',
+    orderName:'',
     offset: 0, 
     limit: 25, 
     filterContext:{
@@ -45,6 +49,30 @@ angular
     },
     setTextQuery: function(textQuery){
       this.textQuery = textQuery;
+    },
+    setSortedBy: function(sortedby){
+      this.sortedby = sortedby;
+    },
+    getSortedBy: function(){
+      return this.sortedby;  
+    },
+    setSortedName: function(sortedName){
+      this.sortedName = sortedName;
+    },
+    getSortedName: function(e){
+      return this.sortedName;
+    },
+    setOrder: function(order){
+      this.order = order;
+    },
+    getOrder: function(){
+        return this.order;
+    },
+    setOrderName: function(orderName){
+      this.orderName = orderName;
+    },
+    getOrderName: function(e){
+      return this.orderName;
     },
     setGeoselection: function(geoselection){
       this.geoselection = geoselection;
@@ -68,11 +96,13 @@ angular
       query +=")))\")";
       return query;
    },
-   createSearchRequest: function(filter, offset, limit){
-      var searchUrl = "api/stub/products?filter=:filter&offset=:offset&limit=:limit"
+   createSearchRequest: function(filter, offset, limit, sortedby, order){
+      var searchUrl = "api/stub/products?filter=:filter&offset=:offset&limit=:limit&sortedby=:sortedby&order=:order";
       searchUrl = searchUrl.replace(":filter", (filter)?filter:'*');
       searchUrl = searchUrl.replace(":offset", (offset)?offset:'0');
       searchUrl = searchUrl.replace(":limit", (limit)?limit:'10');
+      searchUrl = searchUrl.replace(":sortedby", (sortedby)?sortedby:'ingestiondate');
+      searchUrl = searchUrl.replace(":order", (order)?order:'desc');
       this.doneRequest = filter;
       return searchUrl;
    }, 
@@ -110,7 +140,7 @@ angular
             self.advancedFilter, self.missionFilter);
         //console.log('filter xx',filter);
         return $http({
-          url: ApplicationConfig.baseUrl + self.createSearchRequest(filter, self.offset, self.limit),
+          url: ApplicationConfig.baseUrl + self.createSearchRequest(filter, self.offset, self.limit, self.sortedby, self.order),
           method: "GET"})     
             .then(function(result){ 
               SearchModel.model.list=result.data;
@@ -134,11 +164,12 @@ angular
     },
     getProductsCount: function(query){
       var filter = '', self = this;
-      if(query)
+      if(query){
         filter = this.createSearchFilter(query,'','','');
-      else
+         }
+      else{
         filter = this.createSearchFilter(self.textQuery, self.geoselection, self.advancedFilter, self.missionFilter);
-      //console.log('filter prodcount',filter);
+      }
       var prodCountUrl = 'api/stub/products/count?filter=:filter';
       prodCountUrl = prodCountUrl.replace(":filter", (filter)?filter:'*');    
       return $http({url: ApplicationConfig.baseUrl + prodCountUrl, method: "GET"})
@@ -147,7 +178,7 @@ angular
         });
     },
     getSuggestions: function(query){    
-      var suggesturl = 'api/search/suggest/'+query;      
+      var suggesturl = 'search/suggest/'+query;      
       return http({url: ApplicationConfig.baseUrl + suggesturl, method: "GET"})
         .then(function(response) {
           return (response.status == 200)?response.data:[];
@@ -158,7 +189,7 @@ angular
     },
     getCollectionProductsList: function(query, offset, limit){
     var self = this;
-     //console.log('called search function');
+    // console.log('called search function with query: ',query);
     return self.getProductsCount(query)
       .then(function(totalCount){
         self.collectionProductsModel.count = totalCount;  

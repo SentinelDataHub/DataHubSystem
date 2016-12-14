@@ -19,9 +19,12 @@
  */
 package fr.gael.dhus.service.job;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,8 +40,7 @@ import fr.gael.dhus.system.config.ConfigurationManager;
 @Component
 public class ArchiveSynchronizationJob extends AbstractJob
 {
-   private static Logger logger=Logger.getLogger (
-      ArchiveSynchronizationJob.class);
+   private static final Logger LOGGER = LogManager.getLogger(ArchiveSynchronizationJob.class);
    private static boolean running = false;
 
    @Autowired
@@ -61,10 +63,10 @@ public class ArchiveSynchronizationJob extends AbstractJob
       if (!configurationManager.getArchiveSynchronizationCronConfiguration ()
             .isActive ()) return;
       long start = System.currentTimeMillis ();
-      logger.info ("SCHEDULER : Local archive synchronization.");
+      LOGGER.info("SCHEDULER : Local archive synchronization.");
       if (!DHuS.isStarted ())
       {
-         logger.warn("SCHEDULER : Not run while system not fully initialized.");
+         LOGGER.warn("SCHEDULER : Not run while system not fully initialized.");
          return;
       }
       if (!running)
@@ -78,13 +80,13 @@ public class ArchiveSynchronizationJob extends AbstractJob
          }
          catch (InterruptedException e)
          {
-            logger.warn ("Process stopped by the user.");
+            LOGGER.warn("Process stopped by the user.");
          }
          catch (DataStoreLocalArchiveNotExistingException e)
          {
-            logger.warn (e.getMessage ());
+            LOGGER.warn(e.getMessage ());
          }
-         logger.info ("SCHEDULER : Local archive synchronization done - " + 
+         LOGGER.info("SCHEDULER : Local archive synchronization done - " +
                   (System.currentTimeMillis ()-start) + "ms");
          }
          finally
@@ -94,7 +96,7 @@ public class ArchiveSynchronizationJob extends AbstractJob
       }
       else
       {
-         logger.warn ("SCHEDULER : Previous local archive synchronisation " +
+         LOGGER.warn("SCHEDULER : Previous local archive synchronisation " +
                "is still running (aborted).");
       }
    }

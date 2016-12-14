@@ -31,8 +31,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.bind.JAXBException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.springframework.stereotype.Service;
 
 import com.hp.hpl.jena.ontology.OntClass;
@@ -94,7 +94,7 @@ public class MetadataTypeService
    /**
     * A logger for this class.
     */
-   private static Log logger = LogFactory.getLog(MetadataTypeService.class);
+   private static final Logger LOGGER = LogManager.getLogger(MetadataTypeService.class);
 
    /**
     * The DHuS XML Namespace holding the property elements defining the metadata
@@ -143,7 +143,7 @@ public class MetadataTypeService
    public MetadataTypeService()
    {
       // Log initialization start
-      logger.info("Initializing Metadata Typing Service...");
+      LOGGER.info("Initializing Metadata Typing Service...");
 
       // Get a time stamps of the initialization start
       final Date start_time = new Date();
@@ -161,9 +161,9 @@ public class MetadataTypeService
       }
       catch (final IOException exception)
       {
-         logger.error("Error while getting current DRB Cortex model "
+         LOGGER.error("Error while getting current DRB Cortex model "
                + "(aborting Metadata Typing service).", exception);
-         logger.info("Aborting MetadataTypeService inititialization "
+         LOGGER.info("Aborting MetadataTypeService inititialization "
                + "with no metadata type defined!");
          return;
       }
@@ -185,9 +185,9 @@ public class MetadataTypeService
       }
       catch (final JAXBException exception)
       {
-         logger.error("Cannot create a parser for the XML definitions of "
+         LOGGER.error("Cannot create a parser for the XML definitions of "
                + "metadata types.", exception);
-         logger.info("Aborting MetadataTypeService inititialization "
+         LOGGER.info("Aborting MetadataTypeService inititialization "
                + "with no metadata type defined!");
          return;
       }
@@ -204,17 +204,17 @@ public class MetadataTypeService
          // Skip classes without URI - case unforeseen by theory
          if (uri == null)
          {
-            if (logger.isDebugEnabled())
+            if (LOGGER.isDebugEnabled())
             {
-               logger.debug("Skipping current Ontology class that has no URI "
+               LOGGER.debug("Skipping current Ontology class that has no URI "
                      + "(local name = \"" + ont_class.getLocalName() + "\").");
             }
             continue;
          }
 
-         if (logger.isDebugEnabled())
+         if (LOGGER.isDebugEnabled())
          {
-            logger.debug("Processing Ontology class \"" + uri + "\"");
+            LOGGER.debug("Processing Ontology class \"" + uri + "\"");
          }
 
          // Get corresponding DRB Cortex class
@@ -224,7 +224,7 @@ public class MetadataTypeService
          // Check resulting item class
          if (item_class == null)
          {
-            logger.error("Cannot derive DRB Cortex item class from URI " + "\""
+            LOGGER.error("Cannot derive DRB Cortex item class from URI " + "\""
                   + uri + "\".");
             continue;
          }
@@ -244,9 +244,9 @@ public class MetadataTypeService
          if ((xml_metadata_types_list == null)
                || xml_metadata_types_list.isEmpty())
          {
-            if (logger.isDebugEnabled())
+            if (LOGGER.isDebugEnabled())
             {
-               logger.debug("Item class \"" + item_class.getLabel() + "\" ("
+               LOGGER.debug("Item class \"" + item_class.getLabel() + "\" ("
                      + uri + ") has no attached metadata type definition "
                      + "(skipped).");
             }
@@ -260,9 +260,9 @@ public class MetadataTypeService
          // Loop among XML definitions of metadata types
          for (final String xml_metadata_types : xml_metadata_types_list)
          {
-            if (logger.isDebugEnabled())
+            if (LOGGER.isDebugEnabled())
             {
-               logger.debug("Found metadataTypes string \""
+               LOGGER.debug("Found metadataTypes string \""
                      + xml_metadata_types.substring(0, 30) + "...\"");
             }
 
@@ -273,12 +273,12 @@ public class MetadataTypeService
             // Get the already parsed types if cached
             if (cached_metadata_types.containsKey(uuid))
             {
-               logger.debug("Metadata Types already parsed (copied from cache)");
+               LOGGER.debug("Metadata Types already parsed (copied from cache)");
                metadata_types.addAll(cached_metadata_types.get(uuid));
             }
             else
             {
-               logger.debug("Parsing XML definition of Metadata Types...");
+               LOGGER.debug("Parsing XML definition of Metadata Types...");
                List<MetadataType> parsed_metadata_types = null;
 
                final String rooted_xml_metadata_types =
@@ -293,7 +293,7 @@ public class MetadataTypeService
                catch (NullPointerException | IllegalStateException
                      | JAXBException exception)
                {
-                  logger.error("Cannot parse XML metadata type definition of "
+                  LOGGER.error("Cannot parse XML metadata type definition of "
                         + "class \"" + uri + "\" (" + rooted_xml_metadata_types
                         + ") - skipped.", exception);
                   continue;
@@ -301,9 +301,9 @@ public class MetadataTypeService
 
                if (parsed_metadata_types != null)
                {
-                  if (logger.isDebugEnabled())
+                  if (LOGGER.isDebugEnabled())
                   {
-                     logger.debug("Parsed " + parsed_metadata_types.size()
+                     LOGGER.debug("Parsed " + parsed_metadata_types.size()
                            + " metadata types.");
                   }
                   metadata_types.addAll(parsed_metadata_types);
@@ -319,7 +319,7 @@ public class MetadataTypeService
          {
             class_metadata_types.addAllMetadataTypes(metadata_types);
 
-            logger.info("Item class \"" + class_metadata_types.getLabel()
+            LOGGER.info("Item class \"" + class_metadata_types.getLabel()
                   + "\" (" + class_metadata_types.getUri() + ") has "
                   + metadata_types.size() + " metadata types.");
 
@@ -328,7 +328,7 @@ public class MetadataTypeService
 
       } // Loop among Ontology classes
 
-      logger.info("Metadata Typing Service initialized in "
+      LOGGER.info("Metadata Typing Service initialized in "
             + (new Date().getTime() - start_time.getTime()) + " ms with "
             + this.mapItemClassByUri.size() + " item class(es).");
 
@@ -361,9 +361,9 @@ public class MetadataTypeService
       // Return nothing if the input item class URI is a null reference
       if (item_class_uri == null)
       {
-         if (logger.isDebugEnabled())
+         if (LOGGER.isDebugEnabled())
          {
-            logger.debug("Cannot get a metadata type with a null item class"
+            LOGGER.debug("Cannot get a metadata type with a null item class"
                   + " URI.");
          }
          return null;
@@ -372,9 +372,9 @@ public class MetadataTypeService
       // Return nothing if the input item class URI is a null reference
       if (type_identifier == null)
       {
-         if (logger.isDebugEnabled())
+         if (LOGGER.isDebugEnabled())
          {
-            logger.debug("Cannot get a metadata type with a null type"
+            LOGGER.debug("Cannot get a metadata type with a null type"
                   + " identifier.");
          }
          return null;
@@ -421,9 +421,9 @@ public class MetadataTypeService
       // Return nothing if the input item class URI is a null reference
       if (item_class_uri == null)
       {
-         if (logger.isDebugEnabled())
+         if (LOGGER.isDebugEnabled())
          {
-            logger.debug("Cannot get a metadata type with a null item class"
+            LOGGER.debug("Cannot get a metadata type with a null item class"
                   + " URI.");
          }
          return null;
@@ -432,9 +432,9 @@ public class MetadataTypeService
       // Return nothing if the input item class URI is a null reference
       if (type_name == null)
       {
-         if (logger.isDebugEnabled())
+         if (LOGGER.isDebugEnabled())
          {
-            logger.debug("Cannot get a metadata type with a null type"
+            LOGGER.debug("Cannot get a metadata type with a null type"
                   + " identifier.");
          }
          return null;

@@ -19,8 +19,8 @@
  */
 package fr.gael.dhus.service;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -37,7 +37,7 @@ public class SecurityService extends WebService
 {
    public static final String AUTHENTICATION_KEY = "DHUS_AUTHENTICATION_KEY";
 
-   private static Log logger = LogFactory.getLog (SecurityService.class);
+   private static final Logger LOGGER = LogManager.getLogger(SecurityService.class);
 
    /**
     * Get currently connected User.
@@ -50,7 +50,7 @@ public class SecurityService extends WebService
 
       if (context == null)
       {
-         logger.error ("No security context");
+         LOGGER.error("No security context");
          return null;
       }
 
@@ -58,7 +58,7 @@ public class SecurityService extends WebService
          SecurityContextHolder.getContext ().getAuthentication ();
       if (auth == null)
       {
-         logger.error ("No auth in security context");
+         LOGGER.error("No auth in security context");
          return null;
       }
       Object principal = auth.getPrincipal ();
@@ -66,7 +66,7 @@ public class SecurityService extends WebService
       {
          return (User) principal;
       }
-      logger.debug ("Principal class : " + principal.getClass ());
+      LOGGER.debug("Principal class : " + principal.getClass ());
       return null;
    }
 }

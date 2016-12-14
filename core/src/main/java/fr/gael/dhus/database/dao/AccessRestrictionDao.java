@@ -31,7 +31,7 @@ import fr.gael.dhus.database.object.restriction.AccessRestriction;
 import java.sql.SQLException;
 
 @Repository
-public class AccessRestrictionDao extends HibernateDao<AccessRestriction, Long>
+public class AccessRestrictionDao extends HibernateDao<AccessRestriction, String>
 {
    @Override
    public void deleteAll ()

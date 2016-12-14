@@ -129,7 +129,7 @@ angular.module('DHuS-webclient')
                 scope.model.users = UserModel.model.list;    
                 scope.usersCount = UserModel.model.count;
                 scope.refreshCounters();
-                console.log("AdminUserService.offset",AdminUserService.offset);                
+                //console.log("AdminUserService.offset",AdminUserService.offset);
                 scope.visualizedUsersFrom    = (UserModel.model.count)? parseInt(AdminUserService.offset) + 1:0;
                 scope.visualizedUsersTo      = (((UserModel.model.count)?(scope.currentPage * scope.usersPerPage):0)> scope.usersCount)?scope.usersCount:((UserModel.model.count)?(scope.currentPage * scope.usersPerPage):0);
              };

@@ -32,10 +32,18 @@
 #
 # checkUserConfiguration=true|false (default=false) activates schema aware validation of input xml configuration file.
 #
+# dhus.solr.reindex=true|false (default=false) recreate the Solr index from the database.
 # action.record.inactive=true|false (default=false) full deactivates read/write statistics.
 #
-# fr.gael.dhus.server.http.valve.AccessValve.cache_weight=(size in byte) (default=2000000) The size used to configure user connection logs list size. 
-#
+# dhus.scalability.active=true|false (default=false) activates scalability in DHuS
+# dhus.scalability.local.protocol=   (default=http) local protocol to access this DHuS
+# dhus.scalability.local.ip=         local ip to access this DHuS
+# dhus.scalability.local.port=       (default=8080) local port to access this DHuS
+# dhus.scalability.local.path=       local path to access this DHuS
+# dhus.scalability.replicaId=1       (default=-1) replica's id; if not used, this node is considered as master
+# dhus.scalability.dbsync.master=    URL of dhus master (poitning on root path)
+# dhus.scalability.dbsync.clear=     (default=false) clear every system record about db synchronization stored in db (not replicated data)
+# 
 # Required properties:
 # --------------------
 # -Dcom.sun.media.jai.disableMediaLib=true : to be removed if media jai native
@@ -49,22 +57,98 @@
 #
 #
 
+check_dir ()
+{
+   if [ -d $1 ]
+   then
+      echo "[\033[32;1mOk\033[0m]".
+      return 0
+   else
+       echo "[\033[31;1mKo\033[0m]".
+       return 1
+   fi
+}
+
+fail ()
+{
+   echo "$@" >&2 
+   exit 1
+}
+
+
 if [ -f start_first.sh ] 
 then
    /bin/sh start_first.sh
 fi
 
 BASENAME=`basename $0`
-SCRIPT_DIR=`echo $0| sed "s/$BASENAME//g"`
-DHUS_HOME=${DHUS_HOME-`(cd $SCRIPT_DIR; pwd)`}
-NATIVE_LIBRARIES=${DHUS_HOME}/lib/native/kdu/`uname -s`-`uname -p`/6.4
+SCRIPT_DIR=`dirname $0`
+DHUS_HOME=${DHUS_HOME-`(cd ${SCRIPT_DIR:-.}; pwd)`}
+DHUS_LIB=${DHUS_HOME}/lib
 
-java -server -XX:MaxPermSize=256m -Xms56g -Xmx56g          \
+arch=$(
+   case `uname -m` in 
+      amd64|x86_64) echo "x86_64"
+         ;;
+   esac)
+[ -z "${arch}" ] && fail "Unsupported architecture '`uname -m`'."
+
+NATIVE_LIBRARIES=${DHUS_LIB}/native/`uname -s`-${arch}
+
+ERROR_COUNT=0
+if [ ! -z "${DEBUG}" ]
+then
+   echo BASENAME=${BASENAME}
+   echo -n "SCRIPT_DIR=${SCRIPT_DIR} "
+   check_dir $SCRIPT_DIR
+   ERROR_COUNT=$((ERROR_COUNT+$?))
+
+   echo -n "DHUS_HOME=${DHUS_HOME} "
+   check_dir $DHUS_HOME
+   ERROR_COUNT=$((ERROR_COUNT+$?))
+
+   echo -n "DHUS_LIB=${DHUS_LIB} "
+   check_dir $DHUS_LIB
+   ERROR_COUNT=$((ERROR_COUNT+$?))
+ 
+   echo -n "NATIVE_LIBRARIES=${NATIVE_LIBRARIES} "
+   check_dir $NATIVE_LIBRARIES
+   ERROR_COUNT=$((ERROR_COUNT+$?))
+
+   echo -n "Check libraries "
+   count=$(ls $DHUS_LIB 2>/dev/null | wc -l)
+   if [ "$count" -lt 5 ]
+   then
+      echo "[\033[31;1mKo\033[0m]".
+      ERROR_COUNT=$((ERROR_COUNT+1))
+   else
+      echo "[\033[32;1mOk\033[0m]".
+   fi
+
+   echo -n "  - Core library present "
+   count=$(ls $DHUS_LIB/dhus-core*.jar 2>/dev/null | wc -l)
+   if [ "$count" -ne 1 ]
+   then
+      
+      echo "[\033[31;1mKo\033[0m]".
+      ERROR_COUNT=$((ERROR_COUNT+1))
+   else
+      echo "[\033[32;1mOk\033[0m]".
+   fi
+
+   if [ $ERROR_COUNT -gt 0 ]
+   then
+      fail "Wrong system configuration."
+   fi
+fi
+
+java -server -XX:MaxPermSize=256m -Xms12g -Xmx12g          \
      -Djava.library.path=${NATIVE_LIBRARIES}               \
-     -Daction.record.inactive=true                         \
      -Duser.timezone=UTC                                   \
      -Dcom.sun.media.jai.disableMediaLib=true              \
      -Dsun.zip.disableMemoryMapping=true                   \
+     -Ddhus.scalability.active=true                        \
+     -Ddhus.scalability.local.ip=127.0.0.1   \
      -cp "etc:lib/*" fr.gael.dhus.DHuS &
 
 PID=$!

@@ -56,13 +56,14 @@ import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.database.object.restriction.AccessRestriction;
 import fr.gael.dhus.database.object.restriction.LockedAccessRestriction;
 import fr.gael.dhus.database.object.restriction.TmpUserLockedAccessRestriction;
+import fr.gael.dhus.server.ScalabilityManager;
 import fr.gael.dhus.service.exception.UserAlreadyExistingException;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
 import fr.gael.dhus.system.config.ConfigurationManager;
 
 
 @Repository
-public class UserDao extends HibernateDao<User, Long>
+public class UserDao extends HibernateDao<User, String>
 {
    @Autowired
    private CollectionDao collectionDao;
@@ -82,6 +83,9 @@ public class UserDao extends HibernateDao<User, Long>
    @Autowired
    private FileScannerDao fileScannerDao;
    
+   @Autowired
+   private ScalabilityManager scalabilityManager;
+   
    /**
     * Unique public data user.
     */
@@ -94,9 +98,22 @@ public class UserDao extends HibernateDao<User, Long>
 
    public User getByName (final String name)
    {
-      return (User)DataAccessUtils.uniqueResult (
+      User user = (User)DataAccessUtils.uniqueResult (
          getHibernateTemplate ().find (
+         "From User u where u.username=?", name));   
+
+      // Optimization user extraction: most of the users uses case-sensitive
+      // match for the login. A Requirement of the project asked for non-case
+      // sensitive match. The extraction of non-case sensitive login from
+      // database requires conversions and forbid the usage of indexes, so it
+      // is much more slow.
+      // This Fix aims to first try the extraction of the user with exact match
+      // equals operator, then if not match use the toLower conversion.
+      if (user==null)
+         user = (User)DataAccessUtils.uniqueResult (
+            getHibernateTemplate ().find (
             "From User u where lower(u.username)=lower(?)", name));
+      return user;
    }
    
 
@@ -106,7 +123,7 @@ public class UserDao extends HibernateDao<User, Long>
       if (user == null) return;
 
       // remove user external references
-      final long uid = user.getId ();
+      final String uid = user.getUUID ();
       productCartDao.deleteCartOfUser (user);
       getHibernateTemplate ().execute (new HibernateCallback<Void> ()
       {
@@ -115,9 +132,9 @@ public class UserDao extends HibernateDao<User, Long>
                throws HibernateException, SQLException
          {
             String sql =
-                  "DELETE FROM COLLECTION_USER_AUTH WHERE USERS_ID = :uid";
+                  "DELETE FROM COLLECTION_USER_AUTH WHERE USERS_UUID = :uid";
             SQLQuery query = session.createSQLQuery (sql);
-            query.setLong ("uid", uid);
+            query.setString ("uid", uid);
             query.executeUpdate ();
             return null;
          }
@@ -128,9 +145,9 @@ public class UserDao extends HibernateDao<User, Long>
          public Void doInHibernate (Session session)
                throws HibernateException, SQLException
          {
-            String sql = "DELETE FROM PRODUCT_USER_AUTH WHERE USERS_ID = :uid";
+            String sql = "DELETE FROM PRODUCT_USER_AUTH WHERE USERS_UUID = :uid";
             SQLQuery query = session.createSQLQuery (sql);
-            query.setLong ("uid", uid);
+            query.setString ("uid", uid);
             query.executeUpdate ();
             return null;
          }
@@ -141,10 +158,10 @@ public class UserDao extends HibernateDao<User, Long>
          public Void doInHibernate (Session session)
                throws HibernateException, SQLException
          {
-            String sql = "UPDATE PRODUCTS SET OWNER_ID = NULL " +
-                  "WHERE OWNER_ID = :uid";
+            String sql = "UPDATE PRODUCTS SET OWNER_UUID = NULL " +
+                  "WHERE OWNER_UUID = :uid";
             SQLQuery query = session.createSQLQuery (sql);
-            query.setLong ("uid", uid);
+            query.setString ("uid", uid);
             query.executeUpdate ();
             return null;
          }
@@ -155,9 +172,9 @@ public class UserDao extends HibernateDao<User, Long>
          public Void doInHibernate (Session session)
                throws HibernateException, SQLException
          {
-            String sql = "DELETE FROM NETWORK_USAGE WHERE USER_ID = :uid";
+            String sql = "DELETE FROM NETWORK_USAGE WHERE USER_UUID = :uid";
             SQLQuery query = session.createSQLQuery (sql);
-            query.setLong ("uid", uid);
+            query.setString ("uid", uid);
             query.executeUpdate ();
             return null;
          }
@@ -184,7 +201,7 @@ public class UserDao extends HibernateDao<User, Long>
 
    private void forceDelete (User user)
    {
-      super.delete (read (user.getId ()));
+      super.delete (read (user.getUUID ()));
    }
 
    @SuppressWarnings ("unchecked")
@@ -305,7 +322,7 @@ public class UserDao extends HibernateDao<User, Long>
       // Check is already granted
       for (User u : users)
       {
-         if (u.getId ().equals (user.getId()))
+         if (u.getUUID ().equals (user.getUUID()))
          {
             return;
          }
@@ -315,7 +332,7 @@ public class UserDao extends HibernateDao<User, Long>
       collectionDao.update (collection);
    }
 
-   public void removeAccessToCollection (Long user_id, Collection collection)
+   public void removeAccessToCollection (String user_uuid, Collection collection)
    {
       // if data are public, not possible to remove user right.
       if (cfgManager.isDataPublic ())
@@ -327,7 +344,7 @@ public class UserDao extends HibernateDao<User, Long>
       User selection = null;
       for (User u : users)
       {
-         if (u.getId ().equals (user_id))
+         if (u.getUUID ().equals (user_uuid))
          {
             selection = u;
          }
@@ -340,20 +357,17 @@ public class UserDao extends HibernateDao<User, Long>
       }
    }
 
-
-
    public String computeUserCode (User user)
    {
       if (user == null) throw new NullPointerException ("Null user.");
 
-      if (user.getId () == null)
+      if (user.getUUID () == null)
          throw new IllegalArgumentException ("User " + user.getUsername () +
             " must be created in the DB to compute its code.");
 
       String digest = user.hash ();
-      String id = String.format ("%09d", user.getId ());
 
-      String code = id + digest;
+      String code = user.getUUID () + digest;
 
       return code;
    }
@@ -362,8 +376,7 @@ public class UserDao extends HibernateDao<User, Long>
    {
       if (code == null) throw new NullPointerException ("Null code.");
 
-      String sid = code.substring (0, 9);
-      long id = Long.parseLong (sid);
+      String id = code.substring (0, 36);
 
       // Retrieve the user
       User user = read (id);
@@ -374,7 +387,7 @@ public class UserDao extends HibernateDao<User, Long>
 
       // Check the Id
       String hash = user.hash ();
-      String user_hash = code.substring (9);
+      String user_hash = code.substring (36);
 
       if ( !hash.equals (user_hash))
          throw new SecurityException ("Wrong hash code \"" + user_hash + "\".");
@@ -506,7 +519,7 @@ public class UserDao extends HibernateDao<User, Long>
             long date = runtime - restriction.getLockDate ().getTime ();
             if ((date / MILLISECONDS_PER_DAY) >= max_days)
             {
-               logger.info ("Remove unregistered User " + user.getUsername ());
+               logger.info("Remove unregistered User " + user.getUsername ());
                forceDelete (user);
             }
          }
@@ -557,9 +570,9 @@ public class UserDao extends HibernateDao<User, Long>
       updateUserPreference (user);
    }
 
-   public void removeUserSearch (User user, Long id)
+   public void removeUserSearch (User user, String uuid)
    {
-      Search search = searchDao.read(id);
+      Search search = searchDao.read(uuid);
       if (search != null)
       {
          Preference pref = user.getPreferences ();
@@ -577,9 +590,9 @@ public class UserDao extends HibernateDao<User, Long>
       searchDao.delete (search);
    }
 
-   public void activateUserSearchNotification (Long id, boolean notify)
+   public void activateUserSearchNotification (String uuid, boolean notify)
    {
-      Search search = searchDao.read (id);
+      Search search = searchDao.read (uuid);
       search.setNotify (notify);
       searchDao.update (search);
    }
@@ -593,7 +606,7 @@ public class UserDao extends HibernateDao<User, Long>
 
    public List<Search> getUserSearches (User user)
    {
-      Set<Search> searches = read (user.getId ()).getPreferences ().
+      Set<Search> searches = read (user.getUUID ()).getPreferences ().
             getSearches ();
       List<Search> list = new ArrayList<Search> (searches);
       Collections.sort (list, new Comparator<Search> ()
@@ -640,7 +653,7 @@ public class UserDao extends HibernateDao<User, Long>
       {
          fileScannerDao.create (fs);
          UserDao userDao = ApplicationContextProvider.getBean (UserDao.class);
-         user = userDao.read (user.getId ());
+         user = userDao.read (user.getUUID ());
          user.getPreferences ().getFileScanners ().add (fs);
          updateUserPreference (user);
       }
@@ -676,7 +689,10 @@ public class UserDao extends HibernateDao<User, Long>
       FileScanner fs = fileScannerDao.read (scanner_id);
       if (fs != null)
       {
-         deleteFileScanner (user, fs);
+         fileScannerDao.delete (fs);
+         getHibernateTemplate ().refresh (user);
+         user.getPreferences ().getFileScanners ().remove (fs);
+         updateUserPreference (user);
       }
    }
    
@@ -687,30 +703,6 @@ public class UserDao extends HibernateDao<User, Long>
       fs.setActive (active);
 
       fileScannerDao.update (fs);
-   }
-
-   private void deleteFileScanner (final User user, final FileScanner fs)
-   {
-      getHibernateTemplate ().execute (new HibernateCallback<Void> ()
-      {
-         public Void doInHibernate (Session session) throws HibernateException,
-               SQLException
-         {
-
-            Long pref_id = user.getPreferences ().getId ();
-            Long fs_id = fs.getId ();
-
-            session
-                  .createSQLQuery (
-                        "delete from FILE_SCANNER_PREFERENCES "
-                              + "where FILE_SCANNER_ID=:fsid AND "
-                              + "      PREFERENCE_ID= :prefid")
-                  .setParameter ("fsid", fs_id).setParameter ("prefid", pref_id)
-                  .executeUpdate ();
-            return null;
-         }
-      });
-      fileScannerDao.delete (fs);
    }
 
    public FileScanner findFileScanner (User user, String url, String username)
@@ -732,7 +724,7 @@ public class UserDao extends HibernateDao<User, Long>
 
    public Set<FileScanner> getFileScanners (User user)
    {
-      return read (user.getId ()).getPreferences ().getFileScanners ();
+      return read (user.getUUID ()).getPreferences ().getFileScanners ();
    }
 
    public User getPublicData ()
@@ -742,7 +734,7 @@ public class UserDao extends HibernateDao<User, Long>
          return publicData;
       }
       publicData = getByName (getPublicDataName ());
-      if (publicData == null)
+      if (publicData == null && (!scalabilityManager.isActive () || scalabilityManager.isMaster ()))
       {
          createPublicData ();
       }
@@ -751,6 +743,7 @@ public class UserDao extends HibernateDao<User, Long>
 
    private void createPublicData ()
    {
+      
       publicData = new User();
       publicData.setUsername (getPublicDataName ());
       publicData.setPassword ("#");
@@ -778,7 +771,8 @@ public class UserDao extends HibernateDao<User, Long>
       sb.append ("WHERE deleted is false AND ");
       sb.append ("(username LIKE '%").append (s).append ("%' ")
             .append ("OR lower(firstname) LIKE '%").append (s).append ("%' ")
-            .append ("OR lower(lastname) LIKE '%").append (s).append ("%') ");
+            .append ("OR lower(lastname) LIKE '%").append (s).append ("%' ")
+            .append ("OR lower(email) LIKE '%").append (s).append ("%') ");
       sb.append ("AND not username='")
             .append (cfgManager.getAdministratorConfiguration ().getName ())
             .append ("' AND not username='").append (getPublicDataName ())

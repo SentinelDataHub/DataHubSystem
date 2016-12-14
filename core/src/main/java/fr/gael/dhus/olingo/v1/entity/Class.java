@@ -19,19 +19,27 @@
  */
 package fr.gael.dhus.olingo.v1.entity;
 
+import fr.gael.dhus.olingo.v1.Expander;
+import fr.gael.dhus.olingo.v1.ExpectedException.InvalidTargetException;
+import fr.gael.dhus.olingo.v1.Model;
+import fr.gael.dhus.olingo.v1.entityset.ClassEntitySet;
+import fr.gael.dhus.olingo.v1.map.impl.ClassMap;
+
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import org.apache.olingo.odata2.api.exception.ODataException;
-
-import fr.gael.dhus.olingo.v1.entityset.ClassEntitySet;
+import org.apache.olingo.odata2.api.uri.NavigationSegment;
 
 /**
  * Class entity is focused on its URI denoted by OntClass namespace.
  */
-public class Class extends V1Entity
+public class Class extends AbstractEntity
 {
    private String id;
    private Product product;
@@ -41,7 +49,7 @@ public class Class extends V1Entity
    {
       this.product = product;
    }
-   
+
    public Class(String uri)
    {
       this.uri=uri;
@@ -57,7 +65,7 @@ public class Class extends V1Entity
    /**
     * Returns this class id (with UUID standard format). It "id" not provided in
     * input, it is automatically computed the MD5 hash of the
-    * 
+    *
     * @return
     */
    public String getId()
@@ -94,4 +102,42 @@ public class Class extends V1Entity
       if(prop_name.equals(ClassEntitySet.URI)) return getUri();
       throw new ODataException ("Property '" + prop_name + "' not found.");
    }
+
+   @Override
+   public Object navigate(NavigationSegment ns) throws ODataException
+   {
+      Object res;
+
+      if (ns.getEntitySet().getName().equals(Model.CLASS.getName()))
+      {
+         res = new ClassMap(this);
+         if (!ns.getKeyPredicates().isEmpty())
+         {
+            res = ((ClassMap)res).get(ns.getKeyPredicates().get(0).getLiteral());
+         }
+      }
+      else
+      {
+         throw new InvalidTargetException(this.getClass().getSimpleName(), ns.getEntitySet().getName());
+      }
+
+      return res;
+   }
+
+   @Override
+   public List<String> getExpandableNavLinkNames()
+   {
+      return Collections.singletonList("Classes");
+   }
+
+   @Override
+   public List<Map<String, Object>> expand(String navlink_name, String self_url)
+   {
+      if (navlink_name.equals("Classes"))
+      {
+         return Expander.mapToData(new ClassMap(this), self_url);
+      }
+      return super.expand(navlink_name, self_url);
+   }
+
 }

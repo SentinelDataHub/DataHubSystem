@@ -41,7 +41,7 @@
          xml:base  ="&s3;">           
       
    <owl:Ontology rdf:about="&s3;"/>           
-    <rdf:Description rdf:about="&s3;ipf_level_0">
+   <rdf:Description rdf:about="&s3;ipf_level_0">
       <dhus:metadataTypes rdf:parseType="Literal">
 
          <metadataType id="productlevel"
@@ -59,10 +59,11 @@
            	<solrField name="ispcount"
                        type="long"/>
          </metadataType> 
-     </dhus:metadataTypes>
-   </rdf:Description>      
+      </dhus:metadataTypes>
+   </rdf:Description>
+   
    <rdf:Description rdf:about="&s3;ipf_level_0">
-   <dhus:support/>
+      <dhus:support/>
       <dhus:metadataExtractor  rdf:parseType="Literal">
          <![CDATA[                                              
                 
@@ -86,7 +87,407 @@
           
          ]]>
       </dhus:metadataExtractor>   
-    </rdf:Description> 
+    </rdf:Description>
+    
+    <!--  Footprint extraction Applicable for OLCI l0 products only -->
+    <rdf:Description rdf:about="&s3;ipf_olci_level_0">
+      <dhus:metadataTypes rdf:parseType="Literal">
+         <metadataType id="GMLfootprint"
+                       name="Footprint"
+                       contentType="application/gml+xml"
+                       category="product">
+            <solrField name="gmlfootprint"
+                       type="string"/>
+         </metadataType>
+
+         <metadataType id="footprint"
+                       name="JTS footprint"
+                       contentType="application/jts"
+                       category="product">
+            <solrField name="footprint"
+                       type="location_rpt"/>
+         </metadataType> 
+     </dhus:metadataTypes>
+
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+         <![CDATA[                                              
+        declare namespace utils="java:fr.gael.drb.cortex.topic.sentinel3.Sentinel3Utils";                                                                    
+         
+        declare function local:footprint() as xs:string*{
+            fn:data(*[matches (name(), "xfdumanifest.xml")]/XFDU/metadataSection/metadataObject[@ID="measurementFrameSet"]/
+                 metadataWrap/xmlData/frameSet/footPrint/posList)
+         }; 
+          
+        declare variable $toRad as xs:double := 0.0174532925199432957692;
+      
+      declare variable $toDeg as xs:double := 57.2957795130823208768;
+      
+      declare function local:normalizeVector($vector as xs:double*) as xs:double*
+      {
+         let $norm := math:sqrt(
+            math:power($vector[1], 2.0) +
+            math:power($vector[2], 2.0) +
+            math:power($vector[3], 2.0))
+         return
+         (
+            $vector[1] div $norm,
+            $vector[2] div $norm,
+            $vector[3] div $norm
+         )
+      };
+      
+      declare function local:to2D($vector as xs:double*) as xs:double*
+      {
+         $vector[1], $vector[2]
+      };
+      
+      declare function local:distance($vector1 as xs:double*, $vector2 as xs:double*) as xs:double
+      {
+         math:sqrt(
+            math:power($vector1[1] - $vector2[1], 2.0) +
+            math:power($vector1[2] - $vector2[2], 2.0) +
+            math:power($vector1[3] - $vector2[3], 2.0))
+      };
+      
+      declare function local:diffVector($vectorBegin as xs:double*, $vectorEnd as xs:double*) as xs:double*
+      {
+         $vectorEnd[1] - $vectorBegin[1],
+         $vectorEnd[2] - $vectorBegin[2],
+         $vectorEnd[3] - $vectorBegin[3]
+      };
+      
+      declare function local:reverseSequence($sequence)
+      {
+          let $count := fn:count($sequence)
+          for $i in (1 to $count)
+          return
+             $sequence[$count + 1 - $i]
+      };
+      
+      (: ---------------------------------------------------- :)
+      (: Basic Geodesy and Geographic constants and functions :)
+      (: ---------------------------------------------------- :)
+      
+      declare variable $meanEarthRadius as xs:double := 6371009.0;
+      
+      declare variable $meanEarthRadiusSquare as xs:double :=
+          40589755678081.0;
+      
+      declare variable $s2Altitude as xs:double := 812709.0;
+      
+      declare function local:geodeticToGeocentric(
+            $geo_position as xs:double*
+         ) as xs:double*
+      {
+         let $longitude := $geo_position[1]* $toRad
+         let $latitude := $geo_position[2] *$toRad
+      
+         let $radius := $meanEarthRadius + $geo_position[3]
+      
+         return
+         (
+            $radius * math:cos($latitude) * math:cos($longitude),
+            $radius * math:cos($latitude) * math:sin($longitude),
+            $radius * math:sin($latitude)
+         )
+      };
+      
+      declare function local:geocentricToGeodetic(
+            $position as xs:double*
+         ) as xs:double*
+      {
+         let $radius := math:sqrt(
+            math:power($position[1], 2.0) +
+            math:power($position[2], 2.0) +
+            math:power($position[3], 2.0))
+      
+         return
+         (
+            math:atan2($position[2], $position[1]) * $toDeg,
+            math:asin($position[3] div $radius) * $toDeg,
+            $radius - $meanEarthRadius
+         )
+      };
+      
+      (: ------------- :)
+      (: Optical Model :)
+      (: ------------- :)
+      
+      declare function local:viewingDirectionToGeodetic(
+         $viewing_direction as xs:double*,
+         $position  as xs:double*,
+         $velocity  as xs:double*)
+      {
+         (: Setup orbital referential axis :)
+      
+         let $yaw_axis := local:normalizeVector($position)
+         let $roll_axis := local:normalizeVector($velocity)
+         let $pitch_axis := local:normalizeVector(
+            (($velocity[2] * $position[3] - $velocity[3] * $position[2]),
+            ($velocity[3] * $position[1] - $velocity[1] * $position[3]),
+            ($velocity[1] * $position[2] - $velocity[2] * $position[1])))
+      
+         (: Rotate to requested viewing direction :)
+         let $boresight := local:normalizeVector((
+            $pitch_axis[1] * $viewing_direction[1] +
+            $roll_axis[1]  * $viewing_direction[2] +
+            $yaw_axis[1]   * $viewing_direction[3],
+      
+            $pitch_axis[2] * $viewing_direction[1] +
+            $roll_axis[2]  * $viewing_direction[2] +
+            $yaw_axis[2]   * $viewing_direction[3],
+      
+            $pitch_axis[3] * $viewing_direction[1] +
+            $roll_axis[3]  * $viewing_direction[2] +
+            $yaw_axis[3]   * $viewing_direction[3]))
+      
+         (: Intersect Earth surface :)
+         let $first_equation_factor :=
+            (($boresight[1] * $boresight[1]) div $meanEarthRadiusSquare)+
+            (($boresight[2] * $boresight[2]) div $meanEarthRadiusSquare)+
+            (($boresight[3] * $boresight[3]) div $meanEarthRadiusSquare)
+      
+         let $second_equation_factor := 
+            ((2.0 * $position[1] * $boresight[1]) div $meanEarthRadiusSquare) +
+            ((2.0 * $position[2] * $boresight[2]) div $meanEarthRadiusSquare) +
+            ((2.0 * $position[3] * $boresight[3]) div $meanEarthRadiusSquare)
+      
+         let $third_equation_factor := 
+           ((($position[1] * $position[1]) div $meanEarthRadiusSquare) +
+            (($position[2] * $position[2]) div $meanEarthRadiusSquare) +
+            (($position[3] * $position[3]) div $meanEarthRadiusSquare) - 1.0)
+      
+         let $discriminant := math:power($second_equation_factor,2.0) - 
+            4.0 * $first_equation_factor * $third_equation_factor
+      
+         let $first_distance := ( -$second_equation_factor + math:sqrt($discriminant))
+                div (2.0 * $first_equation_factor)
+      
+         let $second_distance := ( -$second_equation_factor - math:sqrt($discriminant))
+                div (2.0 * $first_equation_factor)
+      
+         let $distance := if (math:abs($first_distance) < math:abs($second_distance))
+                then $first_distance else $second_distance
+         
+         let $intersection := (
+                $position[1] + $boresight[1] * $distance,
+                $position[2] + $boresight[2] * $distance,
+                $position[3] + $boresight[3] * $distance)
+      
+         (: Return the target intersection converted to Geodetic referential :)
+         return
+            local:geocentricToGeodetic($intersection)
+      };
+         
+        <!-- S3 FOOTPRINT BEGIN -->
+        (: ---------------------------------- :)
+      (: Basic Math constants and functions :)
+      (: ---------------------------------- :)
+            
+      
+      (: ------------- :)
+      (: S3 :)
+      (: ------------- :)
+      let $s3Altitude := 812709.0
+      
+      let $posList := local:footprint()
+      
+      (: List of coordinates :)
+      let $coords := for $token in fn:tokenize($posList, ' ')[position() <= ((last()-2) div 2)] return xs:double($token)
+      
+      let $coord_count := fn:count($coords)
+      
+      (: Right edge (flight direction) :)
+      let $right_list :=
+      
+         for $i in (1 to $coord_count)
+         where $i mod 2 != 0
+         return
+      
+         let $position := local:geodeticToGeocentric(($coords[$i + 1], $coords[$i], 812709.0))
+      
+         let $next_position := local:geodeticToGeocentric(($coords[$i + 3], $coords[$i + 2], 812709.0))
+      
+         let $velocity := (
+             $next_position[1] - $position[1],
+             $next_position[2] - $position[2],
+             $next_position[3] - $position[3])
+      
+         return
+            local:to2D(local:viewingDirectionToGeodetic( (
+               -0.4050417, 0.0, -1.0), $position, $velocity))
+      
+      (: Left edge (flight direction) :)
+      let $left_list :=
+      
+         for $i in (1 to $coord_count)
+         where $i mod 2 != 0
+         return
+      
+         let $irev :=  $coord_count + 1 - $i
+      
+         let $position := local:geodeticToGeocentric(($coords[$irev], $coords[$irev - 1], 812709.0))
+      
+         let $next_position := local:geodeticToGeocentric(($coords[$irev + 1], $coords[$irev + 2], 812709.0))
+      
+         let $velocity := (
+             $next_position[1] - $position[1],
+             $next_position[2] - $position[2],
+             $next_position[3] - $position[3])
+      
+         return
+            local:to2D(local:viewingDirectionToGeodetic( (
+               1.0519400996, 0.0, -1.0), $position, $velocity))
+      
+      let $swathPathPointNumbers := 10
+      
+      let $s3OlciLeftLookingAngle := 1.0519400996E0
+      let $s3OlciRightLookingAngle := -0.4050417E0
+      
+      let $s3OlciAcrossTrackViewingVectors :=
+      
+         let $leftToRightAngleStep := ($s3OlciRightLookingAngle -
+            $s3OlciLeftLookingAngle) div $swathPathPointNumbers
+      
+        for $step in (1 to $swathPathPointNumbers)
+         return
+            <viewingVector>
+            {
+               $s3OlciLeftLookingAngle + $leftToRightAngleStep * ($step - 1), 0.0, -1.0
+            }
+            </viewingVector>
+      
+      let $leftToRightViewingAgles := $s3OlciAcrossTrackViewingVectors
+      
+      let $ephemeride := 
+      
+         let $positions := 
+            for $i in (1 to $coord_count)
+            where $i mod 2 != 0
+            return
+               <position>
+               {
+                  local:geodeticToGeocentric(($coords[$i + 1],
+                    $coords[$i], $s3Altitude))
+               }
+               </position>
+      
+         let $position_count := fn:count($positions)
+      
+         for $i in (1 to $position_count)
+         return
+            <ephemeris>
+               <position>{fn:data($positions[$i])}</position>
+               <velocity>
+               {
+                  if ($i < $position_count)
+                  then
+                     local:diffVector(fn:data($positions[$i]),
+                        fn:data($positions[$i + 1]))
+                  else
+                     local:diffVector(fn:data($positions[$i - 1]),
+                        fn:data($positions[$i]))
+               }
+               </velocity>
+            </ephemeris>
+      
+      let $left_edge :=
+         for $ephemeris in local:reverseSequence($ephemeride)
+         return
+            <position>
+            {
+               local:viewingDirectionToGeodetic(
+                  fn:data($leftToRightViewingAgles[1]),
+                  fn:data($ephemeris/position), fn:data($ephemeris/velocity))
+            }
+            </position>
+      
+      let $right_edge :=
+         for $ephemeris in $ephemeride
+         return
+            <position>
+            {
+               local:viewingDirectionToGeodetic(
+                  fn:data($leftToRightViewingAgles[fn:last()]),
+                  fn:data($ephemeris/position), fn:data($ephemeris/velocity))
+            }
+            </position>
+      
+      let $top_edge :=
+          for $viewingVector in
+             $leftToRightViewingAgles[
+               fn:position() > 1 and
+               fn:position() < fn:last()]
+          return
+             <position>
+             {
+               local:viewingDirectionToGeodetic(
+                  fn:data($viewingVector),
+                  fn:data($ephemeride[1]/position), fn:data($ephemeride[1]/velocity))
+             }
+             </position>
+      
+      let $bottom_edge :=
+          for $viewingVector in local:reverseSequence(
+             $leftToRightViewingAgles[
+               fn:position() > 1 and
+               fn:position() < fn:last()])
+          return
+             <position>
+             {
+               local:viewingDirectionToGeodetic(
+                  fn:data($viewingVector),
+                  fn:data($ephemeride[fn:last()]/position), fn:data($ephemeride[fn:last()]/velocity))
+             }
+             </position>
+      
+      let $outputList := ($right_edge, $bottom_edge, $left_edge, $top_edge, $right_edge[position() = (1)])
+      let $outputForJTS := 
+         for $i in $outputList
+         return
+            fn:concat(fn:data($i)[1], ' ', fn:data($i)[2], ',')
+      let $outputForGML := 
+         for $i in $outputList
+         return
+            fn:concat(fn:data($i)[2], ' ', fn:data($i)[1], ' ')      
+      return      
+      (
+        <metadata
+           queryable="GMLfootprint"
+           category="product"
+           name="Footprint"
+           type="application/gml+xml">
+              <gml:Polygon xmlns:gml="http://www.opengis.net/gml"
+                           srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">
+                 <gml:outerBoundaryIs>
+                    <gml:LinearRing>
+                       <gml:coordinates>
+                       {
+                            utils:points2GML(string-join($outputForGML,""))
+                        }                             
+                       </gml:coordinates>
+                    </gml:LinearRing>
+                 </gml:outerBoundaryIs>
+              </gml:Polygon>
+        </metadata>,
+
+        <!-- JTS FOOTPRINT -->
+        <metadata
+           queryable="footprint"
+           category="product"
+           name="JTS footprint"
+           type="application/jts">
+              {
+                    concat ("POLYGON ((",substring(string-join($outputForJTS,""),1,string-length(string-join($outputForJTS,""))-1),"))")
+              }
+        </metadata>        
+          <!-- S3 FOOTPRINT END -->          
+      )
+
+         ]]>
+      </dhus:metadataExtractor>   
+   </rdf:Description> 
+     
       
   	<rdf:Description rdf:about="&s3;ipf_olci_level_0">
       <dhus:metadataTypes rdf:parseType="Literal">
@@ -115,196 +516,20 @@
                        type="text_general"/>
          </metadataType>
          
-         <metadataType id="GMLfootprint"
-                       name="Footprint"
-                       contentType="application/gml+xml"
+          <metadataType id="olcilevel"
+                       name="olci level"
+                       contentType="text/plain"
                        category="product">
-            <solrField name="gmlfootprint"
-                       type="string"/>
+            <solrField name="olcilevel"
+                       type="text_general"/>
          </metadataType>
-
-         <metadataType id="footprint"
-                       name="JTS footprint"
-                       contentType="application/jts"
-                       category="product">
-            <solrField name="footprint"
-                       type="location_rpt"/>
-         </metadataType> 
+         
      </dhus:metadataTypes>
-    </rdf:Description>  
+   </rdf:Description>  
   	<rdf:Description rdf:about="&s3;ipf_olci_level_0">
   	<dhus:support/>
       <dhus:metadataExtractor  rdf:parseType="Literal">
          <![CDATA[  
-        
-        declare namespace utils="java:fr.gael.drb.cortex.topic.sentinel3.Sentinel3Utils";                                                                    
-         
-        declare function local:footprint() as xs:string*{
-            fn:data(*[matches (name(), "xfdumanifest.xml")]/XFDU/metadataSection/metadataObject[@ID="measurementFrameSet"]/
-                 metadataWrap/xmlData/frameSet/footPrint/posList)
-         }; 
-          
-        declare variable $toRad as xs:double := 0.0174532925199432957692;
-		
-		declare variable $toDeg as xs:double := 57.2957795130823208768;
-		
-		declare function local:normalizeVector($vector as xs:double*) as xs:double*
-		{
-		   let $norm := math:sqrt(
-		      math:power($vector[1], 2.0) +
-		      math:power($vector[2], 2.0) +
-		      math:power($vector[3], 2.0))
-		   return
-		   (
-		      $vector[1] div $norm,
-		      $vector[2] div $norm,
-		      $vector[3] div $norm
-		   )
-		};
-		
-		declare function local:to2D($vector as xs:double*) as xs:double*
-		{
-		   $vector[1], $vector[2]
-		};
-		
-		declare function local:distance($vector1 as xs:double*, $vector2 as xs:double*) as xs:double
-		{
-		   math:sqrt(
-		      math:power($vector1[1] - $vector2[1], 2.0) +
-		      math:power($vector1[2] - $vector2[2], 2.0) +
-		      math:power($vector1[3] - $vector2[3], 2.0))
-		};
-		
-		declare function local:diffVector($vectorBegin as xs:double*, $vectorEnd as xs:double*) as xs:double*
-		{
-		   $vectorEnd[1] - $vectorBegin[1],
-		   $vectorEnd[2] - $vectorBegin[2],
-		   $vectorEnd[3] - $vectorBegin[3]
-		};
-		
-		declare function local:reverseSequence($sequence)
-		{
-		    let $count := fn:count($sequence)
-		    for $i in (1 to $count)
-		    return
-		       $sequence[$count + 1 - $i]
-		};
-		
-		(: ---------------------------------------------------- :)
-		(: Basic Geodesy and Geographic constants and functions :)
-		(: ---------------------------------------------------- :)
-		
-		declare variable $meanEarthRadius as xs:double := 6371009.0;
-		
-		declare variable $meanEarthRadiusSquare as xs:double :=
-		    40589755678081.0;
-		
-		declare variable $s2Altitude as xs:double := 812709.0;
-		
-		declare function local:geodeticToGeocentric(
-		      $geo_position as xs:double*
-		   ) as xs:double*
-		{
-		   let $longitude := $geo_position[1]* $toRad
-		   let $latitude := $geo_position[2] *$toRad
-		
-		   let $radius := $meanEarthRadius + $geo_position[3]
-		
-		   return
-		   (
-		      $radius * math:cos($latitude) * math:cos($longitude),
-		      $radius * math:cos($latitude) * math:sin($longitude),
-		      $radius * math:sin($latitude)
-		   )
-		};
-		
-		declare function local:geocentricToGeodetic(
-		      $position as xs:double*
-		   ) as xs:double*
-		{
-		   let $radius := math:sqrt(
-		      math:power($position[1], 2.0) +
-		      math:power($position[2], 2.0) +
-		      math:power($position[3], 2.0))
-		
-		   return
-		   (
-		      math:atan2($position[2], $position[1]) * $toDeg,
-		      math:asin($position[3] div $radius) * $toDeg,
-		      $radius - $meanEarthRadius
-		   )
-		};
-		
-		(: ------------- :)
-		(: Optical Model :)
-		(: ------------- :)
-		
-		declare function local:viewingDirectionToGeodetic(
-		   $viewing_direction as xs:double*,
-		   $position  as xs:double*,
-		   $velocity  as xs:double*)
-		{
-		   (: Setup orbital referential axis :)
-		
-		   let $yaw_axis := local:normalizeVector($position)
-		   let $roll_axis := local:normalizeVector($velocity)
-		   let $pitch_axis := local:normalizeVector(
-		      (($velocity[2] * $position[3] - $velocity[3] * $position[2]),
-		      ($velocity[3] * $position[1] - $velocity[1] * $position[3]),
-		      ($velocity[1] * $position[2] - $velocity[2] * $position[1])))
-		
-		   (: Rotate to requested viewing direction :)
-		   let $boresight := local:normalizeVector((
-		      $pitch_axis[1] * $viewing_direction[1] +
-		      $roll_axis[1]  * $viewing_direction[2] +
-		      $yaw_axis[1]   * $viewing_direction[3],
-		
-		      $pitch_axis[2] * $viewing_direction[1] +
-		      $roll_axis[2]  * $viewing_direction[2] +
-		      $yaw_axis[2]   * $viewing_direction[3],
-		
-		      $pitch_axis[3] * $viewing_direction[1] +
-		      $roll_axis[3]  * $viewing_direction[2] +
-		      $yaw_axis[3]   * $viewing_direction[3]))
-		
-		   (: Intersect Earth surface :)
-		   let $first_equation_factor :=
-		      (($boresight[1] * $boresight[1]) div $meanEarthRadiusSquare)+
-		      (($boresight[2] * $boresight[2]) div $meanEarthRadiusSquare)+
-		      (($boresight[3] * $boresight[3]) div $meanEarthRadiusSquare)
-		
-		   let $second_equation_factor := 
-		      ((2.0 * $position[1] * $boresight[1]) div $meanEarthRadiusSquare) +
-		      ((2.0 * $position[2] * $boresight[2]) div $meanEarthRadiusSquare) +
-		      ((2.0 * $position[3] * $boresight[3]) div $meanEarthRadiusSquare)
-		
-		   let $third_equation_factor := 
-		     ((($position[1] * $position[1]) div $meanEarthRadiusSquare) +
-		      (($position[2] * $position[2]) div $meanEarthRadiusSquare) +
-		      (($position[3] * $position[3]) div $meanEarthRadiusSquare) - 1.0)
-		
-		   let $discriminant := math:power($second_equation_factor,2.0) - 
-		      4.0 * $first_equation_factor * $third_equation_factor
-		
-		   let $first_distance := ( -$second_equation_factor + math:sqrt($discriminant))
-		          div (2.0 * $first_equation_factor)
-		
-		   let $second_distance := ( -$second_equation_factor - math:sqrt($discriminant))
-		          div (2.0 * $first_equation_factor)
-		
-		   let $distance := if (math:abs($first_distance) < math:abs($second_distance))
-		          then $first_distance else $second_distance
-		   
-		   let $intersection := (
-		          $position[1] + $boresight[1] * $distance,
-		          $position[2] + $boresight[2] * $distance,
-		          $position[3] + $boresight[3] * $distance)
-		
-		   (: Return the target intersection converted to Geodetic referential :)
-		   return
-		      local:geocentricToGeodetic($intersection)
-		};
-             
          <!-- OLCI CALIBRATION -->                         
          <metadata queryable="olcicalseq" 
             category="product"
@@ -333,215 +558,369 @@
                 metadataWrap/xmlData/generalProductInformation/L1Triggering/@description)}
          </metadata>,
          
-         <!--******** TEST FOOTPRINT OLCI *********** -->
-        <!-- S3 FOOTPRINT BEGIN -->
-        (: ---------------------------------- :)
-		(: Basic Math constants and functions :)
-		(: ---------------------------------- :)
-				
-		
-		(: ------------- :)
-		(: S3 :)
-		(: ------------- :)
-		let $s3Altitude := 812709.0
-		
-		let $posList := local:footprint()
-		
-		(: List of coordinates :)
-		let $coords := for $token in fn:tokenize($posList, ' ')[position() <= ((last()-2) div 2)] return xs:double($token)
-		
-		let $coord_count := fn:count($coords)
-		
-		(: Right edge (flight direction) :)
-		let $right_list :=
-		
-		   for $i in (1 to $coord_count)
-		   where $i mod 2 != 0
-		   return
-		
-		   let $position := local:geodeticToGeocentric(($coords[$i + 1], $coords[$i], 812709.0))
-		
-		   let $next_position := local:geodeticToGeocentric(($coords[$i + 3], $coords[$i + 2], 812709.0))
-		
-		   let $velocity := (
-		       $next_position[1] - $position[1],
-		       $next_position[2] - $position[2],
-		       $next_position[3] - $position[3])
-		
-		   return
-		      local:to2D(local:viewingDirectionToGeodetic( (
-		         -0.4050417, 0.0, -1.0), $position, $velocity))
-		
-		(: Left edge (flight direction) :)
-		let $left_list :=
-		
-		   for $i in (1 to $coord_count)
-		   where $i mod 2 != 0
-		   return
-		
-		   let $irev :=  $coord_count + 1 - $i
-		
-		   let $position := local:geodeticToGeocentric(($coords[$irev], $coords[$irev - 1], 812709.0))
-		
-		   let $next_position := local:geodeticToGeocentric(($coords[$irev + 1], $coords[$irev + 2], 812709.0))
-		
-		   let $velocity := (
-		       $next_position[1] - $position[1],
-		       $next_position[2] - $position[2],
-		       $next_position[3] - $position[3])
-		
-		   return
-		      local:to2D(local:viewingDirectionToGeodetic( (
-		         1.0519400996, 0.0, -1.0), $position, $velocity))
-		
-		let $swathPathPointNumbers := 10
-		
-		let $s3OlciLeftLookingAngle := 1.0519400996E0
-		let $s3OlciRightLookingAngle := -0.4050417E0
-		
-		let $s3OlciAcrossTrackViewingVectors :=
-		
-		   let $leftToRightAngleStep := ($s3OlciRightLookingAngle -
-		      $s3OlciLeftLookingAngle) div $swathPathPointNumbers
-		
-		  for $step in (1 to $swathPathPointNumbers)
-		   return
-		      <viewingVector>
-		      {
-		         $s3OlciLeftLookingAngle + $leftToRightAngleStep * ($step - 1), 0.0, -1.0
-		      }
-		      </viewingVector>
-		
-		let $leftToRightViewingAgles := $s3OlciAcrossTrackViewingVectors
-		
-		let $ephemeride := 
-		
-		   let $positions := 
-		      for $i in (1 to $coord_count)
-		      where $i mod 2 != 0
-		      return
-		         <position>
-		         {
-		            local:geodeticToGeocentric(($coords[$i + 1],
-		              $coords[$i], $s3Altitude))
-		         }
-		         </position>
-		
-		   let $position_count := fn:count($positions)
-		
-		   for $i in (1 to $position_count)
-		   return
-		      <ephemeris>
-		         <position>{fn:data($positions[$i])}</position>
-		         <velocity>
-		         {
-		            if ($i < $position_count)
-		            then
-		               local:diffVector(fn:data($positions[$i]),
-		                  fn:data($positions[$i + 1]))
-		            else
-		               local:diffVector(fn:data($positions[$i - 1]),
-		                  fn:data($positions[$i]))
-		         }
-		         </velocity>
-		      </ephemeris>
-		
-		let $left_edge :=
-		   for $ephemeris in local:reverseSequence($ephemeride)
-		   return
-		      <position>
-		      {
-		         local:viewingDirectionToGeodetic(
-		            fn:data($leftToRightViewingAgles[1]),
-		            fn:data($ephemeris/position), fn:data($ephemeris/velocity))
-		      }
-		      </position>
-		
-		let $right_edge :=
-		   for $ephemeris in $ephemeride
-		   return
-		      <position>
-		      {
-		         local:viewingDirectionToGeodetic(
-		            fn:data($leftToRightViewingAgles[fn:last()]),
-		            fn:data($ephemeris/position), fn:data($ephemeris/velocity))
-		      }
-		      </position>
-		
-		let $top_edge :=
-		    for $viewingVector in
-		       $leftToRightViewingAgles[
-		         fn:position() > 1 and
-		         fn:position() < fn:last()]
-		    return
-		       <position>
-		       {
-		         local:viewingDirectionToGeodetic(
-		            fn:data($viewingVector),
-		            fn:data($ephemeride[1]/position), fn:data($ephemeride[1]/velocity))
-		       }
-		       </position>
-		
-		let $bottom_edge :=
-		    for $viewingVector in local:reverseSequence(
-		       $leftToRightViewingAgles[
-		         fn:position() > 1 and
-		         fn:position() < fn:last()])
-		    return
-		       <position>
-		       {
-		         local:viewingDirectionToGeodetic(
-		            fn:data($viewingVector),
-		            fn:data($ephemeride[fn:last()]/position), fn:data($ephemeride[fn:last()]/velocity))
-		       }
-		       </position>
-		
-		let $outputList := ($right_edge, $bottom_edge, $left_edge, $top_edge, $right_edge[position() = (1)])
-		let $outputForJTS := 
-		   for $i in $outputList
-		   return
-		      fn:concat(fn:data($i)[1], ' ', fn:data($i)[2], ',')
-		let $outputForGML := 
-		   for $i in $outputList
-		   return
-		      fn:concat(fn:data($i)[2], ' ', fn:data($i)[1], ' ')      
-		return 		
-		(
-		  <metadata
-           queryable="GMLfootprint"
-           category="product"
-           name="Footprint"
-           type="application/gml+xml">
-              <gml:Polygon xmlns:gml="http://www.opengis.net/gml"
-                           srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">
-                 <gml:outerBoundaryIs>
-                    <gml:LinearRing>
-                       <gml:coordinates>
-                       {
-                            utils:points2GML(string-join($outputForGML,""))
-                        }	                           
-                       </gml:coordinates>
-                    </gml:LinearRing>
-                 </gml:outerBoundaryIs>
-              </gml:Polygon>
-        </metadata>,
-
-        <!-- JTS FOOTPRINT -->
-        <metadata
-           queryable="footprint"
-           category="product"
-           name="JTS footprint"
-           type="application/jts">
-              {
-                    concat ("POLYGON ((",substring(string-join($outputForJTS,""),1,string-length(string-join($outputForJTS,""))-1),"))")
-              }
-        </metadata>        
-          <!-- S3 FOOTPRINT END -->          
-		)
-         
-         <!--******** TEST FOOTPRINT OLCI *********** -->
-          
+         <metadata name="olci level" type="text/plain">
+            S3
+         </metadata>
          ]]>
       </dhus:metadataExtractor>   
-    </rdf:Description>  
+    </rdf:Description>
+    
+        <!--  Footprint extraction Applicable for OLCI l0 products only -->
+    <rdf:Description rdf:about="&s3;ipf_slstr_level_0">
+      <dhus:metadataTypes rdf:parseType="Literal">
+         <metadataType id="GMLfootprint"
+                       name="Footprint"
+                       contentType="application/gml+xml"
+                       category="product">
+            <solrField name="gmlfootprint"
+                       type="string"/>
+         </metadataType>
+
+         <metadataType id="footprint"
+                       name="JTS footprint"
+                       contentType="application/jts"
+                       category="product">
+            <solrField name="footprint"
+                       type="location_rpt"/>
+         </metadataType> 
+     </dhus:metadataTypes>
+
+      <dhus:metadataExtractor  rdf:parseType="Literal">
+         <![CDATA[                                              
+         declare namespace utils="java:fr.gael.drb.cortex.topic.sentinel3.Sentinel3Utils";                                                                    
+         
+         declare function local:footprint() as xs:string*{
+            fn:data(*[matches (name(), "xfdumanifest.xml")]/XFDU/metadataSection/metadataObject[@ID="measurementFrameSet"]/
+               metadataWrap/xmlData/frameSet/footPrint/posList)
+         }; 
+          
+         declare variable $toRad as xs:double := 0.0174532925199432957692;
+         declare variable $toDeg as xs:double := 57.2957795130823208768;
+        
+         declare function local:normalizeVector($vector as xs:double*) as xs:double*
+         {
+            let $norm := math:sqrt(
+               math:power($vector[1], 2.0) +
+               math:power($vector[2], 2.0) +
+               math:power($vector[3], 2.0))
+            return
+            (
+               $vector[1] div $norm,
+               $vector[2] div $norm,
+               $vector[3] div $norm
+            )
+         };
+      
+         declare function local:to2D($vector as xs:double*) as xs:double*
+         {
+            $vector[1], $vector[2]
+         };
+      
+         declare function local:distance($vector1 as xs:double*, $vector2 as xs:double*) as xs:double
+         {
+            math:sqrt(
+               math:power($vector1[1] - $vector2[1], 2.0) +
+               math:power($vector1[2] - $vector2[2], 2.0) +
+               math:power($vector1[3] - $vector2[3], 2.0))
+         };
+      
+         declare function local:diffVector($vectorBegin as xs:double*, $vectorEnd as xs:double*) as xs:double*
+         {
+            $vectorEnd[1] - $vectorBegin[1],
+            $vectorEnd[2] - $vectorBegin[2],
+            $vectorEnd[3] - $vectorBegin[3]
+         };
+       
+         declare function local:reverseSequence($sequence)
+         {
+            let $count := fn:count($sequence)
+            for $i in (1 to $count)
+            return
+               $sequence[$count + 1 - $i]
+         };
+      
+         (: ---------------------------------------------------- :)
+         (: Basic Geodesy and Geographic constants and functions :)
+         (: ---------------------------------------------------- :)
+      
+         declare variable $meanEarthRadius as xs:double := 6371009.0;
+         declare variable $meanEarthRadiusSquare as xs:double := 40589755678081.0;
+    
+         declare function local:geodeticToGeocentric($geo_position as xs:double*) as xs:double*
+         {
+            let $longitude := $geo_position[1]* $toRad
+            let $latitude := $geo_position[2] *$toRad
+
+            let $radius := $meanEarthRadius + $geo_position[3]
+            return
+            (
+               $radius * math:cos($latitude) * math:cos($longitude),
+               $radius * math:cos($latitude) * math:sin($longitude),
+               $radius * math:sin($latitude)
+            )
+         };
+      
+         declare function local:geocentricToGeodetic($position as xs:double*) as xs:double*
+         {
+            let $radius := math:sqrt(
+               math:power($position[1], 2.0) +
+               math:power($position[2], 2.0) +
+               math:power($position[3], 2.0))
+      
+               return
+               (
+                  math:atan2($position[2], $position[1]) * $toDeg,
+                  math:asin($position[3] div $radius) * $toDeg,
+                  $radius - $meanEarthRadius
+               )
+         };
+      
+         (: ------------- :)
+         (: Optical Model :)
+         (: ------------- :)
+         declare function local:viewingDirectionToGeodetic(
+            $viewing_direction as xs:double*,
+            $position  as xs:double*,
+            $velocity  as xs:double*)
+         {
+            (: Setup orbital referential axis :)
+      
+            let $yaw_axis := local:normalizeVector($position)
+            let $roll_axis := local:normalizeVector($velocity)
+            let $pitch_axis := local:normalizeVector(
+               (($velocity[2] * $position[3] - $velocity[3] * $position[2]),
+               ($velocity[3] * $position[1] - $velocity[1] * $position[3]),
+               ($velocity[1] * $position[2] - $velocity[2] * $position[1])))
+      
+            (: Rotate to requested viewing direction :)
+            let $boresight := local:normalizeVector((
+               $pitch_axis[1] * $viewing_direction[1] +
+               $roll_axis[1]  * $viewing_direction[2] +
+               $yaw_axis[1]   * $viewing_direction[3],
+
+               $pitch_axis[2] * $viewing_direction[1] +
+               $roll_axis[2]  * $viewing_direction[2] +
+               $yaw_axis[2]   * $viewing_direction[3],
+      
+               $pitch_axis[3] * $viewing_direction[1] +
+               $roll_axis[3]  * $viewing_direction[2] +
+               $yaw_axis[3]   * $viewing_direction[3]))
+
+            (: Intersect Earth surface :)
+            let $first_equation_factor :=
+               (($boresight[1] * $boresight[1]) div $meanEarthRadiusSquare)+
+               (($boresight[2] * $boresight[2]) div $meanEarthRadiusSquare)+
+               (($boresight[3] * $boresight[3]) div $meanEarthRadiusSquare)
+
+            let $second_equation_factor := 
+               ((2.0 * $position[1] * $boresight[1]) div $meanEarthRadiusSquare) +
+               ((2.0 * $position[2] * $boresight[2]) div $meanEarthRadiusSquare) +
+               ((2.0 * $position[3] * $boresight[3]) div $meanEarthRadiusSquare)
+      
+            let $third_equation_factor := 
+               ((($position[1] * $position[1]) div $meanEarthRadiusSquare) +
+               (($position[2] * $position[2]) div $meanEarthRadiusSquare) +
+               (($position[3] * $position[3]) div $meanEarthRadiusSquare) - 1.0)
+      
+            let $discriminant := math:power($second_equation_factor,2.0) - 
+               4.0 * $first_equation_factor * $third_equation_factor
+      
+            let $first_distance := ( -$second_equation_factor + math:sqrt($discriminant))
+               div (2.0 * $first_equation_factor)
+      
+            let $second_distance := ( -$second_equation_factor - math:sqrt($discriminant))
+               div (2.0 * $first_equation_factor)
+      
+            let $distance := if (math:abs($first_distance) < math:abs($second_distance))
+               then $first_distance else $second_distance
+         
+            let $intersection := (
+               $position[1] + $boresight[1] * $distance,
+               $position[2] + $boresight[2] * $distance,
+               $position[3] + $boresight[3] * $distance)
+      
+            (: Return the target intersection converted to Geodetic referential :)
+            return
+               local:geocentricToGeodetic($intersection)
+         };
+         
+         <!-- S3 FOOTPRINT BEGIN -->
+         (: ---------------------------------- :)
+         (: Basic Math constants and functions :)
+         (: ---------------------------------- :)
+         (: ------------- :)
+         (: S3 :)
+         (: ------------- :)
+         let $s3Altitude := 812709.0
+         (: Product specs says SLSTR is 55 deg of nadir :)
+         let $s3SlstrLeftLookingAngle  := 0.959931089E0
+         let $s3SlstrRightLookingAngle := -0.959931089E0
+         
+         
+         let $posList := local:footprint()
+
+         (: List of coordinates :)
+         let $coords := for $token in fn:tokenize($posList, ' ')[position() <= ((last()-2) div 2)] return xs:double($token)
+         let $coord_count := fn:count($coords)
+      
+         (: Right edge (flight direction) :)
+         let $right_list :=   
+            for $i in (1 to $coord_count)
+            where $i mod 2 != 0
+            return
+               let $position := local:geodeticToGeocentric(($coords[$i + 1], $coords[$i], $s3Altitude))
+               let $next_position := local:geodeticToGeocentric(($coords[$i + 3], $coords[$i + 2], $s3Altitude))
+               let $velocity := (
+                   $next_position[1] - $position[1],
+                   $next_position[2] - $position[2],
+                   $next_position[3] - $position[3])
+               return
+                  local:to2D(local:viewingDirectionToGeodetic( (
+                     $s3SlstrRightLookingAngle, 0.0, -1.0), $position, $velocity))
+      
+         (: Left edge (flight direction) :)
+         let $left_list :=
+            for $i in (1 to $coord_count)
+            where $i mod 2 != 0
+            return
+               let $irev :=  $coord_count + 1 - $i
+               let $position := local:geodeticToGeocentric(($coords[$irev], $coords[$irev - 1], $s3Altitude))
+               let $next_position := local:geodeticToGeocentric(($coords[$irev + 1], $coords[$irev + 2], $s3Altitude))
+               let $velocity := (
+                  $next_position[1] - $position[1],
+                  $next_position[2] - $position[2],
+                  $next_position[3] - $position[3])
+               return
+                  local:to2D(local:viewingDirectionToGeodetic( (
+                     $s3SlstrLeftLookingAngle, 0.0, -1.0), $position, $velocity))
+      
+         let $swathPathPointNumbers := 10
+      
+         let $s3SlstrAcrossTrackViewingVectors :=
+            let $leftToRightAngleStep := ($s3SlstrRightLookingAngle - $s3SlstrLeftLookingAngle) div $swathPathPointNumbers
+            for $step in (1 to $swathPathPointNumbers)
+            return
+               <viewingVector>
+               {
+                  $s3SlstrLeftLookingAngle + $leftToRightAngleStep * ($step - 1), 0.0, -1.0
+               }
+               </viewingVector>
+      
+         let $leftToRightViewingAgles := $s3SlstrAcrossTrackViewingVectors
+         let $ephemeride := 
+            let $positions := 
+               for $i in (1 to $coord_count)
+               where $i mod 2 != 0
+               return
+                  <position>
+                  {
+                     local:geodeticToGeocentric(($coords[$i + 1],
+                         $coords[$i], $s3Altitude))
+                  }
+                  </position>
+            let $position_count := fn:count($positions)
+            for $i in (1 to $position_count)
+            return
+               <ephemeris>
+                  <position>{fn:data($positions[$i])}</position>
+                  <velocity>
+                  {
+                     if ($i < $position_count)
+                     then
+                        local:diffVector(fn:data($positions[$i]),
+                           fn:data($positions[$i + 1]))
+                     else
+                        local:diffVector(fn:data($positions[$i - 1]),
+                           fn:data($positions[$i]))
+                  }
+                  </velocity>
+               </ephemeris>
+      
+         let $left_edge :=
+            for $ephemeris in local:reverseSequence($ephemeride)
+            return
+               <position>
+               {
+                  local:viewingDirectionToGeodetic(
+                     fn:data($leftToRightViewingAgles[1]),
+                     fn:data($ephemeris/position), fn:data($ephemeris/velocity))
+               }
+               </position>
+      
+         let $right_edge :=
+            for $ephemeris in $ephemeride
+            return
+               <position>
+               {
+                  local:viewingDirectionToGeodetic(
+                     fn:data($leftToRightViewingAgles[fn:last()]),
+                     fn:data($ephemeris/position), fn:data($ephemeris/velocity))
+               }
+               </position>
+      
+         let $top_edge := for $viewingVector in $leftToRightViewingAgles[fn:position() > 1 and fn:position() < fn:last()]
+             return
+                <position>
+                {
+                  local:viewingDirectionToGeodetic(
+                     fn:data($viewingVector),
+                     fn:data($ephemeride[1]/position), fn:data($ephemeride[1]/velocity))
+                }
+                </position>
+      
+         let $bottom_edge := for $viewingVector in local:reverseSequence($leftToRightViewingAgles[fn:position() > 1 and fn:position() < fn:last()])
+            return
+               <position>
+               {
+                  local:viewingDirectionToGeodetic(
+                     fn:data($viewingVector),
+                     fn:data($ephemeride[fn:last()]/position), fn:data($ephemeride[fn:last()]/velocity))
+                }
+                </position>
+      
+         let $outputList := ($right_edge, $bottom_edge, $left_edge, $top_edge, $right_edge[position() = (1)])
+         let $outputForJTS := 
+            for $i in $outputList
+            return
+               fn:concat(fn:data($i)[1], ' ', fn:data($i)[2], ',')
+         let $outputForGML := 
+            for $i in $outputList
+            return
+               fn:concat(fn:data($i)[2], ' ', fn:data($i)[1], ' ')      
+         return      
+         (
+           <metadata
+              queryable="GMLfootprint"
+              category="product"
+              name="Footprint"
+              type="application/gml+xml">
+                 <gml:Polygon xmlns:gml="http://www.opengis.net/gml"
+                              srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">
+                    <gml:outerBoundaryIs>
+                       <gml:LinearRing>
+                          <gml:coordinates>
+                          {
+                               utils:points2GML(string-join($outputForGML,""))
+                          }                             
+                          </gml:coordinates>
+                       </gml:LinearRing>
+                    </gml:outerBoundaryIs>
+                 </gml:Polygon>
+           </metadata>,
+           <!-- JTS FOOTPRINT -->
+           <metadata
+              queryable="footprint"
+              category="product"
+              name="JTS footprint"
+              type="application/jts">
+                 {
+                       concat ("POLYGON ((",substring(string-join($outputForJTS,""),1,string-length(string-join($outputForJTS,""))-1),"))")
+                 }
+           </metadata>        
+      )
+
+         ]]>
+      </dhus:metadataExtractor>   
+   </rdf:Description> 
+      
 </rdf:RDF>

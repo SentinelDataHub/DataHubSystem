@@ -19,17 +19,16 @@
  */
 package fr.gael.dhus.olingo.v1.entityset;
 
-import java.net.URI;
+import fr.gael.dhus.olingo.v1.Expander;
+import fr.gael.dhus.olingo.v1.Model;
+import fr.gael.dhus.olingo.v1.entity.AbstractEntity;
+import fr.gael.dhus.olingo.v1.map.impl.ClassMap;
+
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-import org.apache.olingo.odata2.api.ODataCallback;
-import org.apache.olingo.odata2.api.edm.EdmException;
 import org.apache.olingo.odata2.api.edm.EdmMultiplicity;
 import org.apache.olingo.odata2.api.edm.EdmSimpleTypeKind;
 import org.apache.olingo.odata2.api.edm.EdmTargetPath;
@@ -46,20 +45,14 @@ import org.apache.olingo.odata2.api.edm.provider.NavigationProperty;
 import org.apache.olingo.odata2.api.edm.provider.Property;
 import org.apache.olingo.odata2.api.edm.provider.PropertyRef;
 import org.apache.olingo.odata2.api.edm.provider.SimpleProperty;
-import org.apache.olingo.odata2.api.ep.EntityProviderWriteProperties;
-import org.apache.olingo.odata2.api.ep.callback.OnWriteFeedContent;
-import org.apache.olingo.odata2.api.ep.callback.WriteFeedCallbackContext;
-import org.apache.olingo.odata2.api.ep.callback.WriteFeedCallbackResult;
-import org.apache.olingo.odata2.api.exception.ODataApplicationException;
+import org.apache.olingo.odata2.api.uri.KeyPredicate;
 
-import fr.gael.dhus.datastore.processing.ProcessingUtils;
-import fr.gael.dhus.olingo.v1.V1Model;
 /**
  * This class denotes Drb Class description of a product.
  *
  */
 public class ClassEntitySet extends 
-   V1EntitySet<fr.gael.dhus.olingo.v1.entity.Class>
+   AbstractEntitySet<fr.gael.dhus.olingo.v1.entity.Class>
 {
    public static final String ENTITY_NAME = "Class";
 
@@ -68,11 +61,9 @@ public class ClassEntitySet extends
    public static final String URI = "Uri";
 
    public static final FullQualifiedName ASSO_CLASS_CLASS =
-         new FullQualifiedName (V1Model.NAMESPACE, "Class_Class");
+         new FullQualifiedName(Model.NAMESPACE, "Class_Class");
    public static final String ROLE_CLASS_CLASSES = "Class_Classes"; // many
    public static final String ROLE_CLASS_PARENT = "Class_Classes"; // 1
-
-   private static Logger logger = LogManager.getLogger (ClassEntitySet.class);
 
    @Override
    public String getEntityName ()
@@ -147,52 +138,29 @@ public class ClassEntitySet extends
    }
 
    @Override
-   public Map<String, ODataCallback> getCallbacks (final URI lnk)
+   public Map getEntities()
    {
-      Map<String, ODataCallback> res = new HashMap<String, ODataCallback> ();
-      // Expand Nodes
-      res.put ("Classes", new OnWriteFeedContent ()
-      {
-         @Override
-         public WriteFeedCallbackResult retrieveFeedResult (
-            WriteFeedCallbackContext context) throws ODataApplicationException
-         {
-            WriteFeedCallbackResult result = new WriteFeedCallbackResult ();
-            try
-            {
-               if (isNavigationFromTo (context, getName (),
-                  V1Model.CLASS.getName ()))
-               {
-                  EntityProviderWriteProperties inlineProperties =
-                     EntityProviderWriteProperties
-                        .serviceRoot (lnk)
-                        .expandSelectTree (
-                           context.getCurrentExpandSelectTreeNode ())
-                        .selfLink (context.getSelfLink ()).build ();
-
-                  String uri = (String)context.getEntryData ().get (URI);
-                  
-                  List<Map<String, Object>> feedData =
-                     new ArrayList<Map<String, Object>> ();
-                  
-                  List<String>super_classes=ProcessingUtils.getSuperClass(uri);
-                  for (String cl: super_classes)
-                  {
-                     fr.gael.dhus.olingo.v1.entity.Class sclass = 
-                        new  fr.gael.dhus.olingo.v1.entity.Class (cl);
-                     feedData.add (sclass.toEntityResponse (lnk.toString ()));
-                  }
-                  result.setFeedData (feedData);
-                  result.setInlineProperties (inlineProperties);
-               }
-            }
-            catch (EdmException e)
-            {
-               logger.error ("Error when including Nodes in Node Response", e);
-            }
-            return result;
-         }
-      });
-      return res;
+      return new ClassMap();
    }
+
+   @Override
+   public AbstractEntity getEntity(KeyPredicate kp)
+   {
+      String key = kp.getLiteral();
+      return (new ClassMap()).get(key);
+   }
+
+   @Override
+   public List<String> getExpandableNavLinkNames()
+   {
+      return Collections.singletonList("Classes");
+   }
+
+   @Override
+   public List<Map<String, Object>> expand(String navlink_name, String self_url,
+         Map<?, AbstractEntity> entities, Map<String, Object> key)
+   {
+      return Expander.expandFeedSingletonKey(navlink_name, self_url, entities, key, ClassEntitySet.ID);
+   }
+
 }

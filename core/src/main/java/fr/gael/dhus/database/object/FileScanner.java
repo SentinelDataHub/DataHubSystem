@@ -68,7 +68,7 @@ public class FileScanner
    @JoinTable(
       name="FILESCANNER_COLLECTIONS",
       joinColumns={@JoinColumn(name="FILE_SCANNER_ID", table="FILE_SCANNER")}, 
-      inverseJoinColumns={@JoinColumn(name="COLLECTIONS_ID",
+      inverseJoinColumns={@JoinColumn(name="COLLECTIONS_UUID",
                                       table="COLLECTIONS")})
    private Set<Collection> collections;
    

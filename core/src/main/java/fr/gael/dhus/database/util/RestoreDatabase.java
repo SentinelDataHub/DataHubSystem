@@ -23,8 +23,8 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 /**
  * restore database must be exectuted once the dhus system is stopped to 
@@ -33,7 +33,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class RestoreDatabase
 {
-   private static Log logger = LogFactory.getLog (RestoreDatabase.class);
+   private static final Logger LOGGER = LogManager.getLogger(RestoreDatabase.class);
 
    /**
     * Hide utility class constructor
@@ -61,7 +61,7 @@ public class RestoreDatabase
       File dump = new File (args[0]);
       File db = new File (args[1]);
       
-      logger.info ("Restoring " + dump.getPath () + " into " + db.getPath () +
+      LOGGER.info("Restoring " + dump.getPath () + " into " + db.getPath () +
             ".");
       
       if (!db.exists ())
@@ -79,7 +79,7 @@ public class RestoreDatabase
       FileUtils.deleteDirectory (db);
       FileUtils.copyDirectory (dump, db);
       
-      logger.info ("Dump properly restored, please restart system now.");
+      LOGGER.info("Dump properly restored, please restart system now.");
    }
 
 }

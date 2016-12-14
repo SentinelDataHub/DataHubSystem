@@ -61,7 +61,7 @@ public class TestNetworkUsageDao extends
    public void create ()
    {
       User user = new User ();
-      user.setId (3L);
+      user.setUUID ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3");
       user.setUsername ("babar");
 
       NetworkUsage nu = new NetworkUsage ();
@@ -81,7 +81,7 @@ public class TestNetworkUsageDao extends
    public void read ()
    {
       User u = new User ();
-      u.setId (2L);
+      u.setUUID ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2");
       NetworkUsage nu = dao.read (0L);
       Assert.assertNotNull (nu);
       Assert.assertEquals (nu.getSize ().intValue (), 2);
@@ -111,7 +111,7 @@ public class TestNetworkUsageDao extends
       dao.delete (dao.read (id));
       Assert.assertEquals (dao.count (), (howMany () - 1));
       Assert.assertNull (dao.read (id));
-      Assert.assertNotNull (udao.read (3L));
+      Assert.assertNotNull (udao.read ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3"));
    }
 
    @Override

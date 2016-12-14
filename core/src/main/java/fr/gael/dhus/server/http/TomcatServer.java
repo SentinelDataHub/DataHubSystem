@@ -19,6 +19,11 @@
  */
 package fr.gael.dhus.server.http;
 
+import com.google.common.io.Files;
+import fr.gael.dhus.server.ScalabilityManager;
+import fr.gael.dhus.server.http.webapp.WebApplication;
+import fr.gael.dhus.system.config.ConfigurationManager;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -26,57 +31,47 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
-import java.util.logging.LogManager;
-
-import javax.servlet.Servlet;
-import javax.servlet.ServletException;
 
 import org.apache.catalina.Container;
-import org.apache.catalina.Context;
-import org.apache.catalina.Wrapper;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.core.StandardEngine;
 import org.apache.catalina.startup.Catalina;
 import org.apache.catalina.startup.Constants;
 import org.apache.catalina.startup.ContextConfig;
-import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.startup.Tomcat.DefaultWebXmlListener;
 import org.apache.catalina.valves.RemoteAddrValve;
 import org.apache.catalina.valves.RemoteIpValve;
+
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.juli.ClassLoaderLogManager;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import org.apache.tomcat.util.ExceptionUtils;
+import org.apache.tomcat.util.scan.StandardJarScanner;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import com.google.common.io.Files;
-
-import fr.gael.dhus.server.http.web.WebApplication;
-import fr.gael.dhus.server.http.web.WebServlet;
-import fr.gael.dhus.system.config.ConfigurationManager;
 
 @Component
 public class TomcatServer
 {
-   private static Log logger = LogFactory.getLog (TomcatServer.class);
+   private static final Logger LOGGER = LogManager.getLogger(TomcatServer.class);
 
    @Autowired
    private ConfigurationManager configurationManager;
+   
+   @Autowired
+   private ScalabilityManager scalabilityManager;
 
    private String tomcatpath;
 
    private Catalina cat;
-
-   private ArrayList<StandardContext> contexts =
-      new ArrayList<StandardContext> ();
 
    /**
     * Initialize Tomcat inner datasets.
@@ -87,7 +82,7 @@ public class TomcatServer
       final String extractDirectory = tomcatpath;
 
       File extractDirectoryFile = new File (extractDirectory);
-      logger.info ("Starting tomcat in " + extractDirectoryFile.getPath ());
+      LOGGER.info("Starting tomcat in " + extractDirectoryFile.getPath());
 
       try
       {
@@ -159,16 +154,7 @@ public class TomcatServer
          catch (Throwable ex)
          {
             ExceptionUtils.handleThrowable (ex);
-            logger.error ("Fail to properly shutdown Tomcat:" +
-               ex.getMessage ());
-         }
-         finally
-         {
-            LogManager logManager = LogManager.getLogManager ();
-            if (logManager instanceof ClassLoaderLogManager)
-            {
-               ((ClassLoaderLogManager) logManager).shutdown ();
-            }
+            LOGGER.error("Fail to properly shutdown Tomcat:" + ex.getMessage ());
          }
       }
    }
@@ -178,7 +164,7 @@ public class TomcatServer
    {
       if (extract_directory_file.exists ())
       {
-         logger.debug ("Clean extractDirectory");
+         LOGGER.debug("Clean extractDirectory");
          FileUtils.deleteDirectory (extract_directory_file);
       }
 
@@ -264,123 +250,16 @@ public class TomcatServer
          }
       }
    }
-
-   public void install (WebApplication web_application) throws TomcatException
-   {
-      try
-      {
-         String folder =
-            web_application.getName () == "" ? "ROOT" : web_application
-               .getName ();
-         if (web_application.hasWarStream ())
-         {
-            InputStream stream = web_application.getWarStream ();
-            if (stream == null)
-            {
-               throw new TomcatException ("Cannot install WebApplication " +
-                  web_application.getName () + ". The referenced war " +
-                  "file does not exist.");
-            }
-            JarInputStream jis = new JarInputStream (stream);
-            File destDir = new File (tomcatpath, "webapps/" + folder);
-
-            byte[] buffer = new byte[4096];
-            JarEntry file;
-            while ( (file = jis.getNextJarEntry ()) != null)
-            {
-               File f =
-                  new File (destDir + java.io.File.separator + file.getName ());
-               if (file.isDirectory ())
-               { // if its a directory, create it
-                  f.mkdirs ();
-                  continue;
-               }
-               if ( !f.getParentFile ().exists ())
-               {
-                  f.getParentFile ().mkdirs ();
-               }
-
-               java.io.FileOutputStream fos = new java.io.FileOutputStream (f);
-               int read;
-               while ( (read = jis.read (buffer)) != -1)
-               {
-                  fos.write (buffer, 0, read);
-               }
-               fos.flush ();
-               fos.close ();
-            }
-            jis.close ();
-         }
-         web_application.configure (new File (tomcatpath, "webapps/" + folder)
-            .getPath ());
-
-         StandardEngine engine =
-            (StandardEngine) cat.getServer ().findServices ()[0]
-               .getContainer ();
-         Container container = engine.findChild (engine.getDefaultHost ());
-
-         StandardContext ctx = new StandardContext ();
-         String url =
-            (web_application.getName () == "" ? "" : "/") +
-               web_application.getName ();
-         ctx.setName (url);
-         ctx.setPath (url);
-         ctx.setDocBase (new File (tomcatpath, "webapps/" + folder).getPath ());
-
-         ctx.addLifecycleListener (new DefaultWebXmlListener ());
-         ctx.setConfigFile (getWebappConfigFile (new File (tomcatpath,
-            "webapps/" + folder).getPath (), url));
-
-         ContextConfig ctxCfg = new ContextConfig ();
-         ctx.addLifecycleListener (ctxCfg);
-
-         ctxCfg.setDefaultWebXml("fr/gael/dhus/server/http/global-web.xml");
-
-         container.addChild (ctx);
-
-         contexts.add (ctx);
-
-         List<WebServlet> servlets = web_application.getServlets ();
-
-         for (WebServlet servlet : servlets)
-         {
-            addServlet (ctx, servlet.getServletName (),
-               servlet.getUrlPattern (), servlet.getServlet (),
-               servlet.isLoadOnStartup ());
-         }
-
-         List<String> welcomeFiles = web_application.getWelcomeFiles ();
-
-         for (String welcomeFile : welcomeFiles)
-         {
-            ctx.addWelcomeFile (welcomeFile);
-         }
-
-         if (web_application.getAllow () != null ||
-            web_application.getDeny () != null)
-         {
-            RemoteIpValve valve = new RemoteIpValve ();
-            valve.setRemoteIpHeader ("x-forwarded-for");
-            valve.setProxiesHeader ("x-forwarded-by");
-            valve.setProtocolHeader ("x-forwarded-proto");
-            ctx.addValve (valve);
-
-            RemoteAddrValve valve_addr = new RemoteAddrValve ();
-            valve_addr.setAllow (web_application.getAllow ());
-            valve_addr.setDeny (web_application.getDeny ());
-            ctx.addValve (valve_addr);
-         }
-      }
-      catch (Exception e)
-      {
-         throw new TomcatException ("Cannot install service", e);
-      }
-   }
    
-   public void install (fr.gael.dhus.server.http.WebApplication web_application)
+   public void install (WebApplication web_application)
       throws TomcatException
    {
-      logger.info ("Installing webapp " + web_application);
+      if (web_application.isPartOfScalability () && !scalabilityManager.isActive ())
+      {
+         LOGGER.info ("Scalability - Skipping '"+web_application+"', because scalability is disabled");
+         return;
+      }
+      LOGGER.info ("Installing webapp " + web_application);
       String appName = web_application.getName ();
       String folder;
 
@@ -459,6 +338,7 @@ public class TomcatServer
 
          ctxCfg.setDefaultWebXml("fr/gael/dhus/server/http/global-web.xml");
 
+         StandardJarScanner.class.cast(ctx.getJarScanner()).setScanClassPath(false);
          container.addChild (ctx);
 
          List<String> welcomeFiles = web_application.getWelcomeFiles ();
@@ -492,66 +372,9 @@ public class TomcatServer
       }
    }
 
-   public void install (WebServlet web_servlet)
-   {
-      Context ctx = findContext (web_servlet.getUrlBase ());
-      addServlet (ctx, web_servlet.getServletName (),
-         web_servlet.getUrlPattern (), web_servlet.getServlet (),
-         web_servlet.isLoadOnStartup ());
-   }
-
-   private Wrapper addServlet (Context ctx, String servlet_name,
-      String url_mapping, Servlet servlet, boolean load_on_startup)
-   {
-      Wrapper wrapper = Tomcat.addServlet (ctx, servlet_name, servlet);
-      ctx.addServletMapping (url_mapping, servlet_name);
-      if (load_on_startup)
-      {
-         try
-         {
-            wrapper.load ();
-         }
-         catch (ServletException e)
-         {
-            e.printStackTrace ();
-         }
-      }
-      return wrapper;
-   }
-
    public void await ()
    {
       cat.getServer ().await ();
-   }
-
-   private Context findContext (String context_name)
-   {
-      StandardEngine engine =
-         (StandardEngine) cat.getServer ().findServices ()[0].getContainer ();
-      Container container = engine.findChild (engine.getDefaultHost ());
-      StandardContext context =
-         (StandardContext) (container.findChild (context_name));
-
-      if (context != null)
-      {
-         return context;
-      }
-      context = new StandardContext ();
-      context.setName (context_name);
-      context.setPath (context_name);
-      context.setDocBase ("");
-
-      context.addLifecycleListener (new DefaultWebXmlListener ());
-
-      ContextConfig ctxCfg = new ContextConfig ();
-      context.addLifecycleListener (ctxCfg);
-
-      // prevent it from looking ( if it finds one - it'll have dup error )
-      ctxCfg.setDefaultWebXml (Constants.NoDefaultWebXml);
-
-      container.addChild (context);
-      contexts.add (context);
-      return context;
    }
 
    public int getPort ()
@@ -559,6 +382,16 @@ public class TomcatServer
       Connector connector =
          cat.getServer ().findServices ()[0].findConnectors ()[0];
       return connector.getPort ();
+   }
+
+   public int getAltPort()
+   {
+      Connector[] connectors = cat.getServer().findServices()[0].findConnectors();
+      if (connectors.length >= 2)
+      {
+         return connectors[1].getPort();
+      }
+      return connectors[0].getPort();
    }
 
    public String getPath ()
@@ -592,8 +425,7 @@ public class TomcatServer
          }
          catch (MalformedURLException e)
          {
-            logger.warn (
-               "Unable to determine web application context.xml " + docBase, e);
+            LOGGER.warn("Unable to determine web application context.xml " + docBase, e);
          }
       }
       return result;
@@ -616,8 +448,7 @@ public class TomcatServer
       }
       catch (IOException e)
       {
-         logger.warn (
-            "Unable to determine web application context.xml " + docBase, e);
+         LOGGER.warn("Unable to determine web application context.xml " + docBase, e);
       }
       finally
       {

@@ -19,19 +19,19 @@
  */
 package fr.gael.dhus.olingo.v1.visitor;
 
+import fr.gael.dhus.database.object.User;
 import org.apache.olingo.odata2.api.edm.EdmTyped;
 import org.apache.olingo.odata2.api.uri.expression.PropertyExpression;
 
-import fr.gael.dhus.olingo.OlingoSQLVisitor;
+import fr.gael.dhus.olingo.v1.SQLVisitor;
 import fr.gael.dhus.olingo.v1.entityset.UserEntitySet;
 
-public class UserSQLVisitor extends OlingoSQLVisitor
+public class UserSQLVisitor extends SQLVisitor
 {
-   private String prefix = null;
 
-   public UserSQLVisitor (String prefix)
+   public UserSQLVisitor ()
    {
-      this.prefix = prefix;
+      super(User.class);
    }
 
    @Override
@@ -43,37 +43,40 @@ public class UserSQLVisitor extends OlingoSQLVisitor
                uri_literal);
 
       if (uri_literal.equals (UserEntitySet.USERNAME)) 
-         return prefix + ".username";
+         return new Member ("username");
 
       if (uri_literal.equals (UserEntitySet.COUNTRY))
-         return prefix + ".country";
+         return new Member ("country");
 
       if (uri_literal.equals (UserEntitySet.EMAIL))
-         return prefix + ".email";
+         return new Member ("email");
 
       if (uri_literal.equals (UserEntitySet.FIRSTNAME))
-         return prefix + ".firstname";
+         return new Member ("firstname");
 
       if (uri_literal.equals (UserEntitySet.LASTNAME))
-         return prefix + ".lastname";
+         return new Member ("lastname");
 
       if (uri_literal.equals (UserEntitySet.ADDRESS))
-         return prefix + ".address";
+         return new Member ("address");
 
       if (uri_literal.equals (UserEntitySet.PHONE))
-         return prefix + ".phone";
+         return new Member ("phone");
 
       if (uri_literal.equals (UserEntitySet.DOMAIN))
-         return prefix + ".domain";
+         return new Member ("domain");
 
       if (uri_literal.equals (UserEntitySet.SUBDOMAIN))
-         return prefix + ".subDomain";
+         return new Member ("subDomain");
 
       if (uri_literal.equals (UserEntitySet.USAGE))
-         return prefix + ".usage";
+         return new Member ("usage");
 
       if (uri_literal.equals (UserEntitySet.SUBUSAGE))
-         return prefix + ".subUsage";
+         return new Member ("subUsage");
+
+      if (uri_literal.equals(UserEntitySet.CREATED))
+         return new Member ("created");
 
       throw new IllegalArgumentException ("Property not supported: " +
             uri_literal);

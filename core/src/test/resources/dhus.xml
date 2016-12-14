@@ -71,7 +71,7 @@
             <classifier>
                <includes>
                   <include>
-                     <userEmailPattern>.*@gael.fr</userEmailPattern>
+                     <userEmailPattern>.*@test.com</userEmailPattern>
                   </include>
                </includes>
             </classifier>
@@ -86,13 +86,16 @@
                    "MINUTES", "NANOSECONDS", "SECONDS".
                    "period" attribute is a sliding time window used to count
                    number of transfered product from now to the past period delay. -->
+                   <!-- 
                <maxCount period="1" periodUnit="DAYS">50</maxCount>
+                -->
                <!-- Maximum accepted size of transfer file. -->
-               <maxSize>10000000000</maxSize> <!-- 10Gb -->
+               <maxSize>1000000</maxSize> <!-- 10Gb -->
                <!-- maxCumulativeSize defines the maximum cumulated accepted
                    transfers size on a customizable period.
                    period/periodUnit attributes are defined in maxCount description. -->
-               <maxCumulativeSize period="7" periodUnit="DAYS">1099511627776</maxCumulativeSize> <!-- 1Tb -->
+               <!--
+               <maxCumulativeSize period="7" periodUnit="DAYS">1099511627776</maxCumulativeSize> --><!-- 1Tb -->
                <!-- maxBandwidth maximum bandwidth authorized for this channel. -->
                <maxBandwidth>1000000</maxBandwidth> <!-- 10Mb/s -->
             </defaultUserQuotas>
@@ -121,61 +124,6 @@
             </defaultUserQuotas>
          </channel>
       </outbound>
-      <inbound>
-         <channel name="PriorityChannel" weight="75">
-            <classifier>
-               <includes>
-                  <include>
-                     <userEmailPattern>.*@gael.fr</userEmailPattern>
-                  </include>
-               </includes>
-            </classifier>
-            <defaultUserQuotas>
-               <!-- maxConcurrent defines the maximum simultaneous accepted
-                   transfers. -->
-               <maxConcurrent>1</maxConcurrent>
-               <!-- maxCount defines the maximum number of accepted transfers on
-                   a customizable period.
-                   "periodUnit" attribute defines the unit of the period. Possible
-                   units are "DAYS", "HOURS", "MICROSECONDS", "MILLISECONDS",
-                   "MINUTES", "NANOSECONDS", "SECONDS".
-                   "period" attribute is a sliding time window used to count
-                   number of transfered product from now to the past period delay. -->
-               <maxCount period="1" periodUnit="DAYS">50</maxCount>
-               <!-- Maximum accepted size of transfer file. -->
-               <maxSize>10000000000</maxSize> <!-- 10Gb -->
-               <!-- maxCumulativeSize defines the maximum cumulated accepted
-                   transfers size on a customizable period.
-                   period/periodUnit attributes are defined in maxCount description. -->
-               <maxCumulativeSize period="7" periodUnit="DAYS">1099511627776</maxCumulativeSize> <!-- 1Tb -->
-               <!-- maxBandwidth maximum bandwidth authorized for this channel. -->
-               <maxBandwidth>1000000</maxBandwidth> <!-- 10Mb/s -->
-            </defaultUserQuotas>
-         </channel>
-         <channel name="SelfRegisteredChannel" weight="25">
-            <defaultUserQuotas>
-               <!-- maxConcurrent defines the maximum simultaneous accepted
-                   transfers. -->
-               <maxConcurrent>5</maxConcurrent>
-               <!-- maxCount defines the maximum number of accepted transfers on
-                   a customizable period.
-                   "periodUnit" attribute defines the unit of the period. Possible
-                   units are "DAYS", "HOURS", "MICROSECONDS", "MILLISECONDS",
-                   "MINUTES", "NANOSECONDS", "SECONDS".
-                   "period" attribute is a sliding time window used to count
-                   number of transfered product from now to the past period delay. -->
-               <maxCount period="1" periodUnit="DAYS">50</maxCount>
-               <!-- Maximum accepted size of transfer file. -->
-               <maxSize>10737418240</maxSize> <!-- 10Gb -->
-               <!-- maxCumulativeSize defines the maximum cumulated accepted
-                  transfers size on a customizable period.
-                  period/periodUnit attributes are defined in maxCount description. -->
-               <maxCumulativeSize period="7" periodUnit="DAYS">1099511627776</maxCumulativeSize> <!-- 1Tb -->
-               <!-- maxBandwidth maximum bandwidth authorized for this channel. -->
-               <maxBandwidth>13107200</maxBandwidth> <!-- 100Mb/s -->
-            </defaultUserQuotas>
-         </channel>
-      </inbound>
    </network>
    <!-- Products configuration
       - publicData: defines if system is launched in public mode or not.

@@ -20,7 +20,8 @@
 package fr.gael.dhus.olingo.v1.map.impl;
 
 import fr.gael.dhus.olingo.v1.entity.Connection;
-import fr.gael.dhus.olingo.v1.map.AbstractFunctionalMap;
+import fr.gael.dhus.olingo.v1.map.FunctionalMap;
+import fr.gael.dhus.olingo.v1.visitor.ConnectionFunctionalVisitor;
 import fr.gael.dhus.server.http.valve.AccessInformation;
 import fr.gael.dhus.server.http.valve.AccessValve;
 import fr.gael.dhus.util.functional.collect.TransformedMap;
@@ -35,21 +36,22 @@ import org.apache.commons.collections4.Transformer;
 /**
  * A map view on Connections.
  */
-public class ConnectionMap extends AbstractFunctionalMap<UUID, Connection>
+public class ConnectionMap extends FunctionalMap<UUID, Connection>
 {
    /**
     * Creates a new ConnectionMap.
     * @param username prints connections from this user only.
     */
    public ConnectionMap(String username) {
-      super(mapTransform(filterUser(AccessValve.getAccessInformationMap(), username)));
+      super(mapTransform(filterUser(AccessValve.getAccessInformationMap(), username)),
+            new ConnectionFunctionalVisitor());
    }
 
    /**
     * Creates a new ConnectionMap.
     */
    public ConnectionMap() {
-      super(mapTransform(AccessValve.getAccessInformationMap()));
+      super(mapTransform(AccessValve.getAccessInformationMap()), new ConnectionFunctionalVisitor());
    }
 
    /**

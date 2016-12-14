@@ -30,8 +30,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.olingo.odata2.api.edm.EdmLiteralKind;
 import org.apache.olingo.odata2.api.edm.EdmSimpleType;
@@ -50,7 +50,7 @@ import static org.apache.olingo.odata2.api.edm.EdmSimpleTypeKind.DateTime;
  */
 public class ODataScanner extends AbstractScanner
 {
-   private static final Log LOGGER = LogFactory.getLog (ODataScanner.class);
+   private static final Logger LOGGER = LogManager.getLogger(ODataScanner.class);
    
    private final ODataClient client;
    private final String uri, username, password;

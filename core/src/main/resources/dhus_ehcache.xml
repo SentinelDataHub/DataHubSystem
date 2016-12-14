@@ -1,0 +1,16 @@
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="ehcache.xsd"
+         name="dhus_cache">
+
+   <!-- Access Information Cache -->
+   <cache name="user_connections"
+          maxElementsInMemory="100000"
+          eternal="false"
+          timeToIdleSeconds="0"
+          timeToLiveSeconds="3600"
+          memoryStoreEvictionPolicy="LRU">
+      <cacheEventListenerFactory
+            class="fr.gael.dhus.util.LoggingCacheListenerFactory" />
+      <persistence strategy="none"/>
+   </cache>
+</ehcache>

@@ -1,0 +1,120 @@
+<!--
+  @license
+
+ 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<!--
+i18n Manager translate words in many languages, exploiting dictionaries.
+
+
+@demo demo/index.html
+-->
+
+<dom-module id="i18n-manager">
+
+
+<script>
+    (function() {
+       'use strict';
+       class I18nManager {
+
+          constructor(){
+            this.beforeRegister();
+          }
+
+          /**
+           * BeforeRegister method Polymer calls before creating the element.
+           * This method is where you shoud define the is property (element's name) and
+           * properties  object.
+           *
+           * @return {null}
+           */
+          beforeRegister() {           
+            this.is = 'i18n-manager';                         
+            this.languageBaseURL = "/lang";
+            this.owcApp = document.querySelector('#owc-app');
+            this.languages = {};                     
+          }    
+
+          /**             
+           *   Load language from server            
+           *
+           * @param {?Object} paramExample: method parameter sample
+           * @return {null}
+           */
+           _getLanguage(lang){
+              var self = this;           
+              return self.owcApp.httpManager.sendRequest(
+                  'GET', 
+                   self.owcApp.config.clientUrl+'/lang/dictionary.' + lang
+                );                 
+           }
+
+
+          /**             
+           *   Set the current language
+           *
+           * @param {?Object} newValue: the new value of public Property
+           * @return {null}
+           */
+          setCurrentLanguage(lang){              
+            var self = this;  
+
+            if(! this.languages || this.languages[lang] === undefined){
+             return this._getLanguage(lang)
+                .then(function(response){                  
+                  if(response.status == 200){
+                    self.languages[lang] = response.data;
+                    self.currentLanguage = lang;                                 
+                  }
+                 });              
+            }else{
+              self.currentLanguage = lang; 
+              return null;                                
+            }
+          }
+
+          /**             
+           *   Set the current language
+           *
+           * @param {?Object} newValue: the new value of public Property
+           * @return {null}
+           */
+          translate(key){            
+            if((this.languages[this.currentLanguage] === undefined)  ) return key;            
+            return this.languages[this.currentLanguage][key]?this.languages[this.currentLanguage][key]:key;
+
+          }
+       };
+
+      Polymer(I18nManager);
+      eu.serco.Owc.I18nManager = I18nManager;
+
+    })();
+  </script>
+
+</dom-module>

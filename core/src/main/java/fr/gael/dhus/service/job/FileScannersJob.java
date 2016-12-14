@@ -19,23 +19,22 @@
  */
 package fr.gael.dhus.service.job;
 
-import java.util.List;
-
-import org.apache.log4j.Logger;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.stereotype.Component;
-
 import fr.gael.dhus.DHuS;
-import fr.gael.dhus.database.dao.FileScannerDao;
-import fr.gael.dhus.database.dao.UserDao;
 import fr.gael.dhus.database.object.FileScanner;
 import fr.gael.dhus.database.object.User;
 import fr.gael.dhus.datastore.scanner.ScannerException;
 import fr.gael.dhus.datastore.scanner.ScannerFactory;
+import fr.gael.dhus.service.FileScannerService;
 import fr.gael.dhus.system.config.ConfigurationManager;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Autowired by {@link AutowiringJobFactory}
@@ -43,24 +42,18 @@ import fr.gael.dhus.system.config.ConfigurationManager;
 @Component
 public class FileScannersJob extends AbstractJob
 {
-   private static Logger logger=Logger.getLogger(FileScannersJob.class);
+   private static final Logger LOGGER = LogManager.getLogger(FileScannersJob.class);
 
    private static int thread_counter = 0;
 
    @Autowired
-   private UserDao userDao;
-   
-   @Autowired
-   private FileScannerDao fileScannerDao;
+   private FileScannerService fs_service;
 
    @Autowired
    private ScannerFactory scannerFactory;
 
    @Autowired
    private ConfigurationManager configurationManager;
-   
-   @Autowired
-   private TaskExecutor taskExecutor;
 
    @Override
    public String getCronExpression ()
@@ -77,54 +70,50 @@ public class FileScannersJob extends AbstractJob
       
       if (!configurationManager.getFileScannersCronConfiguration ().isActive ())
          return;
-      logger.info ("SCHEDULER : Products scanners.");
+      LOGGER.info("SCHEDULER : Products scanners.");
       if (!DHuS.isStarted ())
       {
-         logger.warn("SCHEDULER : Not run while system not fully initialized.");
+         LOGGER.warn("SCHEDULER : Not run while system not fully initialized.");
          return;
       }
  
-      logger.info ("Running FileScanners Executions.");
-      List<FileScanner>fscanners = fileScannerDao.readAll ();
-      if (fscanners != null)
+      LOGGER.info("Running FileScanners Executions.");
+      for (final FileScanner fs : fs_service.getActiveScanner ())
       {
-         for (final FileScanner fs:fileScannerDao.readAll ())
+         final User user = fs_service.getFileScannerOwner (fs);
+
+         if (!fs.isActive ())
          {
-            final User user = fileScannerDao.getUserFromScanner(fs);
-         
-            if (!fs.isActive ())
-            {
-               logger.info (user.getUsername () + "'s fileScanner \"" + 
-                  fs.getUrl () + "\" is disabled.");
-               continue;
-            }
-            
-            Runnable runnable = new Runnable()
-            {
-               @Override
-               public void run ()
-               {
-                  try
-                  {
-                     logger.info (user.getUsername () + "'s fileScanner \"" + 
-                              fs.getUrl () + "\" started.");
-                     scannerFactory.processScan (fs.getId (), user);
-                  }
-                  catch (ScannerException e)
-                  {
-                     logger.info ("Scanner \"" + user.getUsername () + "@" + 
-                        fs.getUrl () + "\" not started: " + e.getMessage ());
-                  }
-               }
-            };
-            // Asynchronously run all scanners.
-            Thread thread = new Thread (runnable, "scanner-job-"+ 
-               (++thread_counter));
-            if (thread_counter>100) thread_counter=0;
-            thread.start ();
+            LOGGER.info(user.getUsername () + "'s fileScanner \"" +
+               fs.getUrl () + "\" is disabled.");
+            continue;
          }
+
+         Runnable runnable = new Runnable()
+         {
+            @Override
+            public void run ()
+            {
+               try
+               {
+                  LOGGER.info(user.getUsername () + "'s fileScanner \"" +
+                           fs.getUrl () + "\" started.");
+                  scannerFactory.processScan (fs.getId (), user);
+               }
+               catch (ScannerException e)
+               {
+                  LOGGER.info("Scanner \"" + user.getUsername () + "@" +
+                     fs.getUrl () + "\" not started: " + e.getMessage ());
+               }
+            }
+         };
+         // Asynchronously run all scanners.
+         Thread thread = new Thread (runnable, "scanner-job-"+
+            (++thread_counter));
+         if (thread_counter>100) thread_counter=0;
+         thread.start ();
       }
-      logger.info ("SCHEDULER : Products scanners done - " + 
+      LOGGER.info("SCHEDULER : Products scanners done - " +
                (System.currentTimeMillis ()-start) + "ms");
    }
 }

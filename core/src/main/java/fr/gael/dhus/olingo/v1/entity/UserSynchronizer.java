@@ -36,6 +36,10 @@ import static fr.gael.dhus.olingo.v1.entityset.UserSynchronizerEntitySet.STATUS_
 import static fr.gael.dhus.olingo.v1.entityset.UserSynchronizerEntitySet.STATUS_MESSAGE;
 
 import fr.gael.dhus.database.object.SynchronizerConf;
+import fr.gael.dhus.olingo.v1.ExpectedException;
+import fr.gael.dhus.olingo.v1.ExpectedException.IncompleteDocException;
+import fr.gael.dhus.olingo.v1.ExpectedException.InvalidKeyException;
+import fr.gael.dhus.olingo.v1.ExpectedException.InvalidValueException;
 import fr.gael.dhus.service.ISynchronizerService;
 import fr.gael.dhus.service.exception.InvokeSynchronizerException;
 import fr.gael.dhus.spring.context.ApplicationContextProvider;
@@ -46,7 +50,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import org.apache.olingo.odata2.api.ep.entry.ODataEntry;
 import org.apache.olingo.odata2.api.exception.ODataException;
@@ -54,10 +59,10 @@ import org.apache.olingo.odata2.api.exception.ODataException;
 /**
  * UserSynchronizer OData Entity.
  */
-public final class UserSynchronizer extends V1Entity
+public final class UserSynchronizer extends AbstractEntity
 {
    /** Log. */
-   private static final Logger LOGGER = Logger.getLogger(Synchronizer.class);
+   private static final Logger LOGGER = LogManager.getLogger(Synchronizer.class);
 
    /** Database Object. */
    private final SynchronizerConf syncConf;
@@ -90,8 +95,7 @@ public final class UserSynchronizer extends V1Entity
 
       if (!sync_conf.getType().equals("ODataUserSynchronizer"))
       {
-         throw new ODataException(
-               "UserSynchronizer only accepts instances of ODataUserSynchronizer");
+         throw new InvalidKeyException(String.valueOf(sync_conf.getId()), this.getClass().getSimpleName());
       }
 
       this.syncConf = sync_conf;
@@ -107,19 +111,19 @@ public final class UserSynchronizer extends V1Entity
    {
       Map<String, Object> props = odata_entry.getProperties();
 
-      String label       = (String) props.get("Label");
-      String schedule    = (String) props.get("Schedule");
-      String request     = (String) props.get("Request");
-      String service_url = (String) props.get("ServiceUrl");
+      String label       = (String) props.get(LABEL);
+      String schedule    = (String) props.get(SCHEDULE);
+      String request     = (String) props.get(REQUEST);
+      String service_url = (String) props.get(SERVICE_URL);
 
       if (schedule == null || schedule.isEmpty() || service_url == null || service_url.isEmpty())
       {
-         throw new ODataException ("Missing required parameter");
+         throw new IncompleteDocException();
       }
 
       if (request != null && !request.equals("start") && !request.equals("stop"))
       {
-         throw new ODataException("Unknown request " + request);
+         throw new InvalidValueException(REQUEST, request);
       }
 
       try
@@ -129,7 +133,7 @@ public final class UserSynchronizer extends V1Entity
       }
       catch (ParseException e)
       {
-         throw new ODataException(e);
+         throw new ExpectedException(e.getMessage());
       }
    }
 
@@ -145,7 +149,7 @@ public final class UserSynchronizer extends V1Entity
       Long   page_size   = (Long) props.remove(PAGE_SIZE);
       Long   skip        = (Long) props.remove(CURSOR);
       Boolean force      = (Boolean) props.remove (FORCE);
-                
+
       // Nullable fields
       boolean has_label    = props.containsKey(LABEL);
       boolean has_login    = props.containsKey(SERVICE_LOGIN);
@@ -168,7 +172,7 @@ public final class UserSynchronizer extends V1Entity
          }
          catch (ParseException ex)
          {
-            throw new ODataException(ex);
+            throw new ExpectedException(ex.getMessage());
          }
       }
 
@@ -184,7 +188,7 @@ public final class UserSynchronizer extends V1Entity
          }
          else
          {
-            throw new ODataException("Unknown request " + request);
+            throw new InvalidValueException(REQUEST, request);
          }
       }
 
@@ -250,7 +254,7 @@ public final class UserSynchronizer extends V1Entity
       res.put(MODIFICATION_DATE, this.syncConf.getModified());
       res.put(SERVICE_URL,       this.syncConf.getConfig("service_uri"));
       res.put(SERVICE_LOGIN,     this.syncConf.getConfig("service_username"));
-      res.put(SERVICE_PASSWORD,  this.syncConf.getConfig("service_password"));
+      res.put(SERVICE_PASSWORD,  "***");
 
       // Handling of default values is not done by Olingo!
       String skip = this.syncConf.getConfig("skip");
@@ -261,7 +265,7 @@ public final class UserSynchronizer extends V1Entity
 
       String force = this.syncConf.getConfig("force");
       res.put(FORCE, force != null? Boolean.parseBoolean (force): false);
-      
+
       return res;
    }
 

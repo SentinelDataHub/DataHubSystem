@@ -32,7 +32,6 @@ angular.module('DHuS-webclient')
   .controller('ManagementCtrl', function ($scope, UserService) {
 
   	$scope.user = UserService.model;
-  	console.warn("management get user", $scope.user);
   	$scope.isUserManagement = false;
   	$scope.isDataManagement = false;
   	$scope.isSystemManagement = false;
@@ -53,6 +52,7 @@ angular.module('DHuS-webclient')
     {
        	if ($scope.user) {
 	  		$scope.getAccessRights();
+        setTimeout(function(){$(window).trigger('resize'); },0);
 	  	}
 	  	//console.log("$scope.isUserManagement",$scope.isUserManagement);
   		//console.log("$scope.isDataManagement",$scope.isDataManagement);

@@ -142,8 +142,4 @@
       </createIndex>
    </changeSet>
    
-   <changeSet author="fred" id="forceReIndex">
-      <customChange class="fr.gael.dhus.database.liquibase.ForceReindex"></customChange>
-   </changeSet>
-   
 </databaseChangeLog>

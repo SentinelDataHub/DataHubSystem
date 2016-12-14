@@ -21,7 +21,7 @@
  */
 'use strict';
 
-console.warn("hello from directive.js");
+//console.warn("hello from directive.js");
 
 
 angular.module('DHuS-webclient')
