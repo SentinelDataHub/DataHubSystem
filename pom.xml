@@ -19,6 +19,7 @@
       <module>addon/sentinel-1</module>
       <module>addon/sentinel-2</module>
       <module>addon/sentinel-3</module>
+      <module>installer</module>
    </modules>
 
    <profiles>
