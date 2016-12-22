@@ -22,7 +22,7 @@ The major functionalities of the Data Hub Software are schematically represented
 
   
 
-![](https://raw.githubusercontent.com/SentinelDataHub/DataHubSystem/master/images/DHuS-functions.jpg)
+![](https://raw.githubusercontent.com/SentinelDataHub/DataHubSystem/gh-pages/images/DHuS-functions.jpg)
 
 *Data Hub Software functions* 
 <hr></hr>
