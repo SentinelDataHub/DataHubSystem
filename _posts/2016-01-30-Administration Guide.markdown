@@ -4,7 +4,18 @@ title:  "Administration Guide"
 date:   2016-01-30 15:40:56
 categories: page
 ---
+  
+[Login](#Login)   
+[Panels Description](#PanelsDescription)  
+[Products Upload](#ProductsUpload)   
+[DHuS Administration](#DHuSAdministration)  
+[User Management Panel](#UserManagementPanel)  
+[Collection Management Panel](#CollectionManagementPanel)   
+[System Management Panel](#SystemManagementPanel)    
+[Eviction Management Panel](#EvictionManagementPanel)    
+[Odata Synchronizer Panel](#OdataSynchronizersPanel) 
 
+<a name="Login"></a> 
 **Login**    
 
 Once the installation package (see [Installation Guide section](http://calogera.github.io/DataHubSystem/page/2016/01/31/Installation-Guide.html)) has been successfully installed, the DHuS server can be accessed online (https://dhus.xxx.zz) or on local URL (https://localhost/).
@@ -20,6 +31,7 @@ To access the administrator panels, it is first necessary to login as root,using
 ![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/figure6ajs.png)     
 *GUI DHuS Login Panel user view* 
 
+<a name="PanelsDescription"></a>
 ##Panels description   
 The DHuS provides the Administrator a serires of Panles to fulfil every service. We report here how to access them using the GUI.    
 The list of panels is provided here below:     
@@ -38,6 +50,7 @@ Once the administrator has logged in, the  panels are accessible clicking on the
 ![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/figure8.png)    
 *GUI Administration Panels*   
 
+<a name="ProductsUpload"></a> 
 **Products Upload**   
 The Upload feature is available only to the administrator. DHuS system makes available an incoming space to let the user upload a product. Once uploaded, data is processed to be referenced by DHuS clients. 
 This panel gathers all the information necessary to perform the upload (at least the path to the product).     
@@ -92,8 +105,7 @@ To create a file scanner
 
 The DHuS allows synchronizing products from another DHuS instance. For further details, go to OData Synchronizers panel section.   
 
-
-
+<a name="DHuSAdministration"></a>
 **DHuS Administration**
 
 The DHuS provides the Management panel and it contains 4 subpanels called
@@ -106,7 +118,9 @@ The DHuS provides the Management panel and it contains 4 subpanels called
 
 ![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/fig-10.png)      
 *Management Subpanel (GUI)*
-Here follows a brief tutorial for using the management panels via the GUI.       
+Here follows a brief tutorial for using the management panels via the GUI.  
+
+<a name="UserManagementPanel"></a>
 **User Management Panel**   
 The administrator management panel allows managing users. This means that the administrator can create, edit and delete any user.     
 
@@ -174,7 +188,7 @@ How to delete the selected user?
 <li>	The email notification service will send an e-mail to the deleted user with the communication of the deletion process. </li>
 </ul>
 
-
+<a name="CollectionManagementPanel"></a>
 **Collection Management Panel**    
 Products are gathered into collections. Collections management consists of:   
 1.creating or deleting collections;   
@@ -225,7 +239,7 @@ How to delete a collection/sub collection?:
 
 Note that the collection management page includes a  searching box. It is useful to know if a product is collected somewhere.    
         
-       
+<a name="SystemManagementPanel"></a>        
 **System Management Panel**   
 
 The system management is used to configure basic information in the system.
@@ -258,7 +272,7 @@ To do so, perform the following steps:
 </ul>
 5. Synchronize Local archive :obsolete function, do not use;     
 
-
+<a name="EvictionManagementPanel"></a>
  **Eviction Management Panel**   
 
 The Data Eviction Service is responsible for removing data to keep to the  Data Store sizing constraints. The maximum occupied space for each archive depends on theconfiguration.  The administrator can handle the eviction of products through the Eviction panel here below.
@@ -285,6 +299,7 @@ In order to activate the eviction, perform the following steps:
  <li>  Configure the Maximum disk usage before eviction depending on how much of the machine space can be occupied by data before triggering the eviction (e.g. if the parameter is set to 80, when the disk will be full at 80%, the eviction will be automatically activated)
  <li> Configure the Minimal keeping period for a product parameter. This parameter represents the number of days each product will be kept in the DHuS archive before being evicted (e.g if the parameter is set to 3, the eviction will delete all the products present in the archive for more than three days.)   
 </ul>
+<a name="OdataSynchronizersPanel"></a>
 **OData Synchronizers panel**    
 
 The OData synchronizers panel is available just in the AJS GUI. The DHuS provides end users an OData synchronizer service able to populate a DHuS instance with the data stored on the rolling archive of another DHuS instance. The DHuS instance that contains the data to be synchronized is called back end instance, while the one that shall receive the data is called front end instance. 
