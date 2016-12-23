@@ -185,7 +185,7 @@ Eg: `<!ENTITY varFolder “ /home/dhus/local_dhus”>`
 The log files will be created in the installation directory.
 
 <hr> </hr>
-**Software Configuration Manual**<a name="SoftConfManual"></a> 
+**Software Configuration Manual** <a name="SoftConfManual"></a> 
 
 DHuS configuration files are contained in the etc folder created after the launch of the .shar installation package: 
  	
@@ -363,7 +363,7 @@ They are:
 *	`appconfig.json (includes 1,2,3,4,5) `     
 *	`styles.json (includes 6,7) `     
 
-**Advanced Search Configuration**     
+**Advanced Search Configuration** <a name="AdvancedConfiguration"></a>     
 <hr> </hr> 
 A special attention goes to the configuration of the advanced search mission specific fields. 
 The configuration file appconfig.json has been updated in order to manage mission specific filters. 
