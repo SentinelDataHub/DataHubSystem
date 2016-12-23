@@ -4,7 +4,21 @@ title:  "Installation Guide"
 date:   2016-01-31 15:40:56
 categories: page
 ---
+[Introduction](#Introduction)   
+[System Requirements](#SystemRequirements)    
+[Network Requirements](#NetworkRequirements)     
+[Software Requirements](#SoftwareRequirements)     
+[Installation Setup](#InstallationSetup)    
+[Software Configuration Manual](#SoftConManual)         
+[User Interface Configuration Manual](#UserInterfaceConfigurationManual)         
+[Advanced Configuration](#AdvancedConfiguration)       
+[Version Upgrade from 0.9.1-osf to 0.12.5-6-osf](#VersionUpgradetoNew)           
+[Scalability Mode Configuration](#Scalability)                  
+[Architecture and Deploy](#ArchitectureDeploy)          
+[Installation and Configuration procedure with an empty database](#InstallationConfigurationEmptyDB)     
+[Installation and Configuration procedure with an already existing empty database](#InstallationConfigurationDB)    
 
+##Introduction <a name="Introduction"></a> 
 The DHuS is a web application, running within a Java Virtual Machine. All its middleware components, such as database and application servers, run inside the JVM container.     
 
 In order to allow integration into a hosting environment, the application needs to be installed and configured having well in mind what are the external interfaces to be used.    
@@ -28,7 +42,7 @@ Given the volume of normal Sentinels production, it is also recommended to use a
 
 <hr></hr>
 
-**System Requirements**         
+**System Requirements** <a name="SystemRequirements"></a>         
 Hardware Requirements       
 The technical specifications of the DHuS are provided the following Table.
 
@@ -90,7 +104,7 @@ The Linux based operating systems in which the DHuS operability has been tested 
   
 
 <hr></hr>
-**Network Requirements**    
+**Network Requirements** <a name="NetworkRequirements"></a>    
 
 DHuS is accessed primarily via HTTP and FTP interface. 
 The Installation procedure of the DHuS SW must be performed using a non-privileged user (not root); application installed in this way cannot start services listening on ports numbers smaller than 1024. 
@@ -128,7 +142,7 @@ Following table describes the default DHuS network ports configuration:
 
   Table 2: Network ports configuration  
 <hr> </hr>
-**Software Requirements**
+**Software Requirements** <a name="SoftwareRequirements"></a> 
       
 DHuS software is fully written in java and can be considered portable to any hardware platforms supported by JRE (Java Runtime Environment). The DHuS supports:
 -	all the Java JDK versions before the 7th  (version 8 not yet supported) 
@@ -169,17 +183,9 @@ Eg: `<!ENTITY varFolder “ /home/dhus/local_dhus”>`
 7.	Start the DHuS entering the following command in the installation directory:   
 `nohup /bin/bash ./start.sh &`   
 The log files will be created in the installation directory.
-The graph in Figure below depicts the purpose of the directories in the DHuS archive. 
-
-![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/figure3.png)  
-Note that the incoming and the Local archive shall be two different folders (e.g. one cannot contain the other and vice versa) not necessarily under the DHuS installation folder. Moreover they shall be located in a partition of the machine where there is a certain amount of space (more details would be specified in Table 1), especially for the incoming folder (the data managed by DHuS will be located here). The graph in Figure 3 depicts the purpose of the directories in the DHuS archive. 
-
-![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/figure3.png)    
-
-*DHuS directories objectives*
 
 <hr> </hr>
-**Software Configuration Manual**
+**Software Configuration Manual**<a name="SoftConfManual"></a> 
 
 DHuS configuration files are contained in the etc folder created after the launch of the .shar installation package: 
  	
@@ -238,7 +244,31 @@ The following settings are necessary for DHuS application and the modification i
 `-Dsun.zip.disableMemoryMapping=true `    
 `-cp "etc:lib/javax.servlet-api-3.0.1.jar:lib/*" fr.gael.dhus.DHuS `    
 
+`http.timeout.socket`  Timeout in milliseconds for waiting for data.       
+`http.timeout.connection` Timeout in milliseconds until a connection is established.      
+`http.timeout.connection_request` Timeout in milliseconds used when requesting a connection from the connection manager.      
 
+Such parameters are java system properties which can set by adding    
+`-D<key>=<value> [ms]`
+
+NATIVE_LIBRARIES=${DHUS_HOME}/lib/native/`uname -s`-`uname -p`
+
+-Djava.library.path=${NATIVE_LIBRARIES}   
+
+` - dhus.search.innerTimeout`  (value is expected in milliseconds)Default timeout is set to 5000ms. It could be possible to modify this value at system startup        
+ `- max.rows.search.value`.  The parameter to configure the amount of products per page The default value is set to 100. 
+ 
+Considering that v.0.12.5-6 introduces Scalability feature we suggest to see the [Scalability Configuration](http://calogera.github.io/DataHubSystem/page/2016/01/31/Installation-Guide.html#Scalability) session.  
+
+`-Ddhus.scalability.dbsync.clear=true` to clear the SymmetricDS entries from a Database dump.         
+`-Dauto.reload=false` to prevent the master from sending all its Database to a new replica.        
+`-Ddhus.scalability.active=true/false` Parameter to enable/disable the scalability set -up         
+`-Ddhus.scalability.local.protocol` Access protol for to the dhus instance         
+`-Ddhus.scalability.local.ip` internal IP of the DHuS master    
+`-Ddhus.scalability.local.port` DHuS port   
+`-Ddhus.scalability.local.path` Path to access the dhus instance (e.g. /)     
+`-Ddhus.scalability.replicaId`  Id of the replica as set in the proxy (e.g. 1)      
+`-Ddhus.scalability.dbsync.master` Meaning: http://[internal IP of the DHuS master]:[DHuS port]/    
 
 **Configuration done  and now?**   
 Once you make sure that all the parameters are set correctly, allow start.sh script to be executable:     
@@ -307,7 +337,7 @@ This parameter indicates the server hostname.
     
 The log4j2.xml contains the log settings. It is possible to raise or lower the log level as needed.
  
-**User Interface Configuration Manual**        
+**User Interface Configuration Manual** <a name="UserInterfaceConfigurationManual"></a>          
 
 The DHuS is  equipped with AJS GUI. This section deals with the configurability of the AJS GUI which allows a wide set of configuration actions which do not need a restart of DHuS to be applied.
 Due to the growth of the different centres and related installations, a new configuration management module has been added into the AJS web app. It allows configuring various aspects of the GUI; mainly it is related to style, texts and layout:     
@@ -354,245 +384,175 @@ where [filter_array] is an array of mission-specific filters with the following 
 Here below an example of filters configuration specific for S1 and S2 missions. 
 
 
-
-`
- 
-"missions":
+     "missions":
     
       [
-
-        {
-
-            "name": "Mission: Sentinel-1",
-            "indexname": "platformname",
-            "indexvalue": "Sentinel-1",            
-            "filters": [
-                {
-
-                    "indexname": "producttype",
-                    "indexlabel": "Product Type (SLC,GRD,OCN)",
-                    "indexvalues": "SLC|GRD|OCN",
-                    "regex": ".*"
-                },
-
-                {
-                    "indexname": "polarisationmode",
-                    "indexlabel": "Polarisation (e.g.HH,VV,HV,VH,...)",
-		    	"indexvalues": "HH|VV|HV|VH|HH+HV|VV+VH",
-                    "regex": ".*"
-                },
-
-                {
-                    "indexname": "sensoroperationalmode",
-                    "indexlabel": "Sensor Mode (SM,IW,EW,WV)",
-                    "indexvalues": "SM|IW|EW|WV",
-                    "regex": ".*"
-
-                },
-                {
-                    "indexname": "relativeorbitnumber",
-                    "indexlabel": "Relative Orbit Number (from 1 to 175)",
-		    "regex": "[1-9]|[1-9][0-9]|[1-9][0-7][0-5]"
-		}
-            ]
-        },
-        {
-            "name": "Mission: Sentinel-2",
-            "indexname": "platformname",
-            "indexvalue": "Sentinel-2",
-            "filters": [
-                {
-                    "indexname": "cloudcoverpercentage",
-                    "indexlabel": "Cloud Cover % (e.g.[0 TO 9.4])"
-                }
-		]
-        }
-    ]`    
-Once you have changed a value in the file, you only need to refresh your browser to see the change immediately applied. **No need to restart the DHuS**.
-
-<hr></hr>
-**Version Upgrade**
-     
-
-Dependencies
-This installation manual provides the upgrading DHuS version manual which means the installation of the reference version using a DB created during an installation of an older version of DHuS. The following instructions are ensured for all versions after the 0.4.3-1. (to be confirmed by AIV).
-Here below the list of configuration changes present from 0.4.3-1 to 0.9.0-2 Unless explicitly mentioned, the version which includes the change in configuration parameter is reported in the including version column.    
-
-
-<table border="2">
-    <tr>
-       <td> </td>
-       <td>CHANGE</td>
-       <td>INCLUDING VERSION</td>
-   </tr>
-   <tr>
-
-<td>start.sh</td>
-<td> -keep default GC behavior even if it is not explicitly specified
- 	-introduced the JVM "-server" flag to increase performances from 0.6.0 version (See http://www.oracle.com/technetwork/java/whitepaper-135217.html#2 for details) 
- 	-Added exhaustive list of the supported properties as comments.
- 	remove unused properties: 
--Daction.record.inactive=true 
- 	increase the memory usage to 56 Gb (-Xms56g -Xmx56g)
-</td>
-<td>> 0.5.5-2</td>
-</tr>
-
-      <td>dhus.xml</td>
-<td>support of passive port (default configuration passivePort="30200-30220"). For further details see: https://mina.apache.org/ftpserver-project/configuration_passive_ports.html
--	the internal server configuration has been included in server.xml file  so the line <server protocol="http" host="localhost" port="8080">  substituted with <server> 
--	The processing parameter in the system configuration group has been moved in the server.xml, so the line <processing corePoolSize="4" maxPoolSize = "10" queueCapacity="10000" /> has been substituted with <processing corePoolSize="4" />
-</td>
-  <td>>0.6.1</td>
- </tr>
-<td>server.xml</td>
-      <td>Some parameters in the "dhus.xml" configuration file have been removed and collected in this new (from 0.5.1 version) configuration file called server.xml:
- 	maxConnections can now be set in "server.xml" in Connector object
- 	maxThreads can now be set in "server.xml" in Connector object
- 	nio can now be set in "server.xml" in Connector object by setting protocol value to "org.apache.coyote.http11.Http11NioProtocol"
- 	port can now be set in "server.xml" in Connector object
- 	host is forced to "localhost", because tomcat is always deploying on localhost.
- 	protocol is forced to "http", according to existing working version (currently setting https on local server is not working, meaning this is not used.)This allowed to set any other tomcat configuration parameter. The full server.xml configuration can be found here : https://tomcat.apache.org/tomcat-7.0-doc/config/
-The full list of default tomcat parameter are provided here: https://tomcat.apache.org/tomcat-7.0-doc/config/http.html#Standard_Implementation, 
- 	Additionally, from 0.6.0 version 
-o	the default connector port has been changed (from 8080 to 8081) 
-o	the keep alive time out parameter has been introduced
-
-</td>
-<td>>0.5.1</td></tr>
-
-<td>synonyms.txt
-</td>
-<td>A fixed list of countries is proposed instead of free text, in order to improve the statistics and avoid variants for one country. This file lists the ISO 3166-1 country names  and their synonyms in the following format;
-iso_country_name: synonym1, synonym2
-</td>
-<td>>0.4.4 </td>
-</tr>
-<td>log4j2.xml
-</td>
-<td>Removed the hardcoded absolute path to log file (use relative path instead)
-</td>
-<td>0.6.1
-</td>
-</tr>
-
-</tr>
-</table>
-
-Table 3: Configuration file changes from 0.4.3-1 to 0.9.0-2 version       
-<hr> </hr> 
-**DHuS version updating manual**
-
-Many aspects of DHuS first installation dont need to be repeated when upgrading application to a new release. In the following procedures the reference version will be called new_version and the older version, the version previously installed on the same instance, will be called old_version     
-<ol>   
-1. Access to the chosen installation folder (/data is recommended) and create the installation directory:    
-`mkdir dhus-<new_version>`    
-(Its not necessary to touch the already present archive, the database is copied and then migrated at first start, so links to products remain intact and continue to point to the same archive)    
-2. Create the new layout:     
-`mkdir -p dhus-<new_version>/logs`          
-`mkdir -p dhus-<new_version>/var`    
-3. Change the execution permissions
-`chmod +x dhus-XX.XX.XX.shar`    
-4. Launch
-`./dhus-XX.XX.XX.shar`    
-5. Access the installation directory and rename all the *.sh files (produced with the installation) as *.sh.orig executing the command:
-rename .sh .sh.orig *.sh     
-6. then access the /etc directory and rename all the *.xml files as *.xml.orig launching the same command as before:     
-`cd /etc`        
-`rename .xml .xml.orig *.xml`    
-7. check that all the .xml and .sh files are correctly renamed respectively as .xml.orig and .sh.orig         
-8. Copy all the .sh and all the .xml files, and synonyms.txt files from the folder of the previous version (please note that synonyms.txt is not present in versions older than the version 0.4.4):    
-  
-`cp -r dhus-old_version/*.sh dhus-new_version`           
-`cp -r dhus-<old_version>/etc/*.xml dhus-<new_version>/etc`               
-`cp -r dhus-<old_version>/etc/synonyms.txt dhus-<new_version>/etc`                         
-9. Change the configuration files depending on the <old-version> number (see Table 3 for details on configuration files changes). Example of the updating configuration procedure from 0.4.3-1 to 0.9.0-2 version is provided below.                          
-10. Check if an older DHuS version is running   
-`ps -edf | grep java`          
-if in the list of active PID, one of them is reporting the text of the start.sh file and it is running under dhus user permission, it means that the older version of DHuS is running.                    
-11. If an older version of DHuS is running, stop it            
-`dhus-<old_version>/stop.sh`             
-12.Copy the Database and SolR folder from the previous version           
-`cp -rp dhus-<old_version>/var/database dhus-<new_version>/var/`                    
-`cp -rp dhus-<old_version>/var/solr dhus-<new_version>/var/`                      
-`cp -rp dhus-<old_version>/var/tomcat dhus-<new_version>/var/`                     
-13.Change the var path in the dhus.xml and check if every path containing &varFolder;/  path are still respected            
- ` <!ENTITY varFolder "dhus-<new_version>/var/">      
-]>`                             
-14.Start the new DHuS version            
-`nohup /bin/bash start.sh &> dhus-<new_version>/logs/logs.txt &`           
-</ol>    
-
-**Example of configuration changes updating DHuS from 0.4.3-1 version to 0.9.0-2 version**    
-
-Start.sh configuration
-<hr> </hr>
-<ul type="square">
- 	<li>Open dhus-<new_version>/start.sh.orig (that is the new one)
- 	<li>Set the memory usage parameters according the own needs (the default values are Xms56g -Xmx56g)
- 	<li>Change the properties removal into false (to allow collection of statistical information)
-    ` -Daction.record.inactive=false                         \`
- 	<Li>Save start.sh.orig and remane it as start.sh   
- `mv start.sh.orig start.sh`    
-</ul>
-
-Dhus.xml configuration
-<hr></hr>
-
-<ul type="square">
-
-<li> 	Open dhus-<new_version>/etc/dhus.xml (that is the old one)     
-<li>   Change the following lines:   
-
-
-<table border="2">
-    <tr>
-       <td>ORIGINAL LINE </td>
-       <td>CHANGED LINE</td>
-       <td>COMMENTS</td>
-   </tr>
-   <tr>
-<td>`server protocol="http" host="localhost" port="8080"`</td>
-<td>`server`</td>
-<td>-</td>
-</tr>
-<td>`ftp port="2121" ftps="false" `</td>
-<td>`ftp port="2121" ftps="false" passivePort="30200-30220"  `</td>
-<td>The passivePort parameter can be configured after the update of the version</td>
- </tr>
-<td>`processing corePoolSize="4" maxPoolSize = "10" queueCapacity="10000"` </td>
-<td> `processing corePoolSize="4" `</td>
-<td>corePoolSize parameter shall be configured according the own needs</td>
-</tr>
-</table>
-
-<li> Add the following line at the end of the system group (after tomcat path configuration): </li>          
-  `executor enabled="false" batchModeEnabled="false"`
-<li> Save dhus.xml    
-</ul>
+    
+    {
+    
+    "name": "Mission: Sentinel-1",
+    "indexname": "platformname",
+    "indexvalue": "Sentinel-1",
+    "filters": [
+    {
+    
+    "indexname": "producttype",
+    "indexlabel": "Product Type (SLC,GRD,OCN)",
+    "indexvalues": "SLC|GRD|OCN",
+    "regex": ".*"
+    },
+    
+    {
+    "indexname": "polarisationmode",
+    "indexlabel": "Polarisation (e.g.HH,VV,HV,VH,...)",
+    			"indexvalues": "HH|VV|HV|VH|HH+HV|VV+VH",
+    "regex": ".*"
+    },
+    
+    {
+    "indexname": "sensoroperationalmode",
+    "indexlabel": "Sensor Mode (SM,IW,EW,WV)",
+    "indexvalues": "SM|IW|EW|WV",
+    "regex": ".*"
+    
+    },
+    {
+    "indexname": "relativeorbitnumber",
+    "indexlabel": "Relative Orbit Number (from 1 to 175)",
+    		"regex": "[1-9]|[1-9][0-9]|[1-9][0-7][0-5]"
+    		}
+    ]
+    },
+    {
+    "name": "Mission: Sentinel-2",
+    "indexname": "platformname",
+    "indexvalue": "Sentinel-2",
+    "filters": [
+    {
+    "indexname": "cloudcoverpercentage",
+    "indexlabel": "Cloud Cover % (e.g.[0 TO 9.4])"
+    }
+    		]
+    }
+    ]  
+Once you have changed a value in the file, you only need to refresh your browser to see the change immediately applied. **No need to restart the DHuS**
 
 <hr></hr>
-Server.xml configuration
+--------------------------------------------------------------------------------------------------------------------
+# **Version Upgrade from 0.9.1-osf to 0.12.5-6-osf**  <a name="VersionUpgradetoNew"> </a>     
 
-<ul>
- <li>	Open dhus-<new_version>/etc/server.xml.orig (that is the new one- the old one does not exist in version 0.4.3-1)    
- 	<li>Chech the configuration of tomcat parameters, especially the following line (in 0.4.3-1 version tose information were in the dhus.xml file)    
-      <li>  &lt;Connector port=  ` `&gt;</li> 
- 	<li> Save server.xml.orig and remane it as server.xml    
-`mv server.xml.orig server.xml` 
-   </ul>
+In the following we describe the steps needed for migrating from a previous DHuS version (oldversion) to the new DHuS version 0.12.5-6-osf (newversion).    
+First of all, backup the items you need to inherit:    
+1. Database folder (path attribute of <database> tag in dhus.xml)    
+2. Solr folder (path attribute of <solr> tag in dhus.xml)    
+3. Products archive folder (path attribute of <incoming> tag in dhus.xml)     
+After you have installed the newversion following the [procedure](#InstallationSetup)  the easiest way is to have the newversion configured (in dhus.xml) to use the pre-existing DHuS archive, database and solr directories. Therefore, in dhus.xml of newversion set the following variables to the same value they have in your oldversion installation 
+Alternatively, you may use the backed up copies in directory of your choice (as usual configured within dhus.xml).
+
+In addition, set in dhus.xml
+
+`cryptType` and `cryptKey`, specifying your database encryption key, or leave empty if your database is not encrypted.        
+
+
 **Starting and Stopping a DHuS Instance**
 <hr></hr>
 
 **Start DHuS**    
 Once the DHuS files are configured as shown in Software Configuration section, execute, as dhus user, the following command in the folder where the DHuS is installed:
 
-`nohup /bin/bash start.sh &> [installation-dir]/logs.txt &`    
+`nohup /bin/bash start.sh &> [install-dir]logs.txt &`    
 
 **Stop DHuS**
 
 To stop DHuS, execute, as dhus user, the following command in the folder where the DHuS is installed:     
 `/bin/bash stop.sh` 
+
+
+#  Scalability Mode Configuration <a name="Scalability"> </a>
+The objective of the configuration in scalability mode is to have several DHuS instances acting as one to share the user load and the products information: the deployment in scalable mode is completely transparent to the user.
+
+   
+   
+## 1. Architecture and Deploy <a name="ArchitectureDeploy"></a>
+The deployment of DHuS in scalable mode suitable for the operational scenario foresees three main actors:   
+- one DHuS acting as master   
+- one or more DHuS acting as replicas   
+- one proxy   
+ 
+![](https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/scalability.jpg)   
+
+**Master**  
+The DHuS master is the one and only product data source, meaning, it is in charge of the ingestion/synchronization of products. 
+   
+**Replicas**   
+The DHuS replicas are master’s doppelgangers. The product and user information stored in the DHuS master are broadcasted to all the replicas so that users can access product metadata. Replicas are accessed by the users (through the proxy). Consequently, the user information (e.g. profile changes) is spread from the replicas to the master.    
+**It is mandatory that master and replicas share the data store to allow access to ingested products.**   
+The product deletion and eviction shall be executed on the replicas.
+User registration shall be executed only on one of the replicas (to avoid database conflicts).   
+
+**Proxy**   
+A proxy is needed for load balancing among the replicas. It must be configured to redirect incoming traffic to the DHuS replicas based on a load balancing algorithm with sticky sessions. Please refer to the proxy documentation for instructions on how to implement this.
+##2. Installation and configuration procedure with an empty database <a name="InstallationConfigurationEmptyDB"></a>      
+
+<a name="Download"></a>
+**Step 1**: **Download** the [installation package](https://github.com/SentinelDataHub/DataHubSystem/releases/tag/0.12.5-6-osf) and install on all machines following       
+<a name="MasterC"></a>
+**Step 2**: **Master Configuration** 
+    
+- In start.sh of the master add the following parameters (some may already be present) to the java executable command line:
+    
+    -Dhttp.proxyHost=[proxy external IP] \
+    -Dhttp.proxyPort=[proxy port] \
+    -Dhttp.nonProxyHosts="[proxy internal IP without last block].*"\  (e.g., 192.168.1.*)
+    -Ddhus.scalability.active=true  \
+    -Ddhus.scalability.local.protocol=http  \
+    -Ddhus.scalability.local.ip=[DHuS master internal IP]   
+    -Ddhus.scalability.local.port=[DHuS master port, as in server.xml] \
+    -Ddhus.scalability.local.path=/  \
+- In the dhus.xml set the “external” parameter with the proxy hostname (or IP) its port and the master’s dhus path:       
+
+    <external protocol="http" host="proxy hostname" port="proxy port" path="/master" />
+ 
+<a name="Replica"></a>
+
+**Step 3**: **Replica Configuration**  <a name="InstallationConfigurationEmptyDB"> </a>     
+
+Configure the start.sh of the replicas as follows:
+
+    -Dhttp.proxyHost=[external proxy IP] \
+    -Dhttp.proxyPort=[proxy port] \
+    -Dhttp.nonProxyHosts="[proxy internal IP without last block].*"\  (e.g., 192.168.1.*)
+    -Ddhus.scalability.active=true\
+    -Ddhus.scalability.local.protocol=http \
+    -Ddhus.scalability.local.ip=[DHuS replica internal IP] \
+    -Ddhus.scalability.local.port=[DHuS replica port] \
+    -Ddhus.scalability.local.path=/\
+    -Ddhus.scalability.replicaId=[id of the replica, integer] \
+    -Ddhus.scalability.dbsync.master=http://[DHuS master internal IP ]:[DHuS port]/ \
+
+- In the dhus.xml set the “external” parameter with the proxy hostname (or IP) its port and the replica’s dhus path:
+
+
+    <external protocol="http" host="proxy hostname" port="proxy port" path="/dhus" /> 
+**Step 4**: Start DHuS master and wait until the startup process is complete.  
+**Step 5**: Start DHuS replicas.    
+##3. Installation and configuration procedure with an already existing database <a name="InstallationConfigurationDB"></a>       
+**Step 1**: follow [Step 1](#Download) in previous procedure   
+**Step 2**: follow [Step 2](#MasterC) in previous procedure, configuring the scalability option as follows.
+
+  `  -Ddhus.scalability.active=false  \`
+
+**Step 3**: On the master, copy the database and Solr index (in {varfolder}/database and {varfolder}/solr, respectively), overriding the existing directories  
+**Step 4** : Remove this file : {varfolder}/solr/dhus/conf/managed-schema, if present.     
+**Step 5**: Start the DHuS Master to perform a **database migration**.   
+**Step 6**: At the end of the migration process (which can take a while, depending on the number of products and users in the database), stop the DHuS Master.   
+**Step 7**: Backup the database and Solr index and copy them on each replica overriding the existing directories in {varfolder}.   
+**Step 8**: Add the option to the start.sh of the master: `-Dauto.reload=false` to prevent the master from sending its database to the replicas.   
+**Step 9**: Start DHuS master and wait until the startup process is complete.    
+Follow Steps 3, 4 and 5 of [previous procedure](#Replica) taking care of starting replicas one at a time.  
+Please note that at each new replica addition to the cluster it is necessary to shutdown the master and start the replicas from the newest to the oldest.
+
+
 
 
 
