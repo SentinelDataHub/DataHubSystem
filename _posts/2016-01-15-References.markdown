@@ -14,6 +14,9 @@ categories: page
 5. Sentinel-3 ICD [SPA-COPE-OSF-TNI-009-OSF-ICD.PDF](https://github.com/calogera/DataHubSystem/blob/gh-pages/documents/SPA-COPE-OSF-TN-009_OSF_ICD S3 1.0.pdf)
 6. Data Hub System User Manual [SPA-COPE-DHUS-UM-001-01-01_DataHubSystem_User_Manual.pdf](https://github.com/calogera/DataHubSystem/blob/master/documents/SPA-COPE-DHUS-UM-001-01-01_DataHubSystem_User_Manual.pdf)
 
+**New documentation will be arriving soon so keep an eye out for updates!**
+
+
 
 
 
