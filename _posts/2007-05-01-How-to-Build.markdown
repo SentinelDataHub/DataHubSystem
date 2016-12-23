@@ -36,29 +36,17 @@ We suggest to copy the settings.xml file in your maven local repository:
 ```
 
 ***
+
 ### Command line build
-#### Build modules 
-“Prepare Build Environment” 
-From root of the distribution, type 
 
-```sh    
-$ cd parent
-``` 
-
-```sh
- $ mvn install
+#### Build and deploy modules 
 ```
-```sh
- $ cd ../
+mvn -Psources,owc -Dmaven.test.skip=true clean package deploy
 ```
-#### Build distribution package
-```sh
-$ mvn -Psoftware clean package
+#### Build and deploy new distribution 
 ```
-
-#### Build distribution package skipping tests
-```sh
-$ mvn -Dmaven.test.skip=true -Psoftware clean package
+cd distribution/software
+mvn clean -Powc package deploy
 ```
 
 #### Build folder location
