@@ -153,8 +153,7 @@ The httpd v command tells which config file Apache is using.
 
 
 **Installation and Setup**       
-Installation Manual   
-To install the service:     
+     
 <ol>
 1. Create a user named *dhus*. Every step in the installation procedure, if not explicitly mentioned, shall be performed as dhus user.   
 2. Create the installation folder      
