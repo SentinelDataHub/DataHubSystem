@@ -185,7 +185,7 @@ Eg: `<!ENTITY varFolder “ /home/dhus/local_dhus”>`
 The log files will be created in the installation directory.
 
 <hr> </hr>
-**Software Configuration Manual** <a name="SoftConfManual"></a> 
+**Software Configuration Manual** <a name="SoftConManual"></a> 
 
 DHuS configuration files are contained in the etc folder created after the launch of the .shar installation package: 
  	
