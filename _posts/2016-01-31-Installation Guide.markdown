@@ -16,7 +16,7 @@ categories: page
 [Scalability Mode Configuration](#Scalability)                  
 [Architecture and Deploy](#ArchitectureDeploy)          
 [Installation and Configuration procedure with an empty database](#InstallationConfigurationEmptyDB)     
-[Installation and Configuration procedure with an already existing empty database](#InstallationConfigurationDB)    
+[Installation and Configuration procedure with an already existing database](#InstallationConfigurationDB)    
 
 ##Introduction <a name="Introduction"></a> 
 The DHuS is a web application, running within a Java Virtual Machine. All its middleware components, such as database and application servers, run inside the JVM container.     
