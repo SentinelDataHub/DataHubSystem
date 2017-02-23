@@ -1,0 +1,70 @@
+
+
+<!DOCTYPE HTML>
+
+<html>
+	<head>
+		<title>Open Source Portal</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+		
+		<script src="assets/js/jquery.min.js"></script>
+		<script src="assets/js/jquery.dropotron.min.js"></script>
+		<script src="assets/js/skel.min.js"></script>
+		<script src="assets/js/skel-layers.min.js"></script>
+		<script src="assets/js/init.js"></script>
+		<noscript>
+			<link rel="stylesheet" href="assets/css/skel.css" />
+			<link rel="stylesheet" href="assets/css/style.css" />
+			<link rel="stylesheet" href="assets/css/style-wide.css" />
+		</noscript>
+		<!--[if lte IE 8]><link rel="stylesheet" href="{{ site.baseurl }}/assets/css/ie/v8.css" /><![endif]-->
+ </head>
+	<body>
+
+		<!-- Header -->
+			<div id="header">
+						
+				Logo 
+					<h1><a href="index.html" id="logo">Open Source Portal</a></h1>
+				
+				 Nav 
+					<nav id="nav">
+						<ul>
+							{% assign current = page.url | downcase | split: '/' %}
+							<li {% if current[1] == 'index.html' %}class="current"{% endif %}><a href="index.html">Home</a></li>
+                                                     
+							<li {% if current[1] == 'about.html' %}class="current"{% endif %}><a href=" about.html">About</a></li>
+              <li ><a href="https://github.com/SentinelDataHub/DataHubSystem">Download</a></li>	
+             <li {% if current[1] == 'support.html' %}class="current"{% endif %}><a href=" support.html">Support</a></li>
+  
+             
+	      
+             
+							
+							
+	      
+	<li ><a href="support.html">Support</a></li>                                
+        <li {% if current[1] == 'hubstore.html' %}class="current"{% endif %}><a href=" hubstore.html">DHuS HuB Store</a></li>
+           <li>
+               	<a href="">Documentation</a>
+								<ul>
+									<li><a href="governance.html"> Governance Model</a></li>
+									<li><a href="guidelines.html">Developer Guidelines</a></li>
+              
+      		       </ul>
+							</li>   
+	
+          <li {% if current[1] == 'demo.html' %}class="current"{% endif %}><a href=" demo.html">Demo Features</a></li>
+	
+	
+	 <li {% if current[1] == 'contact.html' %}class="current"{% endif %}><a href="contact.html"> Contact Us</a></li>
+
+							
+                         </ul>
+                          
+			
+					</nav>
+        
+

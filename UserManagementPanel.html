@@ -1,0 +1,143 @@
+<!DOCTYPE HTML>
+<html>
+   		<head>
+		<link rel="stylesheet" href="assets/css/skel.css" />
+			<link rel="stylesheet" href="assets/css/style.css" />
+			<link rel="stylesheet" href="assets/css/style-wide.css" />
+		<title>Open Source Portal</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+ 		<script src="assets/js/jquery.min.js"></script>
+		<script src="assets/js/jquery.dropotron.min.js"></script>
+		<script src="assets/js/skel.min.js"></script>
+		<script src="assets/js/skel-layers.min.js"></script>
+		<script src="assets/js/init.js"></script>
+	
+	</head>
+    <body>
+
+        <!-- Header -->
+            <div id="header">
+                <h1><a href="index.html" id="logo">Open Source DHuS Portal</a></h1>
+     <!--<h1>
+     <a href="index.html" class="image left"><img src="assets/images/oslogomini.jpg" "alt="" /></a>
+     <a href="http://ec.europa.eu/index_en.html" class="image left"><img src="assets/images/ec-mini.jpg" "alt=""/></a>
+     <a href="index.html" id="logo"> <em>Open Source Portal</em></a>
+     <a href="http://www.copernicus.eu/" class="image left"><img src="assets/images/copernicus-mini.jpg" "alt=""/></a>
+     <a href="http://www.esa.int/ESA" class="image left"><img src="/assets/images/esa-mini.jpg" "alt=""/></a>
+     </h1>-->
+
+        <nav id="nav">
+                        <ul>
+                        <li ><a href="index.html">Home</a></li>
+                        <li ><a href="about.html">About</a></li>
+
+                            <li ><a href="https://github.com/SentinelDataHub/DataHubSystem">Download</a></li>
+                            <li ><a href="support.html">Support</a></li>
+                           
+                            <li>
+               	<a href="">Documentation</a>
+                                <ul>
+                                    <li><a href="governance.html"> Governance Model</a></li>
+                                    <li><a href="guidelines.html">Developer Guidelines</a></li>
+                 <!-- <li><a href="#">Interface Control Document</a></li>-->
+      		       </ul>
+                            </li>
+
+
+              	<li> <a href=""> Pilot Projects</a>
+							<ul>
+								<li><a href="dhus_docker_installation.html"> Docker Technologies Integration</a></li>
+								<li><a href="multi-mission-access.html">Multi-Mission Access</a></li>
+								<li><a href="wms.html">WMS-Integration</a></li>
+					</ul>
+				</li>
+                            <li ><a href="">External Resources</a>
+							         <ul>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/snap/"> SNAP</a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-1-toolbox/">S-1 Toolbox </a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-2-toolbox/">S-2 Toolbox</a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-3-toolbox/">S-3 Toolbox</a></li>
+								</ul>
+							</li>
+                <li ><a href="contact.html">Contact Us</a></li>
+
+                        </ul>
+                    </nav>
+
+            </div>
+<!-- Main -->
+<section id="banner">
+</section>
+    <section class="wrapper style1">
+        <div class="container">
+            <div id="content">
+                <!-- Content -->
+                    <article>
+
+                        <header>
+                            <h2>User Management Panel</h2>
+                                            </header>
+<p align="JUSTIFY">
+
+The administrator management panel allows managing users. This means that the administrator can create, edit and delete any user.
+                        </p>
+<img src="https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/figure12.png" alt=""/>
+
+                        <p><strong>DHuS User Management panel (GUI)</strong></p>
+<p align="JUSTIFY"> DHuS implements a user management system that prevents uncontrolled accesses and manipulations from unauthorized users. DHuS proposes a user authentication and authorization strategy defined in its internal Database. Users are able to register or sign-in and the administrator are able to configure the user/group permissions from the Web user interface.
+
+    The user management activities are:</p>
+			    <p align="JUSTIFY"><strong> Step 1:</strong> to create or delete a user; </p>
+                        <p align="JUSTIFY"><strong> Step 2:</strong> to authorize the user to access a list of services;</p>
+                        <p align="JUSTIFY"><strong> Step 3:</strong> to update a user profile;</p>
+
+
+<p align="JUSTIFY"><strong>How to register a new user?</strong></p>
+                        <p align="JUSTIFY">The Administrator shall:</p>
+
+                        <p align="JUSTIFY"><strong> Step 1: </strong> Access the DHuS page;</p>
+                        <p align="JUSTIFY"><strong> Step 2: </strong> Perform the login;</p>
+                        <p align="JUSTIFY"><strong> Step 3: </strong> Select the Management Panel and then select the Users management  panel;</p>
+ <p align="JUSTIFY"><strong> Step 4: </strong> Click on the Create button in the lower part of the User management page, which will enable the form here below</p>
+
+<img src="assets/images/usercreationform.jpg" alt=""/>
+ <p align="JUSTIFY"><strong>User creation form GUI</strong></p>
+
+    <p align="JUSTIFY"><strong> Step 1: </strong> Fill in the new user creation form (note that the fields marked with an asterisk are mandatory) and click on the  functions that the user shall be able to use</p>
+                        <p align="JUSTIFY"><strong> Step 2: </strong> Click on the save button to complete;</p>
+    <p align="JUSTIFY"><strong> Step 3: </strong> Then the email notification service will send an e-mail to the user with his profile information (login, first name, last name, available services...) including a generated password.</p>
+<p align="JUSTIFY">
+The administrator has the possibility to modify users authorization settings and information.
+To modify whatever authorization setting or user information, the Administrator, before executing the following how to procedures, has to: </p>
+                        <p align="JUSTIFY"><strong> Step 1: </strong> Access the DHuS page</p>
+                        <p align="JUSTIFY"><strong> Step 2: </strong> Perform the login</p>
+                        <p align="JUSTIFY"><strong> Step 3: </strong> Select the Management Panel</p>
+                        <p align="JUSTIFY"><strong> Step 4: </strong> Select the Users Management Panel</p>
+<p align="JUSTIFY"><strong> Step 5: </strong> Select the name of the user in the users list on the left side of the user management panel</p>
+
+                        <p align="JUSTIFY"><strong> How to lock the selected user?</strong></p>
+
+
+<p align="JUSTIFY">Click on the locked checkbox under the Registration form in the right side of the panel.
+    The administrator shall also indicate the reason of this locking process in the box on the right</p>
+                        <p align="JUSTIFY"><strong> Step 1: </strong> Click on the save button to complete;</p>
+<p align="JUSTIFY"><strong> Step 2: </strong> Then the email notification service will send an e-mail to the user with his profile information (login, first name, last name, available services...) including locking notification and its relative reason, if it has been indicated.</p>
+
+                        <p align="JUSTIFY"><strong>How to delete the selected user?</strong>     </p>
+
+
+                        <p align="JUSTIFY">Click on the Delete button to delete </p>
+
+<img src="https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/figure16.png" alt=""/>
+
+                        <p align="JUSTIFY"><strong> Update and delete users GUI</strong></p>
+<p align="justify">The email notification service will send an e-mail to the deleted user with the communication of the deletion process. </p>
+                        </article>
+
+        </div>
+        </div>
+    </section>
+    </body>
+</html>		

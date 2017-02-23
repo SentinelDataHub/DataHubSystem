@@ -1,0 +1,10 @@
+---
+layout: post
+title:  "Sentinel-2 Toolbox"
+date:   2016-11-22 12:06:54 +0100
+categories: jekyll update
+---
+[S2 TOOLBOX  ](http://step.esa.int/main/toolboxes/sentinel-2-toolbox/ "S2 TOOLBOX")      
+The Sentinel-2 Toolbox consists of a rich set of visualisation, analysis and processing tools for the exploitation of optical high-resolution products including the upcoming Sentinel-2 MSI sensor. As a multi-mission remote sensing toolbox, it also provides support for third party data from RapidEye, SPOT, MODIS (Aqua and Terra), Landsat (TM) and others.
+
+The Sentinel-2 Toolbox is being developed for ESA by CS in partnership with Brockmann Consult, CS ROMANIA, Telespazio Vega Deutschland, INRA and UCL.    

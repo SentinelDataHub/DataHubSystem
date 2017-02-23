@@ -1,0 +1,513 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+		<link rel="stylesheet" href="assets/css/skel.css" />
+			<link rel="stylesheet" href="assets/css/style.css" />
+			<link rel="stylesheet" href="assets/css/style-wide.css" />
+		<title>Open Source Portal</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+ 		<script src="assets/js/jquery.min.js"></script>
+		<script src="assets/js/jquery.dropotron.min.js"></script>
+		<script src="assets/js/skel.min.js"></script>
+		<script src="assets/js/skel-layers.min.js"></script>
+		<script src="assets/js/init.js"></script>
+	
+	</head>
+    <body>
+
+        <!-- Header -->
+            <div id="header">
+                <h1><a href="index.html" id="logo">Open Source DHuS Portal</a></h1>
+     <!--<h1>
+     <a href="index.html" class="image left"><img src="assets/images/oslogomini.jpg" "alt="" /></a>
+     <a href="http://ec.europa.eu/index_en.html" class="image left"><img src="assets/images/ec-mini.jpg" "alt=""/></a>
+     <a href="index.html" id="logo"> <em>Open Source Portal</em></a>
+     <a href="http://www.copernicus.eu/" class="image left"><img src="assets/images/copernicus-mini.jpg" "alt=""/></a>
+     <a href="http://www.esa.int/ESA" class="image left"><img src="/assets/images/esa-mini.jpg" "alt=""/></a>
+     </h1>-->
+
+        <nav id="nav">
+                        <ul>
+                        <li ><a href="index.html">Home</a></li>
+                        <li ><a href="about.html">About</a></li>
+
+                            <li ><a href="https://github.com/SentinelDataHub/DataHubSystem">Download</a></li>
+                            <li ><a href="support.html">Support</a></li>
+                           
+                            <li>
+               	<a href="">Documentation</a>
+                                <ul>
+                                    <li><a href="governance.html"> Governance Model</a></li>
+                                    <li><a href="guidelines.html">Developer Guidelines</a></li>
+                 <!-- <li><a href="#">Interface Control Document</a></li>-->
+      		       </ul>
+                            </li>
+
+
+                	<li> <a href=""> Pilot Projects</a>
+							<ul>
+								<li><a href="dhus_docker_installation.html"> Docker Technologies Integration</a></li>
+								<li><a href="multi-mission-access.html">Multi-Mission Access</a></li>
+								<li><a href="wms.html">WMS-Integration</a></li>
+					</ul>
+				</li>
+                            <li ><a href="">External Resources</a>
+							         <ul>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/snap/"> SNAP</a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-1-toolbox/">S-1 Toolbox </a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-2-toolbox/">S-2 Toolbox</a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-3-toolbox/">S-3 Toolbox</a></li>
+								</ul>
+							</li>
+                <li ><a href="contact.html">Contact Us</a></li>
+
+                        </ul>
+                    </nav>
+
+            </div>
+<!-- Main -->
+<section id="banner">
+</section>
+    <section class="wrapper style1">
+        <div class="container">
+            <div id="content">
+                <!-- Content -->
+                    <article>
+
+                        <header>
+                            <h2>Installation Guide</h2>
+                                            </header>
+<table style="border:1px solid black;border-collapse:collapse;">
+<tbody>
+<tr>
+   <!-- <th><a href="installation.html#Introduction">Introduction</a></th>-->
+    <th style="border:1px solid black;">
+<a href="installation.html#SystemRequirements">System Requirements</a></th>
+
+
+  <th style="border:1px solid black;"><a href="installation.html#NetworkRequirements">Network Requirements</a></th>
+  <th style="border:1px solid black;"><a href="installation.html#SoftwareRequirements">Software Requirements</a></th>
+</tr>
+
+<tr>
+    <th style="border:1px solid black;"><a href="installation.html#InstallationAndSetup">Installation and Setup</a></th>
+    <th style="border:1px solid black;"><a href="installation.html#SoftwareConfigurationManual">Software Configuration Manual</a></th>
+    <th style="border:1px solid black;"><a href="installation.html#UserInterfaceConfigurationManual">User Interface Configuration Manual</a></th>
+</tr>
+
+    <tr>
+    <th style="border:1px solid black;"><a href="installation.html#AdvancedSearchConfiguration">Advanced Search Configuration</a></th>
+    <th style="border:1px solid black;"><a href="installation.html#VersionUpgrade">Version Upgrade form 0.9.1-osf to 0.12.5-6-osf</a></th>
+    <th style="border:1px solid black;"><a href="installation.html#ScalabilityModeConfiguration">Scalability Mode Configuration</a></th>
+    </tr>
+    <tr>
+
+    <th style="border:1px solid black;"><a href="installation.html#ArchitectureAndDeploy"> Architecture and Deploy</a></th>
+    <th style="border:1px solid black;"><a href="installation.html#InstallationAndConfigurationProcedureWithEmptyDatabase">Installation and Configuration procedure with an empty database</a></th>
+    <th style="border:1px solid black;"><a href="installation.html#InstallationAndConfigurationProcedureWithExistingDatabase">Installation and Configuration procedure with an already existing database</a></th>
+</tr>
+
+
+</tbody>
+</table>
+
+<!--
+     <h4><a href="installation.html#Introduction">Introduction</a>
+      <a href="installation.html#SystemRequirements">System Requirements</a>
+      <a href="installation.html#NetworkRequirements">Network Requirements</a>
+      <a href="installation.html#SoftwareRequirements"> Software Requirements</a>
+      <a href="installation.html#InstallationAndSetup">Installation and Setup</a>
+      <a href="installation.html#SoftwareConfigurationManual">Software Configuration Manual</a>
+      <a href="installation.html#UserInterfaceConfigurationManual">User Interface Configuration Manual</a>
+      <a href="installation.html#AdvancedSearchConfiguration">Advanced Search Configuration</a>
+      <a href="installation.html#VersionUpgrade">Version Upgrade form 0.9.1-osf to 0.12.5-6-osf</a>
+      <a href="installation.html#ScalabilityModeConfiguration">Scalability Mode Confiuration</a>
+      <a href="installation.html#ArchitectureAndDeploy"> Architecture and Deploy</a>
+      <a href="installation.html#InstallationAndConfigurationProcedureWithEmptyDatabase">Installation and Configuration procedure with an empty database</a>
+      <a href="installation.html#InstallationAndConfigurationProcedureWithExistingDatabase">Installation and Configuration procedure with an already existing database</a></h4>
+    -->
+
+    <!-- Sidebar -->
+    <!-- {% for post in site.posts offset: 0 limit: 2 %}
+        <section>
+            Introduction
+
+            <h3>{{ post.title }}</h3>
+            {{ post.excerpt }}
+            <footer>
+                <a href="{{ site.baseurl }}{{ post.url }}" class="button">Continue Reading</a>
+            </footer>
+        </section>
+    {% endfor %}
+    -->
+</div>
+
+
+
+<h3><a name="Introduction">Introduction</a></h3>
+<p ALIGN="JUSTIFY">The DHuS is a web application, running within a Java Virtual Machine. All its middleware components, such as database and application servers, run inside the JVM container. In order to allow integration into a hosting environment, the application needs to be installed and configured having well in mind what are the external interfaces to be used. The application needs to manage two flows:</p>
+                            <p ALIGN="JUSTIFY">&bull; the <strong>incoming flow</strong>: during the products ingestion process, the DHuS Software picks up products (compressed or not) from a folder and move them into another folder. We will call those folders, respectively, inbox and incoming.</p>
+                            <p ALIGN="JUSTIFY">&bull; the <strong> outgoing flow </strong>(how external users can search and download published data): this can happen using http (Tomcat) and, in particular cases, also ftp (service started by DHuS) on some dedicated service ports.</p>
+<p ALIGN="JUSTIFY">The filesystems used by the application, can be two or more;</p>
+                            <p ALIGN="JUSTIFY">&bull;<strong> one filesystem </strong> is needed for storing the DB where the products are indexed, along with the logs and application binaries. This filesystem needs to reside on the local disks.</p>
+                            <p ALIGN="JUSTIFY">&bull;<strong> one or more filesystems</strong> are used for archiving the products. Given the volume of normal Sentinels production, it is also recommended to use an external disk for mounting the second filesystem, in order to cope with several TBs of products.</p>
+
+<!--<span class="image featured"><img src="assets/images/figure-2.png" alt="" /></span>-->
+
+<section id="cta" class="wrapper style3">
+                <div class="container">
+                    <header>
+                        <h3><a name="SystemRequirements">System Requirements</a></h3>
+
+                    </header>
+                </div>
+</section>
+<p ALIGN="JUSTIFY">
+    The technical specifications of the DHuS are provided the following table:</p>
+
+<table style="border:1px solid black;border-collapse:collapse;">
+<tbody>
+<tr>
+<th>&nbsp;</th>
+<th style="border:1px solid black;"><strong>MINIMUM</strong></th>
+<th style="border:1px solid black;"><strong>MEDIUM</strong></th>
+<th style="border:1px solid black;"><strong>HIGH</strong></th>
+</tr>
+<tr>
+<th style="border:1px solid black;"><strong>CPU Core Number</strong></th>
+<th style="border:1px solid black;">4-16</th>
+<th style="border:1px solid black;">24</th>
+<th style="border:1px solid black;">32</th>
+</tr>
+<tr>
+<th style="border:1px solid black;"><strong>RAM</strong></th>
+<th style="border:1px solid black;">4-16 GB</th>
+<th style="border:1px solid black;">32 GB</th>
+<th style="border:1px solid black;">48 GB &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</th>
+</tr>
+<tr>
+<th style="border:1px solid black;"><strong>LOCAL DISK</strong></th>
+<th style="border:1px solid black;">1 TB</th>
+<th style="border:1px solid black;">1 TB</th>
+<th style="border:1px solid black;">1 TB</th>
+</tr>
+<tr>
+<th style="border:1px solid black;"><strong>ARCHIVE*</strong></th>
+<th style="border:1px solid black;">50 TB(1 Month Rolling Archive)</th>
+<th style="border:1px solid black;">200 TB (till 3 month Rolling Archive)</th>
+<th style="border:1px solid black;">500 TB</th>
+</tr>
+<tr>
+<th style="border:1px solid black;"><strong>AVAILABLE EXTERNAL BANDWITH</strong></th>
+<th style="border:1px solid black;">100 Mbps</th>
+<th style="border:1px solid black;">2 Gbps (till 3 month Rolling Archive)</th>
+<th style="border:1px solid black;">10 Gbps</th>
+</tr>
+<tr>
+<th style="border:1px solid black;"><strong>INTERNAL BANDWITH</strong></th>
+<th style="border:1px solid black;">1 Mbps</th>
+<th style="border:1px solid black;">4 Gbps (till 3 month Rolling Archive)</th>
+<th style="border:1px solid black;">10 Gbps</th>
+</tr>
+</tbody>
+</table>
+<p ALIGN="JUSTIFY">* Size of the archive is provided for a typical Copernicus production rate </p>
+<p ALIGN="JUSTIFY">The Linux based operating Systems in which the DHuS operability has been tested are:
+<p ALIGN="JUSTIFY">&bull; Debian 7.7</p>
+<p ALIGN="JUSTIFY">&bull; Red Hat 6.7 </p>
+
+
+<section id="cta" class="wrapper style3">
+                <div class="container">
+                    <header>
+                        <h3><a name="NetworkRequirements">Network Requirements</a></h3>
+
+                    </header>
+                </div>
+</section>
+
+<p ALIGN="JUSTIFY">DHuS is accessed primarily via HTTP and FTP interface. The Installation procedure of the DHuS Software must be performed using a non-privileged user (not root); application installed in this way cannot start services listening on ports numbers smaller than 1024. By default the HTTP interface is reachable on 8081 port that must be opened for inbound requests. The DHuS FTP service is reachable, by default, on 2121.The DHuS provides also a mailing service based on an external SMTP server. Following table describes the default DHuS network ports configuration:</p>
+<table style="border:1px solid black;border-collapse:collapse;">
+<tbody>
+<tr>
+<th style="border:1px solid black;"><strong>SERVICES</strong></th><th style="border:1px solid black;"><strong>INBOUND</strong></th><th style="border:1px solid black;"><strong>OUTBOUND</strong></th></tr>
+<tr><th style="border:1px solid black;">HTTP</th><th style="border:1px solid black;">8081</th><th>-</th></tr>
+<tr><th style="border:1px solid black;">HTTPS</th><th style="border:1px solid black;">443</th><th style="border:1px solid black;">-</th></tr>
+<tr><th style="border:1px solid black;">FTP</th><th style="border:1px solid black;">2121</th><th style="border:1px solid black;">-</th></tr>
+<tr><th style="border:1px solid black;">SMTP</th><th style="border:1px solid black;">-</th><th style="border:1px solid black;">25</th></tr>
+</tbody>
+</table>
+<section id="cta" class="wrapper style3">
+                <div class="container">
+                    <header>
+                        <h3><a name="SoftwareRequirements">Software Requirements</a></h3>
+
+                    </header>
+                </div>
+</section>
+
+
+
+<p ALIGN="JUSTIFY">DHuS software is fully written in java and can be considered portable to any hardware platforms supported by JRE (Java Runtime Environment). The DHuS supports:</p>
+                            <p ALIGN="JUSTIFY">&bull; All the Java JDK versions before the 8th</p>
+                            <p ALIGN="JUSTIFY">&bull; The Oracle distribution version 1.7.0_79.</p>
+                            <p ALIGN="JUSTIFY"> It is recommended to use a Linux Operating System working on a multithread environment running in 64bit.</p>
+<h4>Java</h4>
+<p ALIGN="JUSTIFY">The DHuS server requires Java Runtime Environment version 1.6+ being installed on the system.</p>
+<h4>Mailining Service</h4>
+<p ALIGN="JUSTIFY">An SMTP mail server should be made available to the DHuS System in order to allow its mailing functionalities.</p>
+<h4>Apache Version</h4>
+<p align="JUSTIFY">The proxy configuration is required in case the HTTPS protocol shall be used. In this case, make sure the apache version compatible with DHuS is the number 2.2.15 with modproxy and modssl. The httpd v command tells which config file Apache is using.
+
+<section id="cta" class="wrapper style3">
+                <div class="container">
+                    <header>
+                        <h3><a name="InstallationAndSetup">Installation and Setup</a></h3>
+
+                    </header>
+                </div>
+</section>
+
+<p ALIGN="JUSTIFY"><strong>Step 1</strong>: Create a user named dhus. Every step in the installation procedure, if not explicitly mentioned, shall be performed as dhus user.</p>
+<p ALIGN="JUSTIFY"><strong>Step 2</strong>: Create the installation directory: mkdir -p [install-dir]</p>
+<p ALIGN="JUSTIFY"><strong>Step 3</strong>: Download the DHuS package (shar package) and save it into the installation directory</p>
+<p ALIGN="JUSTIFY"><strong>Step 4</strong>: Change the permissions on the file: chmod +x dhus-XX.XX.XX.shar</p>
+<p ALIGN="JUSTIFY"><strong>Step 5</strong>:Launch ./dhus-XX.XX.XX.shar (the package will autoinstall).Once executed, the system setting configuration file can be accessed and updated.</p>
+<p ALIGN="JUSTIFY"><strong>Step 6</strong>:Edit the etc/dhus.xml configuration file and modify the varFolder variable to an absolute path of your choice. This directory will contain the local archive, the incoming products, the database, etc. Eg: &lt;!ENTITY varFolder &ldquo; /home/dhus/local_dhus&rdquo;&gt;</p>
+<p ALIGN="JUSTIFY"><strong>Step 7</strong>: Start the DHuS entering the following command in the installation directory:</p>
+<p align="JUSTIFY">nohup /bin/bash ./start.sh &amp;</p>
+<p align="JUSTIFY">The log files will be created in the etc directory after the installation.</p>
+
+
+<section id="cta" class="wrapper style3">
+                <div class="container">
+                    <header>
+                        <h3><a name="SoftwareConfigurationManual">Software Configuration Manual</a></h3>
+
+                    </header>
+                </div>
+</section>
+
+<p align="JUSTIFY"> DHuS configuration files are:
+	   <p align="JUSTIFY">&bull; <strong>Start.sh</strong>; located in the installation directory </p>
+                            <p align="JUSTIFY">&bull; <strong>dhus.xml</strong>; located in the etc directory </p>
+                            <p align="JUSTIFY">&bull; <strong>server.xml</strong>; located in the etc directory </p>
+                            <p align="JUSTIFY">&bull; <strong>log4j2.xml</strong>;located in the etc directory</p>
+		  <p align="justify" >the etc directory will be created after the launch of the .shar installation package:</p>
+                         
+
+
+
+
+<section id="cta" class="wrapper style3">
+                <div class="container">
+                    <header>
+                        <h3><a name="UserInterfaceConfigurationManual">User Interface Configuration Manual</a></h3>
+
+                    </header>
+                </div>
+</section>
+
+
+<p ALIGN="JUSTIFY">The DHuS is equipped with AJS GUI. This section deals with the configurability of the AJS GUI which allows a wide set of configuration actions which do not need a restart of DHuS to be applied. Due to the growth of the different centres and related installations, a new configuration management module has been added into the AJS web app. It allows configuring various aspects of the GUI; mainly it is related to style, texts and layout:</p>
+                            <p ALIGN="JUSTIFY">&bull;<strong> Title</strong>(shown in the header bar)</p>
+                            <p ALIGN="JUSTIFY">&bull;<strong> Sections visibility </strong>(Cart, Profile, Sign In)</p>
+                            <p ALIGN="JUSTIFY">&bull;<strong> URL and texts of the link logos</strong>(shown in the header panel)</p>
+                            <p ALIGN="JUSTIFY">&bull;<strong> Version text</strong>(shown in the info panel)</p>
+                            <p ALIGN="JUSTIFY">&bull;<strong> Data Hub Logo</strong>(shown in the info panel)</p>
+                            <p ALIGN="JUSTIFY">&bull;<strong> Mission Tag</strong>(shown in the Product List panel)</p>
+                            <p ALIGN="JUSTIFY">&bull;<strong> Mission footprint style and color</strong>(shown in the Map panel)</p>
+                            <p ALIGN="JUSTIFY">&bull;<strong> Advanced Search Mission specific fields </strong>(shown in Advanced Search Panel)</p>
+                            <p ALIGN="JUSTIFY">&bull;<strong> Map Layer </strong>(shown in the Map View)</p>
+
+<p ALIGN="JUSTIFY">
+Please note that all the settings are included in the client side (2 text files), thus it is possible to change a parameter without restarting the DHuS, but just doing a refresh via browser.</p>
+
+        <h3>How to change a parameter?</h3>
+            <p align="JUSTIFY">The files in charge of the GUI configuration management are located in:<br>
+
+		  [DHUSDIR?]/var/tomcat/webapps/new/conf<br>
+		  appconfig.json <br>
+		  and  in [DHUSDIR?]/var/tomcat/webapps/ROOT/config  <br>
+                  styles.json <br>
+<section id="cta" class="wrapper style3">
+                <div class="container">
+                    <header>
+                        <h3><a name="AdvancedSearchConfiguration">Advanced Search Configuration</a></h3>
+
+                    </header>
+                </div>
+</section>
+
+            <p ALIGN="JUSTIFY">
+                         A special attention goes to the configuration of the advanced search mission specific fields. The configuration file appconfig.json has been updated in order to manage mission specific filters</p>
+                        <p  ALIGN="JUSTIFY"> A "missions" section has been added, containing an array with the following structure:
+"name": , "indexname": , "indexvalue":, "filters":[filter_array]
+where [filter_array] is an array of mission-specific filters with the following structure:
+"indexname": "indexlabel": "regex": [OPTIONAL] "indexvalues": (if present it appears a combobox containing the list of all specified values, otherwise nothing appears. present
+Here below an example of filters configuration specific for S1 and S2 missions.</p>
+<p ALIGN="JUSTIFY"> <strong><span style="background-color: #ffffff; color: #3366ff;">
+"missions":
+
+  [
+
+{
+
+"name": "Mission: Sentinel-1",
+"indexname": "platformname",
+"indexvalue": "Sentinel-1",
+"filters": [
+{
+
+"indexname": "producttype",
+"indexlabel": "Product Type (SLC,GRD,OCN)",
+"indexvalues": "SLC|GRD|OCN",
+"regex": ".*"
+},
+
+{
+"indexname": "polarisationmode",
+"indexlabel": "Polarisation (e.g.HH,VV,HV,VH,...)",
+            "indexvalues": "HH|VV|HV|VH|HH+HV|VV+VH",
+"regex": ".*"
+},
+
+{
+"indexname": "sensoroperationalmode",
+"indexlabel": "Sensor Mode (SM,IW,EW,WV)",
+"indexvalues": "SM|IW|EW|WV",
+"regex": ".*"
+
+},
+{
+"indexname": "relativeorbitnumber",
+"indexlabel": "Relative Orbit Number (from 1 to 175)",
+        "regex": "[1-9]|[1-9][0-9]|[1-9][0-7][0-5]"
+        }
+]
+},
+{
+"name": "Mission: Sentinel-2",
+"indexname": "platformname",
+"indexvalue": "Sentinel-2",
+"filters": [
+{
+"indexname": "cloudcoverpercentage",
+"indexlabel": "Cloud Cover % (e.g.[0 TO 9.4])"
+}
+        ]
+}
+]
+</span></strong></p>
+                            <p ALIGN="JUSTIFY"> Once you have changed a value in the file, you only need to refresh your browser to see the change immediately applied. No need to restart the DHuS</p>
+<section id="cta" class="wrapper style3">
+                <div class="container">
+                    <header>
+                        <h3><a name="VersionUpgrade"> Version Upgrade from 0.9.1-osf to 0.12.5-6-osf</a></h3>
+
+                    </header>
+                </div>
+</section>
+
+
+
+                            <p ALIGN="JUSTIFY"> In the following we describe the steps needed for migrating from a previous DHuS version (oldversion) to the new DHuS version 0.12.5-6-osf (newversion).
+                                First of all, backup the items you need to inherit:</p>
+
+                            <p ALIGN="JUSTIFY"><strong> 1. Database folder </strong> (path attribute of tag in dhus.xml)</p>
+                            <p ALIGN="JUSTIFY"><strong> 2. Solr folder </strong> (path attribute of tag in dhus.xml)</p>
+                            <p ALIGN="JUSTIFY"><strong> 3. Products archive folder </strong> (path attribute of tag in dhus.xml)</p>
+<p ALIGN="JUSTIFY">After you have installed the newversion following the procedure the easiest way is to have the newversion configured (in dhus.xml) to use the pre-existing DHuS archive, database and solr directories. Therefore, in dhus.xml of newversion set the database, solr, and archive folders to the same value they have in your oldversion installation Alternatively, you may use the backed up copies in directory of your choice (as usual configured within dhus.xml).</p>
+<p ALIGN="JUSTIFY"> In addition, set in dhus.xml
+cryptType and cryptKey, specifying your database encryption key, or leave empty if your database is not encrypted. </p>
+
+<section id="cta" class="wrapper style3">
+                <div class="container">
+                    <header>
+                        <h3><a name="ScalabilityModeConfiguration">Scalability Mode Configuration</a></h3>
+
+                    </header>
+                </div>
+</section>
+
+            <p ALIGN="JUSTIFY"> The objective of the configuration in scalability mode is to have several DHuS instances acting as one to share the user load and the products information: the deployment in scalable mode is completely transparent to the user.</p>
+
+            <h3><a name="ArchitectureAndDeploy"> 1. Architecture and Deploy</a></h3>
+
+<p ALIGN="JUSTIFY"> The deployment of DHuS in scalable mode suitable for the operational scenario foresees three main actors:</p>
+                            <p ALIGN="JUSTIFY">&bull; one DHuS acting as master</p>
+                            <p ALIGN="JUSTIFY">&bull; one or more DHuS acting as replicas</p>
+                            <p ALIGN="JUSTIFY">&bull;one proxy</p>
+
+                            <h5> Master</h5>
+<p ALIGN="JUSTIFY">The DHuS master is the one and only product data source, meaning, it is in charge of the ingestion/synchronization of products.</p>
+
+                            <h5>Replicas</h5>
+<p ALIGN="JUSTIFY"> The DHuS replicas are master’s doppelgangers. The product and user information stored in the DHuS master are broadcasted to all the replicas so that users can access product metadata. Replicas are accessed by the users (through the proxy). Consequently, the user information (e.g. profile changes) is spread from the replicas to the master.
+It is mandatory that master and replicas share the data store to allow access to ingested products.
+The product deletion and eviction shall be executed on the replicas. User registration shall be executed only on one of the replicas (to avoid database conflicts).</p>
+<h5>Proxy</h5>
+<p ALIGN="JUSTIFY">A proxy is needed for load balancing among the replicas. It must be configured to redirect incoming traffic to the DHuS replicas based on a load balancing algorithm with sticky sessions. Please refer to the proxy documentation for instructions on how to implement this.</p>
+
+                <span class="image featured"><img src="assets/images/scalability.png" alt=""/></span>
+
+
+                        <h3><a name="InstallationAndConfigurationProcedureWithEmptyDatabase">2. Installation and configuration procedure with an empty database</a></h3>
+<p ALIGN="JUSTIFY"><strong>Step 1: Download</strong> the installation package and install on all machines following</p>
+<p ALIGN="JUSTIFY"><strong>Step 2: Master Configuration</strong></p><br>
+In <em>start.sh</em> of the master add the following parameters (some may already be present) to the java executable command line:<br>
+<span style="color: #3366ff;">-Dhttp.proxyHost=[proxy external IP] \ </span><br>
+<span style="color: #3366ff;">-Dhttp.proxyPort=[proxy port] \ </span><br>
+<span style="color: #3366ff;">-Dhttp.nonProxyHosts="[proxy internal IP without last block]."\ (e.g., 192.168.1.) - -</span><br>
+<span style="color: #3366ff;">- Ddhus.scalability.active=true \ </span><br>
+<span style="color: #3366ff;">-Ddhus.scalability.local.protocol=http \ </span><br>
+<span style="color: #3366ff;">-Ddhus.scalability.local.ip=[DHuS master internal IP]</span><br>
+<span style="color: #3366ff;">-Ddhus.scalability.local.port=[DHuS master port, as in server.xml] \ </span><br>
+<span style="color: #3366ff;">-Ddhus.scalability.local.path=/ \ </span><br>
+In the <em>dhus.xml</em> set the &ldquo;external&rdquo; parameter with the proxy hostname (or IP) its port and the master&rsquo;s dhus path:<br>
+<p ALIGN="JUSTIFY"><strong>Step 3:Replica Configuration</strong><br>
+Configure the <em>start.sh</em> of the replicas as follows:<br>
+<span style="color: #3366ff;">-Dhttp.proxyHost=[external proxy IP] \</span><br>
+<span style="color: #3366ff;">-Dhttp.proxyPort=[proxy port] \</span><br>
+<span style="color: #3366ff;">-Dhttp.nonProxyHosts="[proxy internal IP without last block].*"\&nbsp; (e.g., 192.168.1.*)</span><br>
+<span style="color: #3366ff;">-Ddhus.scalability.active=true\</span><br>
+<span style="color: #3366ff;">-Ddhus.scalability.local.protocol=http \</span><br>
+<span style="color: #3366ff;">-Ddhus.scalability.local.ip=[DHuS replica internal IP] \</span><br>
+<span style="color: #3366ff;">-Ddhus.scalability.local.port=[DHuS replica port] \</span><br>
+<span style="color: #3366ff;">-Ddhus.scalability.local.path=/\</span></p>
+<span style="color: #3366ff;">-Ddhus.scalability.replicaId=[id of the replica, integer] \</span><br>
+<span style="color: #3366ff;">-Ddhus.scalability.dbsync.master=http://[DHuS master internal IP ]:[DHuS port]/ \</span><br>
+In the dhus.xml set the &ldquo;external&rdquo; parameter with the proxy hostname (or IP) its port and the replica&rsquo;s dhus path:<br>
+<strong>Step 4:Start DHuS master.</strong> and wait until the startup process is complete.<br /> <br>
+<strong>Step 5:Start DHuS replicas.</strong><br>
+<p>&nbsp;</p>
+
+                <h3><a name="InstallationAndConfigurationProcedureWithExistingDatabase">3. Installation and configuration procedure with an already existing database</a></h3>
+
+<p ALIGN="JUSTIFY"><strong>Step 1</strong>: Follow <strong>Step 1</strong> in previous procedure</p>
+<p ALIGN="JUSTIFY"><strong>Step 2</strong>: Follow <strong>Step 2</strong> in previous procedure, configuring the scalability option as follows.</p>
+<p ALIGN="JUSTIFY"><span style="color: #3366ff;">-Ddhus.scalability.active=false \</span></p>
+<p ALIGN="JUSTIFY"><strong>Step 3</strong>: On the master, copy the database and Solr index (in {varfolder}/database and {varfolder}/solr, respectively), overriding the existing directories</p>
+<p ALIGN="JUSTIFY"><strong>Step 4</strong>: Remove this file : {varfolder}/solr/dhus/conf/managed-schema, if present.</p>
+<p ALIGN="JUSTIFY"><strong>Step 5</strong>: Start the DHuS Master to perform a <strong>database migration</strong>(automatically performed).</p>
+<p ALIGN="JUSTIFY"><strong>Step 6</strong>: At the end of the migration process (which can take a while, depending on the number of products and users in the database), stop the DHuS Master.</p>
+<p ALIGN="JUSTIFY"><strong>Step 7</strong>: Backup the database and Solr index and copy them on each replica overriding the existing directories in {varfolder}.</p>
+<p ALIGN="JUSTIFY"><strong>Step 8</strong>: Add the option to the start.sh of the master:&nbsp;-Dauto.reload=false&nbsp;to prevent the master from sending its database to the replicas.</p>
+<p ALIGN="JUSTIFY"><strong>Step 9</strong>: Start DHuS master and wait until the startup process is complete.</p>
+<p ALIGN="JUSTIFY"> Follow Steps 3, 4 and 5 of previous procedure; taking care of starting replicas one at a time.</p>
+<p ALIGN="JUSTIFY">Please note that at each new replica addition to the cluster it is necessary to shutdown the master, restart it and start the replicas from the newest to the oldest.
+                            </p>
+
+
+                            </article>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    </body>
+    </html>
+

@@ -1,0 +1,280 @@
+<!DOCTYPE HTML>
+<html>
+   		<head>
+		<link rel="stylesheet" href="assets/css/skel.css" />
+			<link rel="stylesheet" href="assets/css/style.css" />
+			<link rel="stylesheet" href="assets/css/style-wide.css" />
+		<title>Open Source Portal</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+ 		<script src="assets/js/jquery.min.js"></script>
+		<script src="assets/js/jquery.dropotron.min.js"></script>
+		<script src="assets/js/skel.min.js"></script>
+		<script src="assets/js/skel-layers.min.js"></script>
+		<script src="assets/js/init.js"></script>
+	
+	</head>
+    <body>
+
+        <!-- Header -->
+            <div id="header">
+                <h1><a href="index.html" id="logo">Open Source DHuS Portal</a></h1>
+    
+
+        <nav id="nav">
+                        <ul>
+                        <li ><a href="index.html">Home</a></li>
+                        <li ><a href="about.html">About</a></li>
+
+                            <li ><a href="https://github.com/SentinelDataHub/DataHubSystem">Download</a></li>
+                            <li ><a href="support.html">Support</a></li>
+                            
+                            <li>
+               	<a href="">Documentation</a>
+                                <ul>
+                                    <li><a href="governance.html"> Governance Model</a></li>
+                                    <li><a href="guidelines.html">Developer Guidelines</a></li>
+                 <!-- <li><a href="#">Interface Control Document</a></li>-->
+      		       </ul>
+                            </li>
+
+
+                	<li> <a href=""> Pilot Projects</a>
+							<ul>
+								<li><a href="dhus_docker_installation.html"> Docker Technologies Integration</a></li>
+								<li><a href="multi-mission-access.html">Multi-Mission Access</a></li>
+								<li><a href="wms.html">WMS-Integration</a></li>
+					</ul>
+				</li>
+				<li ><a href="">External Resources</a>
+							         <ul>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/snap/"> SNAP</a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-1-toolbox/">S-1 Toolbox </a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-2-toolbox/">S-2 Toolbox</a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-3-toolbox/">S-3 Toolbox</a></li>
+								</ul>
+							</li>
+                <li ><a href="contact.html">Contact Us</a></li>
+
+                        </ul>
+                    </nav>
+
+            </div>
+<!-- Main -->
+<section id="banner">
+</section>
+    <section class="wrapper style1">
+        <div class="container">
+            <div id="content">
+                <!-- Content -->
+                    <article>
+
+                        <header>
+                            <h2>Admin API</h2>
+                                            </header>
+			    <p align="justify">The Admin API permit to perform the following activities:</p>
+	
+	 <p align="justify"><a href="admin_api.html#User">1. User connection information inspection via OData protocol </a><br>
+		<a href="admin_api.html#Synchro">2. User Synchronization</a><br>	
+		<a href="admin_api.html#Products">3. Products deletion</a></p>	
+			    
+			    <h2><a name="User">User connection information inspection via OData protocol </a></h2>		    
+<p align="JUSTIFY">The procedure shows in detail all steps  needed to visualize the information about users and their connections through OData.</p>
+
+<p align="justify"><strong> STEP 1: </strong><br>
+Stop DHuS <br>
+Add to the server.xml file the following lines:<br>
+<span style="color: #0000ff;"> &lt; Valve className="fr.gael.dhus.server.http.valve.AccessValve" pattern=".*  useLogger="true"
+enable="true"/>
+	</span><br>
+	Start DHuS</p>
+ <p align="justify"><strong> STEP 2:</strong><br> 
+ Log in as administrator (root)</p>
+			  
+ <p align="justify"><strong> STEP 3:</strong><br>
+Access the following link:<br>			   
+<span style="color: #0000ff;"> https://DHuS_URL/odata/v1/Users?$orderby=Username</span> <br> 
+ Verify that the  list of users is visible and it is sorted depending on the username <br>
+The following information relative to each user is visualized:<br>
+	 
+<pre><code>&lt;m:properties>
+&lt;d:Username> 
+&lt;d:Email>
+&lt;d:FirstName>
+&lt;:LastName>
+&lt;d:Country>
+&lt;d:Phone/>
+&lt;d:Address/>
+&lt;d:Domain>
+&lt;d:SubDomain>
+&lt;d:Usage>
+&lt;d:SubUsage>unknown&lt;/d:SubUsage>
+&lt;/m:properties>
+&lt;/content>;
+<p align="justify">The users are sorted depending on the username.<br>
+<strong> STEP 4: </strong> <br>
+Verify that the number returned by the URL:<br>
+<span style="color: #0000ff;"> https:// DHuS_URL /odata/v1/Users/$count?</span><br>
+Is equal to the total number of users registered to the Hub (The total number of users is visible from the GUI under management->Users)
+The number of users is the same. <br>	
+
+<p align="justify"><strong> STEP 5: </strong> <br>
+Log in with as a general user (search, download) and access the following URL:<br>
+<span style="color: #0000ff;"> https://DHuS_URL/odata/v1/Users?$filter= $filter=Username eq ‘Username’</span><br>
+The User information about the user are visualised. When refreshing the page pushing the F5 button, the field “updated” is updated with the current time.</p>	
+
+<p align="justify"><strong> STEP 6:</strong> <br>
+Access the Node:<br>
+<span style="color: #0000ff;"> https://DHuS_URL/odata/v1/Users(‘Username’)/Connections </span><br>
+All the URL accessed by the user are listed. For each connection the following info are displayed:<br>
+<code><p align="justify"><span style="color: #0000ff;">
+<pre><code>
+&lt;entry>
+&lt;id>
+&lt;title 
+&lt;updated>
+&lt;m:properties>
+&lt;d:Id>
+&lt;d:Date>
+&lt;d:RemoteIp>
+&lt;d:Request>
+&lt;d:Duration>
+</code>
+</pre>
+<strong> STEP 7: </strong> <br>	
+Once logged in as administrator, access the URL:<br> 
+<span style="color: #0000ff;"> https://DHuS_URL/odata/v1/Users(‘root’)/SystemRoles </span><br>
+to visualize the user roles of the administrator user <br>
+The administrator has everyrole available on the Hub:<br>
+- Search;<br>
+- Upload;<br>
+- Archive manager;<br>
+- Statistics;<br>
+- System manager;<br>
+- Data manager;<br>
+- Download<br>
+
+<p align="justify"><strong> STEP 8:</strong> <br>
+Access the URL:<br> 
+<span style="color: #0000ff;"> https://DHuS_URL/odata/v1/Networks(0L)/NetworkStatistic </span><br> 
+To visualize the statistics associated to the network. <br>
+The NetworkStatistics reports the informations related to the statistics of the network (activity period in ms, number of connection within this period). 
+<id>
+<p align="justify"><span style="color: #0000ff;"><p>&lt;id&gt; https://scihub-test.esa.int/dhus/odata/v1/Networks(0L)/NetworkStatistics(0L)</p>
+<pre><code>
+
+&lt;title type="text"&gt;0
+&lt;updated&gt; 2016-02-25T15:32:12.613Z &lt;/updated&gt;
+&lt;category term="DHuS.NetworkStatistic"  &lt;scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme"/gt;
+&lt;link href="NetworkStatistics(0L)" rel="edit" title="NetworkStatistic"/&gt;
+&lt;content type="application/xml"&gt;
+&lt;m:properties&gt;
+&lt;d:Id&gt;0 &lt;/d:Id&gt;
+&lt;d:ActivityPeriod&gt;
+&lt;d:ConnectionNumber&gt;&lt;/m:properties&gt;
+&lt;/content&gt;
+&lt;/entry&gt;
+</code></pre>
+	<br>
+<p align="justify"><strong> STEP 9:</strong> <br>	
+ Access the URL:<br> 
+<span style="color: #0000ff;"> https://[dhus]/dhus/odata/v1/Connections?$filter=substringof(Request,'odata/v1')</span><br>
+to visualize all the odata queries performed by the users.All the odata queries performed by the users are visualized</p> 
+	
+<p align="justify"><strong> STEP 10:</strong> <br>	
+Launch a product download via GUI.Access the URL:<br> 
+<span style="color: #0000ff;"> https://[dhus]/odata/v1/Connections?$filter=Status eq 'PENDING'</span></p>
+
+	
+<h2><a name="Synchro">User Synchronization via API</a></h2>
+ <p align="justify"><strong> STEP 1:</strong> Log in the machine where the Front End (FE) DHuS is installed.  This DHuS instance shall be filled with users registered in the Back End (BE).<br>
+
+<strong> STEP 2:</strong>On the DHuS acting as FE, set the environment variables to connect to the syncing instance of the DHuS.<br>
+
+
+Example:
+<pre><code>
+export DHOST=localhost:8080
+export DLOGIN=root
+export DPASS=a
+	</code></pre>
+Doing the commands:
+<pre><code>
+echo $DHOST
+echo DLOGIN
+echo DPASS
+</code></pre> 
+the correspondent values are displayed 
+
+	<p align="justify"><strong> STEP 3: </strong><br>
+	
+	Create a working folder containing the following scripts and auxiliary files:<br>
+	- ./getSynchronizer <br>
+	- ./createSynchronizer <br>
+	- Body.txt<br>
+	- ./updateSynchronizer <br>
+	- ./deleteSynchronizer <br>
+ Available on <a href="https://github.com/jobayle/dhus_user_sync_scripts"> https://github.com/jobayle/dhus_user_sync_scripts</a><br>
+<p align="justify"><strong> STEP 4: </strong><br>
+
+Use the command:
+./getSynchronizer [id] (if no user synchronizer is available, launchr this command with no id in input)
+The information regarding the currently available user synchronizer are displayed. <br>
+<p align="justify"><strong> STEP 5: </strong>	
+Create the user synchronizer use the command:
+<pre>
+<code>
+./createSynchronizer &lt;-D_SCHEDULE=...> &lt;-D_REQUEST=start|stop> &lt;-D_SERVICEURL=...> [-D_LABEL=...] [-D_SERVICELOGIN=...] [-D_SERVICEPASSWORD=...]
+<p align="justify">Example:<br>
+<code>
+. /createSynchronizer -D_SCHEDULE="0 */3 * * * ?" -D_REQUEST=stop -D_SERVICEURL="http://192.168.0.105:8080/odata/v1" 
+-D_LABEL=my_user_syncer -D_SERVICELOGIN=root -D_SERVICEPASSWORD=a)
+</code>
+
+<p align="justify">Performing again the command in step 4 of this procedure, the characteristic of the user sync are displayed. </p> 
+
+Update the user synchronizer through the following commands:
+<p align="justify"><strong> STEP 6: </strong><br>
+
+./updateSynchronizer <id> [-D_SCHEDULE=...] [-D_REQUEST=start|stop] [-D_SERVICEURL=...] [-D_LABEL=...] [-D_SERVICELOGIN=...] [-D_SERVICEPASSWORD=...]
+(e.g. ./updateSynchronizer 0 -D_SCHEDULE='0 24 * * * ?')<br>	
+ Performing again the command in step 4 of this procedure, the characteristic of the user sync are displayed updated as requested.<br>	
+
+<p align="justify"><strong> STEP 7: </strong><br>		
+Delete the synchronizer using the following command:
+<code>
+./deleteSynchronizer &lt;id>
+	</code>
+Performing again the command in step 4 of this procedure, the characteristic of the user sync are no longer available.</p>
+	<h2><a name="Products">Products Deletion </a></h2>
+<p align="JUSTIFY">
+The following scripts permit massive products deletion via API.<br>
+  <strong>getID.sh</strong>: it produces the UUID of products retrieving this information from the specified product names<br>
+<strong> delete_mod.sh</strong>: it performs the deletion of the products listed in the getID.sh script.<br>
+The script getID.sh has 3 input parameter:<br> 
+ 1) original file containing names of products to be deleted;<br>
+ 2) number N of files in which you want to split the original file (used when the number of products is high)<br>
+ 3) folder containing DB (in-operation DB copy) on which will be performed the query, that get the UUID of products by their names <br>
+For each i-th file (i=1,2,3,.....,N) the query, related to the products names of the i-th file, is built and performed.<br>
+The split operation allows to delete a big number of products by more scripts (i=1,2,3,......,N) launched in parallel, one for each i-th UUID file.<br>
+<br>
+The output main files produced by getID.sh are:<br>
+1) UUID_<br>
+{i}.txt i=1,2,3,....,N; file containing the UUID of products of i-th block of names
+2) PRODUCTSNOTFOUND_{i} .txt i=1,2,3,....,N; file containing the names of products not found by i-th query on DB<br>
+Each UUID_ {i}.txt file is the input parameter of the script delete_mod.sh that performs the deletion of UUID on Virtual machine where it is launched.<br>
+The input parameter of the script delete_mod.sh are:<br>
+1) number of deletions in parallel<br>
+2) file containing the UUID to be deleted (UUID_{i} .txt)<br>
+The deletion of single UUID product (CURL command) and the related log is produced by del_prod_mod.sh that is a script present in delete_mod.sh.
+If the log produces, for a specific UUID, the string "in XXX s return code 20..." the product is deleted.
+<a href="search_panel.html#deletionviapi">See Scripts section </a></p>
+
+
+
+			
+
+
+
+  		    

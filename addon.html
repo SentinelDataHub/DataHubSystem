@@ -1,0 +1,164 @@
+<!DOCTYPE HTML>
+<html>
+   		<head>
+		<link rel="stylesheet" href="assets/css/skel.css" />
+			<link rel="stylesheet" href="assets/css/style.css" />
+			<link rel="stylesheet" href="assets/css/style-wide.css" />
+		<title>Open Source Portal</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+ 		<script src="assets/js/jquery.min.js"></script>
+		<script src="assets/js/jquery.dropotron.min.js"></script>
+		<script src="assets/js/skel.min.js"></script>
+		<script src="assets/js/skel-layers.min.js"></script>
+		<script src="assets/js/init.js"></script>
+	
+	</head>
+    <body>
+
+        <!-- Header -->
+            <div id="header">
+                <h1><a href="index.html" id="logo">Open Source DHuS Portal</a></h1>
+     <!--<h1>
+     <a href="index.html" class="image left"><img src="assets/images/oslogomini.jpg" "alt="" /></a>
+     <a href="http://ec.europa.eu/index_en.html" class="image left"><img src="assets/images/ec-mini.jpg" "alt=""/></a>
+     <a href="index.html" id="logo"> <em>Open Source Portal</em></a>
+     <a href="http://www.copernicus.eu/" class="image left"><img src="assets/images/copernicus-mini.jpg" "alt=""/></a>
+     <a href="http://www.esa.int/ESA" class="image left"><img src="/assets/images/esa-mini.jpg" "alt=""/></a>
+     </h1>-->
+
+        <nav id="nav">
+                        <ul>
+                        <li ><a href="index.html">Home</a></li>
+                        <li ><a href="about.html">About</a></li>
+
+                            <li ><a href="https://github.com/SentinelDataHub/DataHubSystem">Download</a></li>
+                            <li ><a href="support.html">Support</a></li>
+                           
+                            <li>
+               	<a href="">Documentation</a>
+                                <ul>
+                                    <li><a href="governance.html"> Governance Model</a></li>
+                                    <li><a href="guidelines.html">Developer Guidelines</a></li>
+                 <!-- <li><a href="#">Interface Control Document</a></li>-->
+      		       </ul>
+                            </li>
+
+
+              	<li> <a href=""> Pilot Projects</a>
+							<ul>
+								<li><a href="dhus_docker_installation.html"> Docker Technologies Integration</a></li>
+								<li><a href="multi-mission-access.html">Multi-Mission Access</a></li>
+								<li><a href="wms.html">WMS-Integration</a></li>
+					</ul>
+				</li>
+                            <li ><a href="">External Resources</a>
+							         <ul>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/snap/"> SNAP</a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-1-toolbox/">S-1 Toolbox </a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-2-toolbox/">S-2 Toolbox</a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-3-toolbox/">S-3 Toolbox</a></li>
+								</ul>
+							</li>
+                <li ><a href="contact.html">Contact Us</a></li>
+
+                        </ul>
+                    </nav>
+
+            </div>
+<!-- Main -->
+<section id="banner">
+</section>
+    <section class="wrapper style1">
+        <div class="container">
+            <div id="content">
+
+             <!-- Content -->
+                    <article>
+
+                        <header>
+                            <h2>DHuS Add-on Context</h2>
+                        </header>
+<p align="JUSTIFY">
+The Data Hub Software is designed to provide users with a distributable service of mirror archives and dissemination means for products.</p>
+			    <span class="image featured"><img src="assets/images/fig1addon.jpg" alt=" "/></span><br>
+DHuS can ingest and disseminate a specific product if a specific Add-on for it exists. Add-ons are pluggable modules (JAR) containing information necessary to classify mission products</p>
+DHuS can be easily extended to manage new data by means of new Add-ons development.<br>
+No software changes are needed to DHuS  Core to manage new Add-ons or to modify existing ones.<br>
+<span class="image featured"><img src="assets/images/fig2addon.jpg" alt=" "/></span>
+<h3> Technologies and design</h3>
+<p align="justiy"> DHuS Add-on programming is based on:</p>
+			    <span class="image featured"><img src="assets/images/fig3addon.jpg" alt=" "/></span>
+<p align="justify"> The Data Request Broker – DRB API® , developed by GAEL, is a Java open source API for manipulating data disregarding their content-types and formats.
+DRB is used within DHuS to access and extract data information.</p>
+<p align="justify"> DRB API has an XQuery engine allowing access to:</p>
+<p align="justify">&bull; XML documents;</p>
+<p align="justify">&bull;binary files described through XML  Schema Definition;</p>
+			    <span class="image featured"><img src="assets/images/fig4addon.jpg"alt=" "/></span>
+<p align="justify">DRB API can managed a conspicuous set of data type, such as:</p>
+			    <span class="image featured"><img src="assets/images/fig5addon.jpg"alt=" "/></span>
+
+<h3>Languages and Standards</h3>
+			    <span class="image featured"><img src="assets/images/fig6addon.jpg"alt=" "/></span>
+			    <span class="image featured"><img src="assets/images/fig7addon.jpg"alt=" "/></span>
+<h3> Implementation and Integration</h3>
+<p align="justify">Contains product class hierarchy defined by means of Web Ontology Language (OWL)</p>
+			    <span class="image featured"> <img src="assets/images/fig8addon.jpg"></span>
+			    <p align="justify"> <strong>Topic coding rules</strong></p>
+			    <p align="justify">1.Class type identifier;</p>
+			     <p align="justify">2.Class type comment (optional);</p>
+			     <p align="justify">3.Product class subclass of Drb Item;</p>
+			     <p align="justify">4.Definition of matching rules (at least one);</p>
+			     <p align="justify">5.XML schema definition (optional);</p>
+			     <p align="justify">OWL is used in DHuS Add-on to organize the data type configuration under classes and subclasses with inheritable properties. 
+				     In the DHuS context, OWL is used for product class characterization by means of:</p>
+			    <p align="justify">&bull;Filenames Regex</p>
+			    <p align="justify">&bull;Product structure matching rules</p>
+			    <p align="justify">Metadata Extractor</p>
+			    <span class="image featured"><img src="assets/images/fig9addon.jpg" alt=" "/></span>			    
+			    <p align="justify"><strong>Metadata Extractor Coding Rules</strong></p>
+			    
+			    <p align="justify">1.Metadata extractor sections should be bound to a topic class type;</p>
+			    <p align="justify">2.The definition of following metadata is MANDATORY:</p>
+				     <p align="justify">&bull;Filename</p>
+                                     <p align="justify">&bull;Format</p>
+			     <p align="justify">3. In case of image preview generation, the add-on should contain drb-image library and JAI library as maven dependencies;</p>
+			
+			    <p align="justify"><strong> XQuery and XPath</strong></p>
+		<p align="justify">DHuS Add-ons use DRB XQuery Engine to query and transform set of products both structured and unstructured, usually in XML form.
+			XQuery uses XPath expression syntax to address specific parts of product.</p>
+			    <p align="justify"><strong> JAVA</strong></p>
+			    <p align="justify">In the Add-on context, it is possible to use Java for:</p>
+<p align="justify">&bull;Calling static methods defined in Java classes included in the add-on (for metadata extraction)</p>
+<p align="justify">&bull;Including Java code directly inside ontology files (for image processing)</p>
+	    
+			    <h3>Recommendation</h3>
+			    <p align="justify">Product class types definition without ambiguity </p>
+
+			    <p align="justify"> &bull; Product class types definition should avoid code repetition</p>
+
+			    <p align="justify"> &bull;xsd schema import for binary format browsing</p>
+
+			    <p align="justify"> &bull;Index definition to improve data search using search engine (Solr)</p>
+
+			    <p align="justify"> &bull;XQuery language preferred for metadata extraction</p>
+			    
+			    <h3> Add-on Loading</h3>
+			<p align="justify"> Add-ons can be integrated in the DHuS easily copying the JAR modules in the DHuS library path and restarting the system</p>
+
+			    <span class="image featured"><img src="assets/images/fig10addon.jpg"  alt=" "/></span>
+			    
+			    <h3> Schema check and update<img src ="assets/images/addon.png" alt=" " style="float:right;"/></h3>
+			    <p align="justify">1.At start-up the DHuS</p>
+			    <p align="justify">2.Loads the add-ons included in its library path</p>
+			    <p align="justify">3.Checks the metadata types defined in the addons</p>
+			    <p align="justify">4.Updates the schema of the search engine, if new indexes are found</p> 
+			    <p align="justify">These activities don't impact on DHuS Core.<p>
+			 
+			 
+			    
+			    
+   </article>
+   </body>
+</html>

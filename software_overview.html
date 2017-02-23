@@ -1,0 +1,124 @@
+<!DOCTYPE HTML>   
+<html>
+	<head>
+		<link rel="stylesheet" href="assets/css/skel.css" />
+			<link rel="stylesheet" href="assets/css/style.css" />
+			<link rel="stylesheet" href="assets/css/style-wide.css" />
+		<title>Open Source Portal</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+ 		<script src="assets/js/jquery.min.js"></script>
+		<script src="assets/js/jquery.dropotron.min.js"></script>
+		<script src="assets/js/skel.min.js"></script>
+		<script src="assets/js/skel-layers.min.js"></script>
+		<script src="assets/js/init.js"></script>
+	
+	</head>
+	<body>
+
+		<!-- Header -->
+			<div id="header">
+				<h1><a href="index.html" id="logo">Open Source DHuS Portal</a></h1>		
+     <!--<h1>
+     <a href="index.html" class="image left"><img src="assets/images/oslogomini.jpg" "alt="" /></a>
+     <a href="http://ec.europa.eu/index_en.html" class="image left"><img src="assets/images/ec-mini.jpg" "alt=""/></a>
+     <a href="index.html" id="logo"> <em>Open Source Portal</em></a>
+     <a href="http://www.copernicus.eu/" class="image left"><img src="assets/images/copernicus-mini.jpg" "alt=""/></a>
+     <a href="http://www.esa.int/ESA" class="image left"><img src="/assets/images/esa-mini.jpg" "alt=""/></a>    
+     </h1>-->
+				
+		<nav id="nav">
+						<ul>
+						<li ><a href="index.html">Home</a></li>
+						<li ><a href="about.html">About</a></li>
+
+							<li ><a href="https://github.com/SentinelDataHub/DataHubSystem">Download</a></li>	
+							<li ><a href="support.html">Support</a></li>
+							<li>
+               	<a href="">Documentation</a>
+								<ul>
+									<li><a href="governance.html"> Governance Model</a></li>
+									<li><a href="guidelines.html">Developer Guidelines</a></li>
+                 <!-- <li><a href="#">Interface Control Document</a></li>-->
+      		       </ul>
+							</li>
+					
+							
+				<li> <a href=""> Pilot Projects</a>
+							<ul>
+								<li><a href="dhus_docker_installation.html"> Docker Technologies Integration</a></li>
+								<li><a href="multi-mission-access.html">Multi-Mission Access</a></li>
+								<li><a href="wms.html">WMS-Integration</a></li>
+					</ul>
+				</li>
+							<li ><a href="">External Resources</a>
+							         <ul>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/snap/"> SNAP</a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-1-toolbox/">S-1 Toolbox </a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-2-toolbox/">S-2 Toolbox</a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-3-toolbox/">S-3 Toolbox</a></li>
+								</ul>
+							</li>
+				<li ><a href="contact.html">Contact Us</a></li>
+					
+						</ul>
+					</nav>
+
+			</div>
+				
+<!-- Main -->
+<section id="banner">
+</section>
+	<section class="wrapper style1">
+		<div class="container">
+			<div id="content">
+				<!-- Content -->
+					<article>
+						
+						<header>
+							<h2>Software Overview</h2>
+											</header>
+
+<p align="JUSTIFY">The Data Hub Software (DHuS) is open source software developed by a Serco/Gael consortium to the purpose of supporting the ESA Copernicus data access.</p>
+<p align="JUSTIFY">The DHuS provides a simple web interface to allow interactive data discovery and download, and a powerful Application Programming Interface (API) that allows users to access the data via computer programs/scripts thereby automating/integrating the download within their workflow.</p>
+<p align="JUSTIFY">Different instances of the Data Hub are currently operated by ESA allowing for tailored managed levels of service:</p>
+<p ALIGN="JUSTIFY">&bull;<strong>Research and General Public (Sentinels Scientific Data Hub)</strong></p>
+<p ALIGN="JUSTIFY">&bull;<strong>Copernicus Service (Copernicus Service Project Data Hub)</strong></p>
+<p ALIGN="JUSTIFY">&bull;<strong>International Partners (Sentinels International Data Hub)</strong></p>
+<p ALIGN="JUSTIFY">&bull;<strong>Collaborative Ground Segment (Sentinels Collaborative Data Hub)</strong></p>
+
+<p align="JUSTIFY">The major functionalities of the Data Hub Software are schematically represented in figure below:</p>
+<p><img src="https://raw.githubusercontent.com/SentinelDataHub/DataHubSystem/gh-pages/images/DHuS-functions.jpg" alt="" /></p>
+<p><em>Data Hub Software functions</em></p>
+<hr />
+<p><img src="http://raw.githubusercontent.com/calogera/DatahubSystem/gh-pages/images/indexing.png" alt="" /><br /><a name="ProductIndexing"></a><strong>Product Indexing</strong><br /><p align="JUSTIFY">The indexing function allows referencing products within the local archive, in other DHuS instances or other data sources (e.g. PDGS’s Long Term Archives).
+	The indexing is based on the creation of configurable metadata (including quick-look, as relevant for EO data). 
+</p>
+<p>&nbsp;</p>
+<hr />
+<p><img src="http://raw.githubusercontent.com/calogera/DatahubSystem/gh-pages/images/archive.png" alt="" /><a name="LocalArchive"></a><strong>Local Archive</strong><br /><p align="JUSTIFY">The local archive is the core element of the system; it retains the products managed at a given instance. The local archive is managed as a rolling archive, with configurable eviction strategies and rules.</p>
+<hr />
+<p><img src="http://raw.githubusercontent.com/calogera/DatahubSystem/gh-pages/images/management.png" alt="" /><a name="CentreManagement"></a><strong>Centre Management</strong><br /><p align="JUSTIFY">The centre management service allows the unambiguous identification of each centre. It applies the particular configuration of the local services as well as the configuration of its relationship, if any, with other centres.</p>
+<hr />
+<p>&nbsp;</p>
+<p><img src="http://raw.githubusercontent.com/calogera/DatahubSystem/gh-pages/images/harvesting.png" alt="" /><a name="ProductHarvesting"></a><strong>Product Harvesting</strong><br /><p align="JUSTIFY">The product harvester is the service responsible for collecting products from (PDGS) data sources (ingestion) or from a DHuS Network (synchronization).</p>
+<hr />
+<p><img src="http://raw.githubusercontent.com/calogera/DatahubSystem/gh-pages/images/user-interface.png" alt="" /><a name="UserInterface"></a><strong>User Interface</strong><br /><p align="JUSTIFY">	This function is in charge of providing the user with an interface for the discovery, and downloading of products and for the visualization of the relevant metadata. It consists of two interfaces: a Graphical User Interface (modern and easy-to-use web application) and an Application Programming Interface (mainly used for batch scripting, machine to machine interactions).</p>
+<hr />
+<p><img src="http://raw.githubusercontent.com/calogera/DatahubSystem/gh-pages/images/user-management.png" alt="" /><a name="UserManagement"></a><strong>User management</strong><br /><p align="JUSTIFY">This function is in charge of managing the user accounts for access to the DHuS. It allows the definition of roles and permissions of the users and prevents uncontrolled accesses.</p>
+<hr />
+<p><img src="https://raw.githubusercontent.com/calogera/DataHubSystem/master/images/search-preview.png" alt="" /> <a name="SearchandProductPreview"></a><strong>Search and Product Preview</strong><br /><p align="JUSTIFY">This function is in charge of providing users with the possibility to perform search via standardized API protocols (OData and Opensearch) and via the graphical user interface. </p>
+<hr />
+<p>&nbsp;</p>
+<p><img src="https://raw.githubusercontent.com/calogera/DataHubSystem/master/images/extraction.png" alt="" /><a name="ProductExtraction"></a><strong>Product Navigation</strong><br /><p align="JUSTIFY">The product navigation function manages the ability to browse the product structure, getting the description or the content of its nodes.</p>
+<hr />
+<p>&nbsp;</p>
+<p><img src="http://raw.githubusercontent.com/calogera/DatahubSystem/gh-pages/images/dissemination.png" alt="" /><a name="ProductDissemination"></a><strong>Product Dissemination</strong><br /><p align="JUSTIFY">	The dissemination function manages the product dissemination, retrieval and access by the user. It also allows disseminating/retrieving sub-components of products. This is considered of particular relevance for the voluminous data products managed in the Sentinels mission.</p>
+
+
+
+	</p>
+
+		</div>
+	</section>

@@ -1,0 +1,118 @@
+<!DOCTYPE HTML>
+<html>
+   				<head>
+		<link rel="stylesheet" href="assets/css/skel.css" />
+			<link rel="stylesheet" href="assets/css/style.css" />
+			<link rel="stylesheet" href="assets/css/style-wide.css" />
+		<title>Open Source Portal</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+ 		<script src="assets/js/jquery.min.js"></script>
+		<script src="assets/js/jquery.dropotron.min.js"></script>
+		<script src="assets/js/skel.min.js"></script>
+		<script src="assets/js/skel-layers.min.js"></script>
+		<script src="assets/js/init.js"></script>
+	
+	</head>
+    <body>
+
+        <!-- Header -->
+            <div id="header">
+                <h1><a href="index.html" id="logo">Open Source DHuS Portal</a></h1>
+     <!--<h1>
+     <a href="index.html" class="image left"><img src="assets/images/oslogomini.jpg" "alt="" /></a>
+     <a href="http://ec.europa.eu/index_en.html" class="image left"><img src="assets/images/ec-mini.jpg" "alt=""/></a>
+     <a href="index.html" id="logo"> <em>Open Source Portal</em></a>
+     <a href="http://www.copernicus.eu/" class="image left"><img src="assets/images/copernicus-mini.jpg" "alt=""/></a>
+     <a href="http://www.esa.int/ESA" class="image left"><img src="/assets/images/esa-mini.jpg" "alt=""/></a>
+     </h1>-->
+
+        <nav id="nav">
+                        <ul>
+                        <li ><a href="index.html">Home</a></li>
+                        <li ><a href="about.html">About</a></li>
+
+                            <li ><a href="https://github.com/SentinelDataHub/DataHubSystem">Download</a></li>
+                            <li ><a href="support.html">Support</a></li>
+                            
+                            <li>
+               	<a href="">Documentation</a>
+                                <ul>
+                                    <li><a href="governance.html"> Governance Model</a></li>
+                                    <li><a href="guidelines.html">Developer Guidelines</a></li>
+                 <!-- <li><a href="#">Interface Control Document</a></li>-->
+      		       </ul>
+                            </li>
+
+
+               	<li> <a href=""> Pilot Projects</a>
+							<ul>
+								<li><a href="dhus_docker_installation.html"> Docker Technologies Integration</a></li>
+								<li><a href="multi-mission-access.html">Multi-Mission Access</a></li>
+								<li><a href="wms.html">WMS-Integration</a></li>
+					</ul>
+				</li>
+                            <li ><a href="">External Resources</a>
+							         <ul>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/snap/"> SNAP</a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-1-toolbox/">S-1 Toolbox </a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-2-toolbox/">S-2 Toolbox</a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-3-toolbox/">S-3 Toolbox</a></li>
+								</ul>
+							</li>
+                <li ><a href="contact.html">Contact Us</a></li>
+
+                        </ul>
+                    </nav>
+
+            </div>
+
+<!-- Main -->
+<section id="banner">
+</section>
+    <section class="wrapper style1">
+        <div class="container">
+            <div id="content">
+                <!-- Content -->
+                    <article>
+
+                        <header>
+                            <h2>System Management Panel</h2>
+                                            </header>
+<p align="JUSTIFY">
+The system management is used to configure basic information in the system.
+    The Administrator from here can access the following sections:   </p>
+
+			    <p align="JUSTIFY"><strong>1. Mail configuration:</strong> In this form it is possible to configure the SMTP server address, the username, password and e-mail account details to send communications to the users.
+                        </p>
+<img src="https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/fig-15.png" alt=""/>)
+                        <p> <strong>Mail configuration management Panel</strong></p>
+
+			    <p align="JUSTIFY"><strong> 2. Support information:</strong> For any support information it is possible to contact the DHuS Support Team sending an e-mail to eosupport@copernicus.esa.int</p>
+<img src="https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/fig-16.png" alt=""/>
+
+<p><strong>Support configuration management panel</strong></p>
+
+			    <p align="JUSTIFY"><strong>3. Root configuration:</strong> from this panel it is possible to change the administrator password. To do so, insert the old password, the new one and then confirm the new password.
+                        </p>
+<img src="https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/fig-17.png" alt=""/>
+
+                        <p><strong>Root configuration management panel </strong>  </p>
+
+			    <p align="JUSTIFY"><strong>4. Restore database:</strong> in the dhus.xml file it is possible to configure DHuS so that it performs a periodical dump of the database. From this panel it is possible to restore the database dump.
+                        </p>
+<img src ="https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/fig-18.png"alt=""/>
+
+                        <p><strong>Restore database panel  </strong>  </p>
+                        <p align="justify">To do so, perform the following steps:</p>
+<p align="JUSTIFY"><strong> Step 1: </strong>Click on the drop-down menu in the `restore-database section: the list of available dumps will be displayed through a list of dates (date during which the dumps have been performed). </p>
+
+<p align="JUSTIFY"><strong> Step 2: </strong> Select the desired date and then click on restore. DHuS will automatically stop and restart. Once DHuS will be up again, it will contain just the data inserted before the selected dump date.
+                        </p>
+                    </article>
+            </div>
+            </div>
+    </section>
+    </body>
+</html>

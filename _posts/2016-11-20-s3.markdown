@@ -1,0 +1,9 @@
+---
+layout: post
+title:  "Sentinel-3 Toolbox"
+date:   2016-11-22 12:06:54 +0100
+categories: jekyll update
+---
+
+[S3 TOOLBOX ](http://step.esa.int/main/toolboxes/sentinel-3-toolbox/ "S3 TOOLBOX")      
+The Sentinel-3 Toolbox consists of a rich set of visualisation, analysis and processing tools for the exploitation of OLCI and SLSTR data from the upcoming Sentinel-3 mission. As a multi-mission remote sensing toolbox, it also supports the ESA missions Envisat (MERIS & AATSR), ERS (ATSR), SMOS as well as third party data from MODIS (Aqua and Terra), Landsat (TM), ALOS (AVNIR & PRISM) and others. The various tools can be run from an intuitive desktop application or via a command-line interface. A rich application programming interface allows for development of plugins using Java or Python.

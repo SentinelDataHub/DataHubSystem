@@ -1,0 +1,180 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+		<link rel="stylesheet" href="assets/css/skel.css" />
+			<link rel="stylesheet" href="assets/css/style.css" />
+			<link rel="stylesheet" href="assets/css/style-wide.css" />
+		<title>Open Source Portal</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+ 		<script src="assets/js/jquery.min.js"></script>
+		<script src="assets/js/jquery.dropotron.min.js"></script>
+		<script src="assets/js/skel.min.js"></script>
+		<script src="assets/js/skel-layers.min.js"></script>
+		<script src="assets/js/init.js"></script>
+	
+	</head>
+    <body>
+
+        <!-- Header -->
+            <div id="header">
+                <h1><a href="index.html" id="logo">Open Source DHuS Portal</a></h1>
+     <!--<h1>
+     <a href="index.html" class="image left"><img src="assets/images/oslogomini.jpg" "alt="" /></a>
+     <a href="http://ec.europa.eu/index_en.html" class="image left"><img src="assets/images/ec-mini.jpg" "alt=""/></a>
+     <a href="index.html" id="logo"> <em>Open Source Portal</em></a>
+     <a href="http://www.copernicus.eu/" class="image left"><img src="assets/images/copernicus-mini.jpg" "alt=""/></a>
+     <a href="http://www.esa.int/ESA" class="image left"><img src="/assets/images/esa-mini.jpg" "alt=""/></a>
+     </h1>-->
+
+        <nav id="nav">
+                        <ul>
+                        <li ><a href="index.html">Home</a></li>
+                        <li ><a href="about.html">About</a></li>
+
+                            <li ><a href="https://github.com/SentinelDataHub/DataHubSystem">Download</a></li>
+                            <li ><a href="support.html">Support</a></li>
+                            
+                            <li>
+               	<a href="">Documentation</a>
+                                <ul>
+                                    <li><a href="governance.html"> Governance Model</a></li>
+                                    <li><a href="guidelines.html">Developer Guidelines</a></li>
+                 <!-- <li><a href="#">Interface Control Document</a></li>-->
+      		       </ul>
+                            </li>
+
+
+                	<li> <a href=""> Pilot Projects</a>
+							<ul>
+								<li><a href="dhus_docker_installation.html"> Docker Technologies Integration</a></li>
+								<li><a href="multi-mission-access.html">Multi-Mission Access</a></li>
+								<li><a href="wms.html">WMS-Integration</a></li>
+					</ul>
+				</li>
+                            <li ><a href="">External Resources</a>
+							         <ul>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/snap/"> SNAP</a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-1-toolbox/">S-1 Toolbox </a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-2-toolbox/">S-2 Toolbox</a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-3-toolbox/">S-3 Toolbox</a></li>
+								</ul>
+							</li>
+                <li ><a href="contact.html">Contact Us</a></li>
+
+                        </ul>
+                    </nav>
+
+            </div>
+<!-- Main -->
+<section id="banner">
+</section>
+    <section class="wrapper style1">
+        <div class="container">
+            <div id="content">
+                <!-- Content -->
+                    <article>
+
+                        <header>
+				<h2>Search Panel</h2></header>
+	<p align="JUSTIFY">The search panel provides a "full text search bar", "advanced search options" and a "map tool" as descibed in <a href="https://scihub.copernicus.eu/userguide/2GraphicalUserInterface">User Guide.</a>
+			    </p>
+			    <p align="JUSTIFY">Feature shapefile support
+This feature allow to use shapefile (file with extension .shp) to define geographical selection in the DHuS AJS GUI. The shapefile can be imported:
+Dragging and dropping the file directly in the map (only modern browser support this functionality)</p>
+			    
+			    
+			    
+			    
+	<p align="JUSTIFY"> There are other two important admin functions accessible via Search Panel:</p>
+		<p align="JUSTIFY">&bull;Bulk deletion;</p>
+		<p align="JUSTIFY">&bull;Deletion via OData API </p>
+                                            <h3>Bulk Deletion</h3>
+<p align="JUSTIFY">
+	In order to perform the bulk deletion it is possible:</p>
+			    <p align="JUSTIFY"><strong>Step 1</strong>:From the UI list/search panel select a set of products (“select all”);</p>
+			    <p align="JUSTIFY"><strong>Step 2</strong>:Delete them clicking on the trashbin icon in the lower side of the panel itself.
+			    </p>
+	<span class="image featured"><img src="assets/images/bulk_deletion.jpg" alt=""></span>  
+
+<header>
+	
+	<h3><a name="deletionviaapi">Deletion via OData API</a></h3>
+                                            </header>
+<p align="JUSTIFY">
+
+The following scripts permit massive products deletion via API.</p>
+
+<p align="justify">&bull;  <strong>getID.sh</strong>: it produces the UUID of products retrieving this information from the specified product names</p>
+<p align="justify">&bull;  <strong> delete_mod.sh</strong>: it performs the deletion of the products listed in the getID.sh script.</p>
+<p align="justify">The script getID.sh has 3 input parameter:</p> 
+<p align="justify"> 1) original file containing names of products to be deleted;</p>
+<p align="justify"> 2) number N of files in which you want to split the original file (used when the number of products is high)</p>
+<p align="justify"> 3) folder containing DB (in-operation DB copy) on which will be performed the query, that get the UUID of products by their names </p>
+<p align="justify">For each i-th file (i=1,2,3,.....,N) the query, related to the products names of the i-th file, is built and performed.
+The split operation allows to delete a big number of products by more scripts (i=1,2,3,......,N) launched in parallel, one for each i-th UUID file.
+</p>
+<p align="justify">The output main files produced by getID.sh are:</p>
+<p align="justify">1) UUID_</p>
+{i}.txt i=1,2,3,....,N; file containing the UUID of products of i-th block of names
+<p align="justify">2) PRODUCTSNOTFOUND_{i}
+	.txt i=1,2,3,....,N; file containing the names of products not found by i-th query on DB</p>
+<p align="justify">Each UUID_ {i}.txt file is the input parameter of the script delete_mod.sh that performs the deletion of UUID on Virtual machine where it is launched.</p>
+
+<p align="justify"> The input parameter of the script delete_mod.sh are:</p>
+<p align="justify">1) number of deletions in parallel</p>
+			    <p align="justify">2) file containing the UUID to be deleted (UUID_{i} .txt)</p>
+<p align="justify">The deletion of single UUID product (CURL command) and the related log is produced by del_prod_mod.sh that is a script present in delete_mod.sh.
+If the log produces, for a specific UUID, the string "in XXX s return code 20..." the product is deleted. </p>
+
+
+			    
+			    <section class="wrapper style1">
+		<div class="container">
+			<div class="row double">
+				<section class="4u">
+					<div class="box highlight">
+						<i class="icon major fa-paper-plane"></i>
+					<h3><a href="https://raw.githubusercontent.com/testkalos/DataHubSystem/master/delete_mod.sh">Delete_mod.sh</a></h3>
+						
+					</div>
+				</section>
+				<section class="4u">
+					<div class="box highlight">
+						<i class="icon major fa-pencil"></i>
+					<h3><a href="https://raw.githubusercontent.com/testkalos/DataHubSystem/master/getID.sh">GetId.sh</a></h3>
+					
+					</div>
+				</section>
+				<section class="4u">
+					<div class="box highlight">
+						<i class="icon major fa-wrench"></i>
+                           
+						<h3><a href="https://raw.githubusercontent.com/testkalos/DataHubSystem/master/del_prod_mod.sh">Del_prod_mod.sh</a></h3>
+					
+					</div>
+				</section>
+			</div>
+		</div>
+	</section>
+		    
+
+		    
+		    </article>
+            </div>
+        </div>
+
+    </section>
+    </body>
+</html>			    
+			    
+<!--			    
+			    
+</article>
+            </div>
+        </div>
+
+    </section>
+    </body>
+</html>-->

@@ -1,0 +1,12 @@
+---
+layout: post
+title:  "sENTINEL-1 Toolbox"
+date:   2016-11-22 12:06:54 +0100
+categories: jekyll update
+---
+
+
+[S1 TOOLBOX ](http://step.esa.int/main/toolboxes/sentinel-1-toolbox/ "Sentinel-1 Toolbox")      
+The Sentinel-1 Toolbox (S1TBX) consists of a collection of processing tools, data product readers and writers and a display and analysis application to support the large archive of data from ESA SAR missions including SENTINEL-1, ERS-1 & 2 and ENVISAT, as well as third party SAR data from ALOS PALSAR, TerraSAR-X, COSMO-SkyMed and RADARSAT-2. The various processing tools could be run independently from the command-line and also integrated within the graphical user interface. The Toolbox includes tools for calibration, speckle filtering, coregistration, orthorectification, mosaicking, data conversion, polarimetry and interferometry.
+
+The Sentinel-1 Toolbox is being developed for ESA by Array Systems Computing in partnership with DLR, Brockmann Consult and OceanDataLab.  

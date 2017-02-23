@@ -1,0 +1,12 @@
+---
+layout: post
+title:  "SNAP"
+date:   2016-11-22 12:06:54 +0100
+categories: jekyll update
+---
+
+[Sentinel Application Platform-SNAP](http://step.esa.int/main/toolboxes/snap/ "Sentinel Application Platform")   
+A common architecture for all Sentinel Toolboxes is being jointly developed by Brockmann Consult, Array Systems Computing and C-S called the Sentinel Application Platform (SNAP).
+
+The SNAP architecture is ideal for Earth Observation processing and analysis due the following technological innovations: Extensibility, Portability, Modular Rich Client Platform, Generic EO Data Abstraction, Tiled Memory Management, and a Graph Processing Framework.
+

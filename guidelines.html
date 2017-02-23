@@ -1,0 +1,257 @@
+<!DOCTYPE HTML>   
+<html>
+	<head>
+		<link rel="stylesheet" href="assets/css/skel.css" />
+			<link rel="stylesheet" href="assets/css/style.css" />
+			<link rel="stylesheet" href="assets/css/style-wide.css" />
+		<title>Open Source Portal</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+ 		<script src="assets/js/jquery.min.js"></script>
+		<script src="assets/js/jquery.dropotron.min.js"></script>
+		<script src="assets/js/skel.min.js"></script>
+		<script src="assets/js/skel-layers.min.js"></script>
+		<script src="assets/js/init.js"></script>
+	
+	</head>
+	<body>
+
+		<!-- Header -->
+			<div id="header">
+				<h1><a href="index.html" id="logo">Open Source DHuS Portal</a></h1>		
+     <!--<h1>
+     <a href="index.html" class="image left"><img src="assets/images/oslogomini.jpg" "alt="" /></a>
+     <a href="http://ec.europa.eu/index_en.html" class="image left"><img src="assets/images/ec-mini.jpg" "alt=""/></a>
+     <a href="index.html" id="logo"> <em>Open Source Portal</em></a>
+     <a href="http://www.copernicus.eu/" class="image left"><img src="assets/images/copernicus-mini.jpg" "alt=""/></a>
+     <a href="http://www.esa.int/ESA" class="image left"><img src="/assets/images/esa-mini.jpg" "alt=""/></a>    
+     </h1>-->
+				
+		<nav id="nav">
+						<ul>
+						<li ><a href="index.html">Home</a></li>
+						<li ><a href="about.html">About</a></li>
+
+							<li ><a href="https://github.com/SentinelDataHub/DataHubSystem">Download</a></li>	
+							<li ><a href="support.html">Support</a></li>
+							
+							<li>
+               	<a href="">Documentation</a>
+								<ul>
+									<li><a href="governance.html"> Governance Model</a></li>
+									<li><a href="guidelines.html">Developer Guidelines</a></li>
+                 <!-- <li><a href="#">Interface Control Document</a></li>-->
+      		       </ul>
+							</li>
+					
+							
+					<li> <a href=""> Pilot Projects</a>
+							<ul>
+								<li><a href="dhus_docker_installation.html"> Docker Technologies Integration</a></li>
+								<li><a href="multi-mission-access.html">Multi-Mission Access</a></li>
+								<li><a href="wms.html">WMS-Integration</a></li>
+					</ul>
+				</li>
+							<li ><a href="">External Resources</a>
+							         <ul>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/snap/"> SNAP</a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-1-toolbox/">S-1 Toolbox </a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-2-toolbox/">S-2 Toolbox</a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-3-toolbox/">S-3 Toolbox</a></li>
+								</ul>
+							</li>
+				<li ><a href="contact.html">Contact Us</a></li>
+					
+						</ul>
+					</nav>
+
+			</div>
+				
+<!-- Main -->
+<section id="banner">
+</section>
+	<section class="wrapper style1">
+		<div class="container">
+			<div id="content">
+				<!-- Content -->
+					<article>
+						
+						<header>
+							<h2>Developer Guidelines</h2>
+						</header>
+<p align="JUSTIFY">      
+This document provides detailed guidelines for the Open Source (OS) DHus Project contributors. 
+The main sections are: </p>
+						<p align="JUSTIFY"><a href="guidelines.html#Contribution"><strong>1.Contribution Process</strong></a></p>
+						<p align="JUSTIFY"><a href="guidelines.html#Prerequisites"><strong> 2.Prerequisites</strong></a></p>
+                                                <p align="JUSTIFY"><a href="guidelines.html#Developer"><strong> 3.Developer’Steps</strong></a></p>
+						<p align="JUSTIFY"><a href="guidelines.html#Integration"><strong> 4.Integration Workflow</strong></a></p>
+                                                <p align="JUSTIFY"><a href="guidelines.html#GitHub"><strong> 5.GitHub Issue system</strong></a></p>
+						<h3><a name="Contribution"><strong>1. Contribution Process</strong></a></h3>
+<p align="JUSTIFY">  
+You can contribute to the project, regardless of the skills, as there are many ways to contribute. For instance, you might be active on issue tracking system, or might supply patches. The various ways of contributing are described below.
+The GitHub issue tracking is the most appropriate place for asking for help when making the first contribution, reporting possible bugs, feature requests, documents changes and improvements.
+Submitting bug reports and suggesting new features are important tasks to help improve the quality and functionality of the software. You can help to ensure that current issues and features that have been reported and all relevant information is captured and entered into the issue tracking system in the correct way. This helps the project team and other contributors to take action in the shortest possible time.
+Open Source DHuS project uses GitHub to manage the bugs, as well as other issues and feature requests that we are working on.
+</p> 
+						<h3><a name="Prerequisites"><strong>2. Prerequisites</strong></a></h3>
+<p  align="JUSTIFY">  
+If you want to work with the source code or libraries of DHuS, we recommend you first make sure you have the following software installed:
+<p align="justify"><a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">• Java SE Development Kit (SDK)</a></p>
+<p align="justify"><a href="http://maven.apache.org/download.cgi">• Maven</a></p>
+<p align="justify"><a href="https://github.com/">• Git</a></p>
+						
+
+						<h3><a name="Developer"><strong>3.Developer' Step</strong></a></h3>
+<p align="JUSTIFY">  
+As developer you can contribute to the OSF DHuS project in the form of source code patches, new code, or bug reports, but could also include web site content like articles, FAQs, or screenshots. If the maintainers like your work, they might pull your fix into the original repository! If you want more details about the roles and related responsibilities see the Governance Model document.
+The figure below shows the major steps in a developer’s contribution process. 
+</p>
+
+					<p><span class="image featured"><src="assets/images/dev-steps.jpg" /></p>
+ <p ALIGN="JUSTIFY"> <strong>STEP 1</strong>: Git Install and Setup </p>
+<p align="JUSTIFY"> <strong>STEP 2</strong>: Fork-Clone Project</p>
+ <P ALIGN="JUSTIFY"> a. A fork is a copy of a repository. Forking a repository allows you to experiment without affecting the original project.</p>
+ <p ALIGN="JUSTIFY">&bull; On GitHub, navigate to the SentinelDataHub/DataHubSystem repository.</p>
+ <p ALIGN="JUSTIFY">&bull;In the top-right corner of the page, click Fork.</p>
+<p align="justify">
+In this way you have a fork on the DHuS repository, but you don’t have yet the files of the DHuS repository.</p>
+ <P ALIGN="JUSTIFY"> b. To get the files you must clone the project:
+On GitHub, navigate to your fork of the DHuS repository. In the right sidebar of your fork's repository page, click to copy the clone URL for your fork.</p> 
+<p align="justify">
+	
+In a terminal: 
+<p align="justify"><span style="background-color: #ffffff; color: #3366ff;"> $git clone https://github.com/SentinelDataHub/DataHubSystem.git</span></p>
+<p align="justify">(You will be prompted for the passphrase previously inserted when the ssh key was generated).</p>
+<p align="justify">Fork and clone are similar; they are related; they are not interchangeable.</p>
+<p ALIGN="JUSTIFY">&bull;The clone operation is built into git: git-clone - clones a repository into a new directory.</p> 
+<p ALIGN="JUSTIFY">&bull;The fork operation lets anyone fork an existing repository and push changes to their personal fork without requiring access be granted to the source repository. The changes must then be pulled into the source repository by the project maintainers. This model reduces the amount of friction for new contributors and is popular with open source projects because it allows people to work independently without upfront coordination.</p> 
+
+<p ALIGN="JUSTIFY">
+The difference between forking and cloning is really a difference in intent and purpose:</p> 
+<p ALIGN="JUSTIFY">&bull;The forked repository is mostly static. It exists in order to allow you to publish work for code review purposes. You don't do active development in your forked repository (in fact, you can't; because it doesn't exist on your computer, it exists on GitHub's server in the cloud). </p>
+<p ALIGN="JUSTIFY">&bull;The cloned repository is your active repo. It is where you do all your work. But other people generally don't have access to your personal cloned repo, because it's on your laptop. So that's why you have the forked repo, so you can push changes to it for others to see and review. </p>
+<p ALIGN="JUSTIFY">
+Note: one thing that's sort of interesting is that you never directly update your forked repo from the original ("upstream") repo after the original "fork" operation. Subsequent to that, updates to your forked repo are indirect: you pull from upstream into your cloned repo, to bring it up to date, then (if you wish), you push those changes into your forked repo. 
+</p>
+<p align="JUSTIFY"> <strong>STEP 3</strong>: Development </strong></p>
+<p align="JUSTIFY"> You can modify the source code and add some nice features, fix a bug, and then push the changes in you fork, but take care about the mandatory rules and best practices summarized in the table below. 
+	The developments process includes the following steps:</p>
+<p align="JUSTIFY"> <strong>STEP I</strong>: Identify the feature or the bug you are willing to implement</p> 
+<p align="JUSTIFY"> <strong>STEP II</strong>: Update the master branch of fork </p>
+
+<p align="JUSTIFY"> <span style="background-color: #ffffff; color: #3366ff;">$ git checkout branch_name</span></p> 
+				
+<p align="JUSTIFY"> <span style="background-color: #ffffff; color: #3366ff;"> $ git fetch upstream branch_name </span></p> 
+<p align="JUSTIFY"> <span style="background-color: #ffffff; color: #3366ff;"> $ git merge --ff-only FETCH_HEAD </span></p>  
+
+<p align="JUSTIFY"> <strong>STEP III</strong>: Create a new branch for the issue following the naming convention.</p>
+<p align="JUSTIFY"> There are 2 type of branches:</p> 
+<p align="JUSTIFY"><strong>a. Feature Branch</strong>: this branch is dedicated for all features developments. This encapsulation makes it easy for multiple developers to work on a particular feature without disturbing the main codebase. </p>
+<p align="JUSTIFY"><strong>b. Hotfix Branch</strong>: this branch is dedicated for bug fixing. </p>
+<p align="JUSTIFY"> <strong>STEP IV</strong>: Develop on the newly created branch (in general a new feature) </p>
+<p align="JUSTIFY"> <strong>STEP V</strong>: Commit every atomic modify (add the id of GitHub issue at the end of the comment for each commit) </p>
+<p align="JUSTIFY"> <strong>STEP VI</strong>: Pull request from issue branch via GitHub user interface </p>
+<p align="JUSTIFY"> <strong>STEP VII</strong>: Interact with maintainer via GitHub pull request board <p>
+
+<p align="justify"><strong> Mandatory Rules</strong></p> 
+<table style="border: 1px solid black; border-collapse: collapse;">
+<tbody>
+<tr><th style="border: 1px solid black; text-align: left;">Building and unit tests should not depend on external services or network access</th></tr>
+<tr style="text-align: left;"><th style="border: 1px solid black;">Write unit tests before coding, to verify bug and desired behaviour. (http://www.junit.org).</th></tr>
+<tr style="text-align: left;"><th style="border: 1px solid black;">Ensure build is not broken before committing!</th></tr>
+<tr style="text-align: left;"><th style="border: 1px solid black;">(If you have any doubts about or) If unsure about where to place code, contact the Maintainers to confirm whether your code needs a new module, and where it should go.</th></tr>
+<tr style="text-align: left;"><th style="border: 1px solid black;">All source code must have the required file header with the Serco/Gael/(ESA) copyright (with the copyright year(s) updated)</th></tr>
+<tr style="text-align: left;"><th style="border: 1px solid black;">Update the @Author tag on any class modified</th></tr>
+<tr style="text-align: left;"><th style="border: 1px solid black;">Write JavaDoc for any methods that are public or which purpose can be tricky to understand.</th></tr>
+<tr><th style="border: 1px solid black; text-align: left;">All commit messages should have the relevant #GitHub issue number. If an issue does not exist, create it as a new issue or as a sub-task of the overall issue.</th></tr>
+</tbody>
+</table>			
+<p align="justify"> <strong> Best Practices </strong>
+<table style="border: 1px solid black; border-collapse: collapse;">
+<tbody>
+<tr><th style="border: 1px solid black; text-align: left;">Building and unit tests should not depend on external services or network access</th></tr>
+<tr><th style="border: 1px solid black; text-align: left;">Add integration tests to a integration test module</th></tr>
+<tr><th style="border: 1px solid black; text-align: left;">Fix build issues immediately</th></tr>
+<tr><th style="border: 1px solid black; text-align: left;">Never copy code. If code could be reused, feel free to do a refactoring to a common class/module. Coordinate with other team members. If a special deployment or patch is needed, contact the Maintainers to add them to the DHuS repository</th></tr>
+<tr><th style="border: 1px solid black; text-align: left;">All source code committed to the main repository must be written by an author covered by the AGPL.</th></tr>
+</tbody>
+</table>
+<!--<table style="border:1px solid black;border-collapse:collapse;">
+<tbody>
+<tr>
+    <th style="border:1px solid black;">Building and unit tests should not depend on external services or network access</th>
+</tr>  
+<tr>
+    <th style="border:1px solid black;">Add integration tests to a integration test module</th>
+</tr> 										    
+ <tr>
+    <th style="border:1px solid black;">Fix build issues immediately </th>
+</tr>
+ <tr>
+    <th style="border:1px solid black;">Never copy code. If code could be reused, feel free to do a refactoring to a common class/module. Coordinate with other team members.
+       If a special deployment or patch is needed, contact the Maintainers to add them to the DHuS repository </th>
+</tr>	
+ <tr>
+    <th style="border:1px solid black;">All source code committed to the main repository must be written by an author covered by the AGPL. </th>
+</tr>
+	</p>
+	</tbody>
+</table>-->
+<p align="JUSTIFY"> <strong>STEP 4</strong>: Rebase</strong></p>
+The golden rule of git rebase is to never use it on MASTER branch and on public branches. 
+Before rebasing a fetch must be done to be sure that you have the updated version of the software. You can rebase the feature branch onto master branch using the following commands: 
+		<p align="JUSTIFY"> a. Update a local branch from upstream repository</p> 
+		<p align="JUSTIFY"><span style="background-color: #ffffff; color: #3366ff;"> $ git checkout branch_name</span><p>
+		<p align="JUSTIFY"><span style="background-color: #ffffff; color: #3366ff;">$ git fetch upstream branch_name</span></p>
+		<p align="JUSTIFY"><span style="background-color: #ffffff; color: #3366ff;">$ git merge --ff-only FETCH_HEAD </span></p>
+<p align="JUSTIFY"> b. Rebase the branch </p>
+<p align="JUSTIFY"><span style="background-color: #ffffff; color: #3366ff;">$ git checkout <branch_name></span></p> 
+<p align="JUSTIFY"><span style="background-color: #ffffff; color: #3366ff;">$ git rebase <parent_branch_name></span></p> 
+
+<p align="JUSTIFY">c. Publish to your repository the rebase</p> 
+<p align="JUSTIFY"><span style="background-color: #ffffff; color: #3366ff;">$ git push -f origin branch_name</span></p>
+<p align="JUSTIFY">
+This moves the entire feature branch to begin on the tip of the master branch, effectively incorporating all of the new commits in master. But, instead of using a merge commit, rebasing re-writes the project history by creating brand new commits for each commit in the original branch. 
+Running git rebase with the -i flag begins an interactive rebasing session. Instead of blindly moving all of the commits to the new base, interactive rebasing gives you the opportunity to alter individual commits in the process. This lets you clean up history by removing, splitting, and altering an existing series of commits. 
+There are two trade-offs for this pristine commit history: safety and traceability. If you don’t follow the Golden Rule of Rebasing, re-writing project history can be potentially catastrophic for your collaboration workflow. And, less importantly, rebasing loses the context provided by a merge commit—you can’t see when upstream changes were incorporated into the feature. 
+The major benefit of rebasing is that you get a much cleaner project history. First, it eliminates the unnecessary merge commits required by git merge. Second, rebasing also results in a perfectly linear project history—you can follow the tip of feature all the way to the beginning of the project without any forks. 
+5- Pull Request 
+The changes must then be pulled into the source repository by the project maintainer. To have the project maintainers do so, a “pull request” must be issued by the developer. 
+On GitHub navigate to your repository with the changes you want someone else to pull and press the Pull Request button. 
+Note that pull requests can be sent from any branch or commit but it's recommended that a topic branch be used so that follow-up commits can be pushed to update the pull request if necessary.
+    </p>
+
+		<h3><a name="Integration"><strong>4. Workflow</strong></a></h3>
+ 
+<p align="justify">This workflow is a very common workflow with hub-based tools like GitHub, where it’s easy to fork a project and push your changes into your fork for everyone to see. One of the main advantages of this approach is that you can continue to work, and the maintainer of the main repository can pull in your changes at any time. Contributors don’t have to wait for the project to incorporate their changes – each party can work at their own pace. The figure below shows how it works.</p>   
+ 
+
+<span class="image featured"><img src="assets/images/workflow2.png" alt=""/>
+	<h3><a name="GitHub"><strong>5. GitHub issue System</strong></a></h3>
+<p align="justify">
+In order to submit a bug, a document, a new feature or ask a question you can open a new issue in GitHub issue tracking. It is a great place to easily share and collaborate on your issues.
+				<p align="justify"><strong> STEP 1 </strong>: Click on Issues on the right side;</p>
+				<p align="justify"><strong> STEP 2 </strong>: Click New Issue;</p>
+				<p align="justify"><strong> STEP 3 </strong>: Insert Title and one of the following labels:</p>
+				<p align="justify">•BUG:Software Problem Reports.</p>
+<p align="justify">•DOCUMENTATION: Documentation is used to report issues on documents, and manuals.</p>
+				<p align="justify">•FEATURE: Feature is used for specific feature work or improvements.</p>
+				<p align="justify">•HELP: WANTED Help wanted is used to ask generic support.</p>
+				<p align="justify"><strong> STEP 4</strong>: Insert text description;</p>
+				<p align="justify"><strong> STEP 5</strong>: Submit new issue.</p>
+
+<p align="justify">
+<h2><strong>File Header text to be used</strong></h2>
+<p align="justify"><strong><span style="background-color: #ffffff; color: #3366ff;"> /* * Data HUb Service (DHuS) - For Space data distribution. * Copyright (C) 2013,2014,2015 European Space Agency (ESA) * Copyright (C) 2013,2014,2015 GAEL Systems * Copyright (C) 2013,2014,2015 Serco * * This file is part of DHuS software sources. * * This program is free software: you can redistribute it and/or modify * it under the terms of the GNU Affero General Public License as * published by the Free Software Foundation, either version 3 of the * License, or (at your option) any later version. * * This program is distributed in the hope that it will be useful, * but WITHOUT ANY WARRANTY; without even the implied warranty of * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the * GNU Affero General Public License for more details. * * You should have received a copy of the GNU Affero General Public License * along with this program. If not, see <http://www.gnu.org/licenses/>. */ This source is commented in java style, but must be encapsulated in the various languages comment style: shell # # Data HUb Service (DHuS) - For Space data distribution. # Copyright (C) 2013,2014,2015 European Space Agency (ESA) .... XML <!-- Data HUb Service (DHuS) - For Space data distribution. Copyright (C) 2013,2014,2015 European Space Agency (ESA) ... --> 
+C/C++ /* * Data HUb Service (DHuS) - For Space data distribution. * Copyright (C) 2013,2014,2015 European Space Agency (ESA) *... */  
+
+	</span></strong></p>
+
+
+		           </article>
+			</div>
+			</div>
+	</section>
+

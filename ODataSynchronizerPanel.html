@@ -1,0 +1,165 @@
+<!DOCTYPE HTML>
+<html>
+   		<head>
+		<link rel="stylesheet" href="assets/css/skel.css" />
+			<link rel="stylesheet" href="assets/css/style.css" />
+			<link rel="stylesheet" href="assets/css/style-wide.css" />
+		<title>Open Source Portal</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+ 		<script src="assets/js/jquery.min.js"></script>
+		<script src="assets/js/jquery.dropotron.min.js"></script>
+		<script src="assets/js/skel.min.js"></script>
+		<script src="assets/js/skel-layers.min.js"></script>
+		<script src="assets/js/init.js"></script>
+	
+	</head>
+    <body>
+
+        <!-- Header -->
+            <div id="header">
+                <h1><a href="index.html" id="logo">Open Source DHuS Portal</a></h1>
+     <!--<h1>
+     <a href="index.html" class="image left"><img src="assets/images/oslogomini.jpg" "alt="" /></a>
+     <a href="http://ec.europa.eu/index_en.html" class="image left"><img src="assets/images/ec-mini.jpg" "alt=""/></a>
+     <a href="index.html" id="logo"> <em>Open Source Portal</em></a>
+     <a href="http://www.copernicus.eu/" class="image left"><img src="assets/images/copernicus-mini.jpg" "alt=""/></a>
+     <a href="http://www.esa.int/ESA" class="image left"><img src="/assets/images/esa-mini.jpg" "alt=""/></a>
+     </h1>-->
+
+        <nav id="nav">
+                        <ul>
+                        <li ><a href="index.html">Home</a></li>
+                        <li ><a href="about.html">About</a></li>
+
+                            <li ><a href="https://github.com/SentinelDataHub/DataHubSystem">Download</a></li>
+                            <li ><a href="support.html">Support</a></li>
+                            
+                            <li>
+               	<a href="">Documentation</a>
+                                <ul>
+                                    <li><a href="governance.html"> Governance Model</a></li>
+                                    <li><a href="guidelines.html">Developer Guidelines</a></li>
+                 <!-- <li><a href="#">Interface Control Document</a></li>-->
+      		       </ul>
+                            </li>
+
+
+                	<li> <a href=""> Pilot Projects</a>
+							<ul>
+								<li><a href="dhus_docker_installation.html"> Docker Technologies Integration</a></li>
+								<li><a href="multi-mission-access.html">Multi-Mission Access</a></li>
+								<li><a href="wms.html">WMS-Integration</a></li>
+					</ul>
+				</li>
+				<li ><a href="">External Resources</a>
+							         <ul>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/snap/"> SNAP</a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-1-toolbox/">S-1 Toolbox </a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-2-toolbox/">S-2 Toolbox</a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-3-toolbox/">S-3 Toolbox</a></li>
+								</ul>
+							</li>
+                <li ><a href="contact.html">Contact Us</a></li>
+
+                        </ul>
+                    </nav>
+
+            </div>
+<!-- Main -->
+<section id="banner">
+</section>
+    <section class="wrapper style1">
+        <div class="container">
+            <div id="content">
+                <!-- Content -->
+                    <article>
+
+                        <header>
+                            <h2>OData Synchronizer Panel</h2>
+                                            </header>
+<p align="JUSTIFY">
+The DHuS provides end users an OData synchronizer service able to populate a DHuS instance with the data stored on the rolling archive of another DHuS instance.
+
+The DHuS instance containing the data to be synchronized is called back end instance, while the one that shall receive the data is called "front end" instance.
+Before delving into the configuration details, it is worth clarifying the following terminology used for operational functions:
+
+			    <p align="JUSTIFY">&bull;<strong>Metadata synchronization </strong>:Copy of product metadata from a site to another. The copy is performed according to predefined synchronization selection criteria </p>
+			 <img src="assets/images/metadatasynchro.jpg"alt=""/>
+			    <p align="justify">&bull;<strong>Product Synchronization</strong>: Copy of product and metadata from a site to another.This is different from a product re-ingestion.</p>
+                    <img src="assets/images/productsynchro.jpg"alt=""/>
+			  <p align="justify">In case the rolling archive of the Back End contains some products not present in the Front End, once the synchronization runs, the synchronization mirrors products present in the Back End instance respecting the synchronization specification (according chosen configuration) and that are not in the database of the Front End instance (in case of metadata synchronization, only the metadata will be mirrored).
+The OData Synchronizers panel is the User interface allowing the creation and update of synchronizers among two or more DHuS instances.
+			    </p>
+<p align="JUSTIFY"><strong>Preconditions</strong></p>
+<p align="JUSTIFY">
+    The FE/BE instances should be configured as follows:</p>
+
+<p align="JUSTIFY">&bull; BE: DHuS instance with no quota limitation and having a user with the archive management function enabled.</p>
+<p align="JUSTIFY">&bull;FE: having the synchronization functionality enabled, meaning that the dhus.xml of the FE shall contain the following setting:</p>
+<p align="JUSTIFY"><span style="color: #0000ff;"> &lt;executor enabled="true" batchModeEnabled="false"&gt; </span></p>
+<p align="JUSTIFY">In case a proxy has been set up between BE and FE, please change the network properties in order to include the BE in the list of IP that can access to BE without going through the proxy. 
+                        </p>
+                        <p align="JUSTIFY"><strong>How to create a new Synchronizer?</strong></p>
+                        <p align="JUSTIFY">The Administrator shall:</p>
+
+<p align="JUSTIFY"> <strong> Step 1: </strong> Log in as Root in the front end DHuS instance and select the tab user profile </p>
+<p align="JUSTIFY"><strong> Step 2: </strong> Select the panel OData synchronizers </p>
+
+<img src="https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/figure24.png" alt=""/>
+                        <p> <strong> OData Synchronizer access</strong></p>
+                        <p align="JUSTIFY"><strong> Step 3: </strong> Click on Create synchronizer</p>
+<img src="https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/figure25.png"alt=""/>
+
+                        <p> <strong> OData Synchronizer panel</strong></p>
+<p align="justify"><strong> Step 4: </strong> Fill the records as follows: </p>
+<img src="assets/images/fig26.jpg" alt=""/p>
+
+
+<p align="JUSTIFY">&bull;Label= Name of the synchronizer </p>
+<p align="JUSTIFY">&bull;Service URL= https://[Back-End_DHuS_address]/odata/v1 </p>
+<p align="JUSTIFY">&bull; Service Login Username= User name of a user registered in the back end. In case of metadata synchronization, the archive manager rights enabled are requested for this user, otherwise the synchronization between Back End and Front End would log errors or, if the remote incoming parameter is left blank, the dhus will synchronize only the Back End catalogue.</p>
+<p align="JUSTIFY">&bull;Service Login Password= password of the user in the previous step </p>
+<p align="JUSTIFY">&bull; Schedule= how often the synchronizer shall be running.</p>
+<p align="JUSTIFY">&bull;Remote incoming=absolute path incoming of the incoming folder configured for the DHuS installed on the Back End instance (it must be specified ONLY if the “Copy product” field is set as false)</p>
+<p align="JUSTIFY">&bull;Request= start or stop </p>
+<p align="JUSTIFY">&bull;Target Collection= is a nullable and modifiable property with no default value. If specified, the synchronized products will be filed in the referenced FE Collection</p>
+<p align="JUSTIFY">&bull;Page size= number of products synchronized at each synchronizer run (in case of product synchronization, the number configured in this field will determinate how many products will be simultaneously copied (it is suggested to set this parameter lower than the total number of threads allowed in the system). </p>
+<p align="JUSTIFY">&bull; Copy product= this parameter determinates if the synchronization is a metadata synchronization or is a products synchronization:</p>
+	<p align="JUSTIFY">&bull; False: the synchronizer will synchronize only the metadata of the products (the products are stored only in the Back End incoming folder)</p>
+	<p align="JUSTIFY">&bull; True: the synchronizer will make a copy of the products in the Front End incoming folder during the synchronization. </p>
+<p align="JUSTIFY"> Note that if this parameter is set as true, the “Remote Incoming” field shall be set as empty.</p>
+<p align="JUSTIFY">&bull;Filter Parameter= following the odata filters syntax, it filters the products and synchronize the only one respecting this filter. Example: substringof(‘S1A_’,Name) For reference see : https://scihub.copernicus.eu/userguide/5APIsAndBatchScripting</p>
+<p align="JUSTIFY">&bull;Source Collection= Back End Collection filter: only the products on the Back End instances, which are belonging to the configured collection, will be synchronized to the Front End instance. If this field is left empty, the synchronizer will synchronize every products without any check on their Back End collection.</p>		   
+<p align="JUSTIFY">&bull; Last Ingestion Date= Filter on the Ingestion date of the products stored in the Back End instances. Products with ingestion date >= of the one here indicated will be synchronized. Once the synchronizer ends, this field is updated with the ingestion date of the last synched product. During the next synchrionizer start (according the set “Schedule”), only products with the ingestion date > of the one here indicated will be synchronized.</p>	    
+<p align="JUSTIFY"><strong> Step 5: </strong> Click on the button with the floppy disk shape. </p>
+
+                        <p align="justify"> <strong> How to update a Synchronizer?</strong></p>
+                        <p align="justify">The Administrator shall:</p>
+
+<p align="JUSTIFY"><strong> Step 1: </strong> Log in as Root in the front end DHuS instance and select the tab user profile;</p>
+<p align="JUSTIFY"><strong> Step 2: </strong> Select the panel OData synchronizers and then click on the pencil next to the synchronizer to be updated</p>
+
+<img src="https://raw.githubusercontent.com/calogera/DataHubSystem/gh-pages/images/figure27.png" alt=""/>
+                        <p align="justify"><strong> Updating a synchronizer</strong></p>
+                        <p align="JUSTIFY"><strong> Step 1: </strong> Edit the records to be updated</p>
+                        <p align="JUSTIFY"><strong> Step 2: </strong>Click on the button with the floppy disk shape</p>
+
+                        <p align="JUSTIFY"><strong>How to delete a Synchronizer?</strong></p>
+                        <p align="justify">The Administrator shall:</p>
+
+<p align="JUSTIFY"><strong> Step 1: </strong>Log in as Root in the front end DHuS instance and select the tab user profile;</p>
+<p align="JUSTIFY"><strong> Step 2: </strong>Select the panel OData synchronizers and then click on the X shaped button next to the synchronizer to be updated.</p>
+
+<p align="JUSTIFY">Next to an existing synchronizer tab, there are also buttons for <strong>starting</strong> and <strong>stopping</strong> the item. The play button is to start the synchronizer; the square button is to stop it.</p>
+                    </article>
+
+
+
+        </div>
+        </div>
+    </section>
+    </body>
+</html>
+		
