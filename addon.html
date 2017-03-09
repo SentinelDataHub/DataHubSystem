@@ -13,7 +13,17 @@
 		<script src="assets/js/skel.min.js"></script>
 		<script src="assets/js/skel-layers.min.js"></script>
 		<script src="assets/js/init.js"></script>
-	
+	<style>
+			.code-block{
+				background-color: #f7f7f7;
+				font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier, monospace;
+				padding: 5px;
+			}
+			
+			.flex {max-width: 50%}
+			.flex1 {max-width: 80%}
+	   	</style>
+
 	</head>
     <body>
 
@@ -82,29 +92,29 @@
                         </header>
 <p align="JUSTIFY">
 The Data Hub Software is designed to provide users with a distributable service of mirror archives and dissemination means for products.</p>
-			    <span class="image featured"><img src="assets/images/fig1addon.jpg" alt=" "/></span><br>
+<div align="center"><img class="flex1" img src="assets/images/fig1addon.jpg" alt=" "/></div><br>
 DHuS can ingest and disseminate a specific product if a specific Add-on for it exists. Add-ons are pluggable modules (JAR) containing information necessary to classify mission products</p>
 DHuS can be easily extended to manage new data by means of new Add-ons development.<br>
 No software changes are needed to DHuS  Core to manage new Add-ons or to modify existing ones.<br>
-<span class="image featured"><img src="assets/images/fig2addon.jpg" alt=" "/></span>
+<div align="center"><img class="flex1" img src="assets/images/fig2addon.jpg" alt=" "/></div>
 <h3> Technologies and design</h3>
 <p align="justiy"> DHuS Add-on programming is based on:</p>
-			    <span class="image featured"><img src="assets/images/fig3addon.jpg" alt=" "/></span>
+ <div align="center"><img class="flex1"src="assets/images/fig3addon.jpg" alt=" "/></div>
 <p align="justify"> The Data Request Broker – DRB API® , developed by GAEL, is a Java open source API for manipulating data disregarding their content-types and formats.
 DRB is used within DHuS to access and extract data information.</p>
 <p align="justify"> DRB API has an XQuery engine allowing access to:</p>
 <p align="justify">&bull; XML documents;</p>
 <p align="justify">&bull;binary files described through XML  Schema Definition;</p>
-			    <span class="image featured"><img src="assets/images/fig4addon.jpg"alt=" "/></span>
+<div align="center"><img class="flex1" src="assets/images/fig4addon.jpg"alt=" "/></div>
 <p align="justify">DRB API can managed a conspicuous set of data type, such as:</p>
-			    <span class="image featured"><img src="assets/images/fig5addon.jpg"alt=" "/></span>
+			  <div align="center"><img class="flex1" src="assets/images/fig5addon.jpg"alt=" "/></div>
 
 <h3>Languages and Standards</h3>
-			    <span class="image featured"><img src="assets/images/fig6addon.jpg"alt=" "/></span>
-			    <span class="image featured"><img src="assets/images/fig7addon.jpg"alt=" "/></span>
+			   <div align="center"><img class="flex" src="assets/images/fig6addon.jpg"alt=" "/></div>
+			<div align="center"><img class="flex" src="assets/images/fig7addon.jpg"alt=" "/></div>
 <h3> Implementation and Integration</h3>
 <p align="justify">Contains product class hierarchy defined by means of Web Ontology Language (OWL)</p>
-			    <span class="image featured"> <img src="assets/images/fig8addon.jpg"></span>
+			      <div align="center"><img class="flex" src="assets/images/fig8addon.jpg"></div>
 			    <p align="justify"> <strong>Topic coding rules</strong></p>
 			    <p align="justify">1.Class type identifier;</p>
 			     <p align="justify">2.Class type comment (optional);</p>
@@ -116,7 +126,7 @@ DRB is used within DHuS to access and extract data information.</p>
 			    <p align="justify">&bull;Filenames Regex</p>
 			    <p align="justify">&bull;Product structure matching rules</p>
 			    <p align="justify">Metadata Extractor</p>
-			    <span class="image featured"><img src="assets/images/fig9addon.jpg" alt=" "/></span>			    
+			<div align="center"><img class="flex"src="assets/images/fig9addon.jpg" alt=" "/></div>			    
 			    <p align="justify"><strong>Metadata Extractor Coding Rules</strong></p>
 			    
 			    <p align="justify">1.Metadata extractor sections should be bound to a topic class type;</p>
@@ -147,7 +157,7 @@ DRB is used within DHuS to access and extract data information.</p>
 			    <h3> Add-on Loading</h3>
 			<p align="justify"> Add-ons can be integrated in the DHuS easily copying the JAR modules in the DHuS library path and restarting the system</p>
 
-			    <span class="image featured"><img src="assets/images/fig10addon.jpg"  alt=" "/></span>
+			<div align="center"><img class="flex"src="assets/images/fig10addon.jpg"  alt=" "/></div>
 			    
 			    <h3> Schema check and update<img src ="assets/images/addon.png" alt=" " style="float:right;"/></h3>
 			    <p align="justify">1.At start-up the DHuS</p>
