@@ -19,6 +19,9 @@
 				font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier, monospace;
 				padding: 5px;
 			}
+			
+			.flex {max-width: 50%}
+			.flex1 {max-width: 80%}
 	   	</style>
 	</head>
     <body>
@@ -79,66 +82,125 @@
 
                         <header>
                          
-                        </header>
-<h2>Preface</h2>
-<p align="JUSTIFY">This guide is oriented at anyone interested on Space Data Dissemination, that wants to use a configurable, user friendly, extensible Graphical User Interface for the SentinelDataHub/DataHubSystem, based on Web Components (Polymer).</p>
-<h2>Prerequisites</h2>
-<p align="JUSTIFY">Before we dive in, the knowledge and software requirements follows.</p>
-<h4>Web development</h4>
-<p align="JUSTIFY">To understand every part of the following guide it is required at least some <code>HTML</code>, <code>CSS</code> and <code>Javascript</code> programming experience. Basic knowledge of HTML5, CSS and Javascript principles are enough to run and configure the ESA Scientific HUB Open Web Components.</p>
-<p align="JUSTIFY">Intermediate web developers.</p>
-<h4>Web Components</h4>
-<p align=“JUSTIFY”>Web Components are a set of standards beign added to the HTML and DOM specification, by the W3C. The main features of Web Components standards are:</p>
+                        </header>			    
+			    
+<h2>USER GUIDES</h2>
+<h1><strong><a href="owc2.html#Preface"> Preface</a></strong></h1>
+			    <h1><strong><a href="owc2.html#Prerequisites"> Prerequisistes</a></strong></h1>
+			    <h1><strong><a href="owc2.html#Chap1"> Chapter 1:Open Web Components</a></strong></h1>
+			    <h1><strong><a href="owc2.html#Chap2"> Chapter 2: Web Component Architecture </a></strong></h1>
+			    <h1><strong><a href="owc2.html#Chap3"> Chapter 3: Main OWC</a></strong></h1>
+			    <h1><strong><a href="owc2.html#Chap4"> Chapter 4: Main OWC</a></strong></h1>
+			    <h1><strong><a href="owc2.html#AnnA"> Appendix A:OWC list </a></strong></h1>
+			    <h1><strong><a href="owc2.html#AnnB">Appendix B: Main OWC description</a></strong></h1>
+			    
+			    
+<h2><a name="Preface">Preface</a></h2>
+			    
+<p style="text-align: justify;">This guide is oriented at anyone who is interested on Space Data Dissemination and wants to use Open Web Components (OWC) software, a configurable, user friendly, extensible Graphical User Interface for the SentinelDataHub/DataHubSystem, based on Web Components (Polymer).</p>
 
-			    <p align=“JUSTIFY”>&bull;<strong>Custom Elements</strong>: API to define new HTML Elements<br>
-			    <p align=“JUSTIFY”>&bull;<strong>Shadow DOM</strong>: Encapsulated DOM and styling<br>
-			    <p align=“JUSTIFY”>&bull;<strong>HTML Imports</strong>: Import HTML documents into other compoent<br>
-			    <p align=“JUSTIFY”>&bull;<strong>HTML Template</strong>: allows documents to contain inert chuncks of DOM<br>
+ <h2><a name="Prerequisites">Prerequisites</a></h2>
+<p style="text-align: justify;">To understand every part of the following guide it is required at least some <code>HTML</code>, <code>CSS</code> and <code>Javascript</code> programming experience. Basic knowledge of HTML5, CSS and Javascript principles are enough to run and configure the ESA Scientific HUB Open Web Components. This means that these guidelines are intended for intermediate web developers.<br>
+Before we dive in, a brief description of Standards and technologies involved is reported in next paragraphs.<br>
+<h3 id="webcomponents">Web Components</h3>
+<p style="text-align: justify;"><code>Web Components</code> are a set of standards beign added to the HTML and DOM specification, by the World Wide Web Consortium (W3C). Web Components main innovation is the possibility to use an Object Oriented approach in Web application development. The main features of Web Components standards are:<br>
+<br>
+ &bull; Custom Elements, a specification describing the method for enabling the author to define and use new types of DOM elements in a document.<br>
+ &bull; Shadow DOM, a specification based on encapsulation and hiding the innards of a custom element inside a nested document, avoiding overriding of JavaScript methods and CSS styles.<br>
+ &bull; HTML Imports, a specification which allows to include and reuse HTML documents, considered as external resources, in other HTML documents.<br>
+ &bull; HTML Template, a specification which enables to store HTML data inside an HTML document, by means of &lt;template&gt; tag. The &lt;template&gt; element is used to declare fragments of HTML that can be cloned and inserted in the document by script. The content of a &lt;template&gt; element is parsed without interpreting it.<br>
+			    </p>			    
+<h3 id="polymer">Polymer</h3>
+<p style="text-align: justify;"><code>Polymer</code> is an open-source library for creating web applications using web components, following Material Design principles. Polymer library is designed to make it easier and faster for developers to create great, reusable components for the modern web. Polymer is built on top of the web components standards and it helps developers in building their own custom elements.<br>
+<p style="text-align: justify;">Polymer library provides a declarative syntax that makes it simpler to define custom elements. It adds features like templating, two-way data binding and property observation to help building powerful, reusable elements with less code.<br>
+ More information about Polymer library can be found at: <a href="https://www.polymer-project.org/1.0/docs/start/what-is-polymer.html"> https://www.polymer-project.org/1.0/docs/start/what-is-polymer.html</a></p>
+			    
+<h3 id="bower">Bower</h3>
+<p style="text-align: justify;"><code>bower</code> is package manager of web (html/css/js) dependencies for client side (browser). It simplifies developers' job downloading and managing all external libraries used by a web application. It's enough to include in your application a file, called bower.json, with the list of dependencies and the version to use.</p>
+<h3 id="nodejs">Node.js</h3>
+<p style="text-align: justify;"><code>Node.js</code> is is an open-source, cross-platform JavaScript runtime environment for developing tools and application. Node.js javascript interpreter is Google's V8. In the context of OWC, Node.js is required as Bower dependency.</p>
+<h3 id="npmnodepackagemanager">Npm (Node Package Manager)</h3>
+<p style="text-align: justify;"><code>npm</code> is the Node.js package manager, automatically included when Node.js is installed. npm manages installation of packages that are local dependencies of a particular project, resolving also, in one command, all the dependencies of a project.</p>
+<h3 id="gulp">Gulp</h3>
+<p style="text-align: justify;"><code>Gulp</code> helps automation of time-consuming tasks in development workflow. It is a Node.js task manager used mainly for:<br>
+<br>
+&bull; Minification and concatenation of Javascript and CSS files<br>
+&bull; CSS and Javascript preprocessing and validation<br>
+&bull; Image optimization<br>
+&bull; Unit testing<br>
+	The philosophy of gulp is <em>code over configurations</em></p>
+<h3 id="odata">OData</h3>
+<p style="text-align: justify;"><code>OData (Open Data Protocol)</code> is a standard that defines a set of best practices for building and consuming RESTful APIs. OData RESTful APIs are easy to consume. The OData metadata, a machine-readable description of the data model of the APIs, enables the creation of powerful generic client proxies and tools.</p>
 
-<h4>Polymer</h4>
-<p align=“JUSTIFY”><code>Polymer</code> is an open-source library for creating web applications using web components, following Material Design principles.</p>
-<h4 id="nodejs">Node.js</h4>
-<p align=“JUSTIFY”><code>Node.js</code> is Javascript a server side runtime environment. Node.js javascript interpreter is Google's V8.</p>
-<h4 id="npm">Npm</h4>
-<p align=“JUSTIFY”><code>npm</code> is the node.js package manager.</p>
-<h4>Bower</h4>
-<p align=“JUSTIFY”><code>bower</code> is package manager of web (html/css/js) dependencies for client side (browser).</p>
-<h4>Gulp</h4>
-<p align=“JUSTIFY”><code>Gulp</code> is a Node.js task manager. The philosophy of gulp is <em>code over configurations</em></p>
-<h4>OData</h4>
-<p align=“JUSTIFY”><code>OData</code> is a protocol to create and consume queryable and interoperable RESTful APIs. It is a wrapper of RESTful APIs.</p>
-<h2>1. Open Web Components</h2>
-<h4>Hello open web components</h4>
-<p align=“JUSTIFY”>The <strong>Open Web Components</strong> (<strong>OWC</strong>) is a client side software following the Single Page Application approach, for space data dissemination. The Software is developed using Polymer library.</p>
-<p align=“JUSTIFY”>The basic principles of <strong>OWC</strong> are:</p>
-<ul>
-    <p align=“JUSTIFY”>&bull;<strong>Modularity</strong></p>
-    <p align=“JUSTIFY”>&bull;<strong>Extensibility</strong></p>
-    <p align=“JUSTIFY”>&bull;<strong>Customization</strong></p>
-    <p align=“JUSTIFY”>&bull;<strong>Open Source</strong></p>
-<p align=“JUSTIFY”><span class="image featured"><img src="https://cloud.githubusercontent.com/assets/1030870/17594167/9f590f5e-5fe8-11e6-9a73-44692ecdfa1a.png" alt="modularity" /></span></p>
-<h5>Modularity</h5>
-<p align=“JUSTIFY”>The <strong>OWC</strong> architecture follows Object Oriented Programming. Every component is an independent module. Easy to use and easy to integrate in the main application.</p>
-<h5>Extensibility</h5>
-<p align=“JUSTIFY”>The <strong>OWC</strong> application is extensible, following the best practices of this guide it is possible to integrate new web components.</p>
-<h5>Customization</h5>
-<p align=“JUSTIFY”>The main application components are customizable. It is possible to customize the main menu, defining the components to integrate and it is possible to modify the appearance of application.</p>
-<h5>Open Source</h5>
-<p align=“JUSTIFY”><strong>OWC</strong> project is a Open Source project. Our mission is to create a developers community to create a set of web components in space dissemination field.</p>
-<h4 id="thenavigationmanager">The navigation manager</h4>
-<p align="JUSTIFY">This component is devoted to manage components layout inside application container, implementing the navigation system. Each component which is displayed on OWC uses the Navigation Manager. OWC_NavigationManager component is constituted by a main class, containing the following methods:</p>
-<br>
-	<p align=“JUSTIFY”>&bull;<strong>pushComponent</strong>: devoted to create the DOM element of the component to be displayed on main application container and to add to navigation stack the component itself. Input parameters are: component name component panel width in pixels (a default value is used if no width is provided)</li>
-	<p align=“JUSTIFY”>&bull;<strong>popComponen</strong>: devoted to remove a component from navigation stack on user request, which in turn implies component removal from main application container. Input parameter is the name of the component to remove.</li>
-<br>
-<h2>2. A new component</h2>
-<h4>Introduction</h4>
-<p align=“JUSTIFY”><em>OWC</em> is based on web components standard, using Google's Polymer library. Every entity in <em>OWC</em> is a web component, following the Model View Controller design pattern. <em>OWC</em> is compatible with javascript ECMAScript 5 and ECMAScript 6.</p>
-<h4>A very simple Polymer component</h4>
-<p align="JUSTIFY">The basic Polymer component is an extension of html tags, defining the name of the new tag, the view and the controller of this new component. An example of a new component with name <em>new_component</em> written in ES6 follows:</p>
-<pre  class="code-block">
+<h2><a name="Chap1">Chapter 1: Open Web Components</a></h2>		   
+<h3 id="introductiontoopenwebcomponents">Introduction to Open Web Components</h3>
+<p style="text-align: justify;">The <strong>Open Web Components</strong> (<strong>OWC</strong>) is a client side software following the Single Page Application approach, for space data dissemination. The Software is based on Web Components Standard with Polymer v1.0 implementation.</p>
+<p style="text-align: justify;">These are the basic principles to be followed for <strong>OWC</strong> development:<br>
+
+ &bull; Modularity<br>
+ &bull; Extensibility<br>
+ &bull; Customization<br>
+ &bull; Open Source<br>
+			  
+<p style="text-align: justify;">The fulfillment of these principles involves the ability to install the same OWC software version on different sites, configuring OWC in order to:<br>
+&bull; include different functionalities on different sites<br>
+&bull; combine the same functionalities in different ways on different sites. The following figure is a representation of this concept.<br>
+			    </p>
+
+
+<div align="center"><img class="flex" src="https://cloud.githubusercontent.com/assets/1030870/17594167/9f590f5e-5fe8-11e6-9a73-44692ecdfa1a.png" alt="modularity" /></div>
+<h4 id="modularity">Modularity</h4>
+<p style="text-align: justify;">Since <strong>OWC</strong> architecture follows Object Oriented Programming, each component has to be designed and implemented as an independent module. This ensures the possibility to use and integrate easily a module in the main application, since each component is selfstanding and contains everything necessary to execute the desired functionalities.</p>
+<h4 id="extensibility">Extensibility</h4>
+<p style="text-align: justify;">The <strong>OWC</strong> application is extensible, because it-s possible to add new functionalities (i.e. new components) without any impact on existing code. One of the most powerful innovation of Web Components standard is the chance of importing components located everywhere in the web. This implies that is possible to extend the application with:<br>
+&bull; internal components, i.e. components located within OWC application<br>
+&bull; external components, i.e. components deployed outside OWC application and reachable through an HTTP URL<br>
+
+<div align="center"><img class="flex" src="https://cloud.githubusercontent.com/assets/10920750/23408234/9ff94906-fdc7-11e6-9ff8-6cd6451234cb.png" alt="ext_int" /></div>
+<p style="text-align: justify;">The extensibility principle is fully granted following the best practices of this guide for new components development.</p>
+<h4 id="customization">Customization</h4>
+<p style="text-align: justify;">Another important aspect of <strong>OWC</strong> is Customization, implemented in terms of:<br>
+
+&bull; menu items (i.e. functionalities) displayed in application menu, which is fully configurable<br>
+&bull; data representation, thanks to the possibility to define which kind of information needs to be extracted from a data model and how this information have to be represented<br>
+&bull; application theme, which can be saved on browser local storage, allowing each user to configure application according to its preferences<br>
+&bull; application language, by means of internationalization support<br>
+<p style="text-align: justify;">Customization principle will be detailed deeply in next paragraphs</p>
+			    
+<h4 id="opensource">Open Source</h4>
+<p style="text-align: justify;"><strong>OWC</strong> project is a Open Source project with the goal of creating a community of developers interested in implementing new web components suitable to space products dissemination field. Thanks to modularity and extensibility principles, components implemented by Open Source community can be dynamically imported in OWC application on the basis of users' needs.</p>
+<h3 id="componentslayoutmanagement">Components layout management</h3>
+<p style="text-align: justify;"><strong>OWC</strong> components layout is managed by the navigation-manager component, which is in charge of displaying OWC components inside the browser. The navigation system makes it possible to present data efficiently and makes it easier for the user to navigate among components, since it pushes components in the navigation stack and displays them horizontally on the screen in the order they are requested by end users.</p>
+<p style="text-align: justify;">OWC navigation-manager component is constituted by a main class, containing the following methods:<br>
+
+&bull; pushComponent, devoted to create the DOM element of the component to be displayed on main application container and to add to navigation stack the component itself. Input parameters are:<br>
+
+- component name<br>
+- panel width in pixels<br>
+- panel title<br>
+- a boolean used to choose if close button is to be shown or not (true to hide, false to show)<br>
+- a boolean used to choose if panel is resizible (true to resize, false to fix size)<br>
+- maximun number of times a component can be pushed<br>
+
+&bull; popComponent, devoted to remove a component from navigation stack on user request, which in turn implies component removal from main application container. Input parameter is the name of the component to remove.</li>
+</ul>
+		
+<h2><a name="Chap2">Chapter 2: Web Component architecture</a></h2>		
+
+<h3 id="introduction">Introduction</h3>
+<p style="text-align: justify;"><em>OWC</em> is based on web components standard, using Google's Polymer library. Each entity in <em>OWC</em> is a web component, following the Model View Controller (MVC) design pattern and compatible with JavaScript ECMAScript 5 and ECMAScript 6.</p>
+<h3 id="abasicpolymercomponent">A basic Polymer component</h3>
+<p style="text-align: justify;">The basic Polymer component is an extension of HTML tags, where the root element contains component name. A minimum set of tags is used to define:<br>
+
+&bull; component view (HTML and CSS)<br>
+&bull; component controller (JavaScript)<br>
+
+<p style="text-align: justify;">Below is reported an example of a new component with name <em>new_component</em> written following ECMAScript 6 standard.</p>
+<p style="text-align: justify;">&nbsp;</p>
+ <pre  class="code-block">
 <code>
-&lt;dom-module id="new-component"&gt;
+  dom-module id="new-component"&gt;
+
 &lt;template&gt;
   &lt;style&gt;
     h1{
@@ -147,6 +209,7 @@
   &lt;/style&gt;
   &lt;h1&gt;New Component title&lt;/h1&gt;
 &lt;/template&gt;
+
 &lt;script&gt;
     (function() {
        'use strict';
@@ -156,28 +219,42 @@
            }
        };
       Polymer(NewComponent);
+
     })();
   &lt;/script&gt;
+
 &lt;/dom-module&gt;
-</code>
-	</pre>	    
-<p align=“JUSTIFY”>The sections of the snippet above are:</p>
-<p align=“JUSTIFY”><strong>The module</strong></p>
+</code></pre>
+		    
+<p style="text-align: justify;">The code snippet is detailed in the next paragraphs.</p>
+<h4 id="dommodule" style="text-align: justify;">dom-module</h4>
+<p style="text-align: justify;">The <strong>dom-module</strong> is the HTML tag used by Polymer to specify the web component DOM (Document Object Model), called <em>local DOM</em>. The following code snippet is used to define a new html tag module with name <em>new-component</em>.</p>
 <pre  class="code-block">
-		    <code>&lt;dom-module id="new-component"&gt;
+<code>
+dom-module id="new-component"&gt;
 ...
 &lt;/dom-module&gt;
-</code>
-	</pre>	    
-<p align=“JUSTIFY”>This section defines a new html tag module with name <em>new-component</em>.</p>
-<p align=“JUSTIFY”><strong>The view</strong> <br>
-<h1>New Component title</h1>
-<p align=“JUSTIFY”>The template tag contains the view of the new web component. This section contains the markup and styles. It is represent the View part of the MVC design pattern.</p>
-<p align=“JUSTIFY”><strong>The controller</strong></p>
-<p align="JUSTIFY">Following the Model View Controller design pattern, the controller contains the logic to glue the model with the view. The controller get the data from the data-sources (model) to bind this data with the view. Using <em>Polymer</em> it is possible to bind the data in the bidirectional way. For more information we suggest to read the <a href="https://www.polymer-project.org/1.0/docs/devguide/data-binding">official documentation</a> about it.</p>
-<p align=“JUSTIFY”>The controller is defined inside the script block of our web component:</p>
+</code></pre>
+<h4 id="componentview" style="text-align: justify;">Component View</h4>
+<p style="text-align: justify;">Component view is included in HTML &lt;template&gt; element, a mechanism for holding client-side content that is not to be rendered when a page is loaded but may subsequently be instantiated during runtime using JavaScript. The template tag contains HTML tags and CSS style definition. Below is reported a code snipped related to <em>new_component</em> view.</p>
 <pre  class="code-block">
-<code>  &lt;script&gt;
+<code>
+&lt;template&gt;
+&lt;style&gt;
+h1 {font-size:33px;
+}
+&lt;/style &gt;
+&lt;h1&gt;New Component title &lt;/h1 &gt;
+&lt;/template&gt;
+
+</code> </pre>
+
+<h4 id="componentcontroller">Component Controller</h4>
+<p style="text-align: justify;">Following the Model View Controller design pattern, the controller contains the logic to glue the model with the view. The controller gets data from the data-sources (i.e. model) and binds this data to the view. <em>Polymer</em> supports also bidirectional data binding. For more information, please refer to <a href="https://www.polymer-project.org/1.0/docs/devguide/data-binding">official documentation</a>.</p>
+<p style="text-align: justify;">The controller is defined inside the &lt;script&gt; block of a Web Component, as indicated in the code below.</p>
+<pre  class="code-block">
+<code>
+ &lt;script&gt;
     (function() {
        'use strict';
        class NewComponent {
@@ -189,102 +266,236 @@
 
     })();
   &lt;/script&gt;
-</code>
-</pre>		    
-<p align=“JUSTIFY”><em>OWC</em> is developed using ES6 (<a href="https://en.wikipedia.org/wiki/ECMAScript">ECMAScript</a> 6 standard). So in the example above the controller is implemented via a Javascript class definition, with name <em>NewComponent</em>. The approach to follow using ES6 with Polymer is detailed in this <a href="https://www.polymer-project.org/1.0/blog/es6">Polymer's official blog post</a>;</p>
-<p align=“JUSTIFY”>The class could implement the callbacks of Polymer following the lifecycle of Polymer elements. For Example:</p>
+  
+</code></pre>
+		
+<p style="text-align: justify;"><em>OWC</em> is developed using ES6 (<a href="https://en.wikipedia.org/wiki/ECMAScript">ECMAScript 6</a> standard). The approach to follow using ES6 with Polymer is detailed in <a href="https://www.polymer-project.org/1.0/blog/es6">Polymer's official blog post</a>.</p>
+<p style="text-align: justify;">With regard to example above, the controller is implemented within a Javascript class, named <em>NewComponent</em>. This class includes, if needed, implementation of the main callbacks of Polymer used to handle Polymer elements lifecycle. These methods are:</p>
 <ul>
+<li><strong>beforeRegister</strong>: Called before creating an element and used mainly to define element properties.</li>
+<li><strong>created</strong>: Called when the element has been created, but before property values are set and local DOM is initialized.</li>
+<li><strong>ready</strong>: Called after property values are set and local DOM is initialized.</li>
 <li><strong>attached</strong>: Called after the element is attached to the document.</li>
-<li><strong>beforeRegister</strong>: Called registering an element using an ES6 class.</li>
-<li><strong>detached</strong>: Called after the element is detached from the document. For a complete description of Polymer callback, we suggest to read the <a href="https://www.polymer-project.org/1.0/docs/devguide/registering-elements">official documentation</a> about Polymer Compoents lifecycle.</li>
+<li><strong>detached</strong>: Called after the element is detached from the document.</li>
 </ul>
-<p align=“JUSTIFY”>The code line <code>Polymer(NewComponent);</code> registers the new component class as new Polymer. The new component is usable as html tag after this statement.</p>
-<h4 id="webcomponentfolderstructure">Web component folder structure</h4>
-<p align=“JUSTIFY”><em>OWC</em> web components folder structure is inspired from Google's official web components folder structure.</p>
-<p align=“JUSTIFY”>Folder Structure:</p>
-<pre><code>├── bower.json
+<p style="text-align: justify;">For a complete description of Polymer callback, we suggest to read the <a href="https://www.polymer-project.org/1.0/docs/devguide/registering-elements">official documentation</a> about Polymer Compoents lifecycle.</p>
+<p style="text-align: justify;">The code line <code>Polymer(NewComponent);</code> (reported in the previous code snippet) registers the new component class as new Polymer object. The new component is usable as HTML tag after executing this statement.</p>
+<h3 id="anamembstructure0001awebcomponentfolderstructure"><a name="mbstructure0001"></a>Web component folder structure</h3>
+<p style="text-align: justify;"><em>OWC</em> web components folder structure is inspired from Google's official web components folder structure.</p>
+<pre  class="code-block">
+<code>├── bower.json
 ├── demo
-│   └── index.html
+│&nbsp;&nbsp; └── index.html
 ├── index.html
 ├── package.json
 ├── README.md
 ├── new-component.html
 ├── test
-│   ├── index.html
-│   └── new-component.html
+│&nbsp;&nbsp; ├── index.html
+│&nbsp;&nbsp; └── new-component.html
 ├── wct.conf.js
 └── wct.conf.json
 </code></pre>
+<p style="text-align: justify;">Main files contained in the web component are:</p>
+<ul>
+<li style="text-align: justify;"><strong>• bower.json</strong>: this file contains the third part dependencies, downloadable via <a href="https://bower.io/">Bower</a>. To install locally component's dependecies, you have to run <code>bower install</code> command on a terminal.</li>
+<li style="text-align: justify;"><strong>• demo</strong> folder, which contains the file <em>index.html</em>, with HTML code used for component demonstration page.</li>
+<li style="text-align: justify;"><strong>• index.html</strong>: this file contains the code to autogenerate the Polymer component documentations and demo.</li>
+<li style="text-align: justify;"><strong>• package.json</strong>: this file contains the Nodejs and npm dependencies. To install locally component's dependecies, you have to run <code>npm install</code> command on a terminal.</li>
+<li style="text-align: justify;"><strong>• README.md</strong>, i.e. Markdown documentation of component, containing typically a high level and short description of component's functionalities.</li>
+<li style="text-align: justify;"><strong>• new-component.html</strong>: this file contains the source code of the web component.</li>
+<li style="text-align: justify;"><strong>• test</strong> folder, which contains the following files:
 
-<li>
-<p align=“JUSTIFY”><strong>bower.json</strong> This file contains the third part dependencies, downloadable via <a href="https://bower.io/">Bower</a>.</p>
-</li>
-<li>
-<p align=“JUSTIFY”><strong>demo</strong> Demo folder</p>
-<ul>
-<li><strong>index.html</strong> This file contains the html code to demonstrate the component. To install the dependecies run
-<code>bower install</code> command via terminal.</li>
-</ul>
-</li>
+<li><strong>-index.html</strong>,including instruction to exploit the <a href="https://github.com/Polymer/web-component-tester">web component tester</a> used for web component unit tests</li>
+<li><strong>-new-component.html</strong>, containing the implementation of unit tests for the <em>new-component</em></li>
+<li style="text-align: justify;"><strong>• wct.conf.js</strong>: in this file are listed <a href="https://github.com/Polymer/web-component-tester">web component tester</a> module settings</li>
+<li style="text-align: justify;"><strong>• wct.conf.json</strong>: this file includes <a href="https://github.com/Polymer/web-component-tester">web component tester</a> module configuration</li>
 
-<p align=“JUSTIFY”><strong>index.html</strong> This file contains the code to autogenerate the Polymer component documentations and demo.<br>
+<h2><a name="Chap3">Chapter 3: Main Open Web Components</a></h2>
+<h3 id="navigationmanagercomponent" style="text-align: justify;">navigation-manager component</h3>
+<h4 id="architecture" style="text-align: justify;">Architecture</h4>
+<p style="text-align: justify;">This component manages the currently displayed components using the navigation stack, which is represented by an array of components. The first element in the array is the root, the <strong>dynamic-main-menu</strong>. The last element in the array is the last component displayed at the right of the screen (in Desktop view). The user can add components to the stack using the method <strong>pushComponent</strong> of navigation manager and can remove all components from the navigation stack, except for the root element, using the <strong>popComponent</strong> method. In Desktop view the new component is pushed on the right of the last visualized component, while in Mobile view the new component is pushed up to the currently visualized component.</p>
+<div align="center"><span class="image featured"><img src="assets/images/desktop_view.png" alt="Desktop View" /></span></div>
+<h4 id="usage" style="text-align: justify;">Usage</h4>
+<p style="text-align: justify;"><em>navigation-manager</em> web component is part of <em>owc-app</em> web component, included in OWC application.</p>
+<p style="text-align: justify;">Here is an example on how to get a reference to <em>owc-app</em> web component in a different web component:</p>
+<pre  class="code-block">
+<code> this.owcApp = document.querySelector('#owc-app');
+</code></pre>
+	
+<p style="text-align: justify;">The navigation-mamager is mainly used to publish a new panel in the DOM, by means of pushComponent method, which has the following input parameters:</p>
+<ul style="text-align: justify;">
+<li><strong>• component</strong>, i.e. component name</li>
+<li><strong>• panelWidth</strong>, i.e. width in pixel of container panel</li>
+<li><strong>• title</strong>, i.e. panel title</li>
+<li><strong>• hideCloseButton</strong>, i.e. a boolean used to show or hide close button in panel</li>
+<li><strong>• resizable</strong>, i.e. a boolean used to enable or disable panel resizing</li>
+<li><strong>• maxInstances</strong>, i.e. the maximun number of component instances shown at a time</li>
+</ul>
+	<pre  class="code-block">
+<code>
+pushComponent(component, panelWidth, title, hideCloseButton, resizable, maxInstances){
+  ...
+  ...
+}
+</code></pre>
+<p style="text-align: justify;">Below is reported an axample of navigation-manager component usage:</p>
+<ul style="text-align: justify;">
+<li>• HTML code</li>
+</ul>
+<pre  class="code-block">
+<code>
+&lt;paper-icon-button icon="visibility"
+on-click="details" title="View Product Details"&gt;&lt;/paper-icon-button&gt;
+</code></pre>
+<ul style="text-align: justify;">
+<li>• Javascript code</li>
+</ul>
+<pre  class="code-block">
+<code> 
+details(){
+var product = document.createElement('product-details');
+this.navigationManager.pushComponent(product, '500px', 'Product Details');
+}
+</code></pre>
+<div align="center"><span class="image featured"><img src="assets/images/product_details.png" alt="Product Details" /></span></div>
+<h3 id="messagebrokercomponent" style="text-align: justify;">message-broker component</h3>
+<p style="text-align: justify;">The communication among web components is managed by the Message Broker, a centralized messaging system based on the publish-subscribe Design Pattern.</p>
+<h4 id="architecture-1" style="text-align: justify;">Architecture</h4>
+<p style="text-align: justify;">In software architecture, publish&ndash;subscribe is a messaging pattern involving 2 main actors: publishers and subscribers.</p>
+<p style="text-align: justify;"><strong>Publishers</strong> are senders of messages. They don't send messages to specific receivers, but define messages into classes, regardless of whether there are or not receivers (so called subscribers).</p>
+<p style="text-align: justify;"><strong>Subscribers</strong> are messages receivers. They don't know who are message senders (so called publishers), but they express interest in one or more classes and only receive messages that are of interest for them.</p>
+<div align="center"><img class="flex" src="assets/images/publish-subscribe.png" alt="pubsub" /></div>
+<p style="text-align: justify;">This component exposed 3 main interfaces:</p>
+<ul style="text-align: justify;">
+<li>• subscribe, which is used by subscribers to express interest in one or more classes containing message definition;</li>
+<li>• unsubscribe, which is used by subscribers to express ended interest in one or more classes containing message definition;</li>
+<li>• publish, which is used by publishers to send notifications about one or more message classes.</li>
+</ul>
+<h4 id="anamembusage0001ausage" style="text-align: justify;"><a name="mbusage0001"></a> Usage</h4>
+<p style="text-align: justify;"><em>message-broker</em> web component is part of <em>owc-app</em> web component, which is included in OWC application.</p>
+<p style="text-align: justify;">Here is an example on how to get a reference to <em>owc-app</em> web component in a different web component:</p>
+<pre><code class=" javascript language- javascript">this.owcApp = document.querySelector('#owc-app');
+</code></pre>
+<h5 id="publishmethodusage" style="text-align: justify;">Publish method usage</h5>
+<p style="text-align: justify;">A possible use case of <strong>publish</strong> method is to notify when a new model from server is ready to be used by components that need that model.</p>
+<p style="text-align: justify;">In this case the component acting as <em>publisher</em> uses the <strong>publish</strong> method in the following way:</p>
+<pre  class="code-block">
+<code>this.owcApp.messageBroker.publish(topic,model,target);
+</code></pre>
+<p style="text-align: justify;">where:</p>
+<ul style="text-align: justify;">
+<li><strong>• topic</strong> is a string representing topic name (i.e. message class name);</li>
+<li><strong>• model</strong> is the variable containing the updated model;</li>
+<li><strong>• target</strong> is the recipient component of the notification. If target is not specified, the notification impacts all components which expressed interest in the class containing message definition</li>
+</ul>
+<p style="text-align: justify;">Here is an example of usage:</p>
+<pre  class="code-block">
+<code>this.owcApp.messageBroker.publish('setNewModel',this.model,this.target);
+</code></pre>
+<h5 id="subscribemethodusage" style="text-align: justify;">Subscribe method usage</h5>
+<p style="text-align: justify;">A possible use case of <strong>subscribe</strong> method is to perform action after a reception of a notification of model update.</p>
+<p style="text-align: justify;">In this case the component acting as <em>subscriber</em> uses the <strong>subscribe</strong> method in the following way:</p>
+<pre  class="code-block">
+<code> this.owcApp.messageBroker.subscribe(topic,
+  function(model){
+  ....
+},target);
+</code></pre>
+<p style="text-align: justify;">where:</p>
+<ul style="text-align: justify;">
+<li><strong>• topic</strong> is a string representing topic name (i.e. message class name);</li>
+<li><strong>• model</strong> is the variable containing the updated model;</li>
+<li><strong>• target</strong> is the recipient component of the notification. If target is not specified, the notification impacts all components which expressed interest in the class containing message definition</li>
+</ul>
+<p style="text-align: justify;">Here is an example of usage:</p>
+<pre  class="code-block">
+<code> this.owcApp.messageBroker.subscribe('setNewModel',
+  function(model){
+  this.model=model;
+},this.target);
+</code></pre>
+<h5 id="unsubscribemethodusage" style="text-align: justify;">Unsubscribe method usage</h5>
+<p style="text-align: justify;">A possible use case of <strong>unsubscribe</strong> method is to cease reception of a notification of model update.</p>
+<p style="text-align: justify;">In this case the component acting as <em>subscriber</em> uses the <strong>unsubscribe</strong> method in the following way:</p>
+<pre  class="code-block">
+<code> this.owcApp.messageBroker.unsubscribe(topic);
+</code></pre>
+<p style="text-align: justify;">where <strong>topic</strong> is a string representing topic name (i.e. message class name)</p>
+<p style="text-align: justify;">Here is an example of usage:</p>
+<pre  class="code-block">
+<code> this.owcApp.messageBroker.unsubscribe('setNewModel');
+</code></pre>
+<h3 id="toastmanagercomponent" style="text-align: justify;">toast-manager component</h3>
+<p style="text-align: justify;">Toast manager component is devoted to show notification to users, as labels displayed on bottom of screen. Currently this web component manages the following notification types:</p>
+<ul style="text-align: justify;">
+<li><strong>info</strong>, used to notify information messages, like login-in or log-out operation result;</li>
+<li><strong>warn</strong>, used to notify warning messages, like operations not supported.</li>
+</ul>
+<div align="center"><span class="image featured"><img src="assets/images/toast-manager.png" alt="toast-manager" /></span></div>
+<h4 id="usage-1" style="text-align: justify;">Usage</h4>
+<p style="text-align: justify;"><em>toast-manager</em> web component is part of <em>owc-app</em> web component, which is included in OWC application.</p>
+<p style="text-align: justify;">An example on how to get a reference to <em>owc-app</em> web component can be found at the following <a href="#mbusage0001">link</a>.</p>
+<p style="text-align: justify;">Information messages can be displayed on the screen by means of the following syntax:</p>
+<pre  class="code-block">
+<code>  this.owcApp.toastManager.info(message);
+</code></pre>
+<p style="text-align: justify;">where <em>message</em> is the string containing text to be shown.</p>
+<p style="text-align: justify;">Here is an example of usage:</p>
+<pre  class="code-block">
+<code> this.owcApp.toastManager.info('Completed new search.');
+</code></pre>
+<div align="center"><span class="image featured"><img src="assets/images/toast-info-example.png" alt="toast-info-example" /></span></div>
+<p style="text-align: justify;">Warning messages can be displayed on the screen by means of the following syntax:</p>
+<pre  class="code-block">
+<code>  this.owcApp.toastManager.warn(message);
+</code></pre>
+<p style="text-align: justify;">where <em>message</em> is the string containing text to be shown.</p>
+<p style="text-align: justify;">Here is an example of usage:</p>
+<pre  class="code-block">
+<code> this.owcApp.toastManager.warn('Product Type Not Supported');
+</code></pre>
+<div align="center"><span class="image featured"><img src="assets/images/toast-warn-example.png" alt="toast-warn-example" /></span></div>
+<h3 id="semanticmanagercomponent" style="text-align: justify;">semantic-manager component</h3>
+<p style="text-align: justify;">The Open Web Components (OWC) is composed by a generic set of components used for disseminating data regardless of their types. Ingested Objects in the DHuS have a specific class type, for every class type the UI components (e.g. List, Map) need to extract a set of attributes from the server model. This means that OWC software needs to know the semantic of the server model. To avoid hardcoded semantic in components code, OWC uses a generic model containing proper attributes for each different item, exploiting a Semantic Schema from Server.</p>
+<p style="text-align: justify;">The <em>Semantic Manager</em> generates the generic model extracting the data from the Search Request Model and applying the mapping defined in the Semantic Schema.</p>
+<h4 id="architecture-2" style="text-align: justify;">Architecture</h4>
+<div align="center"><img class="flex"  src="assets/images/semanticmanager.png" alt="semanticmanager" /></div>
+<h2><a name="Chap4">Chapter 4:  Build your own Open Web Components</a></h2>
 
-<ul>
-<li>
-<p align=“JUSTIFY”><strong>package.json</strong> This file contains the nodejs/npm dependencies, to install these dependencies run the command <code>npm install</code> via terminal.<br>
-</li>
-</ul>
-<ul>
-<li>
-<p align=“JUSTIFY”><strong>README.md</strong> Markdown documentation of component. It is usually the high level and short description of the component.</p>
-</li>
-</ul>
-<ul>
-<li>
-<p align=“JUSTIFY”><strong>new-component.html</strong> This file contain the source code of the new Polymer.<br>
-</li>
-</ul>
-<ul>
-<li>
-<p align=“JUSTIFY”><strong>test</strong> Test folder</p>
-</li>
-</ul>
-<ul>
-<li><strong>index.html</strong> This file is deputed to contain the instruction to exploit the <a href="https://github.com/Polymer/web-component-tester">web component tester</a>, to run unit tests for the web component</li>
-</ul>
-<ul>
-<li><strong>new-component.html</strong> This file contains the unit tests for the <em>new-component</em></li>
-</ul>
-<ul>
-<li>
-<p align=“JUSTIFY”><strong>wct.conf.js</strong> Javascript setting for <a href="https://github.com/Polymer/web-component-tester">web component tester</a> module</p>
-</li>
-</ul>
-<ul>
-<li>
-<p align=“JUSTIFY”><strong>wct.conf.json</strong> Configuration for <a href="https://github.com/Polymer/web-component-tester">web component tester</a> module</p>
-</li>
-</ul>
-<h4 id="howtocreateanewwebcomponentforowcgenerationtool">How to create a new web component for OWC (generation tool)</h4>
-<p align=“JUSTIFY”><em>OWC</em> provides a tool to auto-generate a polymer from a template, following the folder structure shown above.</p>
-<p align=“JUSTIFY”>How to run the polymer generation tool:</p>
-<p align=“JUSTIFY”>1) move to the owc folder (like:<pre  class="code-block"> <code>&lt;clone_folder&gt;/client/owc-client/src/main/frontend/</code>):</pre>
-<br><pre><code>cd &lt;owc-path&gt;
+<h3 id="anamegentool0001ahowtocreateanewwebcomponentforowcgenerationtool" style="text-align: justify;"><a name="gentool0001"></a> How to create a new web component for OWC (generation tool)</h3>
+<p style="text-align: justify;"><em>OWC</em> provides a tool to auto-generate a polymer from a template, which is compliant with folder structure described previously.</p>
+<p style="text-align: justify;">These are the steps to follow for running OWC component generation tool:</p>
+<p style="text-align: justify;">1) move to the owc source folder (like: <code>&lt;clone_folder&gt;/client/owc-client/src/main/frontend/</code>):</p>
+<pre  class="code-block">
+<code>cd &lt;owc-path&gt;
 </code></pre>
-<p align=“JUSTIFY”>2) run owc create new component tool:</p>
-		    <pre  class="code-block"><code>python tools/new_component.py create</code></pre>
-<pre  class="code-block"><code>Repository path (empty to load the path from configuration file):</code></pre>
-<p align=“JUSTIFY”>Insert the git repository url of this component (empty if there isn't a repository).</p>
-		    <pre  class="code-block"><code>New element name:</code></pre>
-<p align=“JUSTIFY”>Insert the name of the new component. It must be composed with two words with a '-' character (e.g. new-component)</p>
-<pre  class="code-block"><code>New element class:
+<p style="text-align: justify;">2) run the following command to create a new OWC component:</p>
+<pre  class="code-block">
+<code>python tools/new_component.py create
 </code></pre>
-<p align=“JUSTIFY”>Insert the name of the ES6 class that will contain the code of the new Polymer. (e.g. NewComponent)</p>
-<pre  class="code-block"><code>New element description:
+<p style="text-align: justify;">3) during command execution, please insert the requested information:</p>
+<pre><code>Repository path (empty to load the path from configuration file):
 </code></pre>
-<p align=“JUSTIFY”>Insert a description of the new component.</p>
-<p align=“JUSTIFY”>Output:</p>
-<pre class="code-block">
+<p style="text-align: justify;"><em>Insert the path of the owc source folder (e.g. /client/owc-client/src/main/frontend/) and then press <strong>enter</strong>.</em></p>
+<pre  class="code-block">
+<code>Repository url (empty to load the path from configuration file):
+</code></pre>
+<p style="text-align: justify;"><em>Insert the git repository url for this component (e.g. https: //github.com//DataHubSystem.git), or leave field empty if there isn't a repository, then press <strong>enter</strong>.</em></p>
+<pre  class="code-block">
+<code>New element name:
+</code></pre>
+<p style="text-align: justify;"><em>Insert the name of the new component. It must be composed with two words separated by '-' character (e.g. new-component), then press <strong>enter</strong>.</em></p>
+<pre  class="code-block">
+<code>New element class:
+</code></pre>
+<p style="text-align: justify;"><em>Insert the name of the ES6 class that will contain the code of the new Polymer component (e.g. NewComponent), then press <strong>enter</strong>.</em></p>
+<pre  class="code-block">
+<code>New element description:
+</code></pre>
+<p style="text-align: justify;"><em>Insert a description of the new component, then press <strong>enter</strong>.</em></p>
+<p style="text-align: justify;">script output will be similar to snippet below:</p>
+<pre  class="code-block">
 <code>Template path: /data/owc-project/app/elements/_template-element,
 new component path: /data/owc-project/app/elements/new-component
 setting demo...
@@ -295,17 +506,25 @@ setting wct files...
 setting element file
 [DONE]
 </code></pre>
-		    
-<p align=“JUSTIFY”>The code of the new component is available in the folder <pre  class="code-block"><code>&lt;clone_path&gt;/client/owc-client/app/elements/new-component/</code></pre>. The new component contains the basic structure of the polymer, with unit tests, demo section, auto documentation generation, web component code.</p>
-<h4 id="howtointegratethenewcomponentinowc">How to integrate the new component in owc</h4>
-<p align=“JUSTIFY”>Import the new component in <pre  class="code-block"><code>&lt;clone_path&gt;/client/owc-client/src/main/app/elements/elements.html</code></pre> to include the new component into <em>OWC</em> project.</p>
-<p align=“JUSTIFY”>Append a new row in the <code>elements.html</code> file like this:</p>
-<pre  class="code-block"><code>...
-&lt;link rel="import" href="new-component/new-component.html"&gt;
+<p style="text-align: justify;">The source code of the new component is created in the folder <code>&lt;clone_path&gt;/client/owc-client/app/elements/new-component/</code>, which contains all basic files of a standard Polymer component. This grants the possibility to:</p>
+<ul style="text-align: justify;">
+<li>• write and run easily component unit tests</li>
+<li>• run component demo</li>
+<li>• generate automatically component documentation</li>
+</ul>
+<h3 id="howtointegrateanewwebcomponentinowc" style="text-align: justify;">How to integrate a new web component in OWC</h3>
+<p style="text-align: justify;">After creating a new component, it is necessary to integrate it into OWC to make it visible to all the other components of the application. To do this, it is enough to insert the reference link to the component in <strong>elements.html</strong> file located in the folder <strong>/client/owc-client/src/main/app/elements</strong>.</p>
+<p style="text-align: justify;">Some examples of components import are reported below:</p>
+<pre  class="code-block">
+<code>&lt;link rel="import" href="navigation-manager/navigation-manager.html"&gt;
+&lt;link rel="import" href="http-manager/http-manager.html"&gt;
+&lt;link rel="import" href="authentication-manager/authentication-manager.html"&gt;
 </code></pre>
-<h4 id="howtogeneratedocumentationofwebcomponent">How to generate documentation of web component</h4>
-<p align=“JUSTIFY”>Google's provides automatic tools to auto-generate documentation from code comments.</p>
-<p align=“JUSTIFY”>We show, as example, the iron-ajax documentation: <span class="image featured"><img src="https://cloud.githubusercontent.com/assets/1030870/21136872/c29a9a8c-c127-11e6-8e5b-fc8225df7567.png" alt="autogenerated-docs" /></span> This documentation is generated from the code comments. The comment to generate the generic description is:</p>
+<h3 id="howtogeneratedocumentationofwebcomponent" style="text-align: justify;">How to generate documentation of web component</h3>
+<p style="text-align: justify;">Google's provides automatic tools to auto-generate documentation from code comments.</p>
+<p style="text-align: justify;">Here is shown, as example, the iron-ajax documentation:</p>
+<div align="center"><span class="image featured"><img src="https://cloud.githubusercontent.com/assets/1030870/21136872/c29a9a8c-c127-11e6-8e5b-fc8225df7567.png" alt="autogenerated-docs" /></span></div>
+<p style="text-align: justify;">Comment written to generate component generic description is:</p>
 <pre  class="code-block">
 <code>&lt;!--
 The `iron-ajax` element exposes network request functionality.
@@ -326,11 +545,8 @@ element.
 @demo demo/index.html
 @hero hero.svg
 --&gt;
-</code>
-</pre>
-		    
-		    
-<p align=“JUSTIFY”>The comment to generate the documentation about the property <em>activeRequests</em> is:</p>
+</code></pre>
+<p style="text-align: justify;">Comment written to generate documentation about <em>activeRequests</em> property is:</p>
 <pre  class="code-block">
 <code>/**
  * An Array of all in-flight requests originating from this iron-ajax
@@ -344,249 +560,121 @@ activeRequests: {
     return [];
   }
 },
-</code>
-</pre>
-<p align=“JUSTIFY”>The iron-ajx code and documentation is available in the official google portal and repository on github (<a href="https://github.com/PolymerElements/iron-ajax/blob/master/iron-ajax.html">code</a>, <a href="https://elements.polymer-project.org/elements/iron-ajax">documentation</a>)</p>
-<p align=“JUSTIFY”>The documentation page is generated by the <a href="https://github.com/PolymerElements/iron-component-page">iron-component-page</a>. The environment to exploit iron-component-page is set by the generation tool described above.</p>
-<p align=“JUSTIFY”>To deploy the documentation is enough to serve the element folder via http server.</p>
-<p align=“JUSTIFY”>Example, to pusblish <em>new-component</em> documentation in the port 8081 :</p>
-
-<pre  class="code-block">	    
-<code>cd &lt;clone_path&gt;/client/owc-client/src/main/frontend/app/
+</code></pre>
+<p style="text-align: justify;">iron-ajx code and documentation is available in the official google portal and repository on github (<a href="https://github.com/PolymerElements/iron-ajax/blob/master/iron-ajax.html">code</a>, <a href="https://elements.polymer-project.org/elements/iron-ajax">documentation</a>)</p>
+<p style="text-align: justify;">The documentation page is generated by the <a href="https://github.com/PolymerElements/iron-component-page">iron-component-page</a>. The environment to exploit iron-component-page is set using the component generation tool described in paragraph <a href="#gentool0001">How to create a new web component for OWC (generation tool)</a>.</p>
+<p style="text-align: justify;">To deploy the documentation is enough to serve the element folder via http server. If you want to publish <em>new-component</em> documentation in the port 8081, you need to perform these commands:</p>
+<pre  class="code-block">
+<code> cd &lt;clone_path&gt;/client/owc-client/src/main/frontend/app/
 python -m SimpleHTTPServer 8081
-</code>
-</pre>
-		    
-<p align=“JUSTIFY”>Open in the browser the url:</p>
-<pre  class="code-block"><code>http://localhost:8081/elements/new-component/
 </code></pre>
-<p align=“JUSTIFY”><strong>Note</strong>: be careful about dependencies inclusion of bower_components folder. Outcome:</p>
-<p align=“JUSTIFY”><span class="image featured"><img src="https://cloud.githubusercontent.com/assets/1030870/21138202/435af3a6-c12d-11e6-885d-3e8625d4078f.png" alt="auto-docs" /></span></p>
-<h2 id="chapter3thenavigationcomponent">3.The navigation component</h2>
-<h4 id="architecture">Architecture</h4>
-<p align=“JUSTIFY”>This component manages the currently displayed components using the navigation stack, which is represented by an array of components. The first element in the array is the root, the <strong>dynamic-main-menu</strong>. The last element in the array is the component currently being displayed. The user can add components to the stack using the method <strong>pushComponent</strong> of navigation manager and can remove all components from the navigation stack, except for the root element, using the <strong>popComponent</strong> method. In Desktop view the new component is pushed on the right of the last visualized component and it is possible to move inside the navigation system, in Mobile view instead the new component is pushed up the currently visualized component.</p>
-<p align=“JUSTIFY”><span class="image featured"><img src="https://cloud.githubusercontent.com/assets/18163634/21136185/dfb295f0-c124-11e6-893b-03dcb736a689.png" alt="modularity" /></span></p>
-<h4>How to integrate a new web component in OWC</h4>
-<p align=“JUSTIFY”>After creating a new component it is necessary to integrate it into OWC to make it visible to all the other components of the application. To do this it is enough to insert the reference link to the component in <strong>elements.html</strong> file located in the folder <strong>app/elements</strong>.</p>
-<p align=“JUSTIFY”>Some examples:</p>
-<pre  class="code-block"><code class="html language-html">&lt;link rel="import" href="navigation-manager/navigation-manager.html"&gt;
-&lt;link rel="import" href="http-manager/http-manager.html"&gt;
-&lt;link rel="import" href="authentication-manager/authentication-manager.html"&gt;
+<p style="text-align: justify;">Then you can take a look at your component documentation opening a browser at this url:</p>
+<pre  class="code-block">
+<code>http://localhost:8081/elements/new-component/
 </code></pre>
-<h4>Usage</h4>
-<p align=“JUSTIFY”>The publication of a new panel in the DOM is done through the navigation component. It is enough to invoke the pushComponent method, passing a set of parameters.</p>
-	    <pre class="code-block">   <code class=" javascript language- javascript">pushComponent(component, panelWidth, title, hideCloseButton){
-  ...
-  ...
-}
-</code></pre>
-<ul>
-<li>component : the new polymer component to show in the navigation system</li>
-<li>panelWidth : width in pixel of container panel</li>
-<li>title : title of panel</li>
-<li>hideCloseButton : if true the close button of panel isn't shown</li>
+<p style="text-align: justify;"><strong>Note</strong>: be careful about dependencies inclusion of bower_components folder. This is documentation page outcome:</p>
+<div align="center"><span class="image featured"><img src="https://cloud.githubusercontent.com/assets/1030870/21138202/435af3a6-c12d-11e6-885d-3e8625d4078f.png" alt="auto-docs" /></span></div>
+<h2><a name="AnnA">Appendix A: OWC list</a></h2>
+<ul style="text-align: justify;">
+<li><em>• adf-list-item</em>: item of auxiliary data file list.</li>
+<li><em>• authentication-manager</em>: manager of authentication features.</li>
+<li><em>• auxiliary-list-coder</em>: coder of auxiliary data file list.</li>
+<li><em>• auxiliary-list-container</em>: auxiliary data file list container</li>
+<li><em>• auxiliary-list-datasource</em>: datasource of auxiliary data file</li>
+<li><em>• auxiliary-list-semantic-manager</em>: semantic-manager component of auxiliary data file list</li>
+<li><em>• auxiliary-search-coder</em>: coder of auxiliary data file search module</li>
+<li><em>• auxiliary-search-container</em>: auxiliary data file search container</li>
+<li><em>• auxiliary-search-datasource</em>: datasource of auxiliary data file search module</li>
+<li><em>• auxiliary-search-semantic-manager</em>: semantic manager of auxiliary data file search module</li>
+<li><em>• button-list-item</em>: buttons in list item to push adf, adf search components, and to download the product</li>
+<li><em>• calendar-coder</em>: coder component for product calendar</li>
+<li><em>• calendar-container</em>: sensing time density calendar web component container</li>
+<li><em>• calendar-datasource</em>: sensing time density calendar web component datasource</li>
+<li><em>• calendar-details</em>: sensing time density calendar web component details panel</li>
+<li><em>• calendar-semantic-manager</em>: sensing time density calendar semantic manager component</li>
+<li><em>• coder</em>: list coder web component</li>
+<li><em>• combo-coder</em>: coder of combo component</li>
+<li><em>• combo-search-container</em>: container of combo search web component</li>
+<li><em>• data-source</em>: generic list datasource</li>
+<li><em>• dynamic-main-menu</em>: main menu of owc component</li>
+<li><em>• dynamic-menu-manager</em>: manager of owc main menu</li>
+<li><em>• generic-model</em>: shared search model</li>
+<li><em>• http-filter</em>: generic http filter</li>
+<li><em>• i18n-manager</em>: internationalization system</li>
+<li><em>• info-container</em>: Application dashboard component</li>
+<li><em>• list-coder</em>: coder of list component</li>
+<li><em>• list-container</em>: container of list component</li>
+<li><em>• list-data-source</em>: data source of list component</li>
+<li><em>• list-semantic-manager</em>: semantic-manager of list component</li>
+<li><em>• login-container</em>: container of login component</li>
+<li><em>• map-coder</em>: coder of map component</li>
+<li><em>• map-container</em>: container of map component</li>
+<li><em>• map-data-source</em>: datasource of map web component</li>
+<li><em>• map-semantic-manager</em>: semantic manager of map web component</li>
+<li><em>• message-broker</em>: messaging system among components manager</li>
+<li><em>• navigation-manager</em>: horizontal panels layout system manager</li>
+<li><em>• owc-app</em>: main component of application</li>
+<li><em>• owc-calendar</em>: sensing time density calendar web component</li>
+<li><em>• owc-list</em>: products list web component</li>
+<li><em>• owc-map</em>: products map web component</li>
+<li><em>• owc-query</em>: shared query model (search combo component context)</li>
+<li><em>• owc-settings</em>: settings panel web component</li>
+<li><em>• owc-settings-container</em>: container of settings panel web component</li>
+<li><em>• owc-utils</em>: common utils of application</li>
+<li><em>• owcapp-config</em>: configuration of owc application</li>
+<li><em>• owchttp-filter</em>: specific http filter for owc application</li>
+<li><em>• search-component</em>: search web component</li>
+<li><em>• settings-panel</em>: panel for owc settings</li>
+<li><em>• synchronizer-editor</em>: ODATA Synchronizers editor</li>
+<li><em>• synchronizer-container</em>: container of ODATA Synchronizers editor</li>
+<li><em>• synchronizer-item</em>: ODATA Synchronizers list item</li>
+<li><em>• synchronizer-list</em>: ODATA Synchronizers list</li>
+<li><em>• toast-manager</em>: Notification system</li>
+<li><em>• user-manager</em>: User data manager web component</li>
 </ul>
-<p align=“JUSTIFY”>The following is an example of usage:</p>
-<ul>
-<li>HTML</li>
-</ul>
-<pre class="code-block"> <code class="html language-html">&lt;paper-icon-button icon="visibility"
-on-click="details" title="View Product Details"&gt;&lt;/paper-icon-button&gt;
-</code></pre>
-<ul>
-<li>Javascript</li>
-</ul>
-<pre class="code-block"> 
-
-details(){
-var product = document.createElement('product-details');
-this.navigationManager.pushComponent(product, '500px', 'Product Details');
-}
-</pre>
-<p align=“JUSTIFY”><span class="image featured"><img src="https://cloud.githubusercontent.com/assets/18163634/21136214/fed75ef2-c124-11e6-9b88-995d72d08598.png" alt="modularity" /></span></p>
-<h2>4. Communication among components (message broker)</h2>
-<p align=“JUSTIFY”>The communication among web components is managed by the Message Broker, a centralized messaging system based on the publish-subscribe Design Pattern.</p>
-<h4>Architecture</h4>
-<p align=“JUSTIFY”>In software architecture, publish&ndash;subscribe is a messaging pattern involving 2 main actors: publishers and subscribers.</p>
-<p align=“JUSTIFY”><strong>Publishers</strong> are senders of messages. They don't send messages to specific receivers, but define messages into classes, regardless of whether there are or not receivers (so called subscribers).</p>
-<p align=“JUSTIFY”><strong>Subscribers</strong> are messages receivers. They don't know who are message senders (so called publishers), but they express interest in one or more classes and only receive messages that are of interest for them.</p>
-<p align=“JUSTIFY”><span class="image featured"><img src="https://cloud.githubusercontent.com/assets/10920750/21132809/34d95352-c116-11e6-90be-77e68638b381.png" alt="" /></span></p>
-<p align=“JUSTIFY”>This component exposed 3 main interfaces:</p>
-<ul>
-<li>subscribe, which is used by subscribers to express interest in one or more classes containing message definition;</li>
-<li>unsubscribe, which is used by subscribers to express ended interest in one or more classes containing message definition;</li>
-<li>publish, which is used by publishers to send notifications about one or more message classes.</li>
-</ul>
-<h4><a name="mbusage0001"></a> Usage</h4>
-<p align=“JUSTIFY”><em>message-broker</em> web component is part of <em>owc-app</em> web component, which is included in OWC application.</p>
-<p align=“JUSTIFY”>Here is an example on how to get a reference to <em>owc-app</em> web component in a different web component:</p>
-<pre  class="code-block"><code class=" javascript language- javascript">this.owcApp = document.querySelector('#owc-app');
-</code></pre>
-<h5 id="publishmethodusage">Publish method usage</h5>
-<p align=“JUSTIFY”>A possible use case of <strong>publish</strong> method is to notify when a new model from server is ready to be used by components that need that model.</p>
-<p align=“JUSTIFY”>In this case the component acting as <em>publisher</em> uses the <strong>publish</strong> method in the following way:</p>
-<pre  class="code-block"><code class=" javascript language- javascript">this.owcApp.messageBroker.publish(topic,model,target);
-</code></pre>
-<p align=“JUSTIFY”>where:</p>
-<ul>
-<li><strong>topic</strong> is a string representing topic name (i.e. message class name);</li>
-<li><strong>model</strong> is the variable containing the updated model;</li>
-<li><strong>target</strong> is the recipient component of the notification. If target is not specified, the notification impacts all components which expressed interest in the class containing message definition</li>
-</ul>
-<p align=“JUSTIFY”>Here is an example of usage:</p>
-<pre  class="code-block"><code class=" javascript language- javascript">this.owcApp.messageBroker.publish('setNewModel',this.model,this.target);
-</code></pre>
-<h5 id="subscribemethodusage">Subscribe method usage</h5>
-<p align=“JUSTIFY”>A possible use case of <strong>subscribe</strong> method is to perform action after a reception of a notification of model update.</p>
-<p align=“JUSTIFY”>In this case the component acting as <em>subscriber</em> uses the <strong>subscribe</strong> method in the following way:</p>
-<pre  class="code-block"><code class=" javascript language- javascript">this.owcApp.messageBroker.subscribe(topic,
-  function(model){
-  ....
-},target);
-</code></pre>
-<p align=“JUSTIFY”>where:</p>
-<ul>
-<li><strong>topic</strong> is a string representing topic name (i.e. message class name);</li>
-<li><strong>model</strong> is the variable containing the updated model;</li>
-<li><strong>target</strong> is the recipient component of the notification. If target is not specified, the notification impacts all components which expressed interest in the class containing message definition</li>
-</ul>
-<p align=“JUSTIFY”>Here is an example of usage:</p>
-<pre  class="code-block"><code class=" javascript language- javascript">this.owcApp.messageBroker.subscribe('setNewModel',
-  function(model){
-  this.model=model;
-},this.target);
-</code></pre>
-<h5 id="unsubscribemethodusage">Unsubscribe method usage</h5>
-<p align=“JUSTIFY”>A possible use case of <strong>unsubscribe</strong> method is to cease reception of a notification of model update.</p>
-<p align=“JUSTIFY”>In this case the component acting as <em>subscriber</em> uses the <strong>unsubscribe</strong> method in the following way:</p>
-<pre  class="code-block"><code class=" javascript language- javascript">this.owcApp.messageBroker.unsubscribe(topic);
-</code></pre>
-<p align=“JUSTIFY”>where <strong>topic</strong> is a string representing topic name (i.e. message class name)</p>
-<p align=“JUSTIFY”>Here is an example of usage:</p>
-<pre  class="code-block"><code class=" javascript language- javascript">this.owcApp.messageBroker.unsubscribe('setNewModel');
-</code></pre>
-<h2 id="chapter5notificationsystemtoastmanager">5.Notification system (toast manager)</h2>
-<p align=“JUSTIFY”>Toast manager component is devoted to show notification to users, as labels displayed on bottom of screen. Currently this web component manages the following notification types:</p>
-<ul>
-<li><strong>info</strong>, used to notify information messages, like login-in or log-out operation result;</li>
-<li><strong>warn</strong>, used to notify warning messages, like operations not supported.</li>
-</ul>
-<p align=“JUSTIFY”><span class="image featured"><img src="https://cloud.githubusercontent.com/assets/10920750/21133589/d0665ec0-c119-11e6-861d-77180326038a.png" alt="toast-manager" /></span></p>
-<h4 id="usage-1">Usage</h4>
-<p align=“JUSTIFY”><em>toast-manager</em> web component is part of <em>owc-app</em> web component, which is included in OWC application.</p>
-<p align=“JUSTIFY”>An example on how to get a reference to <em>owc-app</em> web component can be found at the following <a href="#mbusage0001">link</a>.</p>
-<p align=“JUSTIFY”>Information messages can be displayed on the screen by means of the following syntax:</p>
-<pre  class="code-block"><code class=" javascript language- javascript">  this.owcApp.toastManager.info(message);
-</code></pre>
-<p align=“JUSTIFY”>where <em>message</em> is the string containing text to be shown.</p>
-<p align=“JUSTIFY”>Here is an example of usage:</p>
-<pre  class="code-block"><code class=" javascript language- javascript">this.owcApp.toastManager.info('Completed new search.');
-</code></pre>
-<p align=“JUSTIFY”><span class="image featured"><img src="https://cloud.githubusercontent.com/assets/10920750/21134787/afa575bc-c11f-11e6-9d78-b786ce0d1625.png" alt="toast-info-example" /></span></p>
-<p align=“JUSTIFY”>Warning messages can be displayed on the screen by means of the following syntax:</p>
-<pre  class="code-block"><code class=" javascript language- javascript">  this.owcApp.toastManager.warn(message);
-</code></pre>
-<p align=“JUSTIFY”>where <em>message</em> is the string containing text to be shown.</p>
-<p align=“JUSTIFY”>Here is an example of usage:</p>
-<pre  class="code-block"><code class=" javascript language- javascript">this.owcApp.toastManager.warn('Product Type Not Supported');
-</code></pre>
-<p align=“JUSTIFY”><span class="image featured"><img src="https://cloud.githubusercontent.com/assets/10920750/21133518/70502fe8-c119-11e6-81a6-3e041b3164b0.png" alt="toast-warn-example" /></span></p>
-<h2 id="chapter6datatypeagnosticsemanticmanager">6.Data Type Agnostic (Semantic Manager)</h2>
-<p align=“JUSTIFY”>The Open Web Components (OWC) is a generic set of components to allow the dissemination of data; it is independent from data types. Ingested Objects in the DHuS have a specific class type, for every class type the UI components (e.g. List, Map) need to extract a set of attributes from the server model, this means that the OWC must know the semantic of the server model. To avoid hardcoded sematic in the components code, the OWC use a generic model with the right attributes for every item, exploiting a Semantic Schema from Server.</p>
-<p align=“JUSTIFY”>The <em>Semantic Manager</em> generates the generic model extracting the data from the Search Request Model applying the mapping defined in the Semantic Schema.</p>
-<h4 id="architecture-2">Architecture</h4>
-<p align=“JUSTIFY”><span class="image featured"><img src="https://cloud.githubusercontent.com/assets/1030870/17618344/80cab032-607f-11e6-9837-b4a83928c457.png" alt="semanticmanager" /></span></p>
-<h2 id="appendixaowccomponentslist">Appendix A: OWC components list</h2>
-<ul>
-<li><em>adf-list-item</em>: item of auxiliary data file list.</li>
-<li><em>authentication-manager</em>: manager of authentication features.</li>
-<li><em>auxiliary-list-coder</em>: coder of auxiliary data file list.</li>
-<li><em>auxiliary-list-container</em>: auxiliary data file list container</li>
-<li><em>auxiliary-list-datasource</em>: datasource of auxiliary data file</li>
-<li><em>auxiliary-list-semantic-manager</em>: semantic-manager component of auxiliary data file list</li>
-<li><em>auxiliary-search-coder</em>: coder of auxiliary data file search module</li>
-<li><em>auxiliary-search-container</em>: auxiliary data file search container</li>
-<li><em>auxiliary-search-datasource</em>: datasource of auxiliary data file search module</li>
-<li><em>auxiliary-search-semantic-manager</em>: semantic manager of auxiliary data file search module</li>
-<li><em>button-list-item</em>: buttons in list item to push adf, adf search components, and to download the product</li>
-<li><em>calendar-coder</em>: coder component for product calendar</li>
-<li><em>calendar-container</em>: sensing time density calendar web component container</li>
-<li><em>calendar-datasource</em>: sensing time density calendar web component datasource</li>
-<li><em>calendar-details</em>: sensing time density calendar web component details panel</li>
-<li><em>calendar-semantic-manager</em>: sensing time density calendar semantic manager component</li>
-<li><em>coder</em>: list coder web component</li>
-<li><em>combo-coder</em>: coder of combo component</li>
-<li><em>combo-search-container</em>: container of combo search web component</li>
-<li><em>data-source</em>: generic list datasource</li>
-<li><em>dynamic-main-menu</em>: main menu of owc component</li>
-<li><em>dynamic-menu-manager</em>: manager of owc main menu</li>
-<li><em>generic-model</em>: shared search model</li>
-<li><em>http-filter</em>: generic http filter</li>
-<li><em>i18n-manager</em>: internationalization system</li>
-<li><em>info-container</em>: Application dashboard component</li>
-<li><em>list-coder</em>: coder of list component</li>
-<li><em>list-container</em>: container of list component</li>
-<li><em>list-data-source</em>: data source of list component</li>
-<li><em>list-semantic-manager</em>: semantic-manager of list component</li>
-<li><em>login-container</em>: container of login component</li>
-<li><em>map-coder</em>: coder of map component</li>
-<li><em>map-container</em>: container of map component</li>
-<li><em>map-data-source</em>: datasource of map web component</li>
-<li><em>map-semantic-manager</em>: semantic manager of map web component</li>
-<li><em>message-broker</em>: messaging system among components manager</li>
-<li><em>navigation-manager</em>: horizontal panels layout system manager</li>
-<li><em>owc-app</em>: main component of application</li>
-<li><em>owc-calendar</em>: sensing time density calendar web component</li>
-<li><em>owc-list</em>: products list web component</li>
-<li><em>owc-map</em>: products map web component</li>
-<li><em>owc-query</em>: shared query model (search combo component context)</li>
-<li><em>owc-settings</em>: settings panel web component</li>
-<li><em>owc-settings-container</em>: container of settings panel web component</li>
-<li><em>owc-utils</em>: common utils of application</li>
-<li><em>owcapp-config</em>: configuration of owc application</li>
-<li><em>owchttp-filter</em>: specific http filter for owc application</li>
-<li><em>search-component</em>: search web component</li>
-<li><em>settings-panel</em>: panel for owc settings</li>
-<li><em>synchronizer-editor</em>: ODATA Synchronizers editor</li>
-<li><em>synchronizer-container</em>: container of ODATA Synchronizers editor</li>
-<li><em>synchronizer-item</em>: ODATA Synchronizers list item</li>
-<li><em>synchronizer-list</em>: ODATA Synchronizers list</li>
-<li><em>toast-manager</em>: Notification system</li>
-<li><em>user-manager</em>: User data manager web component</li>
-</ul>
-<h2 id="appendixbowcapplicationarchitecture">Appendix B: OWC application architecture</h2>
-<h4 id="combosearchcomponent">Combo search component</h4>
-<p align=“JUSTIFY”>The combo-search-component is a polymer containing the search-box, list and map components, managing the interactions among them. <span class="image featured"><img src="https://cloud.githubusercontent.com/assets/1030870/17617877/b927b4c8-607c-11e6-9814-8df96fbfa600.png" alt="combo-search-component" /></span></p>
-<p align=“JUSTIFY”>The Class diagram of <em>combo-search-component</em> follows: <span class="image featured"><img src="https://cloud.githubusercontent.com/assets/1030870/17618148/5d144d98-607e-11e6-89bb-ff5f1682db99.png" alt="combo-search-container" /></span></p>
-<h6 id="searchcomponent">SearchComponent</h6>
-<p align=“JUSTIFY”>This component is devoted to create run a new search passing the query string.</p>
-<h6 id="datasource">DataSource</h6>
-<p align=“JUSTIFY”>The datasource component manages the requests http to server to retrieve the model of search</p>
-<h6 id="owcquery">OwcQuery</h6>
-<p align=“JUSTIFY”>This component contains the query of search, as combination of geographic selection and free-text filter.</p>
-<h6 id="httpmanager">HttpManager</h6>
-<p align=“JUSTIFY”>This is the network manager of the whole application.</p>
-<h6 id="semanticmanager">SemanticManager</h6>
-<p align=“JUSTIFY”>The SemanticManager generates the generic model processing the server model using the semantic schema. <span class="image featured"><img src="https://cloud.githubusercontent.com/assets/1030870/17618344/80cab032-607f-11e6-9837-b4a83928c457.png" alt="semanticmanager" /></span></p>
-<h6 id="genericmodel">GenericModel</h6>
-<p align=“JUSTIFY”>This component contains the generic model shared among combo-search-component children.</p>
-<h6 id="owclist">OwcList</h6>
-<p align=“JUSTIFY”>The generic list of owc project:</p>
-<p align=“JUSTIFY”><span class="image featured"><img src="https://cloud.githubusercontent.com/assets/1030870/17618391/cae44f2a-607f-11e6-8366-9d9b4174dbd3.png" alt="list" /></span></p>
-<h6 id="listcoder">ListCoder</h6>
-<p align=“JUSTIFY”>ListCoder processes the generic model to generate the specific model of list component.</p>
-<h6 id="owcmap">OwcMap</h6>
-<p align=“JUSTIFY”>The map component to visualize product footprints and to filter queries via geographic area.</p>
-<p align=“JUSTIFY”><span class="image featured"><img src="https://cloud.githubusercontent.com/assets/1030870/17618503/82b76376-6080-11e6-804f-0c6cac952955.png" alt="map" /></span></p>
-<h6 id="mapcoder">MapCoder</h6>
-<p align=“JUSTIFY”>MapCoder processes the generic model to generate the specific model of map component.</p>
-<h6 id="messagebroker">MessageBroker</h6>
-<p align=“JUSTIFY”>The Message Broker allows the communication among components, reducing the components coupling and implementing the &ldquo;publish-subscribe&rdquo; design pattern.</p>
-<p align=“JUSTIFY”>The main goal of this component is to minimize dependencies among components and to centralize the messages in a manager (with the possibility to manage messages for future improvements/modifications).</p>
-<p align=“JUSTIFY”><span class="image featured"><img src="https://cloud.githubusercontent.com/assets/1030870/17618604/00a1df0a-6081-11e6-801e-af29dc49a9e5.png" alt="message-broker" /></span> <span class="image featured"><img src="https://cloud.githubusercontent.com/assets/1030870/17618607/033a0e5e-6081-11e6-8298-816f0822cec3.png" alt="message-broker-sequence" /></span></p>
-<h5 id="combosearchcomponentsequencediagram">Combo search component sequence diagram</h5>
-<p align=“JUSTIFY”>To understand deeply the interactions among components of combo-search-component, the sequence diagram follows:</p>
-<p align=“JUSTIFY”><span class="image featured"><img src="https://cloud.githubusercontent.com/assets/1030870/17618653/3962eea6-6081-11e6-9938-f99195a5a699.png" alt="combo-component-sequence-schema" /></span></p>
-<p align=“JUSTIFY”>Note: <br /> The information contained in this webpage is a first draft intended to provide helpful information on the Open Web Components.</p>
+<h2><a name="AnnB">Appendix B: Main OWC description</a></h2>
+<h3 id="combosearchcomponent" style="text-align: justify;">Combo search component</h3>
+<p style="text-align: justify;">The combo-search-component is a polymer containing the search-box, list and map components, managing the interactions among them.</p>
+<div align="center"><img class="flex1" src="https://cloud.githubusercontent.com/assets/1030870/17617877/b927b4c8-607c-11e6-9814-8df96fbfa600.png" alt="combo-search-component" /></div>
+<p style="text-align: justify;">The Class diagram of <em>combo-search-component</em> follows:</p>
+<div align="center"><img class="flex1" src="assets/images/combo-search-container.png" alt="combo-search-container" /></div>
+<h4 id="searchcomponent" style="text-align: justify;">SearchComponent</h4>
+<p style="text-align: justify;">This component is devoted to perform a new product search passing the query string.</p>
+<h4 id="datasource" style="text-align: justify;">DataSource</h4>
+<p style="text-align: justify;">The datasource component manages the HTTP requests towards a server to retrieve a data model</p>
+<h4 id="owcquery" style="text-align: justify;">OwcQuery</h4>
+<p style="text-align: justify;">This component contains the product query search, as combination of geographic selection and free-text filter.</p>
+<h4 id="httpmanager" style="text-align: justify;">HttpManager</h4>
+<p style="text-align: justify;">This is the HTTP reuqests manager of the whole application.</p>
+<h4 id="semanticmanager" style="text-align: justify;">SemanticManager</h4>
+<p style="text-align: justify;">The SemanticManager generates the generic model processing the server model using the semantic schema.</p>
+<div align="center"><img class="flex" src="assets/images/semanticmanagerclientside.png" alt="semanticmanager" /></div>
+<h4 id="genericmodel" style="text-align: justify;">GenericModel</h4>
+<p style="text-align: justify;">This component contains the generic model shared among combo-search-component sub-elements.</p>
+<h4 id="owclist" style="text-align: justify;">OwcList</h4>
+<p style="text-align: justify;">This component is a generic list used to show data within OWC application</p>
+<div align="center"><img class="flex" src="assets/images/list.png" alt="list" /></div>
+<h4 id="listcoder" style="text-align: justify;">ListCoder</h4>
+<p style="text-align: justify;">ListCoder processes the generic model to generate the specific model of list component.</p>
+<h4 id="owcmap" style="text-align: justify;">OwcMap</h4>
+<p style="text-align: justify;">The map component is used to visualize product footprints and to perform geographic filter by means of area selection.</p>
+	<div align="center"><img class="flex" src="assets/images/map.png" alt="map" /></div>
+<h4 id="mapcoder" style="text-align: justify;">MapCoder</h4>
+<p style="text-align: justify;">MapCoder processes the generic model to generate the specific model of map component.</p>
+<h4 id="messagebroker" style="text-align: justify;">MessageBroker</h4>
+<p style="text-align: justify;">The Message Broker allows the communication among components, reducing the components coupling and implementing the &ldquo;publish-subscribe&rdquo; design pattern.</p>
+<p style="text-align: justify;">The main goal of this component is to minimize dependencies among components and to centralize the messages exchange.</p>
+<div align="center"><img class="flex" src="assets/images/message-broker.png" alt="message-broker" /></div>
+<div align="center"><span class="image featured"><img src="assets/images/message-broker-sequence.png" alt="message-broker-sequence" /></span></div>
+<h3 id="combosearchcomponentsequencediagram" style="text-align: justify;">Combo search component sequence diagram</h3>
+<p style="text-align: justify;">To understand deeply the interactions among components of combo-search-component, please refer to the sequence diagram below:</p>
+<div align="center"><span class="image featured"><img src="assets/images/combo-component-sequence-schema.png" alt="combo-component-sequence-schema" /></span></div>
+<div align="center">Note: <br /> The information contained in this webpage is a first draft intended to provide helpful information on the Open Web Components.</div>
 </body>
 </html>
+			    
+			   		    
+			    
+	
+			    
+	
