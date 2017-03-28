@@ -89,7 +89,7 @@
         </args>
       </executable>
     </pack>
-    <pack name="Sentinel_1_Test_Dataset" preselected="no" required="no">
+    <!--<pack name="Sentinel_1_Test_Dataset" preselected="no" required="no">
       <description>Sentinel_1_Test Dataset</description>
       <file src="Sentinel_1_Test_Dataset/Sentinel_1_Test_Dataset.zip" targetdir="$INSTALL_PATH/Sentinel_1_Test_Dataset" unpack="true"/>
     </pack>
@@ -100,6 +100,6 @@
     <pack name="Sentinel_3_Test_Dataset" preselected="no" required="no">
     <description>Sentinel_3_Test Dataset</description>
     <file src="Sentinel_3_Test_Dataset/Sentinel_3_Test_Dataset.zip" targetdir="$INSTALL_PATH/Sentinel_3_Test_Dataset" unpack="true"/>
-    </pack>
+    </pack>-->
   </packs>
 </installation>
