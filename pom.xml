@@ -19,7 +19,6 @@
       <module>addon/sentinel-1</module>
       <module>addon/sentinel-2</module>
       <module>addon/sentinel-3</module>
-      <module>installer</module>
    </modules>
 
    <profiles>
@@ -33,6 +32,7 @@
          <id>software</id>
          <modules>
             <module>distribution/software</module>
+            <module>installer</module>
          </modules>
       </profile>
       <profile>
