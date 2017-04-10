@@ -10,9 +10,9 @@
    <properties>
       <!-- Customize here the components version to be
            embeded into this distribution  -->
-      <dhus.core>0.12.5-6-osf</dhus.core>
-      <dhus.webclient>0.12.5-6-osf</dhus.webclient>
-      <dhus.owc-client>0.12.5-6-osf</dhus.owc-client>
+      <dhus.core>0.12.5-7-osf</dhus.core>
+      <dhus.webclient>0.12.5-7-osf</dhus.webclient>
+      <dhus.owc-client>0.12.5-7-osf</dhus.owc-client>
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
       <openjpeg.version>2.4.0</openjpeg.version>
       <openjpeg.classifier>${os.name}-${os.arch}</openjpeg.classifier>
@@ -20,7 +20,7 @@
 
    <groupId>fr.gael.dhus</groupId>
    <artifactId>dhus-software</artifactId>
-   <version>0.12.5-6-osf</version>
+   <version>0.12.5-7-osf</version>
    <packaging>pom</packaging>
 
    <name>DHuS - Software Distribution</name>

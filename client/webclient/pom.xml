@@ -8,14 +8,14 @@
    <modelVersion>4.0.0</modelVersion>
 
    <properties>
-      <dhus.core>0.12.5-6-osf</dhus.core>
+      <dhus.core>0.12.5-7-osf</dhus.core>
       <tomcat.port>8080</tomcat.port>
    </properties>
 
    <artifactId>dhus-web-client</artifactId>
    <groupId>fr.gael.dhus</groupId>
    <packaging>jar</packaging>
-   <version>0.12.5-6-osf</version>
+   <version>0.12.5-7-osf</version>
 
    <name>DHuS - Web Client</name>
 

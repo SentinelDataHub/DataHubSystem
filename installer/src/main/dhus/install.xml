@@ -38,7 +38,7 @@
   <variables>
     <variable name="InstallerFrame.logfilePath" value="Default"/>
     <variable name="WELCOME_TEXT" value="DataHubSystem"/>
-    <variable name="version" value="0.12.5-6-osf"/>
+    <variable name="version" value="0.12.5-7-osf"/>
     <variable name="WELCOME_VERSION" value="Version: ${version}"/>
   </variables>
   
