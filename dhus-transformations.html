@@ -77,21 +77,21 @@
 											</header>
 <p align="JUSTIFY">
 						<h3>Introduction</h3>
-<p>
+<p align="JUSTIFY">
 The DHuS  multi-mission design allows to manipulate the data at the time of ingestion. 
 The definitions and configuration of the Transformations are plugged through the DRB Cortex Ontology mechanism. 
 An example of basic algorithm that can be integrated in to a DHuS addon is available <a href="https://github.com/SentinelDataHub/DataHubSystem/raw/gh-pages/burst.zip"> here </a>
 
 						</p>
 <p><strong>PREREQUISITES: </strong></p>
-<p>
+<p align="JUSTIFY">
 - Python 2.7<br>
 - GDAL library (for python2.7 : from osgeo import gdal: <a href="https://trac.osgeo.org/gdal/wiki/DownloadingGdalBinaries">https://trac.osgeo.org/gdal/wiki/DownloadingGdalBinaries</a>)</p>
 <p>
 <strong>INPUT</strong> =Sentinel1 SAFE product<br>
   	mode=IW or EW <br>
 	type=SLC</p>
-<p>
+<p align="JUSTIFY">
 <strong>OUTPUT</strong> = folder 'burst ' in Sentinel1 SAFE product with all tiff for pol, burst, swath<br>
 ES: Burst_coPol_1_1.tiff ('Burst'+Pol+swath+burst)</p>
 <p>
@@ -109,7 +109,7 @@ python2.7 getBurst.py ../input/S1B_IW_SLC__1SSV_20170303T095921_20170303T095951_
 | |____getBurst.py<br>
 | |____level1.py<br>
 						</p>
-<p>						
+<p align="JUSTIFY">						
 The file<strong><em> burst/lib/getBurst.py</em></strong> :<br>
 • For each swath and for each polarization get the correspondent tiffProduct<br>
 • From the correspondent annotation file get the number of burst, linesPerBurst and NumberOfSamples<br>
@@ -120,20 +120,20 @@ The file<strong><em> burst/lib/getBurst.py</em></strong> :<br>
 • Creates the &lsquo;burst&rsquo; folder inside the SAFE product. The burst folder will contain all the GEOtiff bursts divided by polarization, swath, and burst: ES: Burst_coPol_3_7.tiff (3 = swath, 7 = burst).<br>
 • Each GeoTiff burst is associated with a manifest with information about the original product and burst information.<br>
 						</p>
-<p>
+<p align="JUSTIFY">
 The file <strong>burst/lib/level1.py</strong> makes:<br>
 • The SAFE folder parser<br>
 • Parses the manifest.safe<br>
 • Parses the annotation files<br>
 						</p>
-<p>						
+<p align="JUSTIFY">						
 In the <em>&nbsp;<strong>burst/config/config.ini</strong></em> there are the configuration parameters&nbsp; in this case there is the path of GDAL library.<br>
 </p>
 						<p>
 The <strong>burst/config/manifest.xml</strong> is a template for to create the manifest for each burst.</p>
 
 						<p><strong>Information about the set of metadata for get a burst(<sup>2</sup>):</strong></p>
-<p>
+<p align="JUSTIFY">
 • In the annotation data set are reported the section:<br>
 <strong>Swath Timing </strong>: The swath timing data set record contains information for each burst within a swath for TOPSAR products and is specific to IW and EW SLC products. The purpose of the information included in this file is to allow users of IW and EW products to extract bursts from the image files included with the product.<br>
 <strong>GeolocationGrid </strong>: The geolocation grid data set record contains a matrix of points defining the slant range time, incidence angle, and geodetic latitude and longitude positions at various range and azimuth positions within the image.<br>
@@ -155,14 +155,14 @@ The <strong>burst/config/manifest.xml</strong> is a template for to create the m
 <strong>line</strong>: Reference image MesuramentSet Data line to which this geolocation grid point applies.<br>
 						</p>
 						
-<p><strong>Information about the SLC product TOPSAR (<sup>1</sup>) :</strong></p>
+<p align="JUSTIFY"><strong>Information about the SLC product TOPSAR (<sup>1</sup>) :</strong></p>
 • TOPSAR SLC products contain one image per sub-swath and one per polarization channel, for a total of three (single polarization) or six (dual polarization) images in an IW product and&nbsp; a total of five (single polarization) or ten (dual polarization) images in an EW product.<br>
 • Each image pixel is represented by a complex (I and Q) magnitude value and therefore contains both amplitude and phase information. The imagery is geo-referenced using orbit and attitude data from the satellite.<br>
 • L1 SLC images are generated in 32-bit signed integer format with each pixel represented by two interleaved I&amp;Q 16-bit signed integer samples in the order: IQIQIQ&hellip;<br>
 • Each sub-swath image consists of a series of bursts, where each burst has been processed as a separate SLC image. The individually focused complex burst images are included, in azimuth-time order, into a single sub-swath image with black-fill demarcation in between<br>
 • For each image is associated with an annotation data sets. The annotation data set contain metadata that describes the properties and characteristics of the measurement data or how the measurement data was generated<br>
 
-<p>
+<p align="JUSTIFY">
 	<span class="image featured"><img src="assets/images/dhus-transf-1.png" alt=""/></span>
 </p>
 			
