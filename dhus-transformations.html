@@ -45,7 +45,7 @@
 								<li><a href="dhus_docker_installation.html"> Docker Technologies Integration</a></li>
 								<li><a href="multi-mission-access.html">Multi-Mission Access</a></li>
 								<li><a href="wms.html">WMS-Integration</a></li>
-                <li><a href="dhus-transformations.html">DHuS Transformations </a></li>
+                                                                <li><a href="dhus-transf.html">DHuS Transformations </a></li>
 					</ul>
 				</li>
 							<li ><a href="">External Resources</a>
@@ -77,21 +77,21 @@
 											</header>
 <p align="JUSTIFY">
 						<h3>Introduction</h3>
-<p align="JUSTIFY">
+<p>
 The DHuS  multi-mission design allows to manipulate the data at the time of ingestion. 
 The definitions and configuration of the Transformations are plugged through the DRB Cortex Ontology mechanism. 
 An example of basic algorithm that can be integrated in to a DHuS addon is available <a href="https://github.com/SentinelDataHub/DataHubSystem/raw/gh-pages/burst.zip"> here </a>
 
 						</p>
 <p><strong>PREREQUISITES: </strong></p>
-<p align="JUSTIFY">
+<p>
 - Python 2.7<br>
 - GDAL library (for python2.7 : from osgeo import gdal: <a href="https://trac.osgeo.org/gdal/wiki/DownloadingGdalBinaries">https://trac.osgeo.org/gdal/wiki/DownloadingGdalBinaries</a>)</p>
 <p>
 <strong>INPUT</strong> =Sentinel1 SAFE product<br>
   	mode=IW or EW <br>
 	type=SLC</p>
-<p align="JUSTIFY">
+<p>
 <strong>OUTPUT</strong> = folder 'burst ' in Sentinel1 SAFE product with all tiff for pol, burst, swath<br>
 ES: Burst_coPol_1_1.tiff ('Burst'+Pol+swath+burst)</p>
 <p>
@@ -109,31 +109,46 @@ python2.7 getBurst.py ../input/S1B_IW_SLC__1SSV_20170303T095921_20170303T095951_
 | |____getBurst.py<br>
 | |____level1.py<br>
 						</p>
-<p align="JUSTIFY">						
+<p>						
 The file<strong><em> burst/lib/getBurst.py</em></strong> :<br>
 • For each swath and for each polarization get the correspondent tiffProduct<br>
 • From the correspondent annotation file get the number of burst, linesPerBurst and NumberOfSamples<br>
 • For each burst get the startTimeBurst(azimuthTime)<br>
 • From the geolocationGrid extract the line (startLineBurst) correspondent to the startTimeBurst (convertion [azimuthTime&agrave;line] using the GeolocatedGrid )<br>
-• Build the stopLineBurst.<br>
+• Build the stopLineBurst(Figure 1) <br>
+• Build the first sample and the last sample (C0 and C1) (Figure 1)<br>
 • Cut the tiffProduct whit startLineBurst,stopLineBurst,C0 , C1<br>
-• Creates the &lsquo;burst&rsquo; folder inside the SAFE product. The burst folder will contain all the GEOtiff bursts divided by polarization, swath, and burst: ES: Burst_coPol_3_7.tiff (3 = swath, 7 = burst).<br>
+• Creates the &lsquo;burst&rsquo; folder inside the SAFE product. The burst folder will contain all the GEOtiff bursts divided by polarization, swath, and burst: ES: Burst_coPol_3_7.tiff (3 = swath, 7 = burst) (Figure 2)<br>
 • Each GeoTiff burst is associated with a manifest with information about the original product and burst information.<br>
 						</p>
-<p align="JUSTIFY">
+<p>
 The file <strong>burst/lib/level1.py</strong> makes:<br>
 • The SAFE folder parser<br>
 • Parses the manifest.safe<br>
 • Parses the annotation files<br>
 						</p>
-<p align="JUSTIFY">						
+<p>						
 In the <em>&nbsp;<strong>burst/config/config.ini</strong></em> there are the configuration parameters&nbsp; in this case there is the path of GDAL library.<br>
 </p>
 						<p>
 The <strong>burst/config/manifest.xml</strong> is a template for to create the manifest for each burst.</p>
 
-						<p><strong>Information about the set of metadata for get a burst(<sup>2</sup>):</strong></p>
+						
+
 <p align="JUSTIFY">
+<span class="image featured"><img src="assets/images/dhus-transf-fig.1.png" alt=""/></span>
+</p>
+						
+<p align="JUSTIFY"> Figure 1: start e stop line and c0 /c1 samples of a burst</p>						
+						
+<p align="JUSTIFY">
+<span class="image featured"><img src="assets/images/dhus-transf-fig.2.png" alt=""/></span>
+</p>
+						
+<p align="JUSTIFY">Figure 2 : output burst whit SNAP tool</p>
+										
+<p><strong>Information about the set of metadata for get a burst(<sup>2</sup>):</strong></p>
+<p>
 • In the annotation data set are reported the section:<br>
 <strong>Swath Timing </strong>: The swath timing data set record contains information for each burst within a swath for TOPSAR products and is specific to IW and EW SLC products. The purpose of the information included in this file is to allow users of IW and EW products to extract bursts from the image files included with the product.<br>
 <strong>GeolocationGrid </strong>: The geolocation grid data set record contains a matrix of points defining the slant range time, incidence angle, and geodetic latitude and longitude positions at various range and azimuth positions within the image.<br>
@@ -155,7 +170,7 @@ The <strong>burst/config/manifest.xml</strong> is a template for to create the m
 <strong>line</strong>: Reference image MesuramentSet Data line to which this geolocation grid point applies.<br>
 						</p>
 						
-<p align="JUSTIFY"><strong>Information about the SLC product TOPSAR (<sup>1</sup>) :</strong></p>
+<p><strong>Information about the SLC product TOPSAR (<sup>1</sup>) :</strong></p>
 • TOPSAR SLC products contain one image per sub-swath and one per polarization channel, for a total of three (single polarization) or six (dual polarization) images in an IW product and&nbsp; a total of five (single polarization) or ten (dual polarization) images in an EW product.<br>
 • Each image pixel is represented by a complex (I and Q) magnitude value and therefore contains both amplitude and phase information. The imagery is geo-referenced using orbit and attitude data from the satellite.<br>
 • L1 SLC images are generated in 32-bit signed integer format with each pixel represented by two interleaved I&amp;Q 16-bit signed integer samples in the order: IQIQIQ&hellip;<br>
@@ -166,12 +181,14 @@ The <strong>burst/config/manifest.xml</strong> is a template for to create the m
 	<span class="image featured"><img src="assets/images/dhus-transf-1.png" alt=""/></span>
 </p>
 			
-<p>Figure 1:numeration of bursts for a first swath of a SLC IW in ascending pass</p>
-	<p>
-		<span class="image featured"><img src="assets/images/dhus-transf-2.png" alt=""/></span>
+<p>Figure 3:numeration of bursts for a first swath of a SLC IW in ascending pass</p>
+
+
+<p align="JUSTIFY"><strong>S1B_IW_SLC__1SDV_20170404T212628_20170404T212656_005016_008C5F_1659</strong><br>	
+<span class="image featured"><img src="assets/images/dhus-transf-2.png" alt=""/></span>
 </p>		
-			
-<p>Figure 2: numeration of bursts for a first swath of a SLC IW in descending pass</p>
+		
+<p>Figure 4: numeration of bursts for a first swath of a SLC IW in descending pass</p>
 
 			
 <p><strong>Reference Documents:</strong></p>
