@@ -274,8 +274,8 @@
 <li><strong>Processor</strong>: Parallel task runner</li>
 <li><strong>Data Visualizer</strong>: Data visualization component</li>
 </ul>
-<p><span class="image featured">
-<img src="img/metadata-processor-workflow.png" alt="Metadata Processor" /><p class="caption">Metadata Processor</span></p>
+<div class="figure">
+<img src="img/metadata-processor-workflow.png" alt="Metadata Processor" /><p class="caption">Metadata Processor</span></div>
 <p>The data source module provides the data from the server (e.g. the search result model) to the processor. The Processor runs sequentially the threads of the plugin, passing as first input the model from the datasource, and then, it passes the output of the previous thread as input of the next thread. The outcome of the last thread is the result of the plugin. The outcome of the plugin represents the model of the visualizer component of the plugin (GUI part).</p>
 <p>So a specific plugin is composed with: - Main model input - A set of threads, the sequence of tasks to run - Visualizer component, data visualization component to show the outcome from the last thread of plugin</p>
 <h4 id="architecture-3">Architecture</h4>
