@@ -165,9 +165,9 @@
 <h3 id="navigation-manager-component">navigation-manager component</h3>
 <h4 id="architecture">Architecture</h4>
 <p>This component manages the currently displayed components using the navigation stack, which is represented by an array of components. The first element in the array is the root, the <strong>dynamic-main-menu</strong>. The last element in the array is the last component displayed at the right of the screen (in Desktop view). The user can add components to the stack using the method <strong>pushComponent</strong> of navigation manager and can remove all components from the navigation stack, except for the root element, using the <strong>popComponent</strong> method. In Desktop view the new component is pushed on the right of the last visualized component, while in Mobile view the new component is pushed up to the currently visualized component.</p>
-<div class="figure">
-<img src="img/desktop_view.png" alt="Desktop View" /><p class="caption">Desktop View</p>
-</div>
+<p><span class="image featured">
+	<img src="img/desktop_view.png" alt="Desktop View" /></span></p><p class="caption">Desktop View</p>
+
 <h4 id="usage">Usage</h4>
 <p><em>navigation-manager</em> web component is part of <em>owc-app</em> web component, included in OWC application.</p>
 <p>Here is an example on how to get a reference to <em>owc-app</em> web component in a different web component:</p>
@@ -187,18 +187,18 @@
 <span class="kw">var</span> product = <span class="ot">document</span>.<span class="fu">createElement</span>(<span class="st">&#39;product-details&#39;</span>);
 <span class="kw">this</span>.<span class="ot">navigationManager</span>.<span class="fu">pushComponent</span>(product, <span class="st">&#39;500px&#39;</span>, <span class="st">&#39;Product Details&#39;</span>);
 }</code></pre>
-<div class="figure">
-<img src="img/product_details.png" alt="Product Details" /><p class="caption">Product Details</p>
-</div>
+<p><span class="image featured">
+<img src="img/product_details.png" alt="Product Details" /><p class="caption">Product Details</span>
+</p>
 <h3 id="message-broker-component">message-broker component</h3>
 <p>The communication among web components is managed by the Message Broker, a centralized messaging system based on the publish-subscribe Design Pattern.</p>
 <h4 id="architecture-1">Architecture</h4>
 <p>In software architecture, publish–subscribe is a messaging pattern involving 2 main actors: publishers and subscribers.</p>
 <p><strong>Publishers</strong> are senders of messages. They don't send messages to specific receivers, but define messages into classes, regardless of whether there are or not receivers (so called subscribers).</p>
 <p><strong>Subscribers</strong> are messages receivers. They don't know who are message senders (so called publishers), but they express interest in one or more classes and only receive messages that are of interest for them.</p>
-<div class="figure">
-<img src="img/publish-subscribe.png" alt="pubsub" /><p class="caption">pubsub</p>
-</div>
+<p><span class="image featured">
+<img src="img/publish-subscribe.png" alt="pubsub" /><p class="caption">pubsub</span>
+</p>
 <p>This component exposed 3 main interfaces: - subscribe, which is used by subscribers to express interest in one or more classes containing message definition; - unsubscribe, which is used by subscribers to express ended interest in one or more classes containing message definition; - publish, which is used by publishers to send notifications about one or more message classes.</p>
 <h4 id="usage-1"><a name="mbusage0001"></a> Usage</h4>
 <p><em>message-broker</em> web component is part of <em>owc-app</em> web component, which is included in OWC application.</p>
@@ -233,9 +233,9 @@
 <pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="kw">this</span>.<span class="ot">owcApp</span>.<span class="ot">messageBroker</span>.<span class="fu">unsubscribe</span>(<span class="st">&#39;setNewModel&#39;</span>);</code></pre>
 <h3 id="toast-manager-component">toast-manager component</h3>
 <p>Toast manager component is devoted to show notification to users, as labels displayed on bottom of screen. Currently this web component manages the following notification types: - <strong>info</strong>, used to notify information messages, like login-in or log-out operation result; - <strong>warn</strong>, used to notify warning messages, like operations not supported.</p>
-<div class="figure">
-<img src="img/toast-manager.png" alt="toast-manager" /><p class="caption">toast-manager</p>
-</div>
+<p><span class="image featured">
+<img src="img/toast-manager.png" alt="toast-manager" /><p class="caption">toast-manager</span>
+</p>
 <h4 id="usage-2">Usage</h4>
 <p><em>toast-manager</em> web component is part of <em>owc-app</em> web component, which is included in OWC application.</p>
 <p>An example on how to get a reference to <em>owc-app</em> web component can be found at the following <a href="#mbusage0001">link</a>.</p>
@@ -244,39 +244,38 @@
 <p>where <em>message</em> is the string containing text to be shown.</p>
 <p>Here is an example of usage:</p>
 <pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="kw">this</span>.<span class="ot">owcApp</span>.<span class="ot">toastManager</span>.<span class="fu">info</span>(<span class="st">&#39;Completed new search.&#39;</span>);</code></pre>
-<div class="figure">
-<img src="img/toast-info-example.png" alt="toast-info-example" /><p class="caption">toast-info-example</p>
-</div>
+<p><span class="image featured">
+<img src="img/toast-info-example.png" alt="toast-info-example" /><p class="caption">toast-info-example</span></p>
+
 <p>Warning messages can be displayed on the screen by means of the following syntax:</p>
 <pre class="sourceCode javascript"><code class="sourceCode javascript">  <span class="kw">this</span>.<span class="ot">owcApp</span>.<span class="ot">toastManager</span>.<span class="fu">warn</span>(message);</code></pre>
 <p>where <em>message</em> is the string containing text to be shown.</p>
 <p>Here is an example of usage:</p>
 <pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="kw">this</span>.<span class="ot">owcApp</span>.<span class="ot">toastManager</span>.<span class="fu">warn</span>(<span class="st">&#39;Product Type Not Supported&#39;</span>);</code></pre>
-<div class="figure">
-<img src="img/toast-warn-example.png" alt="toast-warn-example" /><p class="caption">toast-warn-example</p>
-</div>
+<p><span class="image featured">
+<img src="img/toast-warn-example.png" alt="toast-warn-example" /><p class="caption">toast-warn-example</span>
+</p>
 <h3 id="semantic-manager-component">semantic-manager component</h3>
 <p>The Open Web Components (OWC) is composed by a generic set of components used for disseminating data regardless of their types. Ingested Objects in the DHuS have a specific class type, for every class type the UI components (e.g. List, Map) need to extract a set of attributes from the server model. This means that OWC software needs to know the semantic of the server model. To avoid hardcoded semantic in components code, OWC uses a generic model containing proper attributes for each different item, exploiting a Semantic Schema from Server.</p>
 <p>The <em>Semantic Manager</em> generates the generic model extracting the data from the Search Request Model and applying the mapping defined in the Semantic Schema.</p>
 <h4 id="architecture-2">Architecture</h4>
-<div class="figure">
-<img src="img/semanticmanager.png" alt="semanticmanager" /><p class="caption">semanticmanager</p>
-</div>
+<p><span class="image featured">
+<img src="img/semanticmanager.png" alt="semanticmanager" /><p class="caption">semanticmanager</span>
+</p>
 <h3 id="metadata-processor-client-side-plugin-system">Metadata Processor (client side plugin system)</h3>
 <p>OWC Metadata Processor is a system to manage user's plugins to process metadata from searches, and to create automatic tasks client side.</p>
 <p>In other words Metadata processor is the plugin system client base, to script in javascript language, directly via browser without setup the development environment on the local machine.</p>
 <p>This means a simple processing environment of data from server without to rebuild or interact with the server.</p>
-<div class="figure">
-<img src="img/metadata-processor.png" alt="Metadata Processor" /><p class="caption">Metadata Processor</p>
-</div>
+<p><span class="image featured">
+<img src="img/metadata-processor.png" alt="Metadata Processor" /><p class="caption">Metadata Processor</span></p>
+
 <ul>
 <li><strong>Datasource</strong>: DHuS search</li>
 <li><strong>Processor</strong>: Parallel task runner</li>
 <li><strong>Data Visualizer</strong>: Data visualization component</li>
 </ul>
-<div class="figure">
-<img src="img/metadata-processor-workflow.png" alt="Metadata Processor" /><p class="caption">Metadata Processor</p>
-</div>
+<p><span class="image featured">
+<img src="img/metadata-processor-workflow.png" alt="Metadata Processor" /><p class="caption">Metadata Processor</span></p>
 <p>The data source module provides the data from the server (e.g. the search result model) to the processor. The Processor runs sequentially the threads of the plugin, passing as first input the model from the datasource, and then, it passes the output of the previous thread as input of the next thread. The outcome of the last thread is the result of the plugin. The outcome of the plugin represents the model of the visualizer component of the plugin (GUI part).</p>
 <p>So a specific plugin is composed with: - Main model input - A set of threads, the sequence of tasks to run - Visualizer component, data visualization component to show the outcome from the last thread of plugin</p>
 <h4 id="architecture-3">Architecture</h4>
