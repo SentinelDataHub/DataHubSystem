@@ -1,0 +1,250 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+This element is used to load internal application configuration.
+The internal application configuration is saved in the file conf/appconfig.json
+
+The keys of the configuration file are:
+<h4>Debug mode</h4>
+<pre>
+
+    "debug": false,
+</pre>
+
+<h4>Show Auxiliary data file feature</h4>
+<pre>
+    "adf": false,
+</pre>
+<h4>Calendar Settings</h4>
+<pre>
+    "calendar_refresh_time": 360,
+    "show_calendar": true,
+</pre>
+<h4>Max number of instances per panel pushed in the the navigation manaager (main layout)</h4>
+<pre>
+    "max_instances_per_panel": 3,
+</pre>
+<h4>Show signup page</h4>
+<pre>
+    "show_signup": true,
+</pre>
+<h4>Term and conditions page link</h4>
+<pre>
+    "t_and_c_link": "https://scihub.copernicus.eu/twiki/do/view/SciHubWebPortal/TermsConditions",
+</pre>
+<h4>Show the link to open the legacy user interface (AJS client)</h4>
+<pre>
+    "show_oldgui_link": true,
+    "oldgui_link": "../",
+    "oldgui_label": "go to classic view",
+</pre>
+<h4>Default map layer</h4>
+<pre>
+    "default_layer": {
+        "Road": {
+            "sources": [{
+                "class": "OSM",
+                "params": {
+                  "url" : "http://tile2.opencyclemap.org/transport/{z}/{x}/{y}.png",
+                    "wrapX": false
+                }
+            }],
+            "title": "Road",
+            "type": "base",
+            "visible": ":visible"
+        }
+    },
+  </pre>
+  <h4>Example of wms layer (for map)</h4>
+  <pre>
+    "wms_layer_template": {
+        ":title": {
+            "sources": [{
+                "class": "TileWMS",
+                "params": {
+                    "url": ":url",
+                    "params": {
+                        "LAYERS": ":layer",
+                        "TILED": true
+                    }
+                }
+            }],
+            "title": ":title",
+            "type": "base",
+            "visible": ":visible"
+        }
+    },
+  </pre>
+  <h4>Logos to show in the help page</h4>
+  <pre>
+    "dashboard_logos": ["./images/serco.png", "./images/gael.png", "./images/copernicuslogo.png", "./images/logo_esa.png", "./images/european_union_emblem.png"],
+    "timeline": {
+        "styles": {
+            "S1": "#dc143c",
+            "S2": "#0f9d58",
+            "S3": "#0000ff"
+        }
+    },
+  </pre>
+    <h4>Metdata plugin definition</h4>
+    <ul>
+      <li>name: name of the plugin to show in the plugin selector</li>
+      <li>visualizer: the web component to show the outcomes of the plugin</li>
+      <li>webworkers: array with the url where are located the web workers to call for the specific plugin</li>
+    </ul>
+    <pre>
+    "processor_plugins": [{
+        "name": "Products size average",
+        "visualizer": "average-visualizer",
+        "webworkers": ["processor-plugins/001.js"]
+    }],
+  </pre>
+  <h4><strong>Experimental</strong>: Flex layout templates</h4>
+  <pre>
+    "component_layout": [{
+            "name": "empty_layout",
+            "icon": "./images/grey-layout/01_layout.png",
+            "preview": "./images/black-layout/01_layout.png",
+            "component": "empty-template"
+        },{
+            "name": "twocolumns_layout",
+            "icon": "./images/grey-layout/02_layout.png",
+            "preview": "./images/black-layout/02_layout.png",
+            "component": "twocolumns-template"
+        },{
+            "name": "tworows_layout",
+            "icon": "./images/grey-layout/03_layout.png",
+            "preview": "./images/black-layout/03_layout.png",
+            "component": "tworows-template"
+        },{
+            "name": "square_layout",
+            "icon": "./images/grey-layout/04_layout.png",
+            "preview": "./images/black-layout/04_layout.png",
+            "component": "square-template"
+        },{
+            "name": "trielements_layout",
+            "icon": "./images/grey-layout/05_layout.png",
+            "preview": "./images/black-layout/05_layout.png",
+            "component": "trielements-template"
+        },{
+            "name": "trielements2_layout",
+            "icon": "./images/grey-layout/06_layout.png",
+            "preview": "./images/black-layout/06_layout.png",
+            "component": "trielements2-template"
+        }],
+
+        "wms_server_config": [{
+            "name": "Serco WMS",
+            "url": "http://149.202.246.167/instance00/ows",
+            "username": "",
+            "password": "",
+            "rule":"S3",
+            "priority":"1"
+        }],
+      </pre>
+        <h4>Size of list page</h4>
+        <pre>
+        "page_size":25
+
+</pre>
+
+
+
+
+-->
+<dom-module id="owcapp-config">
+    <script>
+    (function() {
+        'use strict';
+        class OwcAppConfig {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+            /**
+             * Constructor
+             *
+             * @return {null}
+             */
+            constructor() {
+                this.beforeRegister();
+                this.attached();
+            }
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'owcapp-config';
+                this.owcApp = document.querySelector('#owc-app');
+
+                this.properties = {
+                  /**
+                   * Configuration model
+                   *
+                   * @type {Object}
+                   */
+                    config: {
+                        type: Object,
+                        value: {},
+                        notify: true
+                    }
+
+                };
+
+            }
+
+
+
+            /**
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+
+                var self = this;
+                self.owcApp.httpManager.sendRequest('GET', self.owcApp.config.clientUrl + '/conf/appconfig.json').then(function(response) {
+                    setTimeout(function() {
+                        self.owcApp.appconfig = (response.status == 200) ? response.data : {};
+                        self.owcApp.messageBroker.publish('update-menu-link');
+                    }, 0);
+                });
+            }
+        };
+
+        Polymer(OwcAppConfig);
+        eu.serco.Owc.OwcAppConfig = OwcAppConfig;
+
+    })();
+    </script>
+</dom-module>

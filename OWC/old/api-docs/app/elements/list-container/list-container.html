@@ -1,0 +1,225 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../list-data-source/list-data-source.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<!--
+list container
+
+
+@demo demo/index.html
+-->
+<dom-module id="list-container" class="flex">
+    <style is="custom-style">
+    .child {
+        background-color: white !important;
+        margin-bottom: 0px;
+        height: 50px!important;
+        border-style: solid;
+        border-color: #EEEEEE;
+        border-width: 3px;
+        overflow-y: scroll;
+    }
+    
+    .childVertical {
+        background-color: white !important;
+        padding: 2px;
+        margin: 3px;
+        border-style: solid;
+        border-width: 1px;
+        overflow-y: scroll;
+    }
+    
+    .container {
+        @apply(--layout-horizontal);
+    }
+    
+    .containerVertical {
+        @apply(--layout-vertical);
+    }
+    
+    .flexchild {
+        @apply(--layout-flex-3);
+    }
+    
+    #list-container-main-container {
+        height: var(--listheight, 500px);
+        width: var(--listwidth, 100%);
+        overflow-y: auto;
+        overflow-x: auto;
+    }
+    
+    #list {
+        width: 90%!important;
+    }
+    
+    .products-number {
+        font-size: 15px;
+        text-align: center;
+        padding: 3px;
+        opacity: 0.95;
+        font-weight: bold;
+        background-color: #ecf0f1;
+    }
+    </style>
+    <template>
+        <div class="child" id="queryDone">
+            <span id="query">{{query}}</span>
+        </div>
+        <div id="productNumber" class="products-number" hidden="{{oneProduct}}">{{count}} {{i18n('products found')}}</div>
+        <div id="productNumber" class="products-number" hidden="{{!oneProduct}}">{{count}} {{i18n('product found')}}</div>
+        <div id="list-container-main-container">
+            <owc-list id="list"></owc-list>
+            <list-data-source></list-data-source>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class ListContainer extends HTMLElement {
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'list-container';
+
+                /**
+                 * Public property description
+                 *
+                 * @type {Object}
+                 */
+                this.properties = {
+                    /**
+                     * Query done
+                     *
+                     * @type {String}
+                     */
+                    query: {
+                        type: String,
+                        value: null
+                    },
+                    /**
+                     * product count
+                     *
+                     * @type {Number}
+                     */
+                    count: {
+                        type: Number,
+                        value: null
+                    },
+
+                    value: true
+                }
+
+            };
+
+            /**
+             *  Called after the elemeallback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+
+                this.owcApp = document.querySelector('#owc-app');
+
+
+                var self = this,
+                    list = Polymer.dom(self.root).querySelector('#list'),
+                    datasource = document.createElement('list-data-source'),
+                    listCoder = document.createElement('list-coder'),
+                    listSemanticManager = this.owcApp.Owc.SemanticManager.instance, //document.createElement('list-semantic-manager'),
+                    listContainer = Polymer.dom(self.root).querySelector('#list-container-main-container');
+
+                this.datasource = datasource;
+                list.setDelegate(datasource);
+                list.setContainer(listContainer);
+                datasource.setList(list);
+                datasource.setListCoder(listCoder);
+                datasource.setListSemanticManager(listSemanticManager);
+                datasource.setListContainer(this);
+                datasource.loadDataFromServer(this.query);
+                setTimeout(function() {
+                    self.resize();
+                }, 0);
+
+            }
+
+
+            /**
+             * Resize method (called from navigation panel)
+             *
+             * @param {?Object} paramExample: method parameter sample
+             * @return {null}
+             */
+            resize() {
+                this.customStyle['--listheight'] = parseInt(this.parentPanel.getSize().height - $("#queryDone").height() - $("#productNumber").height() - 10) + "px";
+                this.updateStyles();
+                this.customStyle['--listwidth'] = parseInt(this.parentPanel.getSize().width) + "px";
+                this.updateStyles();
+            }
+
+            /**
+             *  This method is used to set query done
+             *
+             * @return {String} query done
+             * @return {null} 
+             */
+            setQuery(query) {
+                this.query = query;
+            }
+
+            /**
+             *  This method is used to set product count
+             *
+             * @return {Number} product count
+             * @return {null} 
+             */
+            setCount(count) {
+                this.count = count;
+            }
+
+            /**
+             *  This method is used to check if product list contains more than 1 product
+             *
+             * @return {Boolean} true if list has one product, false otherwise
+             * @return {null} 
+             */
+            setOneProduct(oneProduct) {
+                this.oneProduct = oneProduct;
+            }
+        };
+
+        Polymer(ListContainer);
+        eu.serco.Owc.ListContainer = ListContainer;
+    })();
+    </script>
+</dom-module>

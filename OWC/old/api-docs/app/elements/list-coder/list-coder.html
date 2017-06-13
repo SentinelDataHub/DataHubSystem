@@ -1,0 +1,138 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+ComponentsCoder is devoted to take from Generic Model the fields useful for component representation, implementing the data-binding between the Model and the View.
+
+
+@demo demo/index.html
+-->
+<dom-module id="list-coder">
+    <!-- MODEL-CONTROLLER CODE -->
+    <script>
+    (function() {
+        'use strict';
+        class ListCoder extends HTMLElement {
+            /**
+             * class constructor             
+             */
+            constructor() {
+                super();
+            }
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'list-coder';
+                this.owcApp = document.querySelector('#owc-app');
+                this.properties = {};
+            }
+
+            /**
+             * this method is used to get Quicklook OData url (if Quicklook is avalaible)
+             *
+             * @param {Object} product item
+             * @return {String} Quicklook OData url (if Quicklook is avalaible), default placeholder url otherwise
+             */
+            getQuicklook(item) {
+                var self = this;
+                var IMAGE_PLACE_HOLDER_URL = self.owcApp.config.clientUrl + '/images/placeholder.png';
+                return (item
+                    .quicklook) ? self.owcApp.config.baseUrl + "/odata/v1/Products('" + item.uuid + "')/Products('Thumbnail')/$value" : IMAGE_PLACE_HOLDER_URL;
+            }
+
+            /**
+             * this method is used to compute JTS footprint from gml coordinates
+             *
+             * @param {Array} product footprint coordinates
+             * @return {String} WKT multipolygon
+             */
+            createJTSMultipolygon(multipoly) {
+                if (!multipoly) return '';
+                var jtsmultipoly = 'MULTIPOLYGON(';
+                for (var i = 0; i < multipoly.length; i++) {
+                    var poly = multipoly[i];
+                    jtsmultipoly += '((';
+                    var ycoord;
+                    var y0coord;
+                    for (var j = 0; j < poly.length - 1; j++) {
+                        if (poly[j][1] > 85.05)
+                            ycoord = 85.05;
+                        else if (poly[j][1] < -85.05)
+                            ycoord = -85.05;
+                        else
+                            ycoord = poly[j][1];
+                        jtsmultipoly += poly[j][0] + ' ' + ycoord + ',';
+                    }
+                    if (poly[0][1] > 85.05)
+                        y0coord = 85.05;
+                    else if (poly[0][1] < -85.05)
+                        y0coord = -85.05;
+                    else
+                        y0coord = poly[0][1];
+                    jtsmultipoly += (poly[0][0]) + ' ' + y0coord + ')),';
+                }
+                jtsmultipoly = jtsmultipoly.substring(0, jtsmultipoly.length - 1) + ')';
+                multipoly = null; // optimization
+                return jtsmultipoly;
+            }
+
+            /**
+             * this method is used to extract a specific list model from a generic data model
+             *
+             * @param {Object} generic model
+             * @return {Object} specific model
+             */
+            extractSpecificModel(genericModel) {
+
+                var test = (JSON.parse(JSON.stringify(genericModel)));
+
+                if (test != null) {
+                    for (let i = 0; i < genericModel.length; i++) {
+                        test[i].thumb = this.getQuicklook(genericModel[i]);
+                        for (let j = 0; genericModel[i].attributes && j < genericModel[i].attributes.length; j++) {
+                            var keys = Object.keys(genericModel[i].attributes[j]);
+                            test[i].attributes[j] = String(this.i18n(keys[0]) + ": " + genericModel[i].attributes[j][keys[0]]);
+
+                        }
+                        test[i].showAdf = true;
+                    }
+                }
+
+                return test;
+            }
+        };
+
+        Polymer(ListCoder);
+    })();
+    </script>
+</dom-module>

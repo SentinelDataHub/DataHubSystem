@@ -1,0 +1,55 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<dom-module id="component-a">
+    <template>
+        <style>
+        #component-a-container {
+            width: 200px;
+            height: 100px;
+            background-color: beige;
+            display: inline-block;
+        }
+        </style>
+        <div id="component-a-container">
+            <h3>component-a<h3>
+    <button on-click="subscribe" >subscribe</button>
+
+    <button on-click="unsubscribe" >unsubscribe</button>
+  </div>
+</template>
+
+<script>
+  'use strict';
+  Polymer({
+    is: 'component-a',
+
+    attached: function(){      
+      //this._subscribe();
+    },
+    _subscribe: function(){
+      if((this.token!='') || (this.token!=null) )
+        this.unsubscribe();
+      this.token = document.getElementById('message-broker').subscribe('say-hello',function(){
+        alert("hello from component-a");
+      });
+    },
+
+    properties: {
+
+      token:{
+        type: String,
+        value:""
+      }
+      
+    },
+
+    subscribe: function(){
+      this._subscribe();
+    },
+    unsubscribe: function () {
+      document.getElementById('message-broker').unsubscribe(this.token);      
+    }
+
+    
+  });
+</script>
+</dom-module>

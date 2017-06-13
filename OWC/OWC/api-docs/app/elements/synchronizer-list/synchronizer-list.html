@@ -1,0 +1,235 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-list/iron-list.html">
+<script src="../../bower_components/momentjs/moment.js"></script>
+<link rel="import" href="../synchronizer-item/synchronizer-item.html">
+<!--
+synchronizer list
+
+
+@demo demo/index.html
+-->
+<dom-module id="synchronizer-list">
+    <template>
+        <style type="text/css">
+        .synch-number {
+            font-size: 15px;
+            text-align: center;
+            padding: 3px;
+            opacity: 0.95;
+            font-weight: bold;
+        }
+
+        .synchContainer {
+            background-color: #ecf0f1;
+        }
+        </style>
+        <div class="synchContainer">
+            <div class="synch-number" hidden="{{!noSynch}}">
+                Your Product synchronizer list is empty
+            </div>
+            <div class="synch-number" hidden="{{noSynch}}">
+                Your Product synchronizer list contains {{synchCount}} synchronizers.
+            </div>
+            <iron-list id="ironlist" items="{{synchModel}}" as="synch" style="width: 100%!important">
+                <template>
+                    <synchronizer-item parent="{{that}}" model="{{synch}}"></synchronizer-item>
+                </template>
+            </iron-list>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class SynchronizerList {
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'synchronizer-list';
+                this._url = "/odata/v1/Synchronizers";
+                this._jsonParameter = "$format=json";
+                this._requestHeaders = {
+                    'Content-Type': 'application/atom+xml',
+                    'Accept': 'application/json'
+                };
+                this.options = {
+                    headers: [{
+                        name: "Accept",
+                        value: "application/json"
+                    }]
+
+                };
+                this.owcApp = document.querySelector('#owc-app');
+
+
+                this.properties = {
+
+                    /**
+                     * Synchronizer list model
+                     *
+                     * @type {Object}
+                     */
+                    synchModel: {
+                        type: Array,
+                        value: null
+                    },
+
+                    /**
+                     * Synchronizer list count
+                     *
+                     * @type {Object}
+                     */
+                    synchCount: {
+                        type: Number,
+                        value: 0
+                    },
+
+                    /**
+                     * There is not synchronizers flag
+                     * @type {Object}
+                     */
+                    noSynch: {
+                        type: Boolean,
+                        value: true
+                    }
+                };
+
+            }
+
+            attached() {
+                var self = this;
+                self.request().then(function(response) {
+                    self.synchModel = response;
+
+                    self.set('synchModel', null);
+                    self.notifyPath('synchModel', null);
+                    self.set('synchModel', response);
+                    self.notifyPath('synchModel', response);
+
+                    self.synchCount = response.length;
+                    if (self.synchCount > 0) {
+                        self.noSynch = false;
+                    }
+                    var event = document.createEvent('Event');
+                    event.initEvent('resize', true, true);
+                    document.dispatchEvent(event);
+
+                });
+
+                self.owcApp.messageBroker.subscribe('updateSynch',
+                    function() {
+                        self.request().then(function(response) {
+                            self.synchModel = response;
+                            self.set('synchModel', null);
+                            self.notifyPath('synchModel', null);
+                            self.set('synchModel', response);
+                            self.notifyPath('synchModel', response);
+                            self.synchCount = response.length;
+                            if (self.synchCount > 0) {
+                                self.noSynch = false;
+                            }
+                            var event = document.createEvent('Event');
+                            event.initEvent('resize', true, true);
+                            document.dispatchEvent(event);
+
+                        });
+                    });
+            }
+
+
+            /**
+             * Create and send http request to retrieve the sychronizers list
+             *
+             * @return {null}
+             */
+            request() {
+
+                var self = this;
+
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + self._url + '?' + self._jsonParameter, self.options
+                ).then(function(response) {
+                    if (response.status == 200) {
+                        var synchModel = response.data.d.results;
+                        for (var i = 0, len = synchModel.length; i < len; i++) {
+                            var extractDate = synchModel[i].CreationDate;
+                            var exdate = extractDate.substring(extractDate.indexOf('(') + 1, extractDate.indexOf(")"));
+                            var dateString = moment.unix((exdate / 1000)).format('YYYY-MM-DD HH:mm:ss');
+                            synchModel[i].CreationDate = dateString;
+
+                            if (synchModel[i].LastCreationDate) {
+                                var lastIngDate = synchModel[i].LastCreationDate;
+                                var lastdate = lastIngDate.substring(lastIngDate.indexOf('(') + 1, lastIngDate.indexOf(")"));
+                                var lastString = moment.unix((lastdate / 1000)).format('YYYY-MM-DD HH:mm:ss');
+                                synchModel[i].LastCreationDate = lastString;
+                            }
+                        }
+                        return synchModel;
+                    } else
+                        return new Promise(function(resolve, reject) {
+                        reject("model_empty");
+                    });
+                });
+            }
+
+            /**
+             * Create and send http request to retrieve the request count
+             *
+             * @return {null}
+             */
+            requestCount() {
+
+                var self = this,
+                    filter = this._currentQuery;
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + self._generateCountRequest(filter)
+                ).then(function(response) {
+                    if (response.status == 200)
+                        return response.data;
+                    else
+                        return new Promise(function(resolve, reject) {
+                        reject("model_empty");
+                    });
+                });
+            }
+
+        };
+
+        Polymer(SynchronizerList);
+
+    })();
+    </script>
+</dom-module>

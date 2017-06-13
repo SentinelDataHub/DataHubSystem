@@ -1,0 +1,595 @@
+<link rel="import" href="DefaultMapConfig.html">
+<style type="text/css">
+.ol-control button {
+    font-size: 0.8em!important;
+}
+</style>
+<script>
+class Map {
+
+
+    activateSelection() {
+        this.dragBox.setActive(!this.activedSelection);
+        this.setActivedSelection(!this.activedSelection);
+        this.owcmap.setActiveSelection(this.activedSelection);
+    }
+
+    setModel(model) {
+
+        this.renderFootprintLayer(model);
+    }
+
+    sendSelectionCoordinates(coords) {
+        this.geoselection = coords;
+    }
+
+    polygon2String(polygon) {
+            var polygonString = 'POLYGON(('
+            for (var i = 0; i < polygon.length; i++) polygonString += ((polygon[i][0]) + ' ' + (polygon[i][1]) + ',');
+            return polygonString + (polygon[0][0]) + ' ' + (polygon[0][1]) + '))';
+        }
+        // from old dhus
+    processSelection(feature) {
+        var self = this;
+        var featureX = feature.clone();
+        var geometry = featureX.getGeometry();
+        geometry = geometry.transform(self.config.transformation.destination, self.config.transformation.source);
+        var extent = geometry.getExtent();
+        var top = extent[3];
+        var bottom = extent[1];
+        var left = extent[0];
+        var right = extent[2];
+        var leftWasNeg = false;
+        var rightWasPos = false;
+        var currentPolygonSearchString = '';
+        var polygon = {};
+        if (left < -180 & right > 180) {
+            currentPolygonSearchString = "( ";
+            currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                [-180, bottom],
+                [0, bottom],
+                [0, top],
+                [-180, top]
+            ]) + ')" OR ';
+            currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                [0, bottom],
+                [180, bottom],
+                [180, top],
+                [0, top]
+            ]) + ')" )';
+        } else {
+            while (left < -180) {
+                leftWasNeg = true;
+                left += 360;
+            }
+            while (right > 180) {
+                rightWasPos = true;
+                right -= 360;
+            }
+            if (right > left) {
+                if (right - left > 180) {
+                    currentPolygonSearchString = "( ";
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [left, bottom],
+                        [0, bottom],
+                        [0, top],
+                        [left, top]
+                    ]) + ')" OR ';
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [0, bottom],
+                        [right, bottom],
+                        [right, top],
+                        [0, top]
+                    ]) + ')" )';
+                } else if (leftWasNeg || rightWasPos) {
+                    currentPolygonSearchString = "( ";
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [-180, bottom],
+                        [0, bottom],
+                        [0, top],
+                        [-180, top]
+                    ]) + ')" OR ';
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [0, bottom],
+                        [180, bottom],
+                        [180, top],
+                        [0, top]
+                    ]) + ')" )';
+                } else {
+                    currentPolygonSearchString = "( ";
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [left, bottom],
+                        [right, bottom],
+                        [right, top],
+                        [left, top]
+                    ]) + ')" )';
+                }
+            } else {
+                if (left < 0) {
+                    currentPolygonSearchString = "( ";
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [left, bottom],
+                        [0, bottom],
+                        [0, top],
+                        [left, top]
+                    ]) + ')" OR ';
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [0, bottom],
+                        [180, bottom],
+                        [180, top],
+                        [0, top]
+                    ]) + ')" OR ';
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [-180, bottom],
+                        [right, bottom],
+                        [right, top],
+                        [-180, top]
+                    ]) + ')" )';
+                } else if (right > 0) {
+                    currentPolygonSearchString = "( ";
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [left, bottom],
+                        [180, bottom],
+                        [180, top],
+                        [left, top]
+                    ]) + ')" OR ';
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [-180, bottom],
+                        [0, bottom],
+                        [0, top],
+                        [-180, top]
+                    ]) + ')" OR ';
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [0, bottom],
+                        [right, bottom],
+                        [right, top],
+                        [0, top]
+                    ]) + ')" )';
+                } else {
+                    currentPolygonSearchString = "( ";
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [left, bottom],
+                        [180, bottom],
+                        [180, top],
+                        [left, top]
+                    ]) + ')" OR ';
+                    currentPolygonSearchString += 'footprint:\"Intersects(' + self.polygon2String([
+                        [-180, bottom],
+                        [right, bottom],
+                        [right, top],
+                        [-180, top]
+                    ]) + ')" )';
+                }
+            }
+        }
+        return currentPolygonSearchString;
+    }
+
+    setCurrentSelection(coords) {
+        var self = this;
+        //console.log('coords',coords);
+        if (self.sendSelectionCoordinates) {
+            self.sendSelectionCoordinates(coords);
+        } else {
+            //            console.log("map", "[MAP] - sendSelectionCoordinates not implemented");
+            //console.error( "[MAP] - sendSelectionCoordinates not implemented");
+        }
+    }
+
+
+    setupBoxSelection() {
+        var self = this;
+        // todo: to move this style !!!!~!!!!
+        self.dragBox = new ol.interaction.DragBox({
+            condition: ol.events.condition.always,
+            style: new ol.style.Style({
+                fill: new ol.style.Fill({
+                    color: [255, 255, 255, 0.4]
+                }),
+                stroke: new ol.style.Stroke({
+                    color: [0, 0, 255, 1]
+                })
+            })
+        });
+        this.map.addInteraction(self.dragBox);
+        self.dragBox.on('boxend', function(e) {
+            var feature = new ol.Feature;
+            feature.setStyle(
+                // todo: to move this style !!!!~!!!!
+                new ol.style.Style({
+                    fill: new ol.style.Fill({
+                        color: [220, 142, 2, 0.5]
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: [220, 142, 2, 1]
+                    })
+                }));
+            feature.setGeometry(self.dragBox.getGeometry());
+            self.map.getLayers().item(self.mapLayers.length - 2).setSource(new ol.source.Vector({
+                features: [feature],
+                wrapX: false
+            }));
+            self.setCurrentSelection(self.processSelection(feature));
+            //            console.log("self.processSelection(feature)", self.processSelection(feature));
+            // self.query = self.geoselection;
+            // console.log("self.query",self.query);
+            // self.owcMap.query = self.query;
+            // console.log("self.owcMap.query",self.owcMap.query);
+            // self.owcMap.container.newQuery = self.query;
+            // console.log("self.owcMap.container.newQuery",self.owcMap.container.newQuery);
+            //            console.log("MAP self.owcquery", self.owcquery);
+            self.owcquery.setFootprint(self.geoselection);
+            self.datasource.updateQuery();
+            //self.owcquery.footprint = self.geoselection;
+            // self.owcMap.updateSearch(self.newQuery.query);
+            // var dataSource = document.getElementById("mapdatasource");
+            // dataSource.loadDataFromServer(self.newQuery.query);
+        });
+        self.dragBox.on('boxstart', function(e) {
+            self.sendSelectionCoordinates(null);
+        });
+    }
+
+    getDefaultLayer(appconfig) {
+        var isDefaultVisible = true;
+        var default_layer, default_layer_key;
+        default_layer_key = Object.keys(appconfig.default_layer)[0];
+        default_layer = appconfig.default_layer[default_layer_key];
+        if (localStorage.getItem('default-map-settings')) {
+
+            isDefaultVisible = JSON.parse(localStorage.getItem('default-map-settings'));
+        }
+        return this.generateLayer(default_layer, isDefaultVisible);
+
+
+    }
+
+    getConfiguredLayers(appconfig, layer) {
+        var isVisible = layer.visible;
+        var default_layer, default_layer_key, appo_layer, str_appo_layer;
+
+        str_appo_layer = JSON.stringify(appconfig.wms_layer_template);
+        str_appo_layer = str_appo_layer.replace(':title', layer.title);
+        str_appo_layer = str_appo_layer.replace(':url', layer.url);
+        str_appo_layer = str_appo_layer.replace(':layer', layer.layer);
+        str_appo_layer = str_appo_layer.replace(':visible', isVisible);
+        str_appo_layer = str_appo_layer.replace(':title', layer.title);
+        appo_layer = JSON.parse(str_appo_layer);
+        default_layer_key = Object.keys(appo_layer)[0];
+        default_layer = appo_layer[default_layer_key];
+        return this.generateLayer(default_layer, isVisible);
+    }
+
+    deleteLayers(model) {
+        if (model) {
+            var self = this;
+
+            var names = [];
+
+
+            this.map.getLayers().forEach(function(el) {
+                if (el.get('name') != undefined || el.get('name') != null)
+                    names.push(el);
+                //this.map.removeLayer(el);
+
+            })
+
+
+            for (var i = 0; i < names.length; i++) {
+                var id = _.findWhere(model, {
+                    identifier: names[i].get('name').replace(".SEN3", "")
+                });
+                if (id == undefined) {
+                    this.removeL(names[i]);
+                    var index = _.findIndex(model, {
+                        identifier: names[i].get('name').replace(".SEN3", "")
+                    });
+                    if (index >= 0) {
+                        model[index].status = false;
+                    }
+                } else {
+                    var index = _.findIndex(model, {
+                        identifier: names[i].get('name').replace(".SEN3", "")
+                    });
+                    if (index >= 0) {
+                        model[index].status = true;
+                        self.owcApp.messageBroker.publish('pushWms', model[index].identifier, self.target);
+                    }
+                }
+
+            }
+
+        }
+
+
+    }
+
+    removeL(name) {
+        // var ll = this.map.getLayer(name);
+        this.map.removeLayer(name);
+    }
+
+    addLayer(param, target) {
+        var wmsURL = "";
+        var wmsSettings = [];
+        var ls = localStorage.getItem('wms-settings');
+        if (ls) {
+            wmsSettings = JSON.parse(ls);
+        } else {
+            if(this.owcApp.appconfig.wms_server_config)
+            wmsSettings = this.owcApp.appconfig.wms_server_config;
+        }
+        
+        for (var i = 0; i < wmsSettings.length; i++) {
+            var regexp = new RegExp(wmsSettings[i].rule);
+            if (regexp.test(param)) {
+                wmsURL = wmsSettings[i].url;
+                break;
+            }
+        }
+        
+        var ll = this.map.getLayer(param + '.SEN3');
+        this.target = target;
+        if (ll) {
+            this.map.removeLayer(ll);
+        } else {
+            var l = new ol.layer.Tile({
+                source: new ol.source.TileWMS(({
+                    url: wmsURL,
+                    wrapX: false,
+                    params: {
+
+
+
+                        //'LAYERS': 'MERIS,S1,S1A_EW_GRDM_1SDH_20160803T055724_20160803T055829_012432_01368C_70DD', 
+                        //'LAYERS': 'S1,s3-olci-1,s3-olci-2,s3-olci-3,s3-olci-4,s3-olci-5,s3-olci-6,s3-olci-7,s3-olci-8', 
+                        'LAYERS': param + '.SEN3',
+                        'TILED': true,
+                        'VERSION': '1.1.1'
+                    },
+                    serverType: 'mapserver'
+                }))
+            })
+            l.set('name', param + '.SEN3');
+            this.map.addLayer(l);
+
+
+        }
+
+
+
+
+
+    }
+
+
+    toggleLayer(layerName) {
+        if (layerName.getVisibility() == true) {
+            layerName.setVisibility(false);
+        } else {
+            layerName.setVisibility(true);
+        }
+    }
+
+
+    generateMapLayers(appconfig) {
+
+        var layers = [];
+        layers.push(this.getDefaultLayer(appconfig));
+        var ls = localStorage.getItem('map-settings');
+        if (ls) {
+            var mapSettings = JSON.parse(ls);
+            for (var i = 0; i < mapSettings.length; i++) {
+                layers.push(this.getConfiguredLayers(appconfig, mapSettings[i]));
+            }
+        }
+        layers.push(new ol.layer.Vector({
+            source: new ol.source.Vector({
+                    wrapX: false
+                }) //1
+        }));
+        layers.push(new ol.layer.Vector({
+            source: new ol.source.Vector({
+                    wrapX: false
+                }) //1
+        }));
+        return layers;
+
+    }
+
+    getConfiguredLayersForSelector(appconfig) {
+
+        var maplayers = [],
+            configured_layers = {
+                layers: [],
+                selected: []
+            };
+        maplayers = this.map.getLayers();
+        for (var i = 0; i < maplayers.getLength(); i++) {
+            if (maplayers.item(i) && maplayers.item(i).get('title')) {
+                configured_layers.layers.push({
+                    "title": maplayers.item(i).get('title'),
+                    "visible": maplayers.item(i).get('visible'),
+                    "icon": (maplayers.item(i).get('visible')) ? "check-box" : "check-box-outline-blank"
+                });
+                if (maplayers.item(i).get('visible')) {
+                    configured_layers.selected.push(i);
+                }
+            }
+
+        }
+
+        return configured_layers;
+
+    }
+
+    generateLayer(model, isVisible) {
+        var layersX = [];
+        for (var i = 0; i < model.sources.length; i++)
+            layersX.push(new ol.layer.Tile({
+                source: new ol.source[model.sources[i].class](model.sources[i].params)
+            }));
+
+        return new ol.layer.Group({
+            title: model.title,
+            type: model.type,
+            visible: isVisible,
+            layers: layersX,
+            wrapX: false
+        });
+    };
+
+
+    setLayerVisible(layername, isVisible) {
+        var layerNum = this.map.getLayers().getLength();
+        for (var i = 0; i < layerNum; i++) {
+            var l = this.map.getLayers().item(i);
+            if (layername.localeCompare(l.get('title')) == 0) {
+                this.map.getLayers().item(i).set('visible', isVisible);
+                return;
+            }
+        }
+    }
+
+    renderFootprintLayer(products) {
+        var self = this;
+        try {
+            var format = new ol.format.WKT();
+            var features = [];
+            for (var i = 0; i < products.length; i++) {
+                if (!products[i].footprint) continue;
+                var feature = format.readFeature(products[i].footprint);
+                feature.getGeometry().transform(self.config.transformation.source, self.config.transformation.destination);
+                feature.product = products[i];
+                // feature.product.default_style = new ol.style.Style({
+                //     fill: new ol.style.Fill({
+                //         color: [255, 255, 255, 0.4]
+                //     }),
+                //     stroke: new ol.style.Stroke({
+                //         color: [0, 153, 255, 1],
+                //         width: 1
+                //     })
+                // })
+
+
+
+                feature.setStyle(feature.product.default_style);
+                features.push(feature);
+            }
+
+
+            this.map.getLayers().item(this.mapLayers.length - 1).setSource(new ol.source.Vector({
+                features: features,
+                wrapX: false
+            }));
+        } catch (ex) {}
+    }
+
+
+    generateUUID() {
+        var d = new Date().getTime();
+        var map = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = (d + Math.random() * 16) % 16 | 0;
+            d = Math.floor(d / 16);
+            return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+
+        return map;
+    };
+    constructor(mapId) {
+
+
+        var self = this;
+        self.owcApp = document.querySelector('#owc-app');
+        self.target = null;
+        self.activedSelection = true;
+        this.mapLayers = this.generateMapLayers(self.owcApp.appconfig);
+        self.config = {
+            defaultCenter: {
+                coordinates: [13.707047, 51.060086]
+            },
+            transformation: {
+                source: 'EPSG:4326',
+                destination: 'EPSG:3857'
+            },
+            bounds: [-180, -80, 180, 80],
+            defaultZoom: 3,
+            minZoom: 1.3,
+            maxZoom: 19,
+            layers: self.owcApp.appconfig.default_layer,
+            externalInterface: {
+                sendSelectionCoordinates: null
+            }
+        }
+
+        self.geoselection = null;
+
+        self.map = new ol.Map({
+
+            /*interactions: ol.interaction.defaults().extend([dragAndDropInteraction]),*/
+
+            target: mapId,
+            layers: this.mapLayers,
+            view: new ol.View({
+                center: ol.proj.transform(self.config.defaultCenter.coordinates, self.config.transformation.source, self.config.transformation.destination),
+                zoom: self.config.defaultZoom,
+                minZoom: self.config.minZoom,
+                maxZoom: self.config.maxZoom,
+                extent: ol.proj.transformExtent(self.config.bounds, self.config.transformation.source, self.config.transformation.destination)
+            })
+
+        });
+
+        if (ol.Map.prototype.getLayer === undefined) {
+            ol.Map.prototype.getLayer = function(id) {
+                var layer;
+                this.getLayers().forEach(function(lyr) {
+                    if (id == lyr.get('name')) {
+                        layer = lyr;
+                    }
+                });
+                return layer;
+            }
+        }
+
+        self.setupBoxSelection();
+        self.setupSelection();
+        //self.map.addLayer(self.getDefaultLayer(self.owcApp.appconfig));
+    }
+
+
+    clearSelection() {
+        this.map.getLayers().item(this.mapLayers.length - 2).setSource(new ol.source.Vector({
+            features: [],
+            wrapX: false
+        }));
+    }
+
+    setupSelection() {
+        var self = this;
+        self.map.on('click', function(e) {
+            self.clearSelection();
+            self.owcquery.setFootprint("");
+        });
+    }
+
+    setDataSource(datasource) {
+        this.datasource = datasource;
+
+    }
+
+    setOwcQuery(owcquery) {
+        this.owcquery = owcquery;
+
+    }
+    setOwcMap(owcmap) {
+        this.owcmap = owcmap;
+
+    }
+
+    setActivedSelection(status) {
+        this.activedSelection = status;
+    }
+
+}
+</script>

@@ -1,0 +1,42 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+  <link rel="import" href="../../authentication-manager/authentication-manager.html">
+  <link rel="import" href="component-x.html">
+<dom-module id="test-container">
+<template>
+  <style>
+    #container{
+      position:absolute;
+      width: 500px !important;
+      height:200px !important;
+      z-index: 9999999;
+      background-color: gray;
+      display: inline-block;
+    }
+  </style>
+
+
+
+  <div id="auth-test-container">
+    <h3>TEST-CONTAINER AUTHENTICATION MANAGER<h3>
+    <br>
+    <br>
+    <authentication-manager id="authentication-manager"></authentication-manager>
+    <component-x></component-x>
+    
+  </div>
+  
+
+</template>
+
+<script>
+  'use strict';
+  Polymer({
+    is: 'test-container',
+
+    attached: function(){      
+
+    }
+    
+  });
+</script>
+</dom-module>

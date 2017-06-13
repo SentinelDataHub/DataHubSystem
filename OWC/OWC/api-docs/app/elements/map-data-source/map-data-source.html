@@ -1,0 +1,324 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+This component is used as data source for OWC Map component
+
+@demo demo/index.html
+-->
+<dom-module id="map-data-source">
+    <!-- VIEW  CODE HERE -->
+    <template>
+        <!-- view code here -->
+    </template>
+    <!-- MODEL-CONTROLLER CODE -->
+    <script>
+    (function() {
+        'use strict';
+        class MapDataSource extends HTMLElement {
+
+            /**
+             * class constructor             
+             */
+            constructor() {
+                super();
+                this.beforeRegister();
+            } /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'map-data-source';
+                this._requestUrl = "/api/stub/products?filter=:filter&offset=:offset&limit=:limit&sortedby=:sortedby&order=:order";
+                this._countUrl = "/api/stub/products/count?filter=:filter";
+                this._pageSize = 25;
+                this.owcApp = document.querySelector('#owc-app');
+
+                /* --- CLASS PROPERTIES --- */
+
+                /**
+                 * Current page
+                 *
+                 * @type {Integer}
+                 */
+                this._currentPage = 0;
+
+                /**
+                 * Current query (last done query)
+                 *
+                 * @type {String}
+                 */
+                this._currentQuery = "";
+
+                /**
+                 * Map reference
+                 *
+                 * @type {Object}
+                 */
+                this._map = null;
+
+                /**
+                 * Map Coder
+                 *
+                 * @type {Object}
+                 */
+                this._mapCoder = null;
+
+                /**
+                 * Map Container
+                 *
+                 * @type {Object}
+                 */
+                this._mapContainer = null;
+
+                /**
+                 * Map Semantic Manager
+                 *
+                 * @type {Object}
+                 */
+                this._mapSemanticManager = null;
+
+            }
+
+
+            /**
+             * set the Map reference
+             * @param {Object} map
+             *
+             * @return {null}
+             */
+            setMap(map) {
+                this._map = map;
+            }
+
+            /**
+             * set the map coder reference
+             * @param {Object} mapCoder
+             *
+             * @return {null}
+             */
+            setMapCoder(mapCoder) {
+                this._mapCoder = mapCoder;
+            }
+
+            /**
+             * set the map container reference
+             * @param {Object} mapContainer
+             *
+             * @return {null}
+             */
+            setMapContainer(mapContainer) {
+                this._mapContainer = mapContainer;
+            }
+
+            /**
+             * set the map semantic manager reference
+             * @param {Object} mapSemanticManager
+             *
+             * @return {null}
+             */
+            setMapSemanticManager(mapSemanticManager) {
+                this._mapSemanticManager = mapSemanticManager;
+            }
+
+            /**
+             * generate url for request
+             *
+             * @param {String} filter
+             * @param {String} offset
+             * @param {String} limit
+             * @param {String} sort by
+             * @param {String} order (ASC|DESC)
+             *
+             * @return {String} request url            
+             */
+            _generateSearchRequest(filter, offset, limit, sortedby, order) {
+
+
+                var searchUrl = this._requestUrl;
+                searchUrl = searchUrl.replace(":filter", (filter) ? filter : '*');
+                searchUrl = searchUrl.replace(":offset", (offset) ? offset : '0');
+                searchUrl = searchUrl.replace(":limit", (limit) ? limit : '10');
+                searchUrl = searchUrl.replace(":sortedby", (sortedby) ? sortedby : 'ingestiondate');
+                searchUrl = searchUrl.replace(":order", (order) ? order : 'desc');
+
+                return searchUrl;
+            }
+
+            /**
+             * generate url for count request
+             *
+             * @param {String} filter
+             *
+             * @return {String} request count url
+             */
+            _generateCountRequest(filter) {
+
+                var searchUrl = this._countUrl;
+                searchUrl = searchUrl.replace(":filter", (filter) ? filter : '*');
+
+                return searchUrl;
+            }
+
+            /**
+             * request: http request used to retrieve product list
+             *
+             * @return {Object} product list data model
+             */
+            request() {
+
+                var self = this,
+                    filter = this._currentQuery,
+                    limit = this._pageSize,
+                    offset = this._currentPage * limit,
+                    sortedby = "ingestiondate",
+                    order = "desc";
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + self._generateSearchRequest(filter, offset, limit, sortedby, order)
+                ).then(function(response) {
+
+                    if (response.status == 200)
+
+                        return self._mapSemanticManager.process(response.data)
+                        .then(function(genericModel) {
+
+                            var specificModel = self._mapCoder.extractSpecificModel(genericModel);
+
+                            return specificModel;
+
+                        });
+                    else
+                    //TODO: to complete and manage this part
+                        return new Promise(function(resolve, reject) {
+                        reject("model_empty");
+                    });
+                });
+            }
+
+
+            /**
+             * request: http request used to retrieve product list
+             *
+             * @return {Object} product list data model
+             */
+            requestCount() {
+
+                var self = this,
+                    filter = this._currentQuery;
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + self._generateCountRequest(filter)
+                ).then(function(response) {
+
+                    if (response.status == 200)
+                        return response.data;
+
+                    else
+                    //TODO: to complete and manage this part
+                        return new Promise(function(resolve, reject) {
+                        reject("model_empty");
+                    });
+                });
+            }
+
+            /**
+             * Generate search filter from given geographical selection and free text search
+             * 
+             * @param {String} query
+             * @return {Object} product list data model
+             */
+            createSearchFilter(query) {
+                var searchFilter = '';
+                if (query.text != null) {
+                    searchFilter += query.text;
+                } else {
+                    searchFilter += '*';
+                }
+                if (query.footprint) searchFilter += ((query.text) ? ' AND ' : '') + query.footprint;
+                return searchFilter;
+            }
+
+
+            /**
+             * Load data from server: public interface to get the model from server
+             *
+             * @param {String} query
+             * @return {null}
+             */
+            loadDataFromServer(query) {
+                var self = this;
+                //this._currentQuery = (query == '*')?'':query;
+                this._currentQuery = this.createSearchFilter(query);
+                this._currentPage = 0;
+
+                this.requestCount()
+                    .then(function(count) {
+
+                        self._mapContainer.setCount(count);
+                        if ((count > 1)) {
+                            self._mapContainer.setOneProduct(false);
+                        } else {
+                            if ((count == 0)) {
+                                self._mapContainer.setOneProduct(false);
+                            }
+                        }
+                    });
+                this.request()
+                    .then(function(mapSpecificModel) {
+                        self._map.setNewModel(mapSpecificModel);
+                        self.owcApp.toastManager.info(self.i18n("completed_new_search_message"));
+                    });
+            }
+
+            /**
+             * LoadNextPage, load a new page from server and update the delegate
+             *
+             * @return {null}
+             */
+            loadNextPage() {
+
+                var self = this;
+                self._currentPage++;
+                self.request()
+                    .then(function(mapSpecificModel) {
+                        self._map.appendNewPage(mapSpecificModel);
+                    });
+            }
+
+        };
+
+        Polymer(MapDataSource);
+
+    })();
+    </script>
+</dom-module>

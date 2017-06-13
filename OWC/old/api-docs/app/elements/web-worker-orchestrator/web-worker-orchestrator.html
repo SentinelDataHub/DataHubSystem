@@ -1,0 +1,150 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+web worker orchestrator
+
+
+@demo demo/index.html
+-->
+<dom-module id="web-worker-orchestrator">
+    <script>
+    (function() {
+        'use strict';
+        class WebWorkerOrchestrator {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'web-worker-orchestrator';
+
+
+                this.properties = {
+
+                    /**
+                     * internal model
+                     *
+                     * @type {Object}
+                     */
+                    model: {
+                        type: Object,
+                        value: {},
+                        notify: true
+                    },
+
+                    reject: {
+                        type: Function,
+                        value: function() {},
+                        notify: true
+                    },
+
+                    resolve: {
+                        type: Function,
+                        value: function() {},
+                        notify: true
+                    }
+                }
+            }
+
+
+            handleWorker(input, worker) {
+                var self = this;
+
+                return new Promise(function(resolve, reject) {
+                    console.warn("worker: ", worker);
+                    var w = new Worker(worker);
+                    console.log("w: ", w);
+                    w.postMessage(input);
+                    w.onmessage = function(e) {
+                        self.model = event.data;
+                        resolve(self.model);
+                    }
+                    w.onerror = function(err) {
+                        reject(err);
+                    }
+                })
+            }
+
+            recursive(input, workers) {
+
+                var self = this;
+                var w = workers.shift();
+                self.handleWorker(input, w).then(function(result) {
+                    if (workers.length >= 1) {
+                        self.recursive(result, workers);
+
+                    } else {
+
+                        self.model = result;
+                        self.resolve(self.model);
+
+                    }
+
+                }).catch(function(err) {
+                    self.reject(err);
+
+                });
+
+
+            }
+
+
+            executeWorkers(myObj, webWorkers) {
+                var self = this;
+                self.model = myObj;
+                console.warn("executeWorkers()");
+                console.log("myObj: ", myObj);
+
+                var p = new Promise(function(resolve, reject) {
+                    self.resolve = resolve;
+                    self.reject = reject;
+                });
+                var copy = []
+                for(var i = 0; i < webWorkers.length; i++)
+                  copy.push(webWorkers[i]);
+                self.recursive(self.model, copy);
+
+                return p;
+
+            }
+
+
+
+        };
+
+        Polymer(WebWorkerOrchestrator);
+
+    })();
+    </script>
+</dom-module>

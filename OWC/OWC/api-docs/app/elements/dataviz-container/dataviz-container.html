@@ -1,0 +1,316 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-icons/communication-icons.html">
+<!--
+This component is used as container of OWC component based on d3 library (or similar data driven libraries)
+
+
+@demo demo/index.html
+-->
+<dom-module id="dataviz-container">
+    <!-- VIEW  CODE HERE -->
+    <template>
+        <!-- view code here -->
+        <style is="custom-style">
+        .dataviz-container {
+            @apply(--layout-vertical);
+            /*max-height: calc(100% - 1px);
+            overflow-y: auto !important;
+            overflow-x: hidden;*/
+        }
+        
+        .dataviz-container-title {
+            @apply(--layout-horizontal);
+            @apply(--layout-center-justified);
+        }
+        
+        .icon-container {
+            @apply(--layout-horizontal);
+            @apply(--layout-center-justified);
+            display: inline-table;
+            padding-left: 20px;
+            padding-right: 20px;
+            margin-top: 5px;
+            margin: auto;
+        }
+        
+        .icons-container {
+            @apply(--layout-horizontal);
+            @apply(--layout-center-justified);
+            padding-left: 20px;
+            padding-right: 20px;
+            margin-top: 5px;
+            margin: auto;
+        }
+        
+        .stats-title {
+            display: inline-table;
+            @apply(--layout-center-justified);
+            font-weight: bold;
+            padding: 0px 15px;
+            font-size: 20px;
+            text-align: center;
+            overflow-y: hidden !important;
+            margin: auto;
+        }
+        
+        paper-icon-button.menu-item {
+            @apply(--layout-center-justified);
+            margin-left: 0px;
+            width: 70px;
+            height: 70px;
+        }
+        
+        paper-icon-button.menu-item:hover {
+            background: var(--paper-light-blue-50);
+            border-radius: 50%;
+        }
+        
+        hr {
+            width: 90%;
+        }
+        
+        #dataviz-container {
+            height: var(--menuheight, 500px);
+            width: var(--menuwidth, 300px);
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            width: 100%!important;
+            /*height: 10px;*/
+        }
+        
+        .infos-container {
+            @apply(--layout-horizontal);
+            @apply(--layout-center-justified);
+            display: inline-table;
+            word-wrap: break-word;
+            white-space: normal;
+            padding-left: 20px;
+            padding-right: 20px;
+            text-align: justify;
+        }
+        
+        .info-container-content {
+            text-align: justify;
+            overflow-y: hidden !important;
+        }
+        </style>
+        <div id="dataviz-container">
+            <hr hidden="{{!showCalendar}}">
+            <br hidden="{{!showCalendar}}">
+            <div hidden="{{!showCalendar}}" class="stats-title">
+                <b>Calendar of Publication Density</b>
+            </div>
+            <div hidden="{{!showCalendar}}" class="infos-container info-container-content">
+                This component shows products publication density per day in the last 13 weeks
+            </div>
+            <div hidden="{{!showCalendar}}" class="icon-container">
+                <paper-icon-button icon="date-range" title="Calendar of Publication Density" on-click="showDistributionCalendar" alt="Calendar of Publication Density" class="menu-item ">
+                </paper-icon-button>
+            </div>
+            <br hidden="{{!showCalendar}}">
+            <hr hidden="{{!showTimeline}}">
+            <br hidden="{{!showTimeline}}">
+            <div hidden="{{!showTimeline}}" class="stats-title">
+                <b>Timeline of Publication Density</b>
+            </div>
+            <div hidden="{{!showTimeline}}" class="infos-container info-container-content">
+                This component shows products chronologically ordered by descending sensing date and grouped by missions
+            </div>
+            <div hidden="{{!showTimeline}}" class="icon-container">
+                <paper-icon-button icon="timeline" title="Timeline of Publication Density" on-click="showTimeline" alt="Timeline of Publication Density" class="menu-item ">
+                </paper-icon-button>
+            </div>
+            <br hidden="{{!showTimeline}}">
+            <hr hidden="{{!showEventsList}}">
+            <br hidden="{{!showEventsList}}">
+            <div hidden="{{!showEventsList}}" class="stats-title">
+                <b>News</b>
+            </div>
+            <div hidden="{{!showEventsList}}" class="infos-container info-container-content">
+                This component shows list of relevant events impacting products dissemination
+            </div>
+            <div hidden="{{!showEventsList}}" class="icon-container">
+                <paper-icon-button icon="communication:rss-feed" title="Events List" on-click="showEvents" alt="Events List" class="menu-item ">
+                </paper-icon-button>
+            </div>
+            <br hidden="{{!showEventsList}}">
+            <hr>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class DatavizContainer {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'dataviz-container';
+                this.owcApp = document.querySelector('#owc-app');
+                this.properties = {
+                  /**
+                     * Public property description
+                     *
+                     * property used to hide/show calendar component 
+                     * @type {Boolean}
+                     */
+                    showCalendar: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
+                    /**
+                     * Public property description
+                     *
+                     * property used to hide/show timeline component 
+                     * @type {Boolean}
+                     */
+                    showTimeline: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
+                    /**
+                     * Public property description
+                     *
+                     * property used to hide/show events list component 
+                     * @type {Boolean}
+                     */
+                    showEventsList: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    }
+                }
+
+            }
+
+            /**
+             * Called when the element has been created, but before property values are set and local DOM is initialized.
+             *
+             * @return {null}
+             */
+            created() {
+                this.navigationManager = document.getElementById('navigation-manager');
+
+            }
+
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+                var self = this;
+                this.showCalendar = this.owcApp.appconfig.show_calendar;
+                this.showTimeline = this.owcApp.appconfig.show_timeline;
+                this.showEventsList = this.owcApp.appconfig.show_events;
+                Polymer.dom(self.root).querySelector('#dataviz-container').addEventListener("resize", function() {});
+                window.addEventListener("resize", function() {
+                    self.resize();
+
+                });
+            }
+
+            /**             
+             * This method is called to force component resize
+             *
+             * @return {null}
+             */
+            resize() {
+                var self = this;
+                self.customStyle['--menuheight'] = parseInt(self.parentPanel.getSize().height) + "px";
+                self.updateStyles();
+                self.customStyle['--menuwidth'] = parseInt(self.parentPanel.getSize().width - 50) + "px";
+                self.updateStyles();
+            }
+
+            /**             
+             * This method is used to push OWC Calendar component
+             *             
+             */
+            showDistributionCalendar() {
+              
+                if (!this.owcApp.authenticationManager.isLogged()) {
+                    this.owcApp.authenticationManager.showLogin();
+                    return;
+                }
+                var calendar = document.getElementById('calendar-container');
+                if (!calendar) {                  
+                    calendar = document.createElement('calendar-container');
+                    this.navigationManager.pushComponent(calendar, '500px', 'Calendar of Publication Density');
+                }
+
+            }
+
+            /**             
+             * This method is used to push OWC Timeline component
+             *             
+             */
+            showTimeline() {
+                if (!this.owcApp.authenticationManager.isLogged()) {
+                    this.owcApp.authenticationManager.showLogin();
+                    return;
+                }
+                var timeline = document.createElement('timeline-component');
+                this.navigationManager.pushComponent(timeline, '500px', 'Timeline');
+            }
+
+            /**             
+             * This method is used to display Events List component on the screen
+             *             
+             */
+            showEvents() {
+                if (!this.owcApp.authenticationManager.isLogged()) {
+                    this.owcApp.authenticationManager.showLogin();
+                    return;
+                }
+                var events = document.createElement('events-list');
+                this.navigationManager.pushComponent(events, '500px', 'News');
+            }
+
+        };
+
+        Polymer(DatavizContainer);
+
+    })();
+    </script>
+</dom-module>

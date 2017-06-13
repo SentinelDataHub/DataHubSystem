@@ -1,0 +1,373 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/iron-a11y-keys/iron-a11y-keys.html">
+<!--
+`login-container` component is used to provide different functionalities, depending on user's authentication status.
+If user is not yet authenticated to server, `login-container` provides:
+- a form to perform login for already registered users
+- a form to subscribe to application for not registered users
+
+If user is already authenticated to server, `login-container` allows user to:
+- log-out from the application
+- access user cart, containing the list of favourite products
+- access user saved searches
+
+
+
+-->
+<dom-module id="login-container">
+    <!-- VIEW  CODE HERE -->
+    <template>
+        <!-- view code here -->
+        <style is="custom-style">
+        .login-container {
+            width: 98%;
+        }
+
+        #login-component {
+            @apply(--layout-vertical);
+            height: var(--loginheight, 500px);
+            width: var(--loginwidth, 100%);
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+
+        #user-component {
+            @apply(--layout-vertical);
+            height: var(--loginheight, 500px);
+            width: var(--loginwidth, 100%);
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+
+        #wronglogin {
+            width: 100%;
+            text-align: center;
+            font-weight: bold;
+            margin: 20px 0px;
+            color: rgb(190, 0, 0);
+            word-wrap: break-word;
+            white-space: normal;
+            font-size: 18px;
+        }
+
+        paper-button {
+            background: #002664;
+            color: white;
+            padding: 5px 5px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        paper-button[toggles][active].colorful {
+            background-color: #002664;
+        }
+
+        paper-button[toggles][active][raised].colorful {
+            background-color: rgba(66, 133, 244, 0.75);
+        }
+
+        #signupButton {
+            background: rgb(173, 173, 173) !important;
+        }
+
+        paper-button[toggles][active][raised].signup {
+            background: rgba(173, 173, 173, 0.75) !important;
+        }
+
+        .element-container {
+            margin-top: 10px;
+        }
+        </style>
+        <div id="login-component" hidden$="{{isLogged()}}">
+            <paper-input label="Username" value="{{username}}"></paper-input>
+            <paper-input type="password" label="Password" value="{{password}}"></paper-input>
+            <paper-button raised class="colorful" id="loginButton" on-click="login" title="Login">Login</paper-button>
+            <div id="wronglogin"></div>
+            <paper-button raised class="signup" id="signupButton" on-click="goToSignup" title="Signup">Signup</paper-button>
+        </div>
+        <div id="user-component" hidden$="{{!isLogged()}}">
+            <paper-button title="Logout" raised class="colorful" on-click="logout">Logout</paper-button>
+            <br>
+            <hr>
+            <br>
+            <paper-button title="Logout" raised class="colorful" on-click="showCart">Pinned List</paper-button>
+            <br>
+            <paper-button raised class="colorful" on-click="savedSearches" title="{{i18n('Saved Searches')}}">{{i18n("Saved Searches")}}</paper-button>
+        </div>
+        <iron-a11y-keys id="keys" keys="enter" target="[[target]]" on-keys-pressed="login">
+        </iron-a11y-keys>
+    </template>
+    <!-- MODEL-CONTROLLER CODE -->
+    <script>
+    (function() {
+        'use strict';
+        class LoginContainer {
+
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'login-container';
+                this.owcApp = document.querySelector('#owc-app');
+
+
+                /**
+                 * Public property description
+                 *
+                 * @type {Object}
+                 */
+                this.properties = {
+
+                    /**
+                     * Property containing user username
+                     *
+                     * @type {Object}
+                     */
+                    username: {
+                        type: String,
+                        value: "",
+                        notify: true
+                    },
+
+                    /**
+                     * Property containing target component for message broker notification
+                     *
+                     * @type {Object}
+                     */
+                    target: {
+                        type: Object,
+                        value: function() {
+                            return document.body;
+                        }
+                    },
+
+                    /**
+                     * Property used to store menu configuration file loaded from server
+                     *
+                     * @type {Array}
+                     */
+                    config: {
+                        type: Object,
+                        value: {
+                            sections: []
+                        },
+                        notify: true
+                    },
+
+
+                    /**
+                     * Property containing user password
+                     *
+                     * @type {Object}
+                     */
+                    password: {
+                        type: String,
+                        value: "",
+                        notify: true
+                    }
+
+                };
+            }
+
+            /**
+             *  Called when the element has created, but before property values are set
+             *  and local DOM is initialized.
+             *
+             * @return {null}
+             */
+            created() {
+                this.navigationManager = document.getElementById('navigation-manager');
+            }
+
+            /**
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+                var self = this;
+                self.$.loginButton.focus();
+                $('#wronglogin').html('');
+                var event = document.createEvent('Event');
+                event.initEvent('resize', true, true);
+                document.dispatchEvent(event);
+
+
+                window.addEventListener("resize", function() {
+                    self.resize();
+                });
+
+                self.owcApp.httpManager.sendRequest('GET', self.owcApp.config.baseUrl + '/api/owc/settings/menu').then(function(response) {
+                    setTimeout(function() {
+                        self.config.sections = (response.status == 200) ? response.data.sections : [];
+                        self.set('config.sections', self.config.sections);
+                        self.notifyPath('config.sections', self.config.sections);
+
+                    }, 0);
+                });
+
+            }
+
+
+            /**
+             *  This method is used to force component resize. This allows the panel to fit well to screen size and to manage screen resizing or mobile device
+             *
+             */
+            resize() {
+                var self = this;
+                self.customStyle['--loginheight'] = parseInt(self.parentPanel.getSize().height) + "px";
+                self.updateStyles();
+                self.customStyle['--loginwidth'] = parseInt(self.parentPanel.getSize().width) + "px";
+                self.updateStyles();
+
+            }
+
+
+            /**
+             * This method is used to allow users to perform authentication on the service.
+             * If inserted credentials  are valid, they are stored on session and the request is forwarded to server.
+             * If inserted credential are not valid, an error message is shown to notify user about authentication failure
+             *
+             * This operation is performed by means of `authentication-manager` component
+             *
+             */
+            login() {
+                var self = this;
+                this.owcApp.authenticationManager.login(this.username, this.password)
+                    .then(function() {
+                        if (self.owcApp.authenticationManager.isLogged()) {
+                            self.owcApp.userManager.getUserInfo(self.username).then(function() {
+
+                                self.owcApp.userManager.getUserRoles(self.username).then(function() {
+                                    self.owcApp.messageBroker.publish('logged-in');
+                                    _.findWhere(self.config.sections, {
+                                        title: "account"
+                                    }).icon = "account-circle";
+                                    self.owcApp.messageBroker.publish('update-configurations', self.config.sections);
+                                });
+                            });
+
+                            self.parentPanel.closePanel();
+
+                        } else {
+                            $('#wronglogin').html('The username and password you entered don\'t match.');
+                        }
+                    });
+            }
+
+            /**
+             *   This method is used to perform logout from the server
+             *
+             * This operation is performed  by means of `authentication-manager` component
+             * @return {null}
+             */
+
+            logout() {
+                var self = this;
+                _.findWhere(self.config.sections, {
+                    title: "account"
+                }).icon = "perm-identity";//"exit-to-app";
+
+
+
+                self.owcApp.messageBroker.publish('update-configurations', self.config.sections);
+                this.owcApp.authenticationManager.logout()
+                    .then(function() {
+                        if (!self.owcApp.authenticationManager.isLogged()) {
+
+                            self.owcApp.userManager.clearUserInfo();
+                            self.owcApp.messageBroker.publish('logged-out');
+                            self.parentPanel.closePanel();
+                            self.owcApp.navigationManager.removeAll();
+
+
+
+
+                        } else {
+
+                        }
+                    });
+            }
+
+            /**
+             *  This method is used to show signup panel for not registered users
+             *
+             * @return {null}
+             */
+            goToSignup() {
+                var signupContainer = document.createElement('signup-component');
+                this.navigationManager.pushComponent(signupContainer, '500px', 'Register New Account', false, true, 1);
+            }
+
+            /**
+             *   This method is used to verify if the user is currently logged-in
+             *
+             * @return {boolean} true if user credential are stored (logged-in user), false otherwise
+             */
+            isLogged() {
+                var logged = (this.owcApp.authenticationManager.isLogged()) ? true : false;
+                return logged;
+            }
+
+            /**
+             *   This method is used to open user cart panel, containing the list of user's favourite product
+             *
+             */
+            showCart() {
+                var cartContainer = document.createElement('cart-container');
+                this.navigationManager.pushComponent(cartContainer, '500px', 'User Cart', false, true, 1);
+            }
+
+            /**
+             *  This method is used to open user saved searches panel, containing the list of user's favourite product
+             *
+             */
+            savedSearches() {
+                var savedsearchList = document.createElement('savedsearch-list');
+                this.navigationManager.pushComponent(savedsearchList, '500px', 'Saved Search List', false, true, 1);
+            }
+
+        };
+
+        Polymer(LoginContainer);
+
+    })();
+    </script>
+</dom-module>

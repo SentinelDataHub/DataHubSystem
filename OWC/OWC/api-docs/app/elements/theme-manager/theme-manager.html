@@ -1,0 +1,152 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+This component is devoted to manage main theme for OWC application
+
+
+@demo demo/index.html
+-->
+<dom-module id="theme-manager">
+    <script>
+    (function() {
+        'use strict';
+        class ThemeManager {
+
+            constructor() {
+                this.beforeRegister();
+                this.attached();
+            }
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'theme-manager';
+                this.owcApp = document.querySelector('#owc-app');
+
+                this.properties = {
+                    /**
+                     * Theme model
+                     *
+                     * @type {Object}
+                     */
+                    theme: {
+                        type: Object,
+                        value: null,
+                        notify: true
+                    }
+
+                };
+
+            }
+
+            
+            /**             
+             * This method is used to convert from hex to rgb. 
+             * 
+             * @param {String} hex color to convert
+             * @return {Object} converted rgb color object, composed by r, g and b fields
+             */
+            _hexToRgb(hex) {
+                // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+                var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+                hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+                    return r + r + g + g + b + b;
+                });
+
+                var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? {
+                    r: parseInt(result[1], 16),
+                    g: parseInt(result[2], 16),
+                    b: parseInt(result[3], 16)
+                } : null;
+            }
+
+
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+
+                var self = this;
+                var ls = localStorage.getItem('theme');
+                var navigationMaanger = document.getElementById('navigation-manager');
+                if (!ls) {
+                    self.owcApp.httpManager.sendRequest('GET', self.owcApp.config.clientUrl + '/conf/theme.json').then(function(response) {
+                        setTimeout(function() {
+                            self.owcApp.theme = (response.status == 200) ? response.data : {};
+                            var rgbColor = self._hexToRgb(self.owcApp.theme.bgcolor);
+                            localStorage.setItem('theme', JSON.stringify(self.owcApp.theme));
+                            navigationMaanger.customStyle['--theme-background-color'] = 'rgba(' + rgbColor.r + ',' + rgbColor.g + ',' + rgbColor.b + ',0.94) !important';
+
+                            navigationMaanger.customStyle['--theme-background-image'] = "url(\"" +
+                                self.owcApp.theme.bgimageurl + "\")";
+                            navigationMaanger.updateStyles();
+                        }, 0);
+                    });
+                } else {
+                    self.owcApp.theme = JSON.parse(ls);
+                    var rgbColor = self._hexToRgb(self.owcApp.theme.bgcolor);
+                    navigationMaanger.customStyle['--theme-background-color'] = 'rgba(' + rgbColor.r + ',' + rgbColor.g + ',' + rgbColor.b + ',0.94) !important';
+
+                    navigationMaanger.customStyle['--theme-background-image'] = "url(\"" +
+                        self.owcApp.theme.bgimageurl + "\")";
+                    navigationMaanger.updateStyles();
+                }
+
+                self.owcApp.messageBroker.subscribe('update-theme', function(model) {
+                    setTimeout(function() {
+                        var rgbColor = self._hexToRgb(model.bgcolor);
+                         navigationMaanger.customStyle['--theme-background-color'] = 'rgba(' + rgbColor.r + ',' + rgbColor.g + ',' + rgbColor.b + ',0.94) !important';
+
+                        navigationMaanger.customStyle['--theme-background-image'] = "url(\"" +
+                            model.bgimageurl + "\")";
+                        navigationMaanger.updateStyles();
+                    }, 0);
+
+
+                });
+            }
+
+        };
+
+        Polymer(ThemeManager);
+        eu.serco.Owc.ThemeManager = ThemeManager;
+
+    })();
+    </script>
+</dom-module>

@@ -1,0 +1,595 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+<i>data-source</i> component is devoted to perform HTTP search request towards server, making data available for the graphical components which are used for data representation
+
+In the context of <b>OWC</b> software, this component is used together with:
+<ul>
+<li><i>semantic-manager</i> component, which is in charge of generating a generic model extracting the data from HTTP search request and applying a mapping between data and extraction rules defined in its proper schema;</li>
+<li><i>generic-model</i> component, which contains the result of data processing performed by the <i>semantic-manager</i> component on the data provided by the <i>data-source</i> component;</li>
+<li><i>coder</i> component, which is in charge of getting fields useful for component representation from the <i>generic-model</i> component, implementing the data-binding between the Model and the View;</li>
+<li><i>owc-query</i> component, which is used to set filter in HTTP requests.</li>
+</ul>
+   
+-->
+<dom-module id="data-source">
+    <script>
+    (function() {
+        'use strict';
+        class DataSource {
+
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.            
+             */
+            beforeRegister() {
+                this.is = 'data-source';
+                this._requestUrl = "/api/stub/products?filter=:filter&offset=:offset&limit=:limit&sortedby=:sortedby&order=:order";
+                this._countUrl = "/api/stub/products/count?filter=:filter";
+                //this._pageSize = 10;
+                this.owcApp = document.querySelector('#owc-app');
+
+                /**
+                 * Current page
+                 *
+                 * @type {Integer}
+                 */
+                this._currentPage = 0;
+
+                /**
+                 * Current query (last done query)
+                 *
+                 * @type {String}
+                 */
+                this._currentQuery = "";
+
+                /**
+                 * List reference
+                 *
+                 * @type {Object}
+                 */
+                this._list = null;
+
+                /**
+                 * List Coder
+                 *
+                 * @type {Object}
+                 */
+                this._listCoder = null;
+
+                /**
+                 * List Coder
+                 *
+                 * @type {Object}
+                 */
+                this.nextSearch = true;
+
+                /**
+                 * List Container
+                 *
+                 * @type {Object}
+                 */
+                this._listContainer = null;
+
+                /**
+                 * List Semantic Manager
+                 *
+                 * @type {Object}
+                 */
+                this._listSemanticManager = null;
+
+                /**
+                 * List Semantic Manager
+                 *
+                 * @type {Object}
+                 */
+                this._owcquery = null;
+
+                /**
+                 * Search Component
+                 *
+                 * @type {Object}
+                 */
+                this._searchComponent = null;
+
+                /**
+                 * List Semantic Manager
+                 *
+                 * @type {Object}
+                 */
+                this._genericModel = null;
+                this._paginationEnable = true;
+                this._combo = null;
+
+                this._isPreviousPageLoadEnabled = true;
+                this._isNextPageLoadEnabled = true;
+                this._bufferStart = 0;
+                this._bufferEnd = 0;
+
+                this.filterAllValue = "*";
+
+                /**
+                 * Sort by
+                 *
+                 * @type {String}
+                 */
+                this.sortBy = "ingestiondate";
+
+                /**
+                 * Order by
+                 *
+                 * @type {String}
+                 */
+                this.orderBy = "desc";
+
+            }
+
+            attached() {
+                this._pageSize = this.owcApp.appconfig.page_size;
+            }
+
+
+            /**
+             * This method is used to set the component (e.g. <i>owc-list</i>) devoted to show HTTP request data in a list
+             * @param {Object} list: object containing reference to list component. This object can be obtained using proper 
+             * Polymer selection component method, like
+             *   <pre>
+             *   var list  = Polymer.dom(this.root).querySelector('#my-list');
+             *   </pre>
+             *            
+             */
+            setList(list) {
+                this._list = list;
+            }
+
+            /**
+             * This method is used to set the component (e.g. <i>list-coder</i>) which is in charge of getting fields useful
+             * for component representation from the <i>generic-model</i> component
+             * @param {Object} listCoder: object containing reference to list-coder component. This object can be obtained using  
+             * proper Polymer selection component method, like
+             *   <pre>
+             *   var coder  = Polymer.dom(this.root).querySelector('#my-coder');
+             *   </pre>
+             *            
+             */
+            setListCoder(listCoder) {
+                this._listCoder = listCoder;
+            }
+
+            /**
+             * This method is used to set the list container component 
+             * @param {Object} listContainer: object containing reference to list container component. This object can be 
+             * obtained using proper Polymer selection component method, like
+             *   <pre>
+             *   var container  = Polymer.dom(this.root).querySelector('#my-container');
+             *   </pre>
+             *            
+             */
+            setListContainer(listContainer) {
+                this._listContainer = listContainer;
+            }
+
+            /**
+             * This method is used to set the component used to trigger an HTTP search request
+             * @param {Object} searchComponent: object containing reference to search component. This object can be 
+             * obtained using proper Polymer selection component method, like
+             *   <pre>
+             *   var search  = Polymer.dom(this.root).querySelector('#my-search');
+             *   </pre>
+             *            
+             */
+            setSearchComponent(searchComponent) {
+                this._searchComponent = searchComponent;
+            }
+
+
+            /**
+             * This method is used to set the <i>semantic-manager</i> component, which is in charge of generating a generic model 
+             * from server data model
+             * @param {Object} listSemanticManager: object containing reference to <i>semantic-manager</i> component. This object 
+             * can be obtained using proper Polymer selection component method, like
+             *   <pre>
+             *   var semantic_manager  = Polymer.dom(this.root).querySelector('#my-semantic-manager');
+             *   </pre>
+             *            
+             */
+            setListSemanticManager(listSemanticManager) {
+                this._listSemanticManager = listSemanticManager;
+            }
+
+            /**
+             * This method is used to set <i>owc-query</i> component, which is used to set filter in HTTP requests
+             * @param {Object} owcquery: object containing reference to <i>owc-query</i> component. This object 
+             * can be obtained using proper Polymer selection component method, like
+             *   <pre>
+             *   var query  = Polymer.dom(this.root).querySelector('#my-query');
+             *   </pre>
+             *            
+             */
+            setOwcQuery(owcquery) {
+                this._owcquery = owcquery;
+            }
+
+            /**
+             * This method is used to set <i>generic-model</i> component, which contains the result of data processing performed
+             * by the <i>semantic-manager</i> component on the data provided by the <i>data-source</i> component
+             * @param {Object} genericModel: object containing reference to <i>generic-model</i> component. This object 
+             * can be obtained using proper Polymer selection component method, like
+             *   <pre>
+             *   var model  = Polymer.dom(this.root).querySelector('#my-model');
+             *   </pre>
+             *            
+             */
+            setGenericModel(genericModel) {
+                this._genericModel = genericModel;
+            }
+
+            /**
+             * This method is used to set a <i>Combo</i> component, i.e. a composite component typically formed by
+             * <ul>
+             * <li>a search component, used to trigger HTTP search request towards server</li>
+             * <li>a list component, used to display search results</li>
+             * <li>a map, used to show product footprint (if needed)</li>
+             * </ul>
+             * @param {Object} combo: object containing reference to combo component. This object 
+             * can be obtained using proper Polymer selection component method, like
+             *   <pre>
+             *   var model  = Polymer.dom(this.root).querySelector('#my-model');
+             *   </pre>
+             *           
+             *
+             * @return {null}
+             */
+            setCombo(combo) {
+                this._combo = combo;
+            }
+
+            /**
+             * This method generates url for search http request
+             *
+             * @param {String} filter: query filters
+             * @param {String} offset: start index
+             * @param {String} limit: number of products per page
+             * @param {String} sortedby: sorting parameter (ingestiondate|beginposition|cloudcoverpercentage)
+             * @param {String} order: order parameter (asc|desc)
+             * @return {String} searchUrl
+             */
+            _generateSearchRequest(filter, offset, limit, sortedby, order) {
+                var searchUrl = this._requestUrl;
+                searchUrl = searchUrl.replace(":filter", (filter) ? filter : this.filterAllValue);
+                searchUrl = searchUrl.replace(":offset", (offset) ? offset : '0');
+                searchUrl = searchUrl.replace(":limit", (limit) ? limit : '10');
+                searchUrl = searchUrl.replace(":sortedby", (sortedby) ? sortedby : 'ingestiondate');
+                searchUrl = searchUrl.replace(":order", (order) ? order : 'desc');
+                return searchUrl;
+            }
+
+            /**
+             * This method generates the HTTP URL for search count request, which gets the number of data fulfilling the 
+             * applied search filter 
+             *
+             * @private
+             * @param {String} filter: request search filters
+             * @return {String} searchUrl: HTTP request URL for search count request
+             */
+            _generateCountRequest(filter) {
+                var searchUrl = this._countUrl;
+                searchUrl = searchUrl.replace(":filter", (filter) ? filter : this.filterAllValue);
+                return searchUrl;
+            }
+
+            /**
+             * This method performs the http request used to retrieve data from the Server, according to the following component 
+             * parameters:
+             *
+             * <ul>
+             * <li>_owcquery, i.e. the query filters</li>
+             * <li>_currentPage, i.e. the start index for the request</li>
+             * <li>_pageSize, i.e. the maximum number of data to be retrieved within the request</li>
+             * </ul>
+             * This method applies data processing implemented by <i>semantic-manager</i> component to the data model 
+             * resulting from HTTP serach request
+             *
+             * @return {Object} genericModel: generic model genarated by the data processing performed by the 
+             * <i>semantic-manager</i> component
+             */
+            request() {
+                var self = this,
+                    filter = (this._owcquery) ? this.createSearchFilter(this._owcquery) : '',
+                    limit = this._pageSize,
+                    offset = this._currentPage * limit,
+                    sortedby = "ingestiondate",
+                    order = "desc";
+                //self.nextSearch = false;
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + self._generateSearchRequest(filter, offset, limit, self.sortBy, self.orderBy)
+                ).then(function(response) {
+                    if (response.status == 200) {
+                        // self.nextSearch = true;
+                        //self._searchComponent.newSearch = true;
+                        if (self._listSemanticManager) {
+                            return self._listSemanticManager.process(response.data)
+                                .then(function(genericModel) {
+                                    response = null;
+                                    return genericModel;
+                                });
+                        } else {
+                            // if the semantic manager is not set, bypass the
+                            // processing
+                            return response.data;
+                        }
+
+                    } else
+                    //self.nextSearch = true;
+                    //self._searchComponent.newSearch = true;
+                        return new Promise(function(resolve, reject) {
+                        reject("model_empty");
+                    });
+                });
+            }
+
+            /**
+             * This method is used by <i>loadPreviousPage()</i> and <i>loadPreviousPage()</i> methods and performs the same http 
+             * request performed by <i>request()</i> method, except for the following component parameters:
+             * 
+             * <ul>             
+             * <li>_currentPage, i.e. the start index for the request</li>
+             * <li>_pageSize, i.e. the maximum number of data to be retrieved within the request</li>
+             * </ul>
+             *
+             * @private
+             * @param {String} offset: start index for the request
+             * @param {String} limit: the maximum number of data to be retrieved within the request
+             * @return {Object} genericModel: generic model genarated by the data processing performed by the 
+             * <i>semantic-manager</i> component
+             */
+            newRequest(offset, limit) {
+                var self = this,
+                    filter = (this._owcquery) ? this.createSearchFilter(this._owcquery) : '',
+                    sortedby = "ingestiondate",
+                    order = "desc";
+
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + self._generateSearchRequest(filter, offset, limit, sortedby, order)
+                ).then(function(response) {
+                    if (response.status == 200)
+                        if (self._listSemanticManager) {
+                            return self._listSemanticManager.process(response.data)
+                                .then(function(genericModel) {
+                                    response = null;
+                                    return genericModel;
+                                });
+                        } else {
+                            return response.data;
+                        }
+                    else
+                        return new Promise(function(resolve, reject) {
+                            reject("model_empty");
+                        });
+                });
+            }
+
+            /**
+             * This method performs the http request used to retrieve the number of data fulfilling the applied search filter, 
+             * according to the _owcquery component parameter.             
+             *            
+             * @return {Number} count: number of data fulfilling the applied search filter
+             */
+            requestCount() {
+                var self = this,
+                    filter = this._currentQuery;
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + self._generateCountRequest(filter)
+                ).then(function(response) {
+                    if (response.status == 200)
+                        return response.data;
+                    else
+                        return new Promise(function(resolve, reject) {
+                            reject("model_empty");
+                        });
+                });
+            }
+
+            /**
+             * This method is used to trigger HTTP search request useful for data retrieval from server.
+             * The following methods are called within this function:
+             *
+             * <ul>             
+             * <li><i>requestCount()</i>, which performs the http request used to retrieve the number of data fulfilling the 
+             * applied search filter</li>
+             * <li><i>request()</i>, which performs the http request used to retrieve data from the Server, according to the
+             * proper search filters</li>
+             * </ul>             
+             */
+            loadDataFromServer() {
+                var self = this;
+                self.nextSearch = false;
+                if (self._combo)
+                    self._combo.setQuery(self._currentQuery);
+                this._bufferStart = 0;
+
+                this.requestCount()
+                    .then(function(count) {
+                        self._listContainer && self._listContainer.setCount && self._listContainer.setCount(count);
+                        if ((count > 1)) {
+                            self._listContainer && self._listContainer.setCount && self._listContainer.setOneProduct(false);
+
+                        } else {
+                            if ((count == 0)) {
+                                self._listContainer && self._listContainer.setCount && self._listContainer.setOneProduct(false);
+                            }
+                        }
+                    });
+                this.request()
+                    .then(function(genericModel) {
+
+                        self._genericModel.setModel(genericModel);
+                        self._bufferEnd = genericModel.length - 1;
+
+                        if (self._listContainer) self._listContainer.start = self._genericModel && self._genericModel.startIndex;
+                        if (self._listContainer) self._listContainer.end = self._genericModel && self._genericModel.endIndex;
+                        self.owcApp.toastManager.info(self.i18n("completed_new_search_message"));
+                        self.nextSearch = true;
+                        self._isNextPageLoadEnabled = true;
+                        if (self._searchComponent)
+                            self._searchComponent.newSearch = true;
+                        
+                        $(window).trigger('resize');
+                    });
+            }
+
+            /**
+             * This method is used to format properly the HTTP request filters contained in the <i>owc-query</i> component, i.e.
+             *
+             * <ul>
+             * <li>text filter, which is set by means of text or combo fields;</li>
+             * <li>geographical filter (useful for opensearch queries), which is set by means of area selection on maps;</li>
+             * <li>advanced filters, which can be set by means of text and/or combo and/or checkbox fields.</li>
+             * </ul> 
+             *
+             * @param {String} query: <i>owc-query</i> component containing search filters
+             * @return {String} searchFilter: filter to be passed to the HTTP search request as query string parameter 
+             */
+            createSearchFilter(query) {
+                var searchFilter = '';
+                if (query.text != null) {
+                    searchFilter += query.text;
+                } else {
+                    searchFilter += '*';
+                }
+                if (query.footprint) searchFilter += ((query.text) ? ' AND ' : '') + query.footprint;
+                if (query.filters && query.filters != '') searchFilter += ' AND ' + query.filters;
+                return searchFilter;
+            }
+
+            /**
+             * This method is used to update the <i>owc-query</i> component used within <i>loadDataFromServer()</i> method
+             *             
+             */
+            updateQuery() {
+                this._currentQuery = this._owcquery;
+                this._currentQuery = this.createSearchFilter(this._currentQuery);
+            }
+
+            /**
+             * This method gets the <i>owc-query</i> component used within <i>loadDataFromServer()</i> method
+             *
+             * @return {Object} _currentQuery: <i>owc-query</i> component
+             */
+            getQuery() {
+                return this._currentQuery;
+            }
+
+            /**
+             * This method is used to perform the same http request performed by <i>request()</i> method, except for the 
+             * _currentPage component parameter, which is descreased in order to get the previous _pageSize (i.e. the maximum 
+             * number of data to be retrieved) data elements of the search request (if available) 
+             *             
+             */
+            loadPreviousPage() {
+                if (this._isPreviousPageLoadEnabled) {
+                    var self = this;
+                    if (this._bufferStart == 0) {
+                        self._isPreviousPageLoadEnabled = false;
+                        self._genericModel.prependNewPage([]);
+                        return;
+                    }
+                    var offset = (this._bufferStart - this._pageSize < 0) ? 0 : (this._bufferStart - this._pageSize);
+                    var limit = (this._bufferStart < this._pageSize) ? this._bufferStart : this._pageSize;
+                    this.newRequest(offset, limit)
+                        .then(function(genericModel) {
+                            var newPageSize = genericModel.length;
+
+
+                            if ((self._genericModel.getModel().length + newPageSize) > self._genericModel._maxModelSize) {
+                                self._isNextPageLoadEnabled = true;
+                                self._bufferEnd = self._bufferEnd - newPageSize;
+                            }
+
+                            self._genericModel.prependNewPage(genericModel);
+                            self.lastElementIndex = newPageSize;
+                            self.paginationDirection = "top";
+
+                            self._bufferStart = self._bufferStart - newPageSize;
+                            self.owcApp.toastManager.info(self.i18n("loaded_new_page"));
+                            if (genericModel.length > 0 || offset == 0) {} else {
+                                self._isPreviousPageLoadEnabled = false;
+                            }
+                            self._listContainer.start = self._genericModel.startIndex;
+                            self._listContainer.end = self._genericModel.endIndex;
+                        });
+                }
+            }
+
+            /**
+             * This method is used to perform the same http request performed by <i>request()</i> method, except for the 
+             * _currentPage component parameter, which is increased in order to get the next _pageSize (i.e. the maximum 
+             * number of data to be retrieved) data elements of the search request (if available) 
+             *             
+             */
+            loadNextPage() {
+                if (this._isNextPageLoadEnabled) {
+                    var self = this;
+                    var offset = this._bufferEnd + 1;
+                    var limit = this._pageSize;
+                    // console.log('datasource offset: ', offset);
+                    // console.log('datasource limit: ', limit);
+                    this.newRequest(offset, limit)
+                        .then(function(genericModel) {
+                            var newPageSize = genericModel.length;
+
+                            if ((self._genericModel.getModel().length + newPageSize) > self._genericModel._maxModelSize) {
+                                self._isPreviousPageLoadEnabled = true;
+                                self._bufferStart = self._bufferStart + newPageSize;
+                            }
+                            self._genericModel.appendNewPage(genericModel);
+                            self.owcApp.toastManager.info(self.i18n("loaded_new_page"));
+                            var lastElement = self._bufferEnd;
+                            self._bufferEnd = self._bufferEnd + newPageSize;
+                            self.paginationDirection = "bottom";
+                            self.lastElementIndex = lastElement;
+
+
+                            if (genericModel.length > 0) {} else {
+                                self._isNextPageLoadEnabled = false;
+                            }
+                            self._listContainer.start = self._genericModel.startIndex;
+                            self._listContainer.end = self._genericModel.endIndex;
+                        });
+                }
+            }
+        };
+        Polymer(DataSource);
+    })();
+    </script>
+</dom-module>

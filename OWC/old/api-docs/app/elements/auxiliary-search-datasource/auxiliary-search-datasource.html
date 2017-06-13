@@ -1,0 +1,202 @@
+<!--
+  @license
+
+ 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+This component is devoted to handle ADF search datasource
+
+
+@demo demo/index.html
+-->
+<dom-module id="auxiliary-search-datasource">
+    <script>
+    (function() {
+        'use strict';
+        class AuxiliarySearchDatasource extends HTMLElement {
+
+            constructor() {
+                super();
+                this.beforeRegister();
+            }
+
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'auxiliary-search-datasource';
+                this._requestUrl = "/api/wps/auxiliaries?type=:type&filename=:filename";
+                // this.options = {
+                //   headers: [{
+                //     name: "Accept",
+                //     value: "application/json"
+                //   }]
+                // };
+                this.owcApp = document.querySelector('#owc-app');
+
+                /**
+                 * List reference
+                 * 
+                 * @type {Object}
+                 */
+                this._list = null;
+
+                /**
+                 * List Coder
+                 * 
+                 * @type {Object}
+                 */
+                this._listCoder = null;
+
+                /**
+                 * List Semantic Manager
+                 * 
+                 * @type {Object}
+                 */
+                this._listSemanticManager = null;
+
+            }
+
+
+            /**
+             * This method sets the list reference
+             * @param {Object} list
+             * 
+             * @return {null}
+             */
+            setList(list) {
+                this._list = list;
+            }
+
+            /**
+             * This method sets the list coder reference
+             * @param {Object} listCoder 
+             * 
+             * @return {null}
+             */
+            setListCoder(listCoder) {
+                this._listCoder = listCoder;
+            }
+
+            /**
+             * This method sets the list semantic manager reference
+             * @param {Object} listSemanticManager
+             * 
+             * @return {null}
+             */
+            setListSemanticManager(listSemanticManager) {
+                this._listSemanticManager = listSemanticManager;
+            }
+
+            /**
+             * This method sets the listcontainer as delegate container
+             * @param {Object} delegate 
+             * 
+             * @return {null}
+             */
+            setListContainer(listContainer) {
+                this.delegateContainer = listContainer;
+            }
+
+            /**
+             * This method calls api used to get auxiliary data list from Auxiliary Data Hub 
+             *        
+             * @return {null}
+             */
+            requestADF(productType, productName) {
+
+                var self = this;
+                var url = this._requestUrl;
+                url = url.replace(':type', productType);
+                url = url.replace(':filename', productName);
+                var specificModel = null;
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + url
+                ).then(function(response) {
+                    if (response.status == 200)
+                        return self._listSemanticManager.processModel(response.data)
+                            .then(function(genericModel) {
+                                specificModel = self._listCoder.extractSpecificModel(genericModel);
+                                self.model = specificModel;
+                                //console.log('specificModelllllll',specificModel);
+                                return specificModel;
+
+                            });
+                    else
+                        return new Promise(function(resolve, reject) {
+                            reject("model_empty");
+                        });
+                }, function() {
+                    self.owcApp.toastManager.warn(self.i18n("type_not_supported"));
+                    self.delegateContainer.parentPanel.closePanel();
+                });
+            }
+
+            /*
+             * This method is used to load the list of Auxiliary data Files which could be used to re-process a product
+             * @param {String} productType
+             * @param {String} productName 
+             *
+             * @return {null}              
+             */
+            loadDataFromServer(productType, productName) {
+                var self = this;
+                this.requestADF(productType, productName)
+                    .then(function(listSpecificModel) {
+                        if (!listSpecificModel) {
+                            self.owcApp.toastManager.warn(self.i18n("type_not_supported"));
+                            self.delegateContainer.parentPanel.closePanel();
+                            return;
+                        }
+                        //console.log('loadDataFromServer ADF listSpecificModel',listSpecificModel);
+                        self._list.setNewModel(listSpecificModel);
+                        self.delegateContainer.readModelFromDS();
+                        self.owcApp.toastManager.info(self.i18n("completed_new_search_message"));
+                    });
+            }
+
+            /*
+             * This method is used by list datasource to retrieve List model
+             * @return(Object)  List model        
+             */
+            getModel() {
+                return this.model;
+            }
+
+
+        };
+
+        Polymer(AuxiliarySearchDatasource);
+        eu.serco.Owc.AuxiliarySearchDatasource = AuxiliarySearchDatasource;
+
+    })();
+    </script>
+</dom-module>

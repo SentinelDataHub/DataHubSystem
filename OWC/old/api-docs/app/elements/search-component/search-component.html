@@ -1,0 +1,716 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/color.html">
+<link rel="import" href="../../bower_components/paper-styles/demo-pages.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+
+<!--
+    This component is used to perform full text search on the DHuS
+
+    @demo demo/index.html
+-->
+<dom-module id="search-component">
+    <!-- VIEW  CODE HERE -->
+    <template>
+        <!-- view code here -->
+        <style is="custom-style">
+        :host {
+            height: 180px;
+            float: left;
+            width: 100%;
+        }
+
+        #search-container {
+            @apply(--layout-vertical);
+            /*height: var(--searchheight, 300px);*/
+            width: var(--searchwidth, 100%);
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+
+        .element-container {
+            @apply(--layout-horizontal);
+            @apply(--layout-center-justified);
+        }
+
+        textarea {
+            resize: vertical;
+            overflow-y: auto;
+        }
+
+        #search-box-input {
+            display: block;
+            min-height: 40px;
+            width: 98%;
+            margin-bottom: 5px;
+            align-self: center;
+            font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            resize: vertical;
+            overflow-y: auto;
+        }
+
+        paper-button {
+            color: white;
+            padding: 5px 5px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        paper-button.colorful {
+            background: #002664;
+        }
+
+        paper-button[toggles][active].colorful {
+            background-color: #002664;
+        }
+
+        paper-button[toggles][active][raised].colorful {
+            background-color: rgba(66, 133, 244, 0.75);
+        }
+
+        paper-button.greyscale {
+            background-color: rgb(100, 100, 100);
+        }
+
+        paper-button[toggles][active].greyscale {
+            background-color: rgba(100, 100, 100, 0.75);
+        }
+
+        paper-icon-button {
+            color: #002664;
+            padding: 5px 5px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        paper-icon-button.colorful {
+            color: #002664;
+            float: right;
+        }
+
+        paper-icon-button[toggles][active].colorful {
+            color: #002664;
+        }
+
+        paper-icon-button[toggles][active][raised].colorful {
+            color: rgba(66, 133, 244, 0.75);
+        }
+
+        paper-icon-button.greyscale {
+            color: rgb(100, 100, 100);
+        }
+
+        paper-icon-button[toggles][active].greyscale {
+            color: rgba(100, 100, 100, 0.75);
+        }
+
+        .end {
+            @apply(--layout-end-justified);
+            float: right !important;
+        }
+
+        #dialog{
+          z-index: 999999999;
+
+
+        }
+
+        #picker{
+          z-index: 999999999;
+        }
+
+
+        </style>
+        <div id="search-container">
+
+            <paper-input label="search" id="search-box-input">
+                <paper-icon-button style="width: 33px;" suffix on-click="saveSearch" icon="save" alt="clear" title="clear"></paper-icon-button>
+                <paper-icon-button style="width: 33px;" suffix on-click="clearSearch" icon="clear" alt="clear" title="clear"></paper-icon-button>
+                <paper-icon-button style="width: 33px;" suffix on-click="search" icon="search" alt="clear" title="clear"></paper-icon-button>
+            </paper-input>
+
+
+
+        </div>
+
+
+        <br/>
+
+        <!-- SORT BY -->
+        <paper-dropdown-menu  style="float:left;margin-left: 5px;" class="flex2child" label="Sort By" required>
+            <paper-menu attr-for-selected="value" selected="{{sortBy}}" class="dropdown-content">
+                <paper-item value="" disabled>Sort By</paper-item>
+                <paper-item value="ingestiondate">Ingestion date</paper-item>
+                <paper-item value="sensingdate">Sensing date</paper-item>
+            </paper-menu>
+        </paper-dropdown-menu>
+
+        <div style="float:left;width: 10px;height:15px;" > </div>
+
+        <!-- ORDER BY -->
+        <paper-dropdown-menu style="float:left" class="flex2child" label="Order By" required>
+            <paper-menu attr-for-selected="value" selected="{{orderBy}}" class="dropdown-content">
+                <paper-item value="" disabled>Order By</paper-item>
+                <paper-item value="desc">Descending</paper-item>
+                <paper-item value="asc">Ascending</paper-item>
+            </paper-menu>
+        </paper-dropdown-menu>
+
+
+        <br/>
+
+        <div class="time-range">
+
+          <div>
+            <div style="float:left; padding-top: 12px; margin-right: 8px;font-size:14px;margin-left: 5px;">Sensing time range</div>
+            <div style="float:left"><paper-icon-button style="width: 30px;" raised icon="date-range" class="colorful "  on-click="sensingStartDatePicker" title="{{i18n('Sensing Start')}}"></paper-icon-button> </div>
+            <div style="float:left;padding-top: 13px; width: 65px;font-size: 13px;">{{sensingStartShort}}</div>
+            <div style="float:left"><paper-icon-button  style="width: 30px;" raised icon="date-range" class="colorful"  on-click="sensingStopDatePicker" title="{{i18n('Sensing Start')}}"></paper-icon-button></div>
+            <div style="float:left;padding-top: 13px;width: 65px;font-size: 13px;">{{sensingStopShort}}</div>
+            <div style="float:left"><paper-icon-button  style="width: 25px;" raised icon="cancel" class="colorful"  on-click="cleanSensingDate" title="{{i18n('Clean Sensing Date')}}"></paper-icon-button></div>
+          </div>
+
+        </div>
+
+        <br/>
+        <br/>
+
+        <div class="time-range" style="margin-top: 30px;">
+
+          <div >
+            <div style="float:left; font-size:14px; padding-top: 12px;margin-left: 5px;">Ingestion time range</div>
+            <div style="float:left"><paper-icon-button style="width: 30px;"  raised icon="date-range" class="colorful "  on-click="ingestionStartDatePicker" title="{{i18n('Ingestion Start')}}"></paper-icon-button> </div>
+            <div style="float:left;padding-top: 13px;width: 65px;font-size: 13px;">{{ingestionStartShort}}</div>
+            <div style="float:left;"><paper-icon-button style="width: 30px;"  raised icon="date-range" class="colorful"   on-click="ingestionStopDatePicker" title="{{i18n('Ingestion Start')}}"></paper-icon-button></div>
+            <div style="float:left;padding-top: 13px;width: 65px;font-size: 13px;">{{ingestionStopShort}}</div>
+            <div style="float:left"><paper-icon-button  style="width: 25px;" raised icon="cancel" class="colorful"  on-click="cleanIngestionDate" title="{{i18n('Clean Sensing Date')}}"></paper-icon-button></div>
+          </div>
+
+        </div>
+
+
+       <!--  SENSING TIME RANGE  -->
+
+       <paper-dialog id="sensing-start-dialog" class="paper-date-picker-dialog"  on-iron-overlay-closed="dismissDialog">
+         <paper-date-picker id="picker" date="{{sensingStart}}"></paper-date-picker>
+         <div class="buttons">
+           <paper-button class="colorful" dialog-confirm on-tap="updateSensingStart">OK</paper-button>
+         </div>
+       </paper-dialog>
+
+       <paper-dialog id="sensing-stop-dialog" class="paper-date-picker-dialog"  on-iron-overlay-closed="dismissDialog">
+         <paper-date-picker id="picker" date="{{sensingStop}}"></paper-date-picker>
+         <div class="buttons">
+           <paper-button class="colorful" dialog-confirm on-tap="updateSensingStop">OK</paper-button>
+         </div>
+       </paper-dialog>
+
+
+       <!--  INGESTION TIME RANGE  -->
+
+       <paper-dialog id="ingestion-start-dialog" class="paper-date-picker-dialog"  on-iron-overlay-closed="dismissDialog">
+         <paper-date-picker id="picker" date="{{ingestionStart}}"></paper-date-picker>
+         <div class="buttons">
+           <paper-button class="colorful" dialog-confirm on-tap="updateIngestionStart">OK</paper-button>
+         </div>
+       </paper-dialog>
+
+       <paper-dialog id="ingestion-stop-dialog" class="paper-date-picker-dialog"  on-iron-overlay-closed="dismissDialog">
+         <paper-date-picker id="picker" date="{{ingestionStop}}"></paper-date-picker>
+         <div class="buttons">
+           <paper-button class="colorful" dialog-confirm on-tap="updateIngestionStop">OK</paper-button>
+         </div>
+       </paper-dialog>
+
+       <br/>
+       <br/>
+
+
+
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class SearchComponent {
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'search-component';
+                this.owcApp = document.querySelector('#owc-app');
+                this.saveSearchUrl = '/api/stub/users/0/searches?complete=:complete';
+                this.properties = {
+
+                    /**
+                     *
+                     * @type {Object}
+                     */
+                    owcMap: {
+                        type: Object,
+                        value: {},
+                        notify: true
+
+                    },
+
+                    /**
+                     *
+                     * @type {Object}
+                     */
+                    combo: {
+                        type: Object,
+                        value: {},
+                        notify: true
+
+                    },
+
+                    /**
+                     *
+                     * @type {Object}
+                     */
+                    owcList: {
+                        type: Object,
+                        value: {},
+                        notify: true
+
+                    },
+
+                    /**
+                     *
+                     * @type {Object}
+                     */
+                    genericModel: {
+                        type: Object,
+                        value: {},
+                        notify: true
+
+                    },
+
+                    /**
+                     *
+                     * @type {Object}
+                     */
+                    datasource: {
+                        type: Object,
+                        value: {},
+                        notify: true
+
+                    },
+
+                    /**
+                     *
+                     * @type {Object}
+                     */
+                    anchor: {
+                        type: Object,
+                        value: {},
+                        notify: true
+
+                    },
+
+                    /**
+                     *
+                     * @type {Object}
+                     */
+                    owcquery: {
+                        type: Object,
+                        value: {},
+                        notify: true
+
+                    },
+
+                     /**
+
+                     *
+                     * @type {Object}
+                     */
+                    newSearch: {
+                        type: Boolean,
+                        value: true,
+                        notify: true
+                    },
+
+
+                    /**
+                    *
+                    * @type {Object}
+                    */
+                   orderBy: {
+                       type: String,
+                       value: ""
+                   },
+
+                   /**
+                   *
+                   * @type {Object}
+                   */
+                  sortBy: {
+                      type: String,
+                      value: ""
+                  }
+                };
+
+
+
+            }
+
+
+
+            // -- sensing --//
+
+            sensingStartDatePicker(){
+              Polymer.dom(this.root).querySelector('#sensing-start-dialog').toggle();
+            }
+
+            sensingStopDatePicker(){
+              Polymer.dom(this.root).querySelector('#sensing-stop-dialog').toggle();
+            }
+
+            updateSensingStart(){
+              this.sensingStartShort = moment(this.sensingStart).format('DD-MM-YYYY');
+              this._sensingStart = this.sensingStart;
+            }
+
+            updateSensingStop(){
+              this.sensingStopShort = moment(this.sensingStop).format('DD-MM-YYYY');
+              this._sensingStop = this.sensingStop;
+            }
+
+            // -- ingestion -- //
+
+            ingestionStartDatePicker(){
+              Polymer.dom(this.root).querySelector('#ingestion-start-dialog').toggle();
+            }
+
+            ingestionStopDatePicker(){
+              Polymer.dom(this.root).querySelector('#ingestion-stop-dialog').toggle();
+            }
+
+            updateIngestionStart(){
+              this.ingestionStartShort = moment(this.ingestionStart).format('DD-MM-YYYY');
+              this._ingestionStart = this.ingestionStart;
+            }
+
+            updateIngestionStop(){
+              this.ingestionStopShort = moment(this.ingestionStop).format('DD-MM-YYYY');
+              this._ingestionStop = this.ingestionStop;
+            }
+
+
+
+            /**
+             *  Called when the element has created, but before property values are set
+             *  and local DOM is initialized.
+             *
+             * @return {null}
+             */
+            created() {
+                this.navigationManager = document.getElementById('navigation-manager');
+            }
+
+
+            /**
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+                var self = this;
+                this.query = Polymer.dom(self.root).querySelector('#search-box-input');
+                var event = document.createEvent('Event');
+                event.initEvent('resize', true, true);
+                document.dispatchEvent(event);
+                window.addEventListener("resize", function() {
+                    self.resize();
+                });
+
+                this.sensingStartShort = "__________";
+                this._sensingStart = null;
+                this.sensingStopShort = "__________";
+                this._sensingStop = null;
+
+                //ingestion
+                this.ingestionStartShort = "__________";
+                this._ingestionStart = null;
+                this.ingestionStopShort = "__________";
+                this._ingestionStop = null;
+
+
+            }
+
+            /**
+             *   This method is used to resize panel content on panel container resize
+             *
+             * @return {null}
+             */
+            resize() {
+
+            }
+
+            search() {
+
+
+               this.datasource.sortBy = this.sortBy;
+               this.datasource.orderBy = this.orderBy;
+
+                this.newSearch = true;
+                if (!this.owcApp.authenticationManager.isLogged()) {
+                    this.owcApp.authenticationManager.showLogin();
+                    return;
+                }
+
+                if(!this.datasource.nextSearch){
+                    this.owcApp.toastManager.warn(this.i18n("Wait for the completion of previous search"));
+                    this.newSearch = false;
+                    return;
+                }
+                else{
+                    this.newSearch = true;
+                }
+
+                var offsets = null;
+                this.owcMap.mapmodel = null;
+                this.owcList.listmodel = null;
+                this.genericModel.setModel(null);
+                if (this.query) {
+                    var query = (this.query.value.trim() == '') ? '*' : this.query.value;
+                    this.owcquery.setText(query);
+                }
+
+
+
+                // ==== ==== ==== DATE RANGE ==== ==== ==== ==== //
+
+                function fromDate(fromDate){
+                  var date = moment(fromDate);
+
+                  date.utc().set('hour',0);
+                  date.utc().set('minute',0);
+                  date.utc().set('second',0);
+                  date.utc().set('millisecond',0);
+
+                  return date;
+
+                }
+
+                function toDate(toDate){
+                  var date = moment(toDate);
+
+                  date.utc().set('hour',23);
+                  date.utc().set('minute',59);
+                  date.utc().set('second',59);
+                  date.utc().set('millisecond',59);
+
+                  return date;
+
+                }
+
+
+
+
+                ///////////////////////////////////////////////////
+                var filter='';
+                if(this._sensingStart && this._sensingStop){
+                    filter += '( beginPosition:['+ fromDate(this._sensingStart).utc().format() +
+                    ' TO ' + toDate(this._sensingStop).utc().format() + '] AND endPosition:[' +
+                    fromDate(this._sensingStart).utc().format() + ' TO ' + toDate(this._sensingStop).utc().format() + '] )';
+                }
+                else if (this._sensingStart){
+                    filter += '( beginPosition:['+ fromDate(this._sensingStart).utc().format() +
+                    ' TO NOW] AND endPosition:[' + fromDate(this._sensingStart).utc().format() + ' TO NOW] )';
+                }
+                else if(this._sensingStop){
+                    filter += '( beginPosition:[ * TO ' + toDate(this._sensingStop).utc().format() + '] AND endPosition:[* TO ' +
+                    toDate(this._sensingStop).utc().format() + ' ] )';
+                }
+                if(this._ingestionStart && this._ingestionStop){
+                    filter += ((filter)?' AND':'') + '( ingestionDate:['+ fromDate(this._ingestionStart).utc().format() +
+                    ' TO ' + toDate(this._ingestionStop).utc().format() + ' ] )';
+                }
+                else if (this._ingestionStart){
+                    filter += ((filter)?' AND':'') + '( ingestionDate:['+ fromDate(this._ingestionStart).utc().format() +' TO NOW] )';
+                }
+                else if(this._ingestionStop){
+                    filter += ((filter)?' AND':'') + '( ingestionDate:[ * TO ' + toDate(this._ingestionStop).utc().format() + ' ] )';
+                }
+                ///////////////////////////////////////////////////
+
+
+
+                if (this.query) {
+                    this.owcquery.setFilters(filter);
+                }
+
+                this.datasource.updateQuery();
+                this.datasource.loadDataFromServer();
+                var element_to_scroll_to = this.owcList;
+                if (this.combo.listHidden == true) {
+                    this.combo.showList();
+                }
+
+                this.anchor.scrollIntoViewIfNeeded(true);
+
+
+            }
+
+
+            /**
+             *   Clear the query in the search box
+             *
+             * @return {null}
+             */
+            clearSearch() {
+
+
+                this.query.value = "";
+                //sensing
+
+
+                //ingestion
+
+            }
+
+            cleanSensingDate(){
+              this.sensingStartShort = "__________";
+              this._sensingStart = null;
+              this.sensingStopShort = "__________";
+              this._sensingStop = null;
+            }
+
+            cleanIngestionDate(){
+              this.ingestionStartShort = "__________";
+              this._ingestionStart = null;
+              this.ingestionStopShort = "__________ ";
+              this._ingestionStop = null;
+            }
+
+            /**
+             * Set Datasource reference
+             *
+             * @param {Object} datasource:  datasource reference
+             *
+             * @return {null}
+             */
+            setDataSource(datasource) {
+                this.datasource = datasource;
+            }
+
+            /**
+             * Set owc query object by reference
+             *
+             * @param {Object} owcquery: reference of query object
+             * @return {null}
+             */
+            setOwcQuery(owcquery) {
+                this.owcquery = owcquery;
+            }
+
+            /**
+             * Set owc map object by reference
+             *
+             * @param {Object} owcMap: map object reference
+             *
+             * @param {Object} owcquery: reference of query object
+             * @return {null}
+             */
+            setOwcMap(owcMap) {
+                this.owcMap = owcMap;
+            }
+
+            /**
+             * Set owc list via reference
+             *
+             * @param {Object} owcList: reference of list object
+             * @return {null}
+             */
+            setOwcList(owcList) {
+                this.owcList = owcList;
+            }
+
+            /**
+             * Set owc list via reference
+             *
+             * @param {Object} owcList: reference of list object
+             * @return {null}
+             */
+            setAnchor(anchor) {
+                this.anchor = anchor;
+            }
+
+            /**
+             * Set owc list via reference
+             *
+             * @param {Object} owcList: reference of list object
+             * @return {null}
+             */
+            setCombo(combo) {
+                this.combo = combo;
+            }
+
+            /**
+             * Set generic  model
+             *
+             * @param {Object} genericModel: reference of generic model object
+             * @return {null}
+             */
+            setGenericModel(genericModel) {
+                this.genericModel = genericModel;
+            }
+
+            saveSearch() {
+                if (!this.owcApp.authenticationManager.isLogged()) {
+                    this.owcApp.authenticationManager.showLogin();
+                    return;
+                }
+                var self = this;
+                var query = (this.query.value.trim() == '') ? '*' : this.query.value;
+                this.owcquery.setText(query);
+                this.datasource.updateQuery();
+                var complete = this.datasource.getQuery();
+                self.owcApp.httpManager.sendRequest(
+                    'POST',
+                    self.owcApp.config.baseUrl + self.saveSearchUrl.replace(':complete', complete)
+                ).then(function() {
+                    self.owcApp.toastManager.info(self.i18n("User search saved successfully"));
+                }, function() {
+                    self.owcApp.toastManager.error(self.i18n("Error saving user search"));
+                });
+            }
+        };
+        Polymer(SearchComponent);
+    })();
+    </script>
+</dom-module>

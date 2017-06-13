@@ -1,0 +1,8 @@
+{
+  "suites": ["./test"],
+  "webserver": {
+    "pathMappings": [
+      {"/elements/semantic-schema-editor/bower_components": "bower_components"}
+    ]
+  }
+}

@@ -1,0 +1,188 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<!--
+Admin Panel to set main configurations of dhus
+
+
+@demo demo/index.html
+-->
+
+<dom-module id="admin-system">
+  <template>
+      <style type="text/css">
+      .settings-panel {}
+
+      #admin-system-container {
+          @apply(--layout-vertical);
+          height: var(--settingsheight, 500px);
+          width: var(--settingswidth, 100%);
+          overflow-y: auto;
+          overflow-x: auto;
+      }
+
+      paper-button {
+          background: #002664;
+          color: white;
+          padding: 5px 5px;
+          width: 98%;
+          font-size: 16px;
+          font-weight: bold;
+          margin-top: 5px;
+      }
+
+      paper-button[toggles][active].colorful {
+          background-color: #002664;
+      }
+
+      paper-button[toggles][active][raised].colorful {
+          background-color: rgba(66, 133, 244, 0.75);
+      }
+
+      .settings-section {
+          border-bottom: solid 1px;
+          padding: 10px;
+      }
+
+      .settings-label {
+          padding-bottom: 0px;
+      }
+
+
+
+      </style>
+      <div id="admin-system-container">
+
+
+          <!-- mail configuration -->
+          <div class="settings-section" hidden$="{{!isDataManager}}" >
+              <div class="settings-label">{{i18n("Mail Configuration")}}</div>
+              <br>
+              <paper-button
+                raised class="colorful"
+                on-click="mailConfiguration"
+                title="{{i18n('Mail configuration')}}">{{i18n("Mail configuration")}}</paper-button>
+          </div>
+          <br>
+
+          <!-- root configuration -->
+          <div class="settings-section" hidden$="{{!isDataManager}}" >
+              <div class="settings-label">{{i18n("Root Configuration")}}</div>
+              <br>
+              <paper-button
+                raised class="colorful"
+                on-click="rootConfiguration"
+                title="{{i18n('Mail configuration')}}">{{i18n("root configuration")}}</paper-button>
+          </div>
+          <br>
+
+          <!-- restore database -->
+          <div class="settings-section" hidden$="{{!isDataManager}}" >
+              <div class="settings-label">{{i18n("Restore database")}}</div>
+              <br>
+              <paper-button
+                raised class="colorful"
+                on-click="restoreDatabase"
+                title="{{i18n('Mail configuration')}}">{{i18n("restore database")}}</paper-button>
+          </div>
+          <br>
+
+          <!-- local archive -->
+          <div class="settings-section" hidden$="{{!isDataManager}}" >
+              <div class="settings-label">{{i18n("Local Archive")}}</div>
+              <br>
+              <paper-button
+                raised class="colorful"
+                on-click="localArchive"
+                title="{{i18n('Mail configuration')}}">{{i18n("local archive")}}</paper-button>
+          </div>
+          <br>
+      </div>
+  </template>
+
+
+<script>
+    (function() {
+       'use strict';
+       class AdminSystem {
+
+                                            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+           beforeRegister() {
+               this.is = 'admin-system';
+
+           }
+
+           /**
+            *  Called when the element has created, but before property values are set
+            *  and local DOM is initialized.
+            *
+            * @return {null}
+            */
+           created() {
+               this.navigationManager = document.getElementById('navigation-manager');
+           }
+
+
+           mailConfiguration(){
+             var mail = document.createElement('admin-system-mail-configuration');
+             this.navigationManager.pushComponent(mail, '500px', 'Mail configuration',false, true,1);
+
+           }
+
+           rootConfiguration(){
+             var root = document.createElement('admin-system-root-configuration');
+             this.navigationManager.pushComponent(root, '500px', 'Root configuration',false, true,1);
+           }
+
+           restoreDatabase(){
+             var database = document.createElement('admin-system-restore-database');
+             this.navigationManager.pushComponent(database, '500px', 'Restore database',false, true,1);
+           }
+
+           localArchive(){
+             var archive = document.createElement('admin-system-local-archive');
+             this.navigationManager.pushComponent(archive, '500px', 'Local archive',false, true,1);
+           }
+
+       };
+
+      Polymer(AdminSystem);
+
+    })();
+  </script>
+
+</dom-module>

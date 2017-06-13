@@ -1,0 +1,172 @@
+<!--
+  @license
+
+ 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+<b>Open Web Components (OWC)</b> software is composed by a generic set of components used for disseminating data regardless of their types.
+<br>
+Since DHuS products have a specific class type, for each class type a set of <b>OWC</b> components (e.g. owc-list, owc-map) need to extract a specific set of attributes from the server model (e.g. <i>sensing date</i> for owc-list, <i>footprint</i> for owc-map). 
+<br>This means that  OWC software needs to  know the semantic of the server model, i.e. where the information is located within server data model. 
+<br>To avoid hardcoded semantic in components code, <b>OWC</b> uses a generic model containing proper attributes for each different data item, exploiting a Semantic Schema retrieved from Server and containing the list of needed attributes and the syntax useful to extract them from server data model
+<br>
+<br>
+The <i>Semantic Manager</i> generates the generic model extracting the data from the Search Request Model and applying the mapping defined in the Semantic Schema, as described in the figure below
+
+
+<img src="https://user-images.githubusercontent.com/10920750/26940211-23f59088-4c7a-11e7-9eee-ea8b32e05c87.png"></img>
+
+
+-->
+<dom-module id="semantic-manager">
+    <template>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class SemanticManager {
+
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *            
+             */
+            beforeRegister() {
+                this.is = 'semantic-manager';
+                this.properties = {};
+                this.owcApp = document.querySelector('#owc-app');
+
+            }
+
+            /**
+             *  This public method is used to process request data model retrieved from server 
+             *  on the basis of the information contained in the semantic schema
+             *              
+             * @param {Object} modelFromServer: the content of HTTP response coming from server 
+             * @return {Promise}: Promise object containing the result of data processing, i.e. the generic model 
+             */
+            processModel(modelFromServer) {
+
+                var self = this;
+                return new Promise(function(resolve, reject) {
+                    resolve(self._processModel(modelFromServer));
+                });
+            }
+
+            /**
+             *  This private method is used to create a generic model applying the mapping 
+             *  defined in the Semantic Schema to the  data model retrieved from server 
+             *
+             * @private
+             * @param {Object} modelFromServer: the content of HTTP response coming from server 
+             * @return {Array}: the generic model used as basis for data representation
+             */
+            _processModel(modelFromServer) {
+
+                var genericModel = [],
+                    self = this;
+                if (modelFromServer && modelFromServer.length)
+                    for (var i = 0; i < modelFromServer.length; i++) {
+                        if (modelFromServer[i].footprint) {
+                            genericModel.push({
+                                uuid: modelFromServer[i].uuid,
+                                title: modelFromServer[i].identifier,
+                                footprint: modelFromServer[i].footprint,
+                                showAdf: true,
+                                attributes: [
+                                    self.getInstrument(modelFromServer[i]),
+                                    self.getIngestionDate(modelFromServer[i]),
+                                    self.getFileSize(modelFromServer[i])
+                                ],
+                                thumb: self.getQuicklook(modelFromServer[i])
+                            });
+                        }
+                    }
+                return genericModel;
+            }
+
+            /**
+             * This method is used to create the OData request useful to retrieve product quicklook
+             * 
+             * @param {Object} product: a single data item of HTTP search request data model 
+             * @return {String}: OData request useful to retrieve product quicklook
+             */
+            getQuicklook(product) {
+                var IMAGE_PLACE_HOLDER_URL = this.owcApp.config.clientUrl + '/images/placeholder.png';
+                return (product.quicklook) ? this.owcApp.config.baseUrl + "/odata/v1/Products('" + product.uuid + "')/Products('Thumbnail')/$value" : IMAGE_PLACE_HOLDER_URL;
+
+            }
+
+            /**
+             * This method is used to get Instrument information from  HTTP search request data model
+             * 
+             * @param {Object} product: a single data item of HTTP search request data model 
+             * @return {String}: product instrument, if any available
+             */
+            getInstrument(product) {
+
+                return product.instrument;
+            }
+
+            /**
+             * This method is used to get Ingestion Date information from  HTTP search request data model
+             * 
+             * @param {Object} product: a single data item of HTTP search request data model 
+             * @return {String}: product ingestion date
+             */
+            getIngestionDate(product) {
+                var summary = _.findWhere(product.indexes, {
+                    name: "summary"
+                });
+                return (summary) ? _.findWhere(summary.children, {
+                    name: "Date"
+                }).value : '';
+            }
+
+            /**
+             * This method is used to get product size information from  HTTP search request data model
+             * 
+             * @param {Object} product: a single data item of HTTP search request data model 
+             * @return {String}: product size
+             */
+            getFileSize(product) {
+                    var summary = _.findWhere(product.indexes, {
+                        name: "summary"
+                    });
+                    return (summary) ? _.findWhere(summary.children, {
+                        name: "Size"
+                    }).value : '';
+                }
+                
+
+        };
+
+        Polymer(SemanticManager);
+
+    })();
+    </script>
+</dom-module>

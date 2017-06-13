@@ -1,0 +1,272 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+This component is used to configure the WMS to be used within OWC 
+
+
+@demo demo/index.html
+-->
+<dom-module id="wms-settings">
+    <template>
+        <style>
+        :root {
+            --default-primary-color: green;
+        }
+        
+        .section-item {
+            padding: 30px;
+            margin: 30px;
+        }
+        
+        .remove-section-button {
+            float: right;
+        }
+        
+        paper-button {
+            background: #002664;
+            color: white;
+            padding: 5px 5px;
+            width: 20%;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            float: right;
+            top: 36px;
+            margin-right: 10px
+        }
+        
+        paper-button[toggles][active].colorful {
+            background-color: #002664;
+        }
+        
+        paper-button[toggles][active][raised].colorful {
+            background-color: rgba(66, 133, 244, 0.75);
+        }
+        
+        #wmsSettingsContainer {
+            height: var(--settingsheight, 90%);
+            width: var(--width, 98%);
+            overflow-y: auto;
+        }
+        
+        .buttonContainer {
+            margin-bottom: 0px;
+            height: 100px!important;
+            width: 98%!important;
+            overflow: hidden;
+        }
+        
+        .settingsHeader {
+            float: left;
+            margin-left: 10px;
+        }
+        </style>
+        <div class="buttonContainer">
+            <h1 class="settingsHeader">{{i18n("WMS")}} <paper-icon-button on-click="addWms" icon="add-circle">+</paper-icon-button></h1>
+            <paper-button raised class="colorful" on-click="save" title="{{i18n('save')}}">{{i18n("save")}}</paper-button>
+        </div>
+        <div id="wmsSettingsContainer">
+            <template is="dom-repeat" items="{{config.servers}}">
+                <paper-material class="section-item">
+                    <div>
+                        <paper-icon-button on-click="removeWms" icon="highlight-off" class="remove-section-button">x</paper-icon-button>
+                        <div class="">
+                            <form is="iron-form">
+                                <paper-input value="{{item.name}}" name="name" label="{{i18n('Name')}}" required></paper-input>
+                                <paper-input value="{{item.url}}" name="url" label="{{i18n('Url')}}" required></paper-input>
+                                <paper-input value="{{item.username}}" name="username" label="{{i18n('Username')}}"></paper-input>
+                                <paper-input type="password" value="{{item.password}}" name="password" label="{{i18n('Password')}}"></paper-input>                                
+                                <paper-input value="{{item.rule}}" name="rule" label="{{i18n('Rule')}}" required></paper-input>
+                                <paper-tooltip>{{i18n('Please insert a regular expression on product identifier')}}</paper-tooltip>                                
+                                <paper-input value="{{item.priority}}" name="priority" label="{{i18n('Priority')}}" hidden>1</paper-input>
+                            </form>
+                        </div>
+                    </div>
+                </paper-material>
+            </template>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class WmsSettings extends HTMLElement {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'wms-settings';
+                this.owcApp = document.querySelector('#owc-app');
+
+                /**
+                 * Public property description
+                 *
+                 * @type {Object}
+                 */
+                this.properties = {
+
+                    /**
+                     * configured web map servers
+                     *
+                     * @type {Array}
+                     */
+                    servers: [],
+
+
+                    /**
+                     * web map servers configuration properties
+                     *
+                     * @type {Object}
+                     */
+                    config: {
+                        type: Object,
+                        value: {
+                            servers: []
+                        },
+                        notify: true
+                    },
+
+                    /**
+                     * Default web map server
+                     *
+                     * @type {Object}
+                     */
+                    default_server: {
+                        type: Object,
+                        value: {},
+                        notify: true
+                    }
+
+                };
+
+            }
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+
+
+
+                this.config.servers = [];
+                this.set('config.servers', this.config.servers);
+                this.notifyPath('config.servers', this.config.servers);
+                this.loadSettings();
+            }
+
+            /**             
+             *  This method is used to load wms map server settings from local storage
+             *
+             * @return {null}
+             */
+            loadSettings() {
+                var self = this;
+                var wmsSettings = [];
+                setTimeout(function() {
+
+                    var ls = localStorage.getItem('wms-settings');
+                    if (ls) {
+                        wmsSettings = JSON.parse(ls);
+                    } else {
+                        if(self.owcApp.appconfig.wms_server_config)
+                        wmsSettings = self.owcApp.appconfig.wms_server_config;
+                    }
+
+                    for (var i = 0; i < wmsSettings.length; i++) {
+                        self.push('config.servers', wmsSettings[i]);
+                    }
+                }, 0);
+            }
+
+
+
+            /**             
+             *  used to add a wms section in the wms settings panel
+             *
+             * @return {null}
+             */
+            addWms() {
+                var object = {
+                    "name": "",
+                    "url": "",
+                    "username": "",
+                    "password": "",
+                    "rule": "",
+                    "priority": "1"
+                };
+                this.push('config.servers', object);
+            }
+
+
+            /**             
+             *  used to remove a layer section from the map settings panel
+             *
+             * @return {null}
+             */
+            removeWms(event, details, sender) {
+                this.splice('config.servers', event.model.__data__.index, 1);
+            }
+
+            /**             
+             *  used to save wms configuration in browser local storage
+             *
+             * @return {null}
+             */
+            save() {
+                var self = this;
+                var wmsSettings = [];
+                for (var i = 0; i < this.config.servers.length; i++) {
+                    var l = this.config.servers[i];
+                    if (l.url.length > 0 && l.name.length > 0 && l.rule.length > 0) {
+                        wmsSettings.push(l);
+                    }
+
+                }
+
+
+                localStorage.setItem('wms-settings', JSON.stringify(wmsSettings));
+                this.owcApp.toastManager.info(self.i18n('Settings saved successfully'));
+            }
+
+        };
+
+        Polymer(WmsSettings);
+
+    })();
+    </script>
+</dom-module>

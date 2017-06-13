@@ -1,0 +1,201 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+<i>generic-model</i> component contains the result of data processing performed by the <i>semantic-manager</i> component on the data provided by the <i>data-source</i> component.
+
+
+This data model, contained in the <b>model</b> property of the component, can be used as input for <b>OWC coders</b> componenents, which are devoted to get fields useful for component representation from the <i>generic-model</i> component, implementing the data-binding between the Model and the View.
+
+-->
+<dom-module id="generic-model">
+    <template>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class GenericModel {
+
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *            
+             */
+            beforeRegister() {
+                this.is = 'generic-model';
+                this.owcApp = document.querySelector('#owc-app');
+                this.removedElementsCount = 0;
+                this.addedElemetsCount = 0;
+                this.startIndex = 0;
+                this.endIndex = 0;
+                this.properties = {
+
+                    /**
+                     * This property contains generic data model
+                     *
+                     * @type {Object}
+                     */
+                    model: {
+                        type: Object,
+                        value: null,
+                        notify: false,
+                    },
+
+                    /**
+                     * This property contains the target component of message broker notification
+                     *
+                     * @type {Object}
+                     */
+                    target: {
+                        type: String,
+                        value: null
+                    }
+                };
+
+                /**
+                 * This property contains the default maximum page size to be used in infinite scroll list
+                 *
+                 * @type {Object}
+                 */
+                this._maxModelSize = 60;
+            }
+
+
+            /**
+             *  Called after the element is detached from the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  Uses include removing event listeners added in attached.
+             *            
+             */
+            detached() {
+                var self = this;
+                self.model = null;
+            }
+
+            /**
+             * This method is used to send a notification to a target component on data model changes  by means of the 
+             * <i>message-broker</i> component
+             *
+             */
+            setNewModel() {
+                var self = this;
+                self.owcApp.messageBroker.publish('setNewModel', null, self.target);
+            }
+
+            /**
+             * This method is used to extend the data model with the result of the <i>loadNextPage()</i> method of the 
+             * <i>data-source</i> component, which is used to get the next _pageSize (i.e. the maximum number of data to be 
+             * retrieved) data elements of an HTTP search request previously performed 
+             *
+             * @param {Object} genericModel: data model retrieved by the <i>loadNextPage()</i> method of the <i>data-source</i> 
+             * component          
+             */
+            appendNewPage(genericModel) {
+                var newPageSize = genericModel.length;
+                this.model && this.model.push.apply(this.model, genericModel);
+                this.addedElementsCount = newPageSize + 0;
+                this.endIndex += newPageSize;
+                var bufferSize = this.model.length;
+                if (bufferSize > this._maxModelSize) {
+                    this.model.splice(0, newPageSize);
+                    this.removedElementsCount = newPageSize + 0;
+                    this.startIndex += this.removedElementsCount;
+
+
+                } else {
+                    this.removedElementsCount = 0;
+                }
+
+                this.owcApp.messageBroker.publish('setNewModel', null, this.target);
+            }
+
+            /**
+             *  This method is used to update the <b>model</b> property of the component and to send a notification to a target 
+             *  component on data model changes  by means of the <i>message-broker</i> component
+             *
+             *  @param {Object} genericModel: data model retrieved by means of the <i>data-source</i> component            
+             */
+            setModel(genericModel) {
+                this.model = genericModel;
+                
+                this.startIndex = 1;
+                if (this.model && this.model.length)
+                    this.endIndex = this.model.length;
+                this.owcApp.messageBroker.publish('setNewModel', null, this.target);
+            }
+
+            /**
+             *  This method is used to get the <b>model</b> property of the component
+             *
+             * @return model: <b>model</b> property of the component
+             */
+            getModel() {
+                return this.model;
+            }
+
+            /**
+             * This method is used to set target component of <i>message-broker</i> notification, in order to grant that only 
+             * the components expressing interest in the notification are stimulated by a data model change
+             *
+             * @param {Object} target: target component of <i>message-broker</i> notification
+             * @return model
+             */
+            setTarget(target) {
+                this.target = target;
+            }
+
+            /**
+             * This method is used to extend the data model with the result of the <i>loadPreviousPage()</i> method of the 
+             * <i>data-source</i> component, which is used to get the previous _pageSize (i.e. the maximum number of data to be 
+             * retrieved) data elements of an HTTP search request previously performed 
+             *
+             * @param {Object} genericModel: data model retrieved by the <i>loadPreviousPage()</i> method of the <i>data-source</i> 
+             * component          
+             */
+            prependNewPage(genericModel) {
+                var newPageSize = genericModel.length;
+                this.model.unshift.apply(this.model, genericModel);
+                this.startIndex -= newPageSize;
+                this.addedElementsCount = newPageSize + 0;
+                var bufferSize = this.model.length;
+                if (bufferSize > this._maxModelSize) {
+                    this.model.splice(bufferSize - newPageSize, newPageSize);
+                    this.removedElementsCount = newPageSize + 0;
+                    this.endIndex -= this.removedElementsCount;
+                } else {
+                    this.removedElementsCount = 0;
+                }
+                this.owcApp.messageBroker.publish('setNewModel', null, this.target);
+            }
+
+        };
+        Polymer(GenericModel);
+    })();
+    </script>
+</dom-module>

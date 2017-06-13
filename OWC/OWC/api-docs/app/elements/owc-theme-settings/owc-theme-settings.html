@@ -1,0 +1,273 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../bower_components/iron-image/iron-image.html">
+<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<script src="../../bower_components/spectrum/spectrum.js"></script>
+<link rel='stylesheet' href='../../bower_components/spectrum/spectrum.css' />
+<!--
+This components is used to configure application logo and theme
+
+
+@demo demo/index.html
+-->
+<dom-module id="owc-theme-settings">
+    <template>
+        <style>
+        :root {
+            --default-primary-color: black;
+        }
+        
+        .section-item {
+            padding: 30px;
+            margin: 30px;
+        }
+        
+        .remove-section-button {
+            float: right;
+        }
+        
+        paper-button {
+            background: #002664;
+            color: white;
+            padding: 5px 5px;
+            width: 20%;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            float: right;
+            top: 16px;
+            margin-right: 10px
+        }
+        
+        paper-button[toggles][active].colorful {
+            background-color: #002664;
+        }
+        
+        paper-button[toggles][active][raised].colorful {
+            background-color: rgba(66, 133, 244, 0.75);
+        }
+        
+        .left {
+            float: left;
+            width: 150px;
+        }
+        
+        .right {
+            float: right;
+        }
+        
+        #owcThemeContainer {
+            max-height: 100%;
+            width: var(--width, 98%);
+            overflow-y: auto;
+        }
+        
+        .buttonContainer {
+            margin-bottom: 0px;
+            height: 100px!important;
+            width: 98%!important;
+            overflow: hidden;
+        }
+        
+        #hexbgcolor {
+            margin-bottom: 10px;
+        }
+        
+        .flex {
+            @apply(--layout-horizontal);
+        }
+        
+        .flexchild {
+            @apply(--layout-flex);
+        }
+        </style>
+        <div id="owcThemeContainer">
+            <paper-input value="{{model.title}}" name="title" label="{{i18n('title')}}" required></paper-input>
+            <paper-material class="section-item">
+                <div>
+                    <div class="">
+                        <form is="iron-form">
+                            <h2>{{i18n("Logo")}}</h2>
+                            <paper-input class="flexchild" value="{{model.logourl}}" name="logourl" label="{{i18n('Logo Url')}}" required></paper-input>
+                            <h2>{{i18n("Background")}}</h2>
+                            <paper-input id="hexbgcolor" value="{{model.bgcolor}}" name="bgcolor" label="{{i18n('Background Color')}}" required pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$" auto-validate prevent-invalid-input error-message="Not a valid color" on-change="setColor"></paper-input>
+                            <input id='colorpicker' value="{{model.bgcolor}}" />
+                            <h2>{{i18n("Background Image")}}</h2>
+                            <paper-input value="{{model.bgimageurl}}" name="bgimageurl" label="{{i18n('Background Image Url')}}" required></paper-input>
+                            <!--#[0-9A-F]{6}-->
+                        </form>
+                    </div>
+                </div>
+            </paper-material>
+            <div class="buttonContainer">
+                <paper-button raised class="colorful left" on-click="restoreDefault" title="{{i18n('Restore Default')}}">{{i18n("Restore Default")}}</paper-button>
+                <paper-button raised class="colorful" on-click="save" title="{{i18n('Save')}}">{{i18n("Save")}}</paper-button>
+            </div>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class OwcThemeSettings extends HTMLElement {
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'owc-theme-settings';
+                this.owcApp = document.querySelector('#owc-app');
+
+                this.properties = {
+
+                    /**
+                     * Theme settings internal model
+                     *
+                     * @type {Object}
+                     */
+                    model: {
+                        type: Object,
+                        value: {},
+                        notify: true
+                    },
+
+                };
+
+            }
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+
+                var self = this;
+                self.model = this.owcApp.theme;
+
+                self.initSpectrum();
+                self.set('model', self.model);
+                self.notifyPath('model', self.model);
+
+            }
+
+            /**
+             * Initialization color palette
+             *
+             * @return {null}
+             */
+            initSpectrum() {
+                var self = this;
+                $("#colorpicker").spectrum({
+                    showPaletteOnly: true,
+                    togglePaletteOnly: true,
+                    togglePaletteMoreText: 'more',
+                    togglePaletteLessText: 'less',
+                    color: self.model.bgcolor,
+                    palette: [
+                        ["#000", "#444", "#666", "#999", "#ccc", "#eee", "#f3f3f3", "#fff"],
+                        ["#f00", "#f90", "#ff0", "#0f0", "#0ff", "#00f", "#90f", "#f0f"],
+                        ["#f4cccc", "#fce5cd", "#fff2cc", "#d9ead3", "#d0e0e3", "#cfe2f3", "#d9d2e9", "#ead1dc"],
+                        ["#ea9999", "#f9cb9c", "#ffe599", "#b6d7a8", "#a2c4c9", "#9fc5e8", "#b4a7d6", "#d5a6bd"],
+                        ["#e06666", "#f6b26b", "#ffd966", "#93c47d", "#76a5af", "#6fa8dc", "#8e7cc3", "#c27ba0"],
+                        ["#c00", "#e69138", "#f1c232", "#6aa84f", "#45818e", "#3d85c6", "#674ea7", "#a64d79"],
+                        ["#900", "#b45f06", "#bf9000", "#38761d", "#134f5c", "#0b5394", "#351c75", "#741b47"],
+                        ["#600", "#783f04", "#7f6000", "#274e13", "#0c343d", "#073763", "#20124d", "#4c1130"]
+                    ],
+                    move: function(color) {
+                        self.model.bgcolor = color.toHexString();
+                        $('#hexbgcolor').val(color.toHexString());
+
+                    }
+                });                
+            }
+
+            /**
+             * Set color in color picker
+             *
+             * @return {null}
+             */
+            setColor() {
+                $("#colorpicker").spectrum("set", this.model.bgcolor)
+            }
+
+            /**
+             * Save theme editor updates
+             *
+             * @return {null}
+             */
+            save() {
+
+                localStorage.setItem('theme', JSON.stringify(this.model));
+                this.owcApp.messageBroker.publish('update-theme', this.model);
+                this.parentPanel.closePanel();
+
+            }
+
+            /**
+             * Restore default configurations 
+             *
+             * @return {null}
+             */
+            restoreDefault() {
+                var self = this;
+                self.owcApp.httpManager.sendRequest('GET', self.owcApp.config.clientUrl + '/conf/theme.json').then(function(response) {
+                    setTimeout(function() {
+                        self.owcApp.theme = (response.status == 200) ? response.data : {};
+                        self.model = this.owcApp.theme;
+                        self.set('model', self.model);
+                        self.notifyPath('model', self.model);
+                        $("#colorpicker").spectrum("set", self.model.bgcolor)
+                    }, 0);
+                });
+            }
+
+        };
+
+        Polymer(OwcThemeSettings);
+
+    })();
+    </script>
+</dom-module>

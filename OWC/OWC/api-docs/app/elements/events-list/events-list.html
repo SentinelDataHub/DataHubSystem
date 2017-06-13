@@ -1,0 +1,351 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+This component is the container for DHuS events list
+
+
+@demo demo/index.html
+-->
+<dom-module id="events-list">
+    <template>
+        <style>
+        #events-container {
+            height: var(--listheight, 500px);
+            width: var(--listwidth, 100%);
+            overflow-y: auto;
+        }
+
+        paper-button {
+            background: #002664;
+            color: white;
+            padding: 5px 5px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            float: right;
+            margin-right: 10px
+        }
+
+        paper-button[toggles][active].colorful {
+            background-color: #002664;
+        }
+
+        paper-button[toggles][active][raised].colorful {
+            background-color: rgba(66, 133, 244, 0.75);
+        }
+
+        .container {
+            @apply(--layout-horizontal);
+        }
+
+        .column-toolbar {
+            width: 100%;
+            height: 32px;
+        }
+
+        .create-button-container {
+            width: 100%;
+        }
+
+        .create-button {
+            float: right;
+        }
+
+        .list-title {
+            font-size: 15px;
+            text-align: center;
+            padding: 3px;
+            opacity: 0.95;
+            font-weight: bold;
+            background-color: #ecf0f1;
+        }
+        </style>
+        <div class="container">
+            <div class="column-toolbar">
+                 <paper-button raised class="colorful create-button" on-click="createEvent" title="CREATE" hidden$="{{!isEventManager}}">Create</paper-button>
+            </div>
+        </div>
+        <div class="list-title">
+            <span hidden$="{{!compute(count)}}">{{count}} <span hidden="{{oneEvent}}">{{i18n('events found')}}</span> <span hidden="{{!oneEvent}}">{{i18n('event found')}} </span> {{addinfo}} </span><span hidden$="{{compute(count)}}">{{i18n('No events found')}} </span>
+        </div>
+        <div id="events-container">
+            <owc-list id="events-list"></owc-list>
+        </div>
+        <events-coder id="events-coder"></events-coder>
+        <data-source id="events-datasource"></data-source>
+        <owc-query id="events-query"></owc-query>
+        <generic-model id="events-generic-model"></generic-model>
+        <events-semantic-manager id="events-semantic-manager"></events-semantic-manager>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class EventsList {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'events-list';
+                this.owcApp = document.querySelector('#owc-app');
+                this.properties = {
+
+                    /**
+                     * userid property
+                     *
+                     * @type {Number}
+                     */
+                    query: {
+                        type: String,
+                        value: "",
+                    }
+                }
+
+                this.properties = {
+
+                    /**
+                     * userid property
+                     *
+                     * @type {Number}
+                     */
+                    query: {
+                        type: String,
+                        value: "",
+                    },
+
+                    /**
+                     * Property indicating if logged user is an events manager or not.
+                     *
+                     * @type {Boolean}
+                     */
+                    isEventManager: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
+                    defaultFilter: {
+                        type: String,
+                        value: "substringof(%27Title%27,%27%27)",
+                        notify: true
+                    },
+
+                    /**
+                     * Number of products
+                     *
+                     * @type {Number}
+                     */
+                    count: {
+                        type: Number,
+                        value: 0
+                    },
+                    /**
+                     * Start index for results
+                     *
+                     * @type {Number}
+                     */
+                    start: {
+                        type: Number,
+                        value: 0
+                    },
+                    /**
+                     * End index for results
+                     *
+                     * @type {Number}
+                     */
+                    end: {
+                        type: Number,
+                        value: 0
+                    },
+
+                    /**
+                     * Only one event found
+                     *
+                     * @type {Boolean}
+                     */
+                    oneEvent: {
+                        type: Boolean,
+                        value: true
+                    },
+
+                    addinfo: {
+                        type: String,
+                        value: "",
+                        notify: true
+                    }
+                }
+
+            }
+
+
+
+            /**
+             *  Called when the element has created, but before property values are set
+             *  and local DOM is initialized.
+             *
+             * @return {null}
+             */
+            created() {
+                this.navigationManager = document.getElementById('navigation-manager');
+
+            }
+
+            attached() {
+                var self = this;
+                var user = this.owcApp.userManager.user;
+                if (user && user.roles && user.roles.indexOf('EVENT_MANAGER') >= 0)
+                    this.isEventManager = true;
+                this.loadDataFromServer();
+
+                self.owcApp.messageBroker.subscribe('updateEventsList',
+                    function() {
+                        var datasource = Polymer.dom(self.root).querySelector('#events-datasource');
+                        datasource.loadDataFromServer();
+
+                    });
+            }
+
+            /**
+             * This method is used to display `create-event` component on the screen
+             *
+             * @return {null}
+             */
+            createEvent() {
+                var createEvt = document.createElement('create-event');
+                createEvt.model = {};
+                this.navigationManager.pushComponent(createEvt, '500px', 'Create Event');
+            }
+
+
+
+            loadDataFromServer() {
+                var self = this,
+                    target = self.owcApp.utils.generateUUID(),
+                    owcquery = Polymer.dom(self.root).querySelector('#events-query'),
+                    list = Polymer.dom(self.root).querySelector('#events-list'),
+                    datasource = Polymer.dom(self.root).querySelector('#events-datasource'),
+                    genModel = Polymer.dom(self.root).querySelector('#events-generic-model'),
+
+                    eventsCoder = Polymer.dom(self.root).querySelector('#events-coder'),
+                    semanticManager = Polymer.dom(self.root).querySelector('#events-semantic-manager'),
+                    listContainer = Polymer.dom(self.root).querySelector('#events-container');
+
+
+                datasource._requestUrl = "/odata/v1/Events?$filter=:filter&$skip=:offset&$top=:limit&$format=json";
+                datasource._countUrl = "/odata/v1/Events/$count?$filter=:filter";
+                datasource._pageSize = 25;
+
+                datasource.setOwcQuery(owcquery);
+                datasource.filterAllValue = this.defaultFilter;
+
+                // target message broker
+                genModel.setTarget(target);
+                // generic model
+                datasource.setGenericModel(genModel);
+                datasource.setList(list);
+                datasource.setListContainer(listContainer);
+                datasource.setListSemanticManager(semanticManager);
+                list.setTarget(target);
+                list.setCoder(eventsCoder);
+
+                list.setGenericModel(genModel);
+                list.setDelegate(datasource);
+                list.default = false;
+                list.events = true;
+                list.setContainer(listContainer);
+
+                // TODO: to set the filter from the form
+                owcquery.setText("");
+
+                // run request
+                datasource.loadDataFromServer();
+            }
+
+
+            filter() {
+                var self = this;
+                var owcquery = Polymer.dom(self.root).querySelector('#events-query');
+                var datasource = Polymer.dom(self.root).querySelector('#events-datasource');
+
+                owcquery.setText(this.get('query'));
+                datasource.loadDataFromServer();
+
+            }
+
+            /**
+             *  This method returns true if the number of events is greater than zero
+             *
+             * @return {Boolean} true if the number of events is greater than zero, false otherwise
+             */
+            compute() {
+                var isVisible = (this.count > 0) ? true : false;
+                return isVisible;
+            }
+
+
+            /**
+             * Resize method (called from navigation panel)
+             *
+             * @return {null}
+             */
+            resize() {
+                this.customStyle['--listheight'] = (parseInt(this.parentPanel.getSize().height) - 50) + "px";
+                this.updateStyles();
+                this.customStyle['--listwidth'] = parseInt(this.parentPanel.getSize().width) + "px";
+                this.updateStyles();
+
+                //var datasource = Polymer.dom(this.root).querySelector('#events-datasource');
+                var list = Polymer.dom(this.root).querySelector('#events-list');
+                //var genModel = Polymer.dom(this.root).querySelector('#events-generic-model');
+                if (list && list.listmodel) {
+                    //genModel.setModel(list.listmodel);
+                    this.count = list.listmodel.length;
+                    this.set('count', this.count);
+                    this.notifyPath('count', this.count);
+                }
+
+                this.oneEvent = (this.count == 1) ? true : false;
+                this.set('oneEvent', this.oneEvent);
+                this.notifyPath('oneEvent', this.oneEvent);
+
+            }
+
+
+        };
+
+        Polymer(EventsList);
+
+    })();
+    </script>
+</dom-module>

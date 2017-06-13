@@ -1,0 +1,221 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+This component contains a template repeat of event-synchronizer-item components, i.e. represents the list of OData EventSynchronizers
+
+
+@demo demo/index.html
+-->
+<dom-module id="event-synchronizer-list">
+    <template>
+        <style type="text/css">
+        .synch-number {
+            font-size: 15px;
+            text-align: center;
+            padding: 3px;
+            opacity: 0.95;
+            font-weight: bold;
+        }
+        
+        .synchContainer {
+            background-color: #ecf0f1;
+        }
+        </style>
+        <div class="synchContainer">
+            <div class="synch-number" hidden="{{!noSynch}}">
+                Your Event synchronizers list is empty
+            </div>
+            <div class="synch-number" hidden="{{noSynch}}">
+                Your Event synchronizers list contains {{synchCount}} synchronizers.
+            </div>
+            <iron-list id="ironlist" items="{{synchModel}}" as="synch" style="width: 100%!important">
+                <template>
+                    <event-synchronizer-item parent="{{that}}" model="{{synch}}"></event-synchronizer-item>
+                </template>
+            </iron-list>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class EventSynchronizerList {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'event-synchronizer-list';
+                this._url = "/odata/v1/EventSynchronizers";
+                this._jsonParameter = "$format=json";
+                this._requestHeaders = {
+                    'Content-Type': 'application/atom+xml',
+                    'Accept': 'application/json'
+                };
+                this.options = {
+                    headers: [{
+                        name: "Accept",
+                        value: "application/json"
+                    }]
+
+                };
+                this.owcApp = document.querySelector('#owc-app');
+
+
+                this.properties = {
+
+                    /**
+                     * Event Synchronizer list model
+                     *
+                     * @type {Object}
+                     */
+                    synchModel: {
+                        type: Array,
+                        value: null
+                    },
+
+                    /**
+                     * Event Synchronizer list count
+                     *
+                     * @type {Object}
+                     */
+                    synchCount: {
+                        type: Number,
+                        value: 0
+                    },
+
+                    /**
+                     * This flag indicates if OData event synchronizers list is empty or not
+                     * @type {Object}
+                     */
+                    noSynch: {
+                        type: Boolean,
+                        value: true
+                    }
+                };
+
+            }
+
+            /**
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *           
+             */
+            attached() {
+                var self = this;
+                self.request().then(function(response) {
+                    self.synchModel = response;
+
+                    self.set('synchModel', null);
+                    self.notifyPath('synchModel', null);
+                    self.set('synchModel', response);
+                    self.notifyPath('synchModel', response);
+
+                    self.synchCount = response.length;
+                    if (self.synchCount > 0) {
+                        self.noSynch = false;
+                    }
+                    var event = document.createEvent('Event');
+                    event.initEvent('resize', true, true);
+                    document.dispatchEvent(event);
+
+                });
+
+                self.owcApp.messageBroker.subscribe('updateEventSynch',
+                    function() {
+                        self.request().then(function(response) {
+                            self.synchModel = response;
+                            self.set('synchModel', null);
+                            self.notifyPath('synchModel', null);
+                            self.set('synchModel', response);
+                            self.notifyPath('synchModel', response);
+                            self.synchCount = response.length;
+                            if (self.synchCount > 0) {
+                                self.noSynch = false;
+                            }
+                            var event = document.createEvent('Event');
+                            event.initEvent('resize', true, true);
+                            document.dispatchEvent(event);
+
+                        });
+                    });
+            }
+
+
+            /**
+             * Create and send http request to retrieve the event sychronizers list
+             *
+             * @return {null}
+             */
+            request() {
+
+                var self = this;
+                var model = [];
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + self._url + '?' + self._jsonParameter, self.options
+                ).then(function(response) {
+                    if (response.status == 200) {
+                        var synchModel = response.data.d.results;
+                        for (var i = 0, len = synchModel.length; i < len; i++) {
+                            var entry = {};
+                            var extractDate = synchModel[i].CreationDate;
+                            var exdate = extractDate.substring(extractDate.indexOf('(') + 1, extractDate.indexOf(")"));
+                            var dateString = moment.unix((exdate / 1000)).format('YYYY-MM-DDTHH:mm:ss');
+                            entry.CreationDate = dateString;                            
+                            entry.Id = synchModel[i].Id;
+                            entry.Label = synchModel[i].Label;
+                            entry.Request = synchModel[i].Request;
+                            entry.Schedule = synchModel[i].Schedule;
+                            entry.Status = synchModel[i].Status;
+                            entry.ServiceUrl = synchModel[i].ServiceUrl;
+                            entry.ServiceLogin = synchModel[i].ServiceLogin;
+                            entry.FilterParam = synchModel[i].FilterParam;
+                            model.push(entry);                           
+                        }
+                        return model;
+                    } else
+                        return new Promise(function(resolve, reject) {
+                            reject("model_empty");
+                        });
+                });
+            }
+            
+        };
+
+        Polymer(EventSynchronizerList);
+
+    })();
+    </script>
+</dom-module>

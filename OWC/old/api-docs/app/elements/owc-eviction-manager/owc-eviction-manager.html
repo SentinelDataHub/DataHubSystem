@@ -1,0 +1,333 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-slider/paper-slider.html">
+<link rel="import" href="../../bower_components/iron-label/iron-label.html">
+<!--
+owc eviction manager
+
+
+@demo demo/index.html
+-->
+<dom-module id="owc-eviction-manager">
+    <template>
+        <style is="custom-style">
+        .fieldContainer {
+            @apply(--layout-horizontal);
+        }
+        
+        .flexchild {
+            @apply(--layout-flex-10);
+        }
+        
+        .flex2child {
+            @apply(--layout-flex-2);
+        }
+        
+        .flex5child {
+            @apply(--layout-flex-4);
+            text-align: center;
+            /*padding-left: 40px;*/
+        }
+        
+        .flex1child {
+            @apply(--layout-flex-1);
+        }
+        
+        #evictionContainer {
+            height: 96%;
+            @apply(--layout-vertical);
+            padding: 10px;
+        }
+        
+        paper-slider {
+            width: 98% !important;
+        }
+        
+        paper-dropdown-menu {
+            width: 98% !important;
+        }
+        
+        iron-label {
+            font-size: 16px !important;
+        }
+        
+        paper-button {
+            background: #002664;
+            color: white;
+            padding: 5px 5px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            margin-right: 10px
+        }
+        
+        paper-button[toggles][active].colorful {
+            background-color: #002664;
+        }
+        
+        paper-button[toggles][active][raised].colorful {
+            background-color: rgba(66, 133, 244, 0.75);
+        }
+        
+        #footer {
+            /*position: absolute;*/
+            bottom: 20px;
+        }
+        </style>
+        <div id="evictionContainer">
+            <div class="flexchild">
+                <div class="fieldContainer">
+                    <div class="flex2child">
+                    </div>
+                    <div class="flexchild">
+                        <paper-dropdown-menu label="Eviction strategy">
+                            <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{model.strategy}}">
+                                <paper-item value="NONE">No Eviction Applied</paper-item>
+                                <paper-item value="LRU">Least Recent Use Algorithm</paper-item>
+                                <paper-item value="FIFO">First In First Out Algorithm</paper-item>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                    </div>
+                    <div class="flex2child">
+                    </div>
+                </div>
+                <br>
+                <br>
+                <div class="fieldContainer">
+                    <div class="flex2child">
+                    </div>
+                    <div class="flexchild">
+                        <iron-label>
+                            Maximum disk usage before eviction (in %):
+                            <paper-slider value="{{model.maxDiskUsage}}" max="100" editable></paper-slider>
+                        </iron-label>
+                    </div>
+                    <div class="flex2child">
+                    </div>
+                </div>
+                <br>
+                <br>
+                <div class="fieldContainer">
+                    <div class="flex2child">
+                    </div>
+                    <div class="flexchild">
+                        <paper-input type="number" min="0" preventInvalidInput="true" value="{{model.keepPeriod}}" label="Minimal keeping period for a product (days)"></paper-input>
+                    </div>
+                    <div class="flex2child">
+                    </div>
+                </div>
+            </div>
+            <br>
+            <br>
+            
+                <div class="fieldContainer" id="footer">
+                    <div class="flex5child">
+                        <paper-button raised on-click="updateEviction" title="Save">Save</paper-button>
+                    </div>
+                    <div class="flex5child">
+                        <paper-button raised on-click="runEviction" title="Run">Run</paper-button>
+                    </div>
+                    <div class="flex5child">
+                        <paper-button raised on-click="cancel" title="Cancel">Cancel</paper-button>
+                    </div>
+                </div>
+          
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class OwcEvictionManager {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'owc-eviction-manager';
+                this.owcApp = document.querySelector('#owc-app');
+                this.evictionUrl = "/api/stub/admin/evictions";
+                this.evictionProductsUrl = "/api/stub/admin/evictions/products";
+
+                this.properties = {
+
+                    /**
+                     * internal model
+                     *
+                     * @type {Object}
+                     */
+                    model: {
+                        type: Object,
+                        value: {},
+                        notify: true
+                    },
+
+                    /**
+                     * Synchronizer editor options
+                     *
+                     * @type {Object}
+                     */
+                    options: {
+                        type: Object,
+                        value: {},
+                        notify: true
+                    },
+                }
+            }
+
+            attached() {
+                var self = this;
+                self.init();
+
+            }
+
+            /**
+             * Get Eviction products model from server
+             *
+             * @return {Object} 
+             */
+            getEvictionProducts() {
+                var self = this;
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + self.evictionProductsUrl
+                ).then(function(response) {
+                    return (response.status == 200) ? response.data : [];
+                });
+            }
+
+            /**
+             * Inizialization of eviction model
+             *
+             * @return {null}
+             */
+            init() {
+                var self = this;
+                this.getEviction()
+                    .then(function(model) {
+                        self.model = model;
+                    });
+            }
+
+            /**
+             * Get Eviction model from server
+             *
+             * @return {Object} 
+             */
+            getEviction() {
+                var self = this;
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + self.evictionUrl
+                ).then(function(response) {
+                    return (response.status == 200) ? response.data : [];
+                });
+
+            }
+
+            /**
+             * Start Eviction process
+             *
+             * @return {null} 
+             */
+            runEviction() {
+                var self = this;
+                var payload = JSON.stringify(self.model);
+                self.options = {
+                    headers: [{
+                        name: "Content-Type",
+                        value: "application/json"
+                    }, {
+                        name: "Accept",
+                        value: "application/json"
+                    }],
+                    body: JSON.stringify(self.model)
+                };
+                return self.owcApp.httpManager.sendRequest(
+                    'PUT',
+                    self.owcApp.config.baseUrl + self.evictionUrl + "?run=true", self.options
+                ).then(function(response) {
+                    self.owcApp.toastManager.info("Eviction Run Success");
+
+                }).catch(function(error) {
+                    self.owcApp.toastManager.error("Eviction Run Failed");
+                });
+
+            }
+
+
+            updateEviction() {
+                var self = this;
+                var payload = JSON.stringify(self.model);
+
+                self.options = {
+                    headers: [{
+                        name: "Content-Type",
+                        value: "application/json"
+                    }, {
+                        name: "Accept",
+                        value: "application/json"
+                    }],
+                    body: JSON.stringify(self.model)
+                };
+                return self.owcApp.httpManager.sendRequest(
+                    'PUT',
+                    self.owcApp.config.baseUrl + self.evictionUrl, self.options
+                ).then(function(response) {
+                    if (response.status == 200) {
+                        self.model = self.model;
+                        self.owcApp.toastManager.info("Eviction Update Success");
+                    }
+                }).catch(function(error) {
+                    self.owcApp.toastManager.error("Eviction Update Failed");
+                });
+            }
+
+            cancel() {
+                var self = this;
+                self.getEviction().then(function(model) {
+                    self.model = model;
+                })
+            }
+
+
+
+
+
+        };
+
+        Polymer(OwcEvictionManager);
+
+    })();
+    </script>
+</dom-module>

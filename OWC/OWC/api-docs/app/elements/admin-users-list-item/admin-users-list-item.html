@@ -1,0 +1,311 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<!--
+list item for users list
+
+
+@demo demo/index.html
+-->
+
+<dom-module id="admin-users-list-item">
+  <template>
+      <style>
+      .item.button-list-item {
+        width: auto!important;
+      }
+
+      .container {
+        @apply(--layout-horizontal);
+        @apply(--layout-wrap);
+        height: var(--container-height, 100px !important);
+      }
+
+      .containerbis {
+        @apply(--layout-horizontal);
+        @apply(--layout-wrap);
+        height: auto!important);
+      }
+
+      .flexchild {
+        text-align: left;
+        @apply(--layout-flex-4);
+        margin-top: 20px;
+
+      }
+      .flex2child {
+        @apply(--layout-flex-8);
+        @apply(--layout-horizontal);
+        @apply(--layout-self-end);
+
+      }
+      .flex3child {
+        @apply(--layout-flex-12);
+        @apply(--layout-vertical);
+      }
+
+
+      iron-list {
+        background-color: var(--paper-grey-200, #eee);
+      }
+
+      .item {
+        @apply(--layout-horizontal);
+        @apply(--layout-wrap);
+        padding: 20px;
+        border-radius: 8px;
+        background-color: white;
+        width: 96%;
+        margin: 16px !important;
+        border: solid 1px #ecf0f1;
+      }
+
+      .title {
+        font-size: 14px;
+        font-weight: bold;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+
+      .attribute {
+        font-size: 12px!important;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+
+      }
+
+      .thumb{
+        margin-right: 5px;
+        max-width: 65px;
+        max-height: 65px;
+      }
+
+      .owc-list-item{
+        margin-top:5px !important;
+        margin-right:10px!important;
+      }
+
+      .item.button-list-item.button-list-item{
+
+      }
+
+      .owc-list-item-thumb{
+        /*position:absolute;*/
+        top:var(--owc-list-item-thumb-top,100px);
+        left:var(--owc-list-item-thumb-left, 30px);
+        display:inline-block;
+      }
+
+      .owc-list-item-title{
+        position:absolute;
+        top:var(--owc-list-item-title-top, 20px);
+        left:var(--owc-list-item-title-left,30px);
+        width:var(--owc-list-item-title-width, calc(100% - 50px));
+      }
+
+      .owc-list-item-attributes-container{
+        position:absolute;
+        top:var(--owc-list-item-attributes-container-top,50px);
+        left:105px;
+        width:100%;
+      }
+
+      .owc-list-item-attribute{
+        width:calc(100% - 120px);
+      }
+
+      .owc-list-item-buttons{
+        position:absolute;
+        bottom:15px;
+        right:15px
+      }
+
+      paper-icon-button {
+
+      }
+
+    </style>
+
+
+        <div class="container">
+        <h3 hidden="{{!model.title}}" title="{{model.title}}">{{model.title}}</h3>
+
+        <div class="flexchild" hidden="{{!model.thumb}}">
+          <img id="image" on-error="imageError" class="thumb owc-list-item-thumb"   src="{{model.thumb}}">
+        </div>
+        <div class="flex2child">
+        <div class="owc-list-item-attributes-container" hidden="{{!model.attributes}}">
+            <template is="dom-repeat" items="{{model.attributes}}" hidden="{{!model.attributes}}" >
+              <div class="attribute owc-list-item-attribute">{{item}}</div>
+            </template>
+          </div>
+        </div>
+        </div>
+
+        <div class="owc-list-item-buttons"  >
+          <paper-icon-button icon="create" on-click="userDetails" title="Show user details"></paper-icon-button>
+          <paper-icon-button icon="build" on-click="userPassword" title="Edit user password"></paper-icon-button>
+          <paper-icon-button icon="delete-forever" on-click="userDelete" title="Delete user"></paper-icon-button>
+        </div>
+
+
+  </template>
+
+<script>
+    (function() {
+       'use strict';
+       class AdminUsersListItem {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+           beforeRegister() {
+               this.is = 'admin-users-list-item';
+
+               this.owcApp = document.querySelector('#owc-app');
+               this.deleteUserUrl  = "/api/stub/admin/users/:user-uuid";
+               this.properties = {
+
+                 /**
+                  * Model of list item
+                  *
+                  * @type {Object}
+                  */
+                 model: {
+                   type: Object,
+                   value: {}
+                 },
+
+                 /**
+                  * Parent reference. The parent is the container list.
+                  *
+                  * @type {object}
+                  */
+                 parent: {
+                   type: Object,
+                   value: {},
+                   notify: true
+                 },
+
+                 /**
+                  * Property indicating if buttons on list are hidden or shown.
+                  *
+                  * @type {Boolean}
+                  */
+                 showButtons: {
+                   type: Boolean,
+                   value:true,
+                   notify: true
+                 }
+               };
+
+               
+           }
+
+           /**
+            *  Called when the element has created, but before property values are set
+            *  and local DOM is initialized.
+            *
+            * @return {null}
+            */
+           created() {
+             this.navigationManager = document.getElementById('navigation-manager');
+
+           }
+
+           attached(){
+             if(this.owcApp.appconfig) {
+               this.isAdfVisible = this.owcApp.appconfig.adf;
+             }
+
+           }
+
+          imageError() {}
+
+
+           /**
+            * This method push the product details panel
+            *
+            * @return {null}
+            */
+           userDetails(){
+             var userDetails = document.createElement('user-details');
+             userDetails.uuid=this.model.uuid;
+             userDetails.username=this.model.title;
+             this.navigationManager.pushComponent(userDetails, '500px', this.model.title);
+           }
+
+           /**
+            * This method push the product details panel
+            *
+            * @return {null}
+            */
+           userPassword(){
+             var userPassword = document.createElement('user-password');
+             userPassword.uuid=this.model.uuid;
+             userPassword.username=this.model.title;
+             this.navigationManager.pushComponent(userPassword, '500px', 'User Password');
+           }
+
+           /**
+            * This method push the product details panel
+            *
+            * @return {null}
+            */
+           userDelete(){
+               var self = this;
+               return this.owcApp.httpManager.sendRequest(
+                   'DELETE',
+                   self.owcApp.config.baseUrl + self.deleteUserUrl.replace(":user-uuid", self.model.uuid)
+               ).then(
+                 function(response) {
+                  self.owcApp.toastManager.info(self.i18n("Deleted user with success"));
+                  self.owcApp.messageBroker.publish('updateUsersList');
+               },function(){
+                  self.owcApp.toastManager.warn(self.i18n("Failed user deletion"));
+               });
+           }
+
+
+       };
+
+      Polymer(AdminUsersListItem);
+
+    })();
+  </script>
+
+</dom-module>

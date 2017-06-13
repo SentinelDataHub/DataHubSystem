@@ -1,0 +1,97 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<!--
+This component is used to manage client-side product processing by means of configurable plugins
+
+
+@demo demo/index.html
+-->
+
+<dom-module id="plugins-manager">
+  <template>
+    <web-worker-orchestrator id="workers-orchestrator"></web-worker-orchestrator>
+  </template>
+
+<script>
+    (function() {
+       'use strict';
+       class PluginsManager {
+
+                                            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+           beforeRegister() {
+             var self = this;
+             this.is = 'plugins-manager';
+             this.owcApp = document.querySelector('#owc-app');
+
+
+           }
+           attached(){
+              this.orchestrator = Polymer.dom(this.root).querySelector('#workers-orchestrator');
+           }
+
+           /**
+            * This method is used to process a data model on the basis of selected plugin, showing results in a visualizer
+            *
+            * @return {null}
+            */
+           process(model, plugin) {
+             var self =  this;
+              console.warn("plugins-manager() ");
+              console.log("model: ", model);
+              console.log("plugin: ", plugin);
+              this.orchestrator.executeWorkers(JSON.stringify(model), plugin.webworkers)
+                .then(function(result){
+                  console.warn("orchestrator result");
+                  console.log("result: ", result);
+                  console.log("plugin.visualizer", plugin.visualizer);
+                  var visualizer = document.createElement(plugin.visualizer);
+                  visualizer.model = result;
+                  self.owcApp.navigationManager.pushComponent(visualizer, '500px', plugin.name,false, true,1);
+
+                })
+
+           }
+
+       };
+
+      Polymer(PluginsManager);
+
+    })();
+  </script>
+
+</dom-module>

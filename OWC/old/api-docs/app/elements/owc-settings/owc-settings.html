@@ -1,0 +1,359 @@
+<!--
+  @license
+
+ 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../bower_components/iron-image/iron-image.html">
+<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-styles/demo-pages.html">
+<link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-styles/paper-styles.html">
+<link rel="import" href="../../bower_components/paper-styles/demo-pages.html">
+<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+<link rel="import" href="../../bower_components/paper-styles/paper-styles.html">
+<link rel="import" href="../../bower_components/paper-styles/demo-pages.html">
+<link rel="import" href="../../bower_components/neon-animation/neon-animations.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<!--
+This component is used to allow dynamic menu configuration
+@demo demo/index.html
+-->
+<dom-module id="owc-settings">
+    <template>
+        <a href="" id="lnkDownload" downloadLayout="layout.json"></a>
+        <style>
+        :root {
+            --default-primary-color: green;
+        }
+        
+        .section-item {
+            padding: 30px;
+            margin: 30px;
+        }
+        
+        .remove-section-button {
+            float: right;
+        }
+        
+        paper-button {
+            background: #002664;
+            color: white;
+            padding: 5px 5px;
+            width: 20%;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            float: right;
+            top: 36px;
+            margin-right: 10px
+        }
+        
+        paper-button[toggles][active].colorful {
+            background-color: #002664;
+        }
+        
+        paper-button[toggles][active][raised].colorful {
+            background-color: rgba(66, 133, 244, 0.75);
+        }
+        
+        #owcSettingsContainer {
+            height: var(--settingsheight, 90%);
+            width: var(--width, 98%);
+            overflow-y: auto;
+        }
+        
+        .buttonContainer {
+            margin-bottom: 0px;
+            height: 100px!important;
+            width: 98%!important;
+            overflow: hidden;
+        }
+        
+        .settingsHeader {
+            float: left;
+            margin-left: 10px;
+        }
+        </style>
+        <div class="buttonContainer">
+            <h1 class="settingsHeader">{{i18n("Sections")}} <paper-icon-button on-click="addSection" icon="add-circle">+</paper-icon-button></h1>
+            <paper-button raised class="colorful" on-click="save" title="{{i18n('save')}}">{{i18n("save")}}</paper-button>
+        </div>
+        <div id="owcSettingsContainer">
+            <template is="dom-repeat" items="{{config.sections}}">
+                <paper-material class="section-item">
+                    <div>
+                        <paper-icon-button on-click="removeSection" icon="highlight-off" class="remove-section-button">x</paper-icon-button>
+                        <div class="">
+                            <form is="iron-form">
+                                <paper-input value="{{item.title}}" name="title" label="{{i18n('title')}}" required></paper-input>
+                                <paper-input value="{{item.component}}" name="component" label="{{i18n('component name')}}" required></paper-input>
+                                <paper-input value="{{item.width}}" name="width" label="{{i18n('width')}}" required></paper-input>
+                                <paper-input value="{{item.remoteUrl}}" name="remoteUrl" label="{{i18n('remote component url')}}" required></paper-input>
+                                <paper-input value="{{item.icon}}" name="icon" label="Icon" required></paper-input>
+                                <paper-input value="{{item.maxInstances}}" name="maxInstances" label="{{i18n('Maximum Instances')}}" prevent-invalid-input allowed-pattern="\d"></paper-input>
+                            </form>
+                        </div>
+                    </div>
+                </paper-material>
+            </template>
+        </div>
+    </template>
+    <!-- MODEL-CONTROLLER CODE -->
+    <script>
+    'use strict';
+    (function() {
+        class OwcSettings extends HTMLElement {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'owc-settings';
+
+                this.owcApp = document.querySelector('#owc-app');
+
+                this.properties = {
+
+                    /**
+                     * Sections in the main menu                      
+                     *
+                     * @type {Array}
+                     */
+                    sections: [],
+
+                    /**
+                     * OWC configuration file
+                     *
+                     * @type {Array}
+                     */
+                    config: {
+                        type: Object,
+                        value: {
+                            sections: []
+                        },
+                        notify: true
+                    },
+
+                    /**
+                     *property containg menu item list
+                     *
+                     * @type {Array}
+                     */
+                    data: {
+                        type: Array,
+                        value: [{
+                            name: "navigation-component"
+                        }, {
+                            name: "iron-list-component"
+                        }, {
+                            name: "pin-list-component"
+                        }]
+                    }
+
+                };
+            }
+
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+
+                var self = this;
+                self.owcApp.httpManager.sendRequest('GET', self.owcApp.config.baseUrl + '/api/owc/settings/menu').then(function(response) {
+                    setTimeout(function() {
+                        self.config.sections = (response.status == 200) ? response.data.sections : [];
+                        self.set('config.sections', self.config.sections);
+                        self.notifyPath('config.sections', self.config.sections);
+                    }, 0);
+                });
+            }
+
+            /**
+             * Add a new section in the main menu component
+             *
+             * @return {null}
+             */
+            addSection() {
+                var object = {
+                    "title": "",
+                    "component": "",
+                    "route": "",
+                    "icon": "",
+                    "url": "",
+                    "maxInstances": ""
+                };
+                this.push('config.sections', object);
+            }
+
+            newLayout() {
+
+            }
+
+            /**
+             * Download main menu model as json file
+             *
+             * @return {null}
+             */
+            downloadLayout() {
+                var self = this;
+                window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileSystem;
+                window.requestFileSystem(window.TEMPORARY, 1024 * 1024, function(fs) {
+                    fs.root.getFile('layout', {
+                        create: true
+                    }, function(fileEntry) {
+                        fileEntry.createWriter(function(fileWriter) {
+                            var blob = new Blob([JSON.stringify(self.config.sections)], {
+                                type: 'application/json'
+                            });
+                            fileWriter.addEventListener("writeend", function() {
+                                document.getElementById("lnkDownload").download = document.getElementById('project-name').value + '.json';
+                                document.getElementById("lnkDownload").href = fileEntry.toURL();
+                                document.getElementById("lnkDownload").click();
+                            }, false);
+                            fileWriter.write(blob);
+                        }, function() {});
+                    }, function() {});
+                }, function() {});
+            }
+
+            uploadLayout(e) {
+                var button = e.target;
+                while (!button.hasAttribute('data-dialog') && button !== document.body) {
+                    button = button.parentElement;
+                }
+                if (!button.hasAttribute('data-dialog')) {
+                    return;
+                }
+                var id = button.getAttribute('data-dialog');
+                var dialog = document.getElementById(id);
+                if (dialog) {
+                    dialog.open();
+                }
+            }
+
+            _upload() {
+                var self = this;
+                var body = JSON.stringify(self.config) + '';
+                self.uploadBody = body;
+                document.getElementById("update-config").generateRequest();
+                document.getElementById("upload").close();
+            }
+
+            /**
+             * Remove section from main menu component
+             * 
+             * @param {Object} event: on-click event            
+             * 
+             * @return {null}
+             */
+            removeSection(event, details, sender) {
+                this.splice('config.sections', event.model.__data__.index, 1);
+            }
+
+            /**
+             * Handle click on menu options
+             *           
+             * @param {Object} event
+             * @return {null}
+             */
+            clickHandler(e) {
+                if (!e.target.hasAttribute('data-dialog')) {
+                    return;
+                }
+                var id = e.target.getAttribute('data-dialog');
+                var dialog = document.getElementById(id);
+                if (dialog) {
+                    dialog.toggle();
+                    e.target.toggleAttribute && e.target.toggleAttribute('data-dialog-opened', dialog.opened);
+                }
+            }
+
+            /**
+             * Save main menu configurations on server
+             *           
+             * 
+             * @return {null}
+             */
+            save() {
+                var self = this;
+                var options = {
+                    headers: [{
+                        name: "Content-Type",
+                        value: "application/json"
+                    }],
+                    body: JSON.stringify({
+                        sections: self.config.sections
+                    })
+                };
+                self.owcApp.httpManager.sendRequest('PUT', self.owcApp.config.baseUrl + '/api/owc/settings/menu', options).then(function(response) {
+                    self.owcApp.toastManager.info(self.i18n("updated_main_menu_message"));
+                    self.owcApp.messageBroker.publish('loaded-configurations');
+                });
+            }
+
+
+
+        };
+
+        Polymer(OwcSettings);
+
+    })();
+    </script>
+</dom-module>

@@ -1,0 +1,106 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+This component contains an empty layout template
+
+
+@demo demo/index.html
+-->
+<dom-module id="empty-template">
+    <style is="custom-style">
+    .container {
+        height: var(--emptytemplateheight, 300px);
+        width: var(--emptytemplatewidth, 100%);
+        overflow-y: auto;
+        overflow-x: auto;
+    }
+    
+    .flexchild {
+        @apply(--layout-flex-6);
+    }
+    </style>
+    <template>
+        <div class="container" style="background-color: red;">           
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class EmptyTemplate {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'empty-template';
+
+            }
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+                var self = this;
+
+                window.addEventListener("resize", function() {
+                    self.resize();
+                });
+            }
+
+            /**             
+             *  Resize callbach handler 
+             *
+             * @return {null}
+             */
+            resize() {
+                var self = this;
+
+                self.customStyle['--emptytemplateheight'] = parseInt(self.parentPanel.getSize().height) + "px";
+                self.updateStyles();
+                self.customStyle['--emptytemplatewidth'] = parseInt(self.parentPanel.getSize().width) + "px";
+                self.updateStyles();
+
+            }
+
+        };
+
+        Polymer(EmptyTemplate);
+
+    })();
+    </script>
+</dom-module>

@@ -1,0 +1,154 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+This component is the coder for users cart
+
+
+@demo demo/index.html
+-->
+<dom-module id="cart-coder">
+    <script>
+    (function() {
+        'use strict';
+        class CartCoder extends HTMLElement {
+
+            /**
+             * class constructor             
+             */
+            constructor() {
+                    super();
+                }
+                /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'cart-coder';
+                this.owcApp = document.querySelector('#owc-app');
+                this.properties = {};
+            }
+
+            /**
+             * this method is used to get Quicklook OData url (if Quicklook is avalaible)
+             *
+             * @param {Object} product item
+             * @return {String} Quicklook OData url (if Quicklook is avalaible), default placeholder url otherwise
+             */
+            getQuicklook(item) {
+                var self = this;
+                var IMAGE_PLACE_HOLDER_URL = self.owcApp.config.clientUrl + '/images/placeholder.png';
+                return (item
+                    .quicklook) ? self.owcApp.config.baseUrl + "/odata/v1/Products('" + item.uuid + "')/Products('Thumbnail')/$value" : IMAGE_PLACE_HOLDER_URL;
+            }
+
+            /**             
+             *  This method is used to check if a product is online (i.e. physically present in DHuS archive) or   *  offline (i.e. to be retrieved from a long term archive).
+             *  @param {String} product uuid, used in the OData request to get product content length 
+             *  (download size)
+             *
+             *  @return {Object} HTTP Promise object, containing HTTP response
+             */
+            _getIsOnline(id) {
+                var self = this;
+                var url = (this.owcApp.appconfig.odataContentLengthUrl) ? this.owcApp.appconfig.odataContentLengthUrl : "/odata/v1/Products(%27:uuid%27)/ContentLength/$value";
+                return this.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + url.replace(':uuid', id)
+                ).then(function(response) {
+                    if (response.status == 200) {
+                        return parseInt(response.data);
+                    } else {
+                        return -1
+                    }
+                }, function() {
+                    return -1;
+                });
+            }
+
+
+            /**
+             * this method is used to extract a specific list model from a generic data model
+             *
+             * @param {Object} generic model
+             * @return {Object} specific model
+             */
+            extractSpecificModel(genericModel) {
+
+                var test = (JSON.parse(JSON.stringify(genericModel)));
+                var sensingLabel = "Sensing start";
+                var validityLabel = "Validity start";
+                var dateLabel = "date";
+                var promises = [];
+                var self = this;
+                if (test != null) {
+                    for (let i = 0; i < genericModel.length; i++) {
+                        test[i].thumb = this.getQuicklook(genericModel[i]);
+                        for (let j = 0; genericModel[i].attributes && j < genericModel[i].attributes.length; j++) {
+                            var keys = Object.keys(genericModel[i].attributes[j]);
+                            if ((keys[0].toUpperCase() == sensingLabel.toUpperCase()) || (keys[0].toUpperCase() == validityLabel.toUpperCase()) || (keys[0].toUpperCase() == dateLabel.toUpperCase())) {
+                                test[i].attributes[j] = String(this.i18n(keys[0]) + ": " + moment(genericModel[i].attributes[j][keys[0]]).format('YYYY-MM-DD HH:mm:ss'));
+                            } else {
+                                test[i].attributes[j] = String(this.i18n(keys[0]) + ": " + genericModel[i].attributes[j][keys[0]]);
+                            }
+
+                        }
+                        test[i].showAdf = true;
+
+                        promises.push(
+                            self._getIsOnline(genericModel[i].uuid)
+                            .then(function(result) {
+
+                                if (result > 0)
+                                    test[i].isOnline = true;
+                                else
+                                    test[i].isOnline = false;
+
+                            })
+                        );
+                     }
+                    return Promise.all(promises)
+                        .then(function() {
+                            return test;
+                        });                    
+                } else {
+                    return test;
+                }
+            }
+
+        };
+
+        Polymer(CartCoder);
+
+    })();
+    </script>
+</dom-module>

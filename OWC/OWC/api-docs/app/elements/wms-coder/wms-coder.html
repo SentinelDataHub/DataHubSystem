@@ -1,0 +1,179 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+wms coder
+
+
+@demo demo/index.html
+-->
+<dom-module id="wms-coder">
+    <template>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class WMSCoder {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'wms-coder';
+                this.owcApp = document.querySelector('#owc-app');
+                this.wmsFound = [];
+                this.promises = [];
+                this.properties = {
+
+                    wmsModel: {
+                        type: Object,
+                        value: {},
+                        notify: true
+                    },
+                    pcount: {
+                        type: Number,
+                        value: 0,
+                        notify: true
+                    },
+                    reject: {
+                        type: Function,
+                        value: function() {},
+                        notify: true
+                    },
+
+                    resolve: {
+                        type: Function,
+                        value: function() {},
+                        notify: true
+                    }
+                }
+
+
+
+
+            }
+
+
+
+            checkWms(model) {
+                var self = this;
+                return new Promise(function(resolve, reject) {
+
+
+                    self.wmsModel = model;
+                    var wmsURL = "";
+                    var p = 0;
+
+                    var found = false;
+                    var wmsFound = [];
+                    var wmsSettings = [];
+                    var ls = localStorage.getItem('wms-settings');
+                    if (ls) {
+                        wmsSettings = JSON.parse(ls);
+                    } else {
+                        if(self.owcApp.appconfig.wms_server_config)
+                        wmsSettings = self.owcApp.appconfig.wms_server_config;
+                    }
+                    for (p = 0; p < self.wmsModel.length; p++) {
+                        for (var i = 0; i < wmsSettings.length; i++) {
+                            var regexp = new RegExp(wmsSettings[i].rule);
+                            if (regexp.test(self.wmsModel[p].identifier)) {
+                                wmsFound.push({
+                                    "product": self.wmsModel[p].identifier,
+                                    "server": wmsSettings[i].url
+                                });
+                            }
+                            // if (self.wmsModel[p].identifier.startsWith(self.owcApp.appconfig.wms_server_config[i].rule)) {
+                            //     wmsFound.push(self.wmsModel[p].identifier);
+                            // }
+                        }
+                    }
+
+                    for (let aa = 0; aa < wmsFound.length; aa++) {
+                        var pr = self.owcApp.httpManager.sendRequest(
+                            'GET',
+                            wmsFound[aa].server + '?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&FORMAT=image%2Fpng&TRANSPARENT=true&LAYERS=' + wmsFound[aa].product + '.SEN3&TILED=true&WIDTH=256&HEIGHT=256&SRS=EPSG%3A3857&STYLES=&BBOX=2504688.542848654%2C7514065.628545966%2C5009377.08569731%2C10018754.171394622'
+                        ).then(function(response) {
+                            var index = _.findIndex(self.wmsModel, function(element) {
+                                return (element.identifier == wmsFound[aa].product)
+                            });
+                            if (response.status == 200) {
+
+                                if (index >= 0) {
+                                    self.wmsModel[index].wmsFound = true;
+
+                                    self.set('wmsModel', self.wmsModel);
+
+                                    self.notifyPath('wmsModel', self.wmsModel);
+
+                                    //self.wmsFound.push(self.wmsModel[aa].identifier);
+
+                                }
+
+                                //return response.data;
+                            } else {
+                                //self.layerEnabled = false;
+                                if (index >= 0) {
+                                    self.wmsModel[index].wmsFound = false;
+                                    return new Promise(function(resolve, reject) {
+                                        reject("layer " + self.wmsModel[index].identifier + " not available");
+                                    });
+                                }
+                            }
+                        }).catch(function(reason) {
+                            console.log("ERROR ", reason);
+                            reject(reason);
+                            //wmsModel[p].wmsFound = false;
+                            //self.layerEnabled = false;
+                        });
+                        self.promises.push(pr);
+                    }
+
+
+
+                    Promise.all(self.promises).then(function() {
+                        resolve(self.wmsModel);
+                    });
+
+                })
+
+
+            }
+
+        };
+
+        Polymer(WMSCoder);
+
+    })();
+    </script>
+</dom-module>

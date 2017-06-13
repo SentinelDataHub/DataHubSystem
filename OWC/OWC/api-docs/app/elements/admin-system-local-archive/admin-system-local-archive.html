@@ -1,0 +1,152 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<!--
+Admin panel to archive
+
+
+@demo demo/index.html
+-->
+
+<dom-module id="admin-system-local-archive">
+<template>
+  <style>
+    .button-container {
+        margin-bottom: 0px;
+        height: 100px!important;
+        width: 98%!important;
+        overflow: hidden;
+    }
+
+    :root {
+        --default-primary-color: green;
+    }
+
+    .section-item {
+        padding: 30px;
+        margin: 30px;
+    }
+
+    .remove-section-button {
+        float: right;
+    }
+
+    paper-button {
+        background: #002664;
+        color: white;
+        padding: 5px 5px;
+        width: 20%;
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        float: right;
+        top: 36px;
+        margin-right: 10px
+    }
+
+    paper-button[toggles][active].colorful {
+        background-color: #002664;
+    }
+
+    paper-button[toggles][active][raised].colorful {
+        background-color: rgba(66, 133, 244, 0.75);
+    }
+
+    #owc-settings-container {
+        height: var(--settingsheight, 90%);
+        width: var(--width, 98%);
+        overflow-y: auto;
+    }
+
+    .button-container {
+        margin-bottom: 0px;
+        height: 100px!important;
+        width: 98%!important;
+        overflow: hidden;
+    }
+
+    .synchronize-local-archive-button{
+      width: 300px;
+    }
+
+    .restore-database-drop-down{
+      width: 400px;
+    }
+  </style>
+  <!-- <div class="settings-label">{{i18n("Local Archive")}}</div> -->
+  <br>
+  <paper-button
+    class="synchronize-local-archive-button"
+    raised class="colorful"
+    on-click="synchronizeLocalArchive"
+    title="{{i18n('Synchronize Local Archive')}}">{{i18n("Synchronize Local Archive")}}</paper-button>
+  <br>
+</template>
+
+<script>
+    (function() {
+       'use strict';
+       class AdminSystemLocalArchive {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+           beforeRegister() {
+               this.is = 'admin-system-local-archive';
+
+               this.owcApp = document.querySelector('#owc-app');
+               this.synchronizeLocalArchiveUrl = "/api/stub/admin/system/archive";
+           }
+
+           synchronizeLocalArchive(){
+             var self = this;
+
+             alert("synchronizeLocalArchive");
+             self.owcApp.httpManager.sendRequest(
+                 'POST',
+                 self.owcApp.config.baseUrl + self.synchronizeLocalArchiveUrl
+             ).then(function(){
+                self.owcApp.toastManager.info(self.i18n("Run synchronize local archive task."));
+             }, function(){
+                self.owcApp.toastManager.error(self.i18n("Failed synchronize local archive task."));
+             });
+           }
+       };
+
+      Polymer(AdminSystemLocalArchive);
+
+    })();
+  </script>
+
+</dom-module>

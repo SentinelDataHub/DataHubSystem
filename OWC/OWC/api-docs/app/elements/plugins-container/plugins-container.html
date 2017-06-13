@@ -1,0 +1,214 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+This component is used as container of plugins for product processing
+
+
+@demo demo/index.html
+-->
+<dom-module id="plugins-container">
+    <template>
+        <style>
+        .container {
+            @apply(--layout-vertical);
+            height: var(--createheight, 200px);
+            width: var(--createwidth, 100%);
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+        
+        .fieldContainer {
+            @apply(--layout-horizontal);
+        }
+        
+        .flexchild {
+            @apply(--layout-flex);
+        }
+        
+        .flex2child {
+            @apply(--layout-flex-5);
+        }
+        
+        .flex3child {
+            @apply(--layout-flex-5);
+        }
+        
+        .panelHeader {
+            background: #002664;
+            color: white;
+            padding: 5px 5px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        paper-button {
+            background: #002664;
+            color: white;
+            padding: 5px 5px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            float: right;
+            margin-right: 10px;
+            width: 50%;
+            @apply(--layout-self-end);
+        }
+        
+        paper-button[toggles][active].colorful {
+            background-color: #002664;
+        }
+        
+        paper-button[toggles][active][raised].colorful {
+            background-color: rgba(66, 133, 244, 0.75);
+        }
+        
+        paper-button[disabled] {
+            background: #eaeaea;
+            color: #a8a8a8;
+            cursor: auto;
+            pointer-events: none;
+            @apply(--paper-button-disabled);
+        }
+        </style>
+        <div class="container">
+            <paper-dropdown-menu class="flex2child" label="Processor Plugins" on-iron-select="_itemSelected" required>
+                <paper-menu class="dropdown-content">
+                    <template is="dom-repeat" items="{{plugins}}">
+                        <paper-item value="{{item}}">{{item.name}}</paper-item>
+                    </template>
+                </paper-menu>
+            </paper-dropdown-menu>
+            <paper-button raised class="colorful" on-click="process" title="{{i18n('process')}}" disabled$="{{disabled}}">{{i18n("process")}}</paper-button>
+        </div>
+        <plugins-manager id="plugins-manager"></plugins-manager>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class PluginsContainer {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'plugins-container';
+                this.owcApp = document.querySelector('#owc-app');
+
+                this.properties = {
+
+                    /**
+                     * Public property description
+                     *
+                     * @type {Object}
+                     */
+                    pluginManager: {
+                        type: Object,
+                        value: {},
+                        notify: true
+
+                    },
+
+                    /**
+                     * Model of list item
+                     *
+                     * @type {Object}
+                     */
+                    model: {
+                        type: Object,
+                        value: {},
+                        notify: true
+                    },
+
+                    disabled: {
+                        type: Boolean,
+                        value: true,
+                        notify: true
+                    }
+                }
+            }
+
+            attached() {
+                var self = this;
+                this.plugins = this.owcApp.appconfig.processor_plugins;
+                this.query = document.querySelector('#owc-query');                                
+                // this.owcApp.messageBroker.subscribe('setNewModel',
+
+                //     function(model) {
+                //         if (self.model && self.model.model )
+                //             self.isModel();
+
+                //     }, self.model.target)
+            }
+
+            isModel() {
+                var outcome = true;
+                if (this.selectedItem)
+                    outcome = false;
+                this.disabled = outcome;
+            }
+
+            _itemSelected(e) {
+
+                if (e && e.detail && e.detail.item && e.detail.item.innerHTML) {
+                    this.selectedItem = e.detail.item.innerHTML.trim();
+                }
+
+                // console.log('this.selectedItem',this.selectedItem);
+                // console.log('selected plugin',e.target.selectedItem);
+                // console.log('selected plugin',e.target.selectedItem.value);
+                if (e && e.target && e.target.selectedItem) {
+                    this.plugin = e.target.selectedItem.value;
+                }
+                this.isModel();
+            }
+
+            process() {
+                this.pluginManager = Polymer.dom(this.root).querySelector('#plugins-manager');
+                //this.pluginManager.process(this.model.model, this.plugin);
+                this.model.baseUrl = this.owcApp.config.baseUrl;
+                this.model.text = this.query.getText();
+                this.model.footprint = this.query.getFootprint();
+                this.pluginManager.process(this.model, this.plugin);                
+
+            }
+
+        };
+
+        Polymer(PluginsContainer);
+
+    })();
+    </script>
+</dom-module>

@@ -1,0 +1,130 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+This component is used as container of OData EventSynchronizers list and hosts also the button useful to create a new OData EventSynchronizer
+
+
+@demo demo/index.html
+-->
+<dom-module id="event-synchronizer-container">
+    <template>
+        <style type="text/css">
+        #event-synchronizer-container {
+            height: var(--listheight, 500px);
+            width: var(--listwidth, 100%);
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+        
+        paper-button {
+            background: #002664;
+            color: white;
+            padding: 5px 5px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            float: right;
+            margin-right: 10px
+        }
+        
+        paper-button[toggles][active].colorful {
+            background-color: #002664;
+        }
+        
+        paper-button[toggles][active][raised].colorful {
+            background-color: rgba(66, 133, 244, 0.75);
+        }
+        </style>
+        <paper-button raised class="colorful" on-click="createEventSynch" title="CREATE EVENT SYNCHRONIZER">Create Event Synchronizer</paper-button>
+        <div id="event-synchronizer-container">
+            <event-synchronizer-list></event-synchronizer-list>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class EventSynchronizerContainer {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'event-synchronizer-container';
+
+            }
+
+            /**
+             *  This method is used to force component resize. 
+             *  This allows the menu to fit well to screen size and to manage screen resizing or mobile device
+             */
+            resize() {
+                this.customStyle['--listheight'] = parseInt(this.parentPanel.getSize().height - 50) + "px";
+                this.updateStyles();
+                this.customStyle['--listwidth'] = parseInt(this.parentPanel.getSize().width) + "px";
+                this.updateStyles();
+            }
+
+            /**
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+                var self = this;
+                self.navigationManager = document.getElementById('navigation-manager');
+                setTimeout(function() {
+                    self.resize();
+                }, 0);
+            }
+
+            /**
+             * Create and push synchronizer-creator component to navigation system
+             *
+             * @return {null}
+             */
+            createEventSynch() {
+                var newSynch = document.createElement('event-synchronizer-editor');
+                newSynch.setModel({});
+                this.navigationManager.pushComponent(newSynch, '500px', 'Event Synchronizer Creator');
+            }
+
+        };
+
+        Polymer(EventSynchronizerContainer);
+
+    })();
+    </script>
+</dom-module>

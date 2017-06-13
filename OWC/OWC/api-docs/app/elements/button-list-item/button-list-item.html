@@ -1,0 +1,726 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!-- <link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html"> -->
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../bower_components/iron-icons/maps-icons.html">
+<!--
+<i>button-list-item</i> component is used to represent a single list item for:
+<ul>
+<li>list of products</li>
+<li>list of products in user's cart (pinned list)</li>
+</ul> 
+
+This component contains the following sections:
+<ul>
+<li>thumbnail section, used to show product thumbnail;</li>
+<li>attributes section, used to show main product attributes defined in the Semantic Schema retrieved from Server and extracted by means of <i>semantic-manager</i> component;</li>
+<li>toolbar section, containing a set of <i>paper-icon-button</i> used to:</li>
+    <ul>
+    <li>show product details;</li>
+    <li>show the list of auxiliary data files used to process the product;</li>
+    <li>download the product.</li>
+    </ul>
+</ul>
+
+
+<img src="https://user-images.githubusercontent.com/10920750/26986234-e6c1ac56-4d46-11e7-8d38-d5943fe864cb.png"></img>
+
+
+-->
+<dom-module id="button-list-item">
+    <!-- VIEW  CODE HERE -->
+    <template>
+        <style>
+        .button-color {
+            color: blue;
+        }
+
+        .item.button-list-item {
+            width: auto!important;
+        }
+
+        .container {
+            @apply(--layout-horizontal);
+            @apply(--layout-wrap);
+            height: var(--container-height, 120px !important);
+        }
+
+        .containerbis {
+            @apply(--layout-horizontal);
+            @apply(--layout-wrap);
+            height: auto!important);
+        }
+
+        .flexchild {
+            text-align: left;
+            /*top:50px!important;*/
+            @apply(--layout-flex-4);
+            margin-top: 40px;
+        }
+
+        .flex2child {
+            @apply(--layout-flex-10);
+            @apply(--layout-horizontal);
+            @apply(--layout-self-end);
+        }
+
+        .flex3child {
+            @apply(--layout-flex-12);
+            @apply(--layout-vertical);
+        }
+
+        iron-list {
+            background-color: var(--paper-grey-200, #eee);
+        }
+
+        .item {
+            @apply(--layout-horizontal);
+            @apply(--layout-wrap);
+            /*padding: 30px;*/
+            padding-left: 10px;
+            border-radius: 8px;
+            background-color: white;
+            width: 96%;
+            margin-left: 10px !important;
+            margin-right: 10px !important;
+            margin-top: 5px !important;
+            margin-bottom: 5px !important;
+            border: solid 1px #ecf0f1;
+        }
+
+        .item-complete {
+            height: 130px;
+        }
+
+        .title {
+            font-size: 14px;
+            font-weight: bold;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .attribute {
+            font-size: 12px!important;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .thumb {
+            margin-right: 5px;
+            max-width: 65px;
+            max-height: 65px;
+            /*width: 60px;
+      height: 60px;*/
+        }
+
+        .owc-list-item {
+            /*margin-top: 5px !important;*/
+            margin-right: 10px!important;
+        }
+
+        .item.button-list-item.button-list-item {}
+
+        .owc-list-item-thumb {
+            position: absolute;
+            top: var(--owc-list-item-thumb-top, 50px);
+            left: var(--owc-list-item-thumb-left, 20px);
+            display: inline-block;
+        }
+
+        .owc-list-item-title {
+            position: absolute;
+            top: var(--owc-list-item-title-top, 12px);
+            left: var(--owc-list-item-title-left, 20px);
+            width: var(--owc-list-item-title-width, calc(100% - 50px));
+        }
+
+        .owc-list-item-attributes-container {
+            position: absolute;
+            top: var(--owc-list-item-attributes-container-top, 60px);
+            left: 100px;
+            width: 100%;
+        }
+
+        .owc-list-item-attribute {
+            width: calc(100% - 140px);
+        }
+
+        .owc-list-item-buttons {
+            position: absolute;
+            bottom: 5px;
+            right: 15px
+        }
+
+        .star {
+            position: absolute;
+            top: 23px;
+            right: 15px;
+        }
+
+        .checked {
+            color: blue;
+        }
+
+        paper-icon-button {
+            height: 37px;
+            width: 37px;
+        }
+
+        .offline {
+            position: absolute;
+            top: 35px;
+            right: 50px;
+            /* float: right; */
+            /* width: 100%; */
+            font-size: 14px;
+            font-weight: bold;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            text-align: right;
+        }
+
+        .item-offline {
+            background-color: lightgrey;
+        }
+
+        .adf-list-item {
+            padding: 20px;
+        }
+        </style>
+        <div class$="{{computeCssClass(model.isOnline)}}" id="{{model.uuid}}" hidden="{{!model.showAdf}}">
+            <div>
+                <paper-icon-button icon="star" class="star" on-click="pinnedList" title="Add Product to Cart" hidden="{{pinned}}"></paper-icon-button>
+                <paper-icon-button icon="star" class="star checked" on-click="pinnedList" title="Remove Product from Cart" hidden="{{!pinned}}"></paper-icon-button>
+                <div class="title owc-list-item-title" hidden="{{!model.title}}" title="{{model.title}}">
+                    {{model.title}}
+                </div>
+                <div class="offline" hidden="{{model.isOnline}}">
+                    Offline
+                </div>
+                <div hidden="{{!model.thumb}}">
+                    <img id="image" on-error="imageError" class="thumb owc-list-item-thumb" src="{{model.thumb}}">
+                </div>
+                <div class="flex2child">
+                    <div class="owc-list-item-attributes-container" hidden="{{!model.attributes}}">
+                        <template is="dom-repeat" items="{{model.attributes}}" hidden="{{!model.attributes}}">
+                            <div class="attribute owc-list-item-attribute">{{item}}</div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+            <div class="owc-list-item-buttons" hidden="{{!model.showAdf}}">
+                <!-- <span hidden="{{iscart}}"><paper-icon-button icon="maps:satellite" on-click="addLayer" disabled="{{!layerEnabled}}" hidden="{{model.status }}"></paper-icon-button> -->
+                <!-- <paper-icon-button icon="maps:satellite" on-click="addLayer" disabled="{{!layerEnabled}}" hidden="{{!model.status}}" class="button-color"></paper-icon-button></span> -->
+                <paper-icon-button icon="visibility" on-click="details" title="View Product Details"></paper-icon-button>
+                <paper-icon-button icon="file-download" on-click="download" title="Download Product"></paper-icon-button>
+                <paper-icon-button icon="list" on-click="adfList" title="Show Auxiliary Data File List" hidden="{{!model.showAdf}}"></paper-icon-button>
+                <paper-icon-button icon="settings-applications" on-click="adfSearch" title="Show Auxiliary Data File Search" hidden="{{!isAdfVisible}}"></paper-icon-button>
+            </div>
+        </div>
+        <div class="item owc-list-item adf-list-item" id="{{model.uuid}}" hidden="{{model.showAdf}}">
+            <div class="title owc-list-item-title" hidden="{{!model.title}}" title="{{model.title}}">
+                {{model.title}}
+            </div>
+            <div hidden="{{!model.thumb}}">
+                <img id="image" on-error="imageError" class="thumb owc-list-item-thumb" src="{{model.thumb}}">
+            </div>
+            <div class="flex2child">
+                <div class="owc-list-item-attributes-container" hidden="{{!model.attributes}}">
+                    <template is="dom-repeat" items="{{model.attributes}}" hidden="{{!model.attributes}}">
+                        <div class="attribute owc-list-item-attribute">{{item}}</div>
+                    </template>
+                </div>
+            </div>
+            <div class="owc-list-item-buttons" hidden="{{!model.showAdf}}">
+                <paper-icon-button icon="visibility" on-click="details" title="View Product Details"></paper-icon-button>
+                <paper-icon-button icon="file-download" on-click="download" title="Download Product"></paper-icon-button>
+                <paper-icon-button icon="list" on-click="adfList" title="Show Auxiliary Data File List" hidden="{{!model.showAdf}}"></paper-icon-button>
+                <paper-icon-button icon="settings-applications" on-click="adfSearch" title="Show Auxiliary Data File Search" hidden="{{!isAdfVisible}}"></paper-icon-button>
+            </div>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class ButtonListItem extends HTMLElement {
+
+            beforeRegister() {
+                this.is = 'button-list-item';
+                this.owcApp = document.querySelector('#owc-app');
+
+                this.properties = {
+
+                    /**
+                     * Object containing list item data model                     
+                     * @type {Object}
+                     */
+                    model: {
+                        type: Object,
+                        value: {}
+                    },
+
+                    /**
+                     * Internal property
+                     * If it is true, it indicates that product quicklook available on a WMS server has to be project on the map 
+                     * if it is false, it indicates that product quicklook available on a WMS server hasn' to be project on the 
+                     *  map                      
+                     *
+                     * @private
+                     * @type {Boolean}
+                     */
+                    status: {
+                        type: Boolean,
+                        value: false
+                    },
+
+                    /**
+                     * Object containing reference to <i>owc-list</i> component.
+                     *
+                     * @type {Object}
+                     */
+                    list: {
+                        type: Object,
+                        value: {}
+                    },
+
+                    /**
+                     * Object containing reference to <i>button-list-item</i> parent component
+                     *
+                     * @private
+                     * @type {Object}
+                     */
+                    parent: {
+                        type: Object,
+                        value: {},
+                        notify: true
+                    },
+
+                    /**
+                     * String containing the name of the  target component of <i>message-broker</i> notification
+                     * This property ensures that only the components expressing interest in the notification are stimulated
+                     * by a data model change
+                     *
+                     * @type {String}
+                     */
+                    target: {
+                        type: String,
+                        value: null
+                    },
+
+                    /**
+                     * Object containing reference to <i>cart-manager</i> component. This object can be obtained using proper 
+                     * Polymer selection component method, like
+                     *   <pre>
+                     *   var cartmng  = Polymer.dom(this.root).querySelector('#my-cartmng');
+                     *   </pre>
+                     *               
+                     * @private
+                     * @type {Object}
+                     */
+                    cartmngr: {
+                        type: Object,
+                        value: {},
+                        notify: true
+                    },
+
+                    /**
+                     * Array object containing the identifiers of products belonging to user's cart (i.e. the list of favorite
+                     * products)
+                     *
+                     * @type {Array}
+                     */
+                    cart: {
+                        type: Array,
+                        value: null,
+                        notify: true
+                    },
+
+                    /**
+                     * Property indicating if buttons on list are hidden (false) or shown (true).
+                     *
+                     * @type {Boolean}
+                     */
+                    showButtons: {
+                        type: Boolean,
+                        notify: true
+                    },
+
+                    /**
+                     * Property indicating if a product is contained (true) or NOT (false) in the user's cart.
+                     *
+                     * @type {Boolean}
+                     */
+                    pinned: {
+                        type: Boolean,
+                        notify: false
+                    },
+
+                    /**
+                     * Internal property
+                     * If it is true, it indicates that product quicklook is available on a WMS server  
+                     * if it is false, it indicates that product quicklook is NOT available on a WMS server                    
+                     *
+                     * @private
+                     * @type {Boolean}
+                     */
+                    layerEnabled: {
+                        type: Boolean,
+                        value: true,
+                        notify: true
+                    },
+
+                    /**
+                     * Property indicating if a product is available for direct download from the DHuS archive or not.
+                     *
+                     * @private
+                     * @type {Boolean}
+                     */
+                    isOnline: {
+                        type: Boolean,
+                        value: true,
+                        notify: false
+                    },
+                };
+            }
+
+            /**
+             *  Called when the element has created, but before property values are set
+             *  and local DOM is initialized.
+             *
+             * @return {null}
+             */
+            created() {
+                this.navigationManager = document.getElementById('navigation-manager');
+
+            }
+
+            attached() {
+                var self = this;
+                self.pinned = false;
+                self.set('pinned', self.pinned);
+                self.notifyPath('pinned', self.pinned);
+                self.set('self.cartmngr', self.cartmngr);
+                self.notifyPath('self.cartmngr', self.cartmngr);
+                self.layerEnabled = false;
+                self.set('layerEnabled', self.layerEnabled);
+                self.notifyPath('layerEnabled', self.layerEnabled);
+                if (_.contains(self.cart, self.model.id)) {
+                    self.pinned = true;
+                }
+
+                self.owcApp.messageBroker.subscribe('updateCart',
+                    function() {
+                        if (self.cartmngr) {
+
+                            self.cartmngr.getCartIds().then(function(cartIdsModel) {
+                                self.cart = cartIdsModel;
+                                self.set('self.cart', self.cart);
+                                self.notifyPath('self.cart', self.cart);
+
+                                if (_.contains(self.cart, self.model.id)) {
+                                    self.pinned = true;
+                                } else {
+                                    self.pinned = false;
+                                }
+                            });
+                        }
+
+                    }, self.target);
+
+                self.owcApp.messageBroker.subscribe('setNewModel',
+                    function() {
+
+                        if (self.cartmngr && !self.cart) {
+
+                            self.cartmngr.getCartIds().then(function(cartIdsModel) {
+                                self.cart = cartIdsModel;
+                                self.set('self.cart', self.cart);
+                                self.notifyPath('self.cart', self.cart);
+
+                                if (_.contains(self.cart, self.model.uuid)) {
+                                    self.pinned = true;
+                                } else {
+                                    self.pinned = false;
+                                }
+                            });
+                        }
+                        //console.warn("called button-list-item setNewModel");
+                        setTimeout(function() {
+                            self.layerEnabled = false;
+                            self.set('layerEnabled', self.layerEnabled);
+                            self.notifyPath('layerEnabled', self.layerEnabled);
+
+                            if (self.model.wmsFound == true) {
+                                self.layerEnabled = true;
+
+                            } else {
+                                self.layerEnabled = false;
+                            }
+                            self.set('layerEnabled', self.layerEnabled);
+                            self.notifyPath('layerEnabled', self.layerEnabled);
+                        }, 0);
+
+                    }, self.target);
+
+
+                if (this.owcApp.appconfig) {
+                    this.isAdfVisible = this.owcApp.appconfig.adf;
+                }
+
+                setTimeout(function() {
+                    //console.warn("called button-list-item attached setTimeout");
+                    self.layerEnabled = false;
+                    self.set('layerEnabled', self.layerEnabled);
+                    self.notifyPath('layerEnabled', self.layerEnabled);
+                    if (self.model.wmsFound == true) {
+                        self.layerEnabled = true;
+
+                    } else {
+                        self.layerEnabled = false;
+                    }
+                    self.set('layerEnabled', self.layerEnabled);
+                    self.notifyPath('layerEnabled', self.layerEnabled);
+
+                }, 0);
+
+                self.owcApp.messageBroker.subscribe('pushWms', function(eventName, sections) {
+
+                    setTimeout(function() {
+                        var id = sections;
+                        if (self.model.identifier == id) {
+                            self.model.status = true;
+                            self.set('model.status', self.model.status);
+                            self.notifyPath('model.status', self.model.status);
+                        }
+                    }, 0);
+
+
+
+                }, self.target);
+
+
+
+            }
+
+            /**
+             * This method is used to compute the css class for list item background. 
+             * More in the details, the background is grey for offline product (i.e. product not immediatly available for download)
+             * and is white for online product (i.e. product which can be downloaded directly from DHuS archive)
+             *
+             * @private
+             * @return {String}
+             */
+            computeCssClass() {
+                var cssclass = "item item-complete owc-list-item ";
+                if (!this.model.isOnline)
+                    cssclass += "item-offline";
+                return cssclass;
+            }
+
+            /**
+             * This method is used to get the list of products contained in the user's cart. This list is used to add a proper 
+             * style to the star icon <img src="https://cloud.githubusercontent.com/assets/10920750/25841129/37793d32-349f-11e7-8a12-56b9af4098e0.png"></img> shown in the top right-hand corner of list item.
+             * If star icon is black coloured, this means that the product is not present in the user cart
+             * If star icon is blue coloured, this means that the product is present in the user cart.
+             *
+             * @return {String}
+             */
+            pinnedList() {
+                var self = this;
+                if (self.pinned) {
+                    self.cartmngr.removeFromCart(self.model.uuid).then(function(data) {
+                        if (!self.iscart) {
+                            self.pinned = false;
+                            self.set('pinned', self.pinned);
+                            self.notifyPath('pinned', self.pinned);
+                        }
+                    });
+
+                } else {
+                    self.cartmngr.addToCart(self.model.uuid).then(function(data) {
+                        self.pinned = true;
+                        self.set('pinned', self.pinned);
+                        self.notifyPath('pinned', self.pinned);
+                    });
+
+                }
+
+            }
+
+            /**
+             * This callback is used to manage error due to missing product thumbnail. This allows to show a thumbnail placeholder
+             * in case of error occurred retrieving thumbnail via proper OData API.
+             *            
+             */
+            imageError() {
+                var IMAGE_PLACE_HOLDER_URL = this.owcApp.config.clientUrl + '/images/placeholder.png';
+                Polymer.dom(this.root).querySelector("#image").src = IMAGE_PLACE_HOLDER_URL;
+            }
+
+            /**
+             * This method is used to download a product. Product download is triggered clicking on the proper download icon
+             * <img src="https://cloud.githubusercontent.com/assets/10920750/25785352/721f96ec-337e-11e7-827d-ba0fa32135b9.png"></img>
+             */
+            download() {
+                var self = this;
+                if (this.model.isOnline) {
+                    window.location = this.owcApp.config.baseUrl +
+                        "/odata/v1/Products('" + this.model.uuid + "')/$value";
+                } else {
+                    return this.owcApp.httpManager.sendRequest(
+                        'GET',
+                        self.owcApp.config.baseUrl + "/odata/v1/Products('" + this.model.uuid + "')/$value"
+                    ).then(function(response) {
+                        if (response.status == 202) {
+                            if (self.iscart) {
+
+                                self.owcApp.toastManager.info("Offline product has been requested for download. Please check again your Cart to know when it will be online.", 6000);
+
+                            } else {
+                                if (self.pinned) {
+                                    self.owcApp.toastManager.info("Offline product has been requested for download. Please check your Cart to know when it will be online.", 6000);
+
+                                } else {
+                                    self.cartmngr.addToCart(self.model.uuid).then(function(data) {
+                                        setTimeout(function() {
+                                            self.pinned = true;
+                                            self.set('pinned', self.pinned);
+                                            self.notifyPath('pinned', self.pinned);
+                                        }, 6100);
+                                        self.owcApp.toastManager.info("Offline product has been requested for download and has been moved to Cart. Please check your Cart to know when it will be online.", 6000);
+                                    });
+                                }
+                            }
+
+                        } else {
+                            self.owcApp.toastManager.error("Error during offline product request for download");
+                        }
+
+                    }, function(response) {
+                        self.owcApp.toastManager.error("Error during offline product request for download");
+                        /*TEST PURPOSE  REMOVE!!!!!*/
+                        /*TEST PURPOSE  REMOVE!!!!!*/
+
+                    }).catch(function(reason) {
+                        console.log("ERROR ", reason);
+                        self.owcApp.toastManager.error("Error during offline product request for download");
+
+                    });;
+                }
+
+            }
+
+            /**
+             * This method is  used to project on the map the product quicklook, if a layer for the product is available on a 
+             * WMS server
+             * This functionality is in a prototype stage and at present is not supported by *OWC*
+             * @deprecated
+             * @private  
+             */
+            addLayer() {
+                var self = this;
+                self.parent.addLayer(self.model.identifier, self.target);
+                self.model.status = !self.model.status;
+                self.set('model.status', self.model.status);
+                self.notifyPath('model.status', self.model.status);
+
+            }
+
+            /**
+             * This method is used to open product details panel. This action is triggered clicking on the proper details icon
+             * <img src="https://cloud.githubusercontent.com/assets/10920750/25785356/8c127e66-337e-11e7-9bd0-33f791a94fdb.png"></img>
+             */
+            details() {
+                var product = document.createElement('product-details');
+                product.productuuid = this.model.uuid;
+                product.productname = this.model.identifier;
+                this.navigationManager.pushComponent(product, '500px', 'Product Details');
+            }
+
+            /**
+             * This method is used to show the list of auxiliary data files used to process the product. This action is triggered 
+             * clicking on the proper icon
+             * <img src="https://cloud.githubusercontent.com/assets/10920750/25785334/2db839b4-337e-11e7-96bd-50a1e0900f4d.png"></img>
+             */
+            adfList() {
+                var list = document.createElement('auxiliary-list-container');
+                list.productuuid = this.model.uuid;
+                list.productname = this.model.identifier;
+                this.showButtons = list.showButtons;
+                this.navigationManager.pushComponent(list, '500px', 'Auxiliary Data Files List');
+            }
+
+            /**
+             * This method is used to show the list of auxiliary data files which could be used to process the product.
+             * This auxiliary data files are retrieved from a Data Hub containing auxiliary data product. 
+             * This functionality is in a prototype stage and at present is not supported by *OWC*
+             * @deprecated
+             * @private             
+             */
+            adfSearch() {
+                var list = document.createElement('auxiliary-search-container');
+                list.producttype = this.model.type;
+                list.productname = this.model.identifier;
+                this.showButtons = list.showButtons;
+                this.navigationManager.pushComponent(list, '500px', 'Auxiliary Data Files Search');
+            }
+
+            /**
+             * This method is used to set the component (e.g. <i>owc-list</i>) devoted to show HTTP request data in a list
+             * @param {Object} list: object containing reference to list component. This object can be obtained using proper 
+             * Polymer selection component method, like
+             *   <pre>
+             *   var list  = Polymer.dom(this.root).querySelector('#my-list');
+             *   </pre>
+             *            
+             */
+            setList(list) {
+                this.list = list;
+            }
+
+            /**
+             * This method is used to set target component of <i>message-broker</i> notification, in order to grant that only 
+             * the components expressing interest in the notification are stimulated by a data model change
+             *
+             * @param {Object} target: target component of <i>message-broker</i> notification
+             * @return model
+             */
+            setTarget(target) {
+                this.target = target;
+            }
+
+        };
+
+        Polymer(ButtonListItem);
+
+    })();
+    </script>
+</dom-module>

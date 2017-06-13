@@ -1,0 +1,477 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<!--
+Panel to set language and open main menu
+
+
+@demo demo/index.html
+-->
+<dom-module id="settings-panel">
+    <template>
+        <style type="text/css">
+        .settings-panel {}
+
+        #settingsContainer {
+            @apply(--layout-vertical);
+            height: var(--settingsheight, 500px);
+            width: var(--settingswidth, 100%);
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+
+        paper-button {
+            background: #002664;
+            color: white;
+            padding: 5px 5px;
+            width: 98%;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        paper-button[toggles][active].colorful {
+            background-color: #002664;
+        }
+
+        paper-button[toggles][active][raised].colorful {
+            background-color: rgba(66, 133, 244, 0.75);
+        }
+
+        .settingsSection {
+            margin-top: 40px;
+            padding: 10px;
+        }
+
+        #language {
+            width: 100%;
+        }
+
+        .settingsTitle {
+            padding-bottom: 0px;
+            font-weight: bold;
+            font-size: 25px;
+        }
+
+        .settings-item{
+
+           cursor: pointer;
+           margin-top:10px;
+           display:block;
+           padding: 3px;
+           background-color: rgba(128, 128, 128, 0.05);
+           text-align: center;
+        }
+        </style>
+        <div id="settingsContainer">
+          <div class="settingsSection">
+              <div class="settingsTitle">{{i18n("Client configuration")}}</div>
+              <div style="display:block">
+                <paper-dropdown-menu style="display:inline-block;width:150px;" always-float-label="true" id="language" style="font-size: 26px!important;" label="{{i18n('language')}}" placeholder="{{currentLanguage}}">
+                    <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{selection}}">
+                        <paper-item value="it">it</paper-item>
+                        <paper-item value="en">en</paper-item>
+                        <paper-item value="fr">fr</paper-item>
+                    </paper-listbox>
+                </paper-dropdown-menu>
+                <paper-icon-button style="width: 33px;display:inline-block;" suffix on-click="setLanguage" icon="save" alt="save" title="save"></paper-icon-button>
+              </div>
+              <a class="settings-item" hidden$="{{!isDataManager}}" on-click="mainMenu" title="{{i18n('main menu')}}">Main menu</a>
+
+              <!-- <paper-button hidden$="{{!isDataManager}}" raised class="colorful" on-click="mainMenu" title="{{i18n('main menu')}}">{{i18n("main menu")}}</paper-button> -->
+              <!-- <br/> -->
+              <a class="settings-item" hidden$="{{!isLogged}}" raised class="colorful" on-click="listSettings" title="{{i18n('list settings')}}">{{i18n("List settings")}}</a>
+              <!-- <br/> -->
+              <a class="settings-item" raised class="colorful" on-click="mapSettings" title="{{i18n('map settings')}}">{{i18n("Map settings")}}</a>
+              <!-- <br/> -->
+              <a class="settings-item" hidden$="{{!isLogged}}"raised class="colorful" on-click="wmsSettings" title="{{i18n('wms settings')}}">{{i18n("Wms settings")}}</a>
+              <!-- <br/> -->
+              <a class="settings-item" raised class="colorful" on-click="theme" title="{{i18n('theme')}}">{{i18n("Theme")}}</a>
+              <!-- <br/> -->
+
+          </div>
+
+          <div class="settingsSection">
+              <div class="settingsTitle">{{i18n("Data management")}}</div>
+
+              <a class="settings-item" hidden$="{{!isDataManager}}" raised class="colorful" on-click="upload" title="{{i18n('upload')}}">{{i18n("Upload")}}</a>
+
+              <a class="settings-item" raised class="colorful" on-click="odataSynch" title="OData Synchronizers">OData Synchronizers</a>
+
+              <a class="settings-item" raised class="colorful" on-click="eviction" title="Eviction Manager">Eviction Manager</a>
+
+              <a
+                class="settings-item"
+                hidden$="{{!isDataManager}}"
+                raised class="colorful"
+                on-click="restoreDatabase"
+                title="{{i18n('Mail configuration')}}">{{i18n("Restore database")}}</a>
+
+              <a
+                class="settings-item"
+                hidden$="{{!isDataManager}}"
+                raised class="colorful"
+                on-click="localArchive"
+                class="settings-item"
+                title="{{i18n('Mail configuration')}}">{{i18n("Local archive")}}</a>
+          </div>
+
+          <div class="settingsSection">
+              <div class="settingsTitle">{{i18n("System")}}</div>
+              <a  class="settings-item"
+                hidden$="{{!isDataManager}}"
+                raised class="colorful"
+                on-click="mailConfiguration"
+                class="settings-item"
+                title="{{i18n('Mail')}}">{{i18n("Mail")}}</a>
+
+              <a  class="settings-item"
+                hidden$="{{!isDataManager}}"
+                raised class="colorful"
+                on-click="rootConfiguration"
+                class="settings-item"
+                title="{{i18n('Root account')}}">{{i18n("Root account")}}</a>
+
+              <a  class="settings-item" hidden$="{{!isDataManager}}" raised class="colorful" on-click="users" title="{{i18n('users')}}">{{i18n("Users")}}</a>
+
+
+          </div>
+
+
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class SettingsPanel extends HTMLElement {
+
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'settings-panel';
+                this.properties = {
+
+                    /**
+                     * check if user has data manager role
+                     *
+                     * @type {Boolean}
+                     */
+                    isDataManager: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
+                    /**
+                     * check if user is logged
+                     *
+                     * @type {Boolean}
+                     */
+                    isLogged: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    }
+                };
+            }
+
+            /**
+             *  Called when the element has created, but before property values are set
+             *  and local DOM is initialized.
+             *
+             * @return {null}
+             */
+            created() {
+                this.navigationManager = document.getElementById('navigation-manager');
+            }
+
+            /**
+             * Called after property values are set and local DOM is initialized
+             *
+             * @return {null}
+             */
+            ready() {
+
+            }
+
+            /**
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+                this.owcApp = document.querySelector('#owc-app');
+                var self = this;
+                this.isDataManager = this.owcApp.userManager.isDataManager();
+                this.isLogged = this.owcApp.userManager.isLogged();
+                self.set('isDataManager', this.isDataManager);
+                self.set('self.isLogged', this.isLogged);
+
+                self.currentLanguage = self.owcApp.i18nManager.currentLanguage;
+                window.addEventListener("resize", function() {
+                    self.resize();
+                });
+                this.owcApp.messageBroker.subscribe('logged-in', function(eventName) {
+                    setTimeout(function() {
+                        self.isDataManager = self.owcApp.userManager.isDataManager();
+                        self.isLogged = self.owcApp.userManager.isLogged();
+                        self.set('self.isLogged', self.isLogged);
+                        self.set('isDataManager', self.isDataManager);
+                    }, 0);
+                });
+                this.owcApp.messageBroker.subscribe('logged-out', function() {
+                    setTimeout(function() {
+                        self.isDataManager = self.owcApp.userManager.isDataManager();
+                        self.isLogged = self.owcApp.userManager.isLogged();
+                        self.set('self.isLogged', self.isLogged);
+                        self.set('isDataManager', self.isDataManager);
+                    }, 0);
+                });
+
+                this.isDataManager = this.owcApp.userManager.isDataManager();
+                self.set('isDataManager', this.isDataManager);
+
+            }
+
+            /**
+             *   Set Application language
+             *
+             * @return {null}
+             */
+            mailConfiguration(){
+              var mail = document.createElement('admin-system-mail-configuration');
+              this.navigationManager.pushComponent(mail, '500px', 'Mail configuration',false, true,1);
+
+            }
+
+            /**
+             *   Open root configuration panel
+             *
+             * @return {null}
+             */
+            rootConfiguration(){
+              var root = document.createElement('admin-system-root-configuration');
+              this.navigationManager.pushComponent(root, '500px', 'Root configuration',false, true,1);
+            }
+
+            /**
+             *   Open restore database panel
+             *
+             * @return {null}
+             */
+            restoreDatabase(){
+              var database = document.createElement('admin-system-restore-database');
+              this.navigationManager.pushComponent(database, '500px', 'Restore database',false, true,1);
+            }
+
+            /**
+             *   Open local archive panel
+             *
+             * @return {null}
+             */
+            localArchive(){
+              var archive = document.createElement('admin-system-local-archive');
+              this.navigationManager.pushComponent(archive, '500px', 'Local archive',false, true,1);
+            }
+
+            /**
+             *   Set Application language
+             *
+             * @return {null}
+             */
+            setLanguage() {
+                var self = this;
+                var sel = Polymer.dom(self.root).querySelector('#language').value;
+                this.owcApp.i18nManager.setCurrentLanguage(sel);
+                self.owcApp.toastManager.info(self.i18n("change_language_success_message"));
+            }
+
+            /**
+             *   Push main menu component in navigation system
+             *   Push main menu component in main menu
+             *
+             * @return {null}
+             */
+            mainMenu() {
+                if (!this.owcApp.authenticationManager.isLogged()) {
+                    this.owcApp.authenticationManager.showLogin();
+                    return;
+                }
+                var owcContainer = document.createElement('owc-settings-container');
+                this.navigationManager.pushComponent(owcContainer, '500px', 'main menu', false, true, 1);
+            }
+
+
+            /**
+             *   Push upload management component on navigation system
+             *
+             * @return {null}
+             */
+            upload() {
+                var uploadContainer = document.createElement('upload-container');
+                this.navigationManager.pushComponent(uploadContainer, '650px', 'Upload Management', false, true, 1);
+            }
+
+            /**
+             *   Push system component in navigation system
+             *
+             * @return {null}
+             */
+            system() {
+
+              var owcContainer = document.createElement('admin-system');
+              this.navigationManager.pushComponent(owcContainer, '500px', 'system configuration menu',false, true,1);
+          }
+
+
+
+            users(){
+
+                if (!this.owcApp.authenticationManager.isLogged()) {
+                    this.owcApp.authenticationManager.showLogin();
+                    return;
+                }
+
+                var adminUsers = document.createElement('admin-users');
+                this.navigationManager.pushComponent(adminUsers, '500px', 'Admin Users',false, true,1);
+            }
+
+            /**
+
+             *   Push odata synch editor in navigation system
+             *
+             * @return {null}
+             */
+            odataSynch() {
+                if (!this.owcApp.authenticationManager.isLogged()) {
+                    this.owcApp.authenticationManager.showLogin();
+                    return;
+                }
+                var owcContainer = document.createElement('synchronizer-container');
+                this.navigationManager.pushComponent(owcContainer, '500px', 'Synchronizer Container',false, true,1);
+            }
+
+
+            /**
+             *   Push eviction manager in navigation system
+             *
+             * @return {null}
+             */
+            eviction() {
+                if (!this.owcApp.authenticationManager.isLogged()) {
+                    this.owcApp.authenticationManager.showLogin();
+                    return;
+                }
+                var evictionContainer = document.createElement('owc-eviction-container');
+                this.navigationManager.pushComponent(evictionContainer, '500px', 'Eviction Manager',false, true,1);
+            }
+
+            /**
+             *   Push  theme editor in navigation system
+             *
+             * @return {null}
+             */
+            theme() {
+                if (!this.owcApp.authenticationManager.isLogged()) {
+                    this.owcApp.authenticationManager.showLogin();
+                    return;
+                }
+                var themeContainer = document.createElement('owc-theme-settings');
+                this.navigationManager.pushComponent(themeContainer, '500px', 'Theme Editor',false, true,1);
+            }
+
+
+            /**
+             *   Push map settings in navigation system
+             *
+             * @return {null}
+             */
+            mapSettings() {
+                var mapSettingsContainer = document.createElement('map-settings-container');
+                this.navigationManager.pushComponent(mapSettingsContainer, '500px', 'Map Settings',false, true,1);
+            }
+
+            /**
+             *   Push wms settings panel in navigation system
+             *
+             * @return {null}
+             */
+            wmsSettings() {
+                var wmsSettingsContainer = document.createElement('wms-settings-container');
+                this.navigationManager.pushComponent(wmsSettingsContainer, '500px', 'WMS Settings',false, true,1);
+            }
+
+            listSettings() {
+                var listSettingsContainer = document.createElement('list-settings-container');
+                this.navigationManager.pushComponent(listSettingsContainer, '800px', 'List Model Schema editor',false, true,1);
+            }
+
+            /**
+             *  Resize callbach handler
+             *
+             * @return {null}
+             */
+            resize() {
+                var self = this;
+
+                self.customStyle['--settingsheight'] = parseInt(self.parentPanel.getSize().height) + "px";
+                self.updateStyles();
+                self.customStyle['--settingswidth'] = parseInt(self.parentPanel.getSize().width) + "px";
+                self.updateStyles();
+
+            }
+
+            /**
+             *  Check if there are data manager rights
+             *
+             * @return {null}
+             */
+            isDataManager() {
+                this.isDataManager = this.owcApp.userManager.isDataManager();
+            }
+
+
+        };
+
+        Polymer(SettingsPanel);
+
+    })();
+    </script>
+</dom-module>

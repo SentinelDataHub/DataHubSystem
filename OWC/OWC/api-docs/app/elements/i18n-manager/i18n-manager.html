@@ -1,0 +1,177 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+i18n Manager translate words in many languages, exploiting dictionaries.
+
+User can choose application language, selecting one option from the Language combo and then clicking on save icon.
+
+The languages dictionary are located in the folder: *lang*
+The convetion to follow to add a new dictionary is:
+dictionary.*language_code*
+
+
+ *language_code* means  the code to identify a language in the browsers (https://www.w3schools.com/tags/ref_language_codes.asp).
+
+The dictionary is a simple json file with the key:values of every definition. e.g.:
+
+<pre>
+{
+	"search":"Chercher",
+	"logged_in_message":"Connecté avec succès.",
+	"logged_out_message":"Déconnexion avec succès.",
+	"updated_main_menu_message": "Menu principal mise à jour avec succès.",
+	"change_language_success_message": "La langue a changé avec le succès.",
+	"completed_new_search_message": "Complété nouvelle recherche.",
+	"login" : "Login",
+	"settings":"Paramètres",
+	"user":"Usager",
+	"system":"Système",
+	"save":"Sauver",
+	"main menu":"Menu Principal",
+	"language":"Language",
+	"search":"Chercher",
+	"clear":"élimine",
+	"clearButton":"Effacer Filtre de recherche",
+	"products list":"Liste des Produits",
+	"products found":"produits trouvés",
+	"product found":"produit trouvé",
+	"title":"Titre",
+	"component name":"Component Name",
+	"width":"Largeur",
+	"remote component url":"Remote Component Url",
+	"icon":"Icône",
+	"account": "Compte",
+	"type_not_supported": "Type de produit non pris en charge",
+	"system configuration menu":"Configuration du système"
+}
+
+</pre>
+
+
+ <strong>Usage</strong>
+
+The method setCurrentLanguage sets the current language of the OWC application.
+The method translate converts the parameter string with the value found in the dictionary of the current language.
+If the key is not present the method translate returns the key.
+
+
+<strong>How to add a new language</strong>
+
+ - Add a new dictionary in the dictionary folders: [https://github.com/SentinelDataHub/DataHubSystem/tree/9d29f32e2faaa1fae66005001f0525e05ceb17a7/client/owc-client/src/main/frontend/app/lang](https://github.com/SentinelDataHub/DataHubSystem/tree/9d29f32e2faaa1fae66005001f0525e05ceb17a7/client/owc-client/src/main/frontend/app/lang), with the key values strings
+
+ - To add the new language in the settings page: [https://github.com/SentinelDataHub/DataHubSystem/blob/9d29f32e2faaa1fae66005001f0525e05ceb17a7/client/owc-client/src/main/frontend/app/elements/settings-panel/settings-panel.html#L90 ](https://github.com/SentinelDataHub/DataHubSystem/blob/9d29f32e2faaa1fae66005001f0525e05ceb17a7/client/owc-client/src/main/frontend/app/elements/settings-panel/settings-panel.html#L90 )
+
+
+
+-->
+<dom-module id="i18n-manager">
+    <script>
+    (function() {
+        'use strict';
+        class I18nManager {
+
+            /**
+              class constructor
+            */
+            constructor() {
+                this.beforeRegister();
+            }
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'i18n-manager';
+                this.languageBaseURL = "/lang";
+                this.owcApp = document.querySelector('#owc-app');
+                this.languages = {};
+            }
+
+            /**
+             *   Load language from server
+             *
+             * @param {?Object} paramExample: method parameter sample
+             * @return {null}
+             */
+            _getLanguage(lang) {
+                var self = this;
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.clientUrl + '/lang/dictionary.' + lang
+                );
+            }
+
+
+            /**
+             *   Set the current language
+             *
+             * @param {?Object} newValue: the new value of public Property
+             * @return {null}
+             */
+            setCurrentLanguage(lang) {
+                var self = this;
+
+                if (!this.languages || this.languages[lang] === undefined) {
+                    return this._getLanguage(lang)
+                        .then(function(response) {
+                            if (response.status == 200) {
+                                self.languages[lang] = response.data;
+                                self.currentLanguage = lang;
+                                localStorage.setItem("owcLanguage", lang);
+                            }
+                        });
+                } else {
+                    self.currentLanguage = lang;
+                    localStorage.setItem("owcLanguage", lang);
+                    return null;
+                }
+            }
+
+            /**
+             *   Translate a string
+             *
+             * @param {?Object} newValue: the new value of public Property
+             * @return {String} translated string
+             */
+            translate(key) {
+                if ((this.languages[this.currentLanguage] === undefined)) return key;
+                return this.languages[this.currentLanguage][key] ? this.languages[this.currentLanguage][key] : key;
+
+            }
+        };
+
+        Polymer(I18nManager);
+        eu.serco.Owc.I18nManager = I18nManager;
+
+    })();
+    </script>
+</dom-module>

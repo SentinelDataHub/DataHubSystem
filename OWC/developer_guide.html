@@ -1,0 +1,140 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+</head>
+<body>
+<h1 id="developer-guide">DEVELOPER GUIDE</h1>
+<h2 id="preface">Preface</h2>
+<p>This guide is oriented at anyone who is interested on Space Data Dissemination and wants to use Open Web Components (OWC) software, a configurable, user friendly, extensible Graphical User Interface for the SentinelDataHub/DataHubSystem, based on Web Components (Polymer).</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>To understand every part of the following guide it is required at least some <code>HTML</code>, <code>CSS</code> and <code>Javascript</code> programming experience. Basic knowledge of HTML5, CSS and Javascript principles are enough to run and configure the ESA Scientific HUB Open Web Components. This means that these guidelines are intended for intermediate web developers.</p>
+<p>Before we dive in, a brief description of Standards and technologies involved is reported in next paragraphs. ### Web Components</p>
+<p><code>Web Components</code> are a set of standards beign added to the HTML and DOM specification, by the World Wide Web Consortium (W3C). Web Components main innovation is the possibility to use an Object Oriented approach in Web application development. The main features of Web Components standards are: - Custom Elements, a specification describing the method for enabling the author to define and use new types of DOM elements in a document. - Shadow DOM, a specification based on encapsulation and hiding the innards of a custom element inside a nested document, avoiding overriding of JavaScript methods and CSS styles. - HTML Imports, a specification which allows to include and reuse HTML documents, considered as external resources, in other HTML documents. - HTML Template, a specification which enables to store HTML data inside an HTML document, by means of &lt;template&gt; tag. The &lt;template&gt; element is used to declare fragments of HTML that can be cloned and inserted in the document by script. The content of a &lt;template&gt; element is parsed without interpreting it.</p>
+<h3 id="polymer">Polymer</h3>
+<p><code>Polymer</code> is an open-source library for creating web applications using web components, following Material Design principles. Polymer library is designed to make it easier and faster for developers to create great, reusable components for the modern web. Polymer is built on top of the web components standards and it helps developers in building their own custom elements.</p>
+<p>Polymer library provides a declarative syntax that makes it simpler to define custom elements. It adds features like templating, two-way data binding and property observation to help building powerful, reusable elements with less code.</p>
+<p>More information about Polymer library can be found at: https://www.polymer-project.org/1.0/docs/start/what-is-polymer.html</p>
+<h3 id="bower">Bower</h3>
+<p><code>bower</code> is package manager of web (html/css/js) dependencies for client side (browser). It simplifies developers' job downloading and managing all external libraries used by a web application. It's enough to include in your application a file, called bower.json, with the list of dependencies and the version to use.</p>
+<h3 id="node.js">Node.js</h3>
+<p><code>Node.js</code> is is an open-source, cross-platform JavaScript runtime environment for developing tools and application. Node.js javascript interpreter is Google's V8. In the context of OWC, Node.js is required as Bower dependency.</p>
+<h3 id="npm-node-package-manager">Npm (Node Package Manager)</h3>
+<p><code>npm</code> is the Node.js package manager, automatically included when Node.js is installed. npm manages installation of packages that are local dependencies of a particular project, resolving also, in one command, all the dependencies of a project.</p>
+<h3 id="gulp">Gulp</h3>
+<p><code>Gulp</code> helps automation of time-consuming tasks in development workflow. It is a Node.js task manager used mainly for: - Minification and concatenation of Javascript and CSS files - CSS and Javascript preprocessing and validation - Image optimization - Unit testing</p>
+<p>The philosophy of gulp is <em>code over configurations</em></p>
+<h3 id="odata">OData</h3>
+<p><code>OData (Open Data Protocol)</code> is a standard that defines a set of best practices for building and consuming RESTful APIs. OData RESTful APIs are easy to consume. The OData metadata, a machine-readable description of the data model of the APIs, enables the creation of powerful generic client proxies and tools.</p>
+<h2 id="build-your-own-owc-web-component">Build your own OWC Web Component</h2>
+<h3 id="how-to-create-a-new-web-component-for-owc-generation-tool"><a name="gentool0001"></a> How to create a new web component for OWC (generation tool)</h3>
+<p><em>OWC</em> provides a tool to auto-generate a polymer from a template, which is compliant with folder structure described previously.</p>
+<p>These are the steps to follow for running OWC component generation tool:</p>
+<ol style="list-style-type: decimal">
+<li><p>move to the owc source folder (like: <code>&lt;clone_folder&gt;/client/owc-client/src/main/frontend/</code>):</p>
+<pre><code>cd &lt;owc-path&gt;</code></pre></li>
+<li><p>run the following command to create a new OWC component:</p>
+<pre><code>python tools/new_component.py create</code></pre></li>
+<li><p>during command execution, please insert the requested information:</p>
+<pre><code>Repository path (empty to load the path from configuration file):</code></pre>
+<p><em>Insert the path of the owc source folder (e.g. <clone_folder>/client/owc-client/src/main/frontend/) and then press <strong>enter</strong>.</em></p>
+<pre><code>Repository url (empty to load the path from configuration file):</code></pre>
+<p><em>Insert the git repository url for this component (e.g. https: //github.com/<your_repo>/DataHubSystem.git), or leave field empty if there isn't a repository, then press <strong>enter</strong>.</em></p>
+<pre><code>New element name:</code></pre>
+<p><em>Insert the name of the new component. It must be composed with two words separated by '-' character (e.g. new-component), then press <strong>enter</strong>.</em></p>
+<pre><code>New element class:</code></pre>
+<p><em>Insert the name of the ES6 class that will contain the code of the new Polymer component (e.g. NewComponent), then press <strong>enter</strong>.</em></p></li>
+</ol>
+<pre><code>New element description:</code></pre>
+<p><em>Insert a description of the new component, then press <strong>enter</strong>.</em></p>
+<p>script output will be similar to snippet below:</p>
+<pre><code>Template path: /data/owc-project/app/elements/_template-element, new component path: /data/owc-project/app/elements/new-component
+setting demo...
+setting test...
+setting README...
+setting bower.json...
+setting wct files...
+setting element file
+[DONE]</code></pre>
+<p>The source code of the new component is created in the folder <code>&lt;clone_path&gt;/client/owc-client/app/elements/new-component/</code>, which contains all basic files of a standard Polymer component. This grants the possibility to: - write and run easily component unit tests - run component demo - generate automatically component documentation</p>
+<h3 id="how-to-integrate-a-new-web-component-in-owc">How to integrate a new web component in OWC</h3>
+<p>After creating a new component, it is necessary to integrate it into OWC to make it visible to all the other components of the application. To do this, it is enough to insert the reference link to the component in <strong>elements.html</strong> file located in the folder <strong><clone_path>/client/owc-client/src/main/app/elements</strong>.</p>
+<p>Some examples of components import are reported below:</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;link</span><span class="ot"> rel=</span><span class="st">&quot;import&quot;</span><span class="ot"> href=</span><span class="st">&quot;navigation-manager/navigation-manager.html&quot;</span><span class="kw">&gt;</span>
+<span class="kw">&lt;link</span><span class="ot"> rel=</span><span class="st">&quot;import&quot;</span><span class="ot"> href=</span><span class="st">&quot;http-manager/http-manager.html&quot;</span><span class="kw">&gt;</span>
+<span class="kw">&lt;link</span><span class="ot"> rel=</span><span class="st">&quot;import&quot;</span><span class="ot"> href=</span><span class="st">&quot;authentication-manager/authentication-manager.html&quot;</span><span class="kw">&gt;</span></code></pre>
+<h3 id="how-to-generate-documentation-of-web-component">How to generate documentation of web component</h3>
+<p>Google's provides automatic tools to auto-generate documentation from code comments.</p>
+<p>Here is shown, as example, the iron-ajax documentation:</p>
+<div class="figure">
+<img src="https://cloud.githubusercontent.com/assets/1030870/21136872/c29a9a8c-c127-11e6-8e5b-fc8225df7567.png" alt="autogenerated-docs" /><p class="caption">autogenerated-docs</p>
+</div>
+<p>Comment written to generate component generic description is:</p>
+<pre><code>&lt;!--
+The `iron-ajax` element exposes network request functionality.
+    &lt;iron-ajax
+        auto
+        url=&quot;https://www.googleapis.com/youtube/v3/search&quot;
+        params=&#39;{&quot;part&quot;:&quot;snippet&quot;, &quot;q&quot;:&quot;polymer&quot;, &quot;key&quot;: &quot;YOUTUBE_API_KEY&quot;, &quot;type&quot;: &quot;video&quot;}&#39;
+        handle-as=&quot;json&quot;
+        on-response=&quot;handleResponse&quot;
+        debounce-duration=&quot;300&quot;&gt;&lt;/iron-ajax&gt;
+With `auto` set to `true`, the element performs a request whenever
+its `url`, `params` or `body` properties are changed. Automatically generated
+requests will be debounced in the case that multiple attributes are changed
+sequentially.
+Note: The `params` attribute must be double quoted JSON.
+You can trigger a request explicitly by calling `generateRequest` on the
+element.
+@demo demo/index.html
+@hero hero.svg
+--&gt;</code></pre>
+<p>Comment written to generate documentation about <em>activeRequests</em> property is:</p>
+<pre><code>/**
+ * An Array of all in-flight requests originating from this iron-ajax
+ * element.
+ */
+activeRequests: {
+  type: Array,
+  notify: true,
+  readOnly: true,
+  value: function() {
+    return [];
+  }
+},</code></pre>
+<p>iron-ajax code and documentation is available in the official google portal and repository on github (<a href="https://github.com/PolymerElements/iron-ajax/blob/master/iron-ajax.html">code</a>, <a href="https://elements.polymer-project.org/elements/iron-ajax">documentation</a>)</p>
+<p>The documentation page is generated by the <a href="https://github.com/PolymerElements/iron-component-page">iron-component-page</a>. The environment to exploit iron-component-page is set using the component generation tool described in paragraph <a href="#gentool0001">How to create a new web component for OWC (generation tool)</a>.</p>
+<p>To deploy the documentation is enough to serve the element folder via http server. If you want to publish <em>new-component</em> documentation in the port 8081, you need to perform these commands:</p>
+<pre><code>cd &lt;clone_path&gt;/client/owc-client/src/main/frontend/app/
+python -m SimpleHTTPServer 8081</code></pre>
+<p>Then you can take a look at your component documentation opening a browser at this url:</p>
+<pre><code>http://localhost:8081/elements/new-component/</code></pre>
+<p><strong>Note</strong>: be careful about dependencies inclusion of bower_components folder. This is documentation page outcome:</p>
+<div class="figure">
+<img src="https://cloud.githubusercontent.com/assets/1030870/21138202/435af3a6-c12d-11e6-885d-3e8625d4078f.png" alt="auto-docs" /><p class="caption">auto-docs</p>
+</div>
+</body>
+</html>

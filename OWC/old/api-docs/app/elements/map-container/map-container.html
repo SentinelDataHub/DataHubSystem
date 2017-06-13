@@ -1,0 +1,207 @@
+<!--
+  @license
+
+ 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../map-data-source/map-data-source.html">
+<link rel="import" href="../map-coder/map-coder.html">
+<link rel="import" href="../owc-map/owc-map.html">
+<link rel="import" href="Query.html">
+<!--
+ Components used as owc-map container
+                    
+                    @demo demo/index.html
+                    -->
+<dom-module id="map-container">
+    <style is="custom-style">
+    #map-container-main-container {
+        height: var(--mapheight, 500px);
+        width: var(--mapwidth, 100%);
+        overflow-y: auto;
+        overflow-x: auto;
+    }
+    </style>
+    <!-- VIEW  CODE HERE -->
+    <template>
+        <div id="map-container-main-container">
+            <owc-map id="cristina"></owc-map>
+            <map-data-source id="mapdatasource"></map-data-source>
+            <map-coder></map-coder>
+        </div>
+        <!-- view code here -->
+    </template>
+    <!-- MODEL-CONTROLLER CODE -->
+    <script>
+    (function() {
+        'use strict';
+        class MapContainer extends HTMLElement {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'map-container';
+                /**
+                 * Public property description
+                 *
+                 * @type {Object}
+                 */
+                this.properties = {
+                    /**
+                     * Query done
+                     *
+                     * @type {String}
+                     */
+                    query: {
+                        type: String,
+                        value: null
+                    },
+                    /**
+                     * products count
+                     *
+                     * @type {Number}
+                     */
+                    count: {
+                        type: Number,
+                        value: null
+                    },
+                    /**
+                     * check if product list contains more than 1 product
+                     *
+                     * @type {Boolean}
+                     */
+                    oneProduct: {
+                        type: Boolean,
+                        value: true
+                    }
+
+                };
+                /* --- CLASS PROPERTIES --- */
+
+
+            }
+
+
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+                var newQuery = new Query();
+                this.set("newQuery", newQuery);
+                var self = this;
+
+                self.owcMap = document.getElementById("cristina");
+                var mapdatasource = Polymer.dom(self.root).querySelector('#mapdatasource'),
+                    mapCoder = document.createElement('map-coder'),
+                    mapSemanticManager = document.createElement('map-semantic-manager'),
+                    mapContainer = Polymer.dom(self.root).querySelector('#map-container-main-container');
+
+
+                this.mapdatasource = mapdatasource;
+                self.owcMap.setDelegate(mapdatasource);
+                self.owcMap.setContainer(mapContainer);
+                self.newQuery.setContainer(mapContainer);
+                self.newQuery.query.text = this.query;
+                self.owcMap.setNewQuery(newQuery);
+                mapdatasource.setMap(self.owcMap);
+                mapdatasource.setMapCoder(mapCoder);
+                mapdatasource.setMapSemanticManager(mapSemanticManager);
+                mapdatasource.setMapContainer(this);
+                mapdatasource.loadDataFromServer(self.newQuery.query);
+                setTimeout(function() {
+                    self.resize();
+                }, 0);
+            }
+
+            /**             
+             * Resize method (called from navigation panel)            
+             *
+             * @param {?Object} paramExample: method parameter sample
+             * @return {null}
+             */
+            resize() {
+                this.customStyle['--mapheight'] = parseInt(this.parentPanel.getSize().height - 10) + "px";
+                this.updateStyles();
+                this.customStyle['--mapwidth'] = parseInt(this.parentPanel.getSize().width) + "px";
+                this.updateStyles();
+            }
+
+            /**
+             *  This method is used to set query done
+             *
+             * @return {String} query done
+             * @return {null} 
+             */
+            setQuery(query) {
+                this.query = query;
+            }
+
+            /**
+             *  This method is used to set a new query to perform
+             *
+             * @return {String} new query to perform
+             * @return {null} 
+             */
+            setNewQuery(newQuery) {
+                this.newQuery = newQuery;
+            }
+
+            /**
+             *  This method is used to set product count
+             *
+             * @return {Number} product count
+             * @return {null} 
+             */
+            setCount(count) {
+                this.count = count;
+            }
+
+            /**
+             *  This method is used to check if product list contains more than 1 product
+             *
+             * @return {Boolean} true if list has one product, false otherwise
+             * @return {null} 
+             */
+            setOneProduct(oneProduct) {
+                this.oneProduct = oneProduct;
+            }
+
+
+        };
+        Polymer(MapContainer);
+    })();
+    </script>
+</dom-module>

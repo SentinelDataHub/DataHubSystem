@@ -1,0 +1,249 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+</head>
+<body>
+<h1 id="owc-software-architecture">OWC Software Architecture</h1>
+<h2 id="web-component-architecture">Web Component architecture</h2>
+<h3 id="introduction">Introduction</h3>
+<p><em>OWC</em> is based on web components standard, using Google's Polymer library. Each entity in <em>OWC</em> is a web component, following the Model View Controller (MVC) design pattern and compatible with JavaScript ECMAScript 5 and ECMAScript 6.</p>
+<h3 id="a-basic-polymer-component">A basic Polymer component</h3>
+<p>The basic Polymer component is an extension of HTML tags, where the root element contains component name. A minimum set of tags is used to define: - component view (HTML and CSS) - component controller (JavaScript)</p>
+<p>Below is reported an example of a new component with name <em>new_component</em> written following ECMAScript 6 standard.</p>
+<pre><code>&lt;dom-module id=&quot;new-component&quot;&gt;
+
+&lt;template&gt;
+  &lt;style&gt;
+    h1{
+      font-size:33px;
+    }
+  &lt;/style&gt;
+  &lt;h1&gt;New Component title&lt;/h1&gt;
+&lt;/template&gt;
+
+&lt;script&gt;
+    (function() {
+       &#39;use strict&#39;;
+       class NewComponent {
+           beforeRegister() {
+               this.is = &#39;new-component&#39;;
+           }
+       };
+      Polymer(NewComponent);
+
+    })();
+  &lt;/script&gt;
+
+&lt;/dom-module&gt;</code></pre>
+<p>The code snippet is detailed in the next paragraphs.</p>
+<h4 id="dom-module">dom-module</h4>
+<p>The <strong>dom-module</strong> is the HTML tag used by Polymer to specify the web component DOM (Document Object Model), called <em>local DOM</em>. The following code snippet is used to define a new html tag module with name <em>new-component</em>.</p>
+<pre><code>&lt;dom-module id=&quot;new-component&quot;&gt;
+...
+&lt;/dom-module&gt;</code></pre>
+<h4 id="component-view">Component View</h4>
+<p>Component view is included in HTML &lt;template&gt; element, a mechanism for holding client-side content that is not to be rendered when a page is loaded but may subsequently be instantiated during runtime using JavaScript. The template tag contains HTML tags and CSS style definition. Below is reported a code snipped related to <em>new_component</em> view.</p>
+<p><code>&lt;template&gt;    &lt;style&gt;      h1{        font-size:33px;      }    &lt;/style&gt;    &lt;h1&gt;New Component title&lt;/h1&gt;  &lt;/template&gt;</code></p>
+<h4 id="component-controller">Component Controller</h4>
+<p>Following the Model View Controller design pattern, the controller contains the logic to glue the model with the view. The controller gets data from the data-sources (i.e. model) and binds this data to the view. <em>Polymer</em> supports also bidirectional data binding. For more information, please refer to <a href="https://www.polymer-project.org/1.0/docs/devguide/data-binding">official documentation</a>.</p>
+<p>The controller is defined inside the &lt;script&gt; block of a Web Component, as indicated in the code below.</p>
+<pre><code>  &lt;script&gt;
+    (function() {
+       &#39;use strict&#39;;
+       class NewComponent {
+           beforeRegister() {
+               this.is = &#39;new-component&#39;;
+           }
+       };
+      Polymer(NewComponent);
+
+    })();
+  &lt;/script&gt;</code></pre>
+<p><em>OWC</em> is developed using ES6 (<a href="https://en.wikipedia.org/wiki/ECMAScript">ECMAScript 6</a> standard). The approach to follow using ES6 with Polymer is detailed in <a href="https://www.polymer-project.org/1.0/blog/es6">Polymer's official blog post</a>.</p>
+<p>With regard to example above, the controller is implemented within a Javascript class, named <em>NewComponent</em>. This class includes, if needed, implementation of the main callbacks of Polymer used to handle Polymer elements lifecycle. These methods are:</p>
+<ul>
+<li><strong>beforeRegister</strong>: Called before creating an element and used mainly to define element properties.</li>
+<li><strong>created</strong>: Called when the element has been created, but before property values are set and local DOM is initialized.</li>
+<li><strong>ready</strong>: Called after property values are set and local DOM is initialized.</li>
+<li><strong>attached</strong>: Called after the element is attached to the document.</li>
+<li><strong>detached</strong>: Called after the element is detached from the document.</li>
+</ul>
+<p>For a complete description of Polymer callback, we suggest to read the <a href="https://www.polymer-project.org/1.0/docs/devguide/registering-elements">official documentation</a> about Polymer Compoents lifecycle.</p>
+<p>The code line <code>Polymer(NewComponent);</code> (reported in the previous code snippet) registers the new component class as new Polymer object. The new component is usable as HTML tag after executing this statement.</p>
+<h3 id="web-component-folder-structure"><a name="mbstructure0001"></a>Web component folder structure</h3>
+<p><em>OWC</em> web components folder structure is inspired from Google's official web components folder structure.</p>
+<pre><code>├── bower.json
+├── demo
+│   └── index.html
+├── index.html
+├── package.json
+├── README.md
+├── new-component.html
+├── test
+│   ├── index.html
+│   └── new-component.html
+├── wct.conf.js
+└── wct.conf.json</code></pre>
+<p>Main files contained in the web component are: - <strong>bower.json</strong>: this file contains the third part dependencies, downloadable via <a href="https://bower.io/">Bower</a>. To install locally component's dependecies, you have to run <code>bower install</code> command on a terminal. - <strong>demo</strong> folder, which contains the file <em>index.html</em>, with HTML code used for component demonstration page. - <strong>index.html</strong>: this file contains the code to autogenerate the Polymer component documentations and demo. - <strong>package.json</strong>: this file contains the Nodejs and npm dependencies. To install locally component's dependecies, you have to run <code>npm install</code> command on a terminal. - <strong>README.md</strong>, i.e. Markdown documentation of component, containing typically a high level and short description of component's functionalities. - <strong>new-component.html</strong>: this file contains the source code of the web component. - <strong>test</strong> folder, which contains the following files: - <strong>index.html</strong>,including instruction to exploit the <a href="https://github.com/Polymer/web-component-tester">web component tester</a> used for web component unit tests - <strong>new-component.html</strong>, containing the implementation of unit tests for the <em>new-component</em> - <strong>wct.conf.js</strong>: in this file are listed <a href="https://github.com/Polymer/web-component-tester">web component tester</a> module settings - <strong>wct.conf.json</strong>: this file includes <a href="https://github.com/Polymer/web-component-tester">web component tester</a> module configuration</p>
+<h2 id="owc-main-components">OWC main components</h2>
+<h3 id="navigation-manager-component">navigation-manager component</h3>
+<h4 id="architecture">Architecture</h4>
+<p>This component manages the currently displayed components using the navigation stack, which is represented by an array of components. The first element in the array is the root, the <strong>dynamic-main-menu</strong>. The last element in the array is the last component displayed at the right of the screen (in Desktop view). The user can add components to the stack using the method <strong>pushComponent</strong> of navigation manager and can remove all components from the navigation stack, except for the root element, using the <strong>popComponent</strong> method. In Desktop view the new component is pushed on the right of the last visualized component, while in Mobile view the new component is pushed up to the currently visualized component.</p>
+<div class="figure">
+<img src="img/desktop_view.png" alt="Desktop View" /><p class="caption">Desktop View</p>
+</div>
+<h4 id="usage">Usage</h4>
+<p><em>navigation-manager</em> web component is part of <em>owc-app</em> web component, included in OWC application.</p>
+<p>Here is an example on how to get a reference to <em>owc-app</em> web component in a different web component:</p>
+<pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="kw">this</span>.<span class="fu">owcApp</span> = <span class="ot">document</span>.<span class="fu">querySelector</span>(<span class="st">&#39;#owc-app&#39;</span>);</code></pre>
+<p>The navigation-mamager is mainly used to publish a new panel in the DOM, by means of pushComponent method, which has the following input parameters: - <strong>component</strong>, i.e. component name - <strong>panelWidth</strong>, i.e. width in pixel of container panel - <strong>title</strong>, i.e. panel title - <strong>hideCloseButton</strong>, i.e. a boolean used to show or hide close button in panel - <strong>resizable</strong>, i.e. a boolean used to enable or disable panel resizing - <strong>maxInstances</strong>, i.e. the maximun number of component instances shown at a time</p>
+<pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="fu">pushComponent</span>(component, panelWidth, title, hideCloseButton, resizable, maxInstances){
+  ...
+  ...
+}</code></pre>
+<p>Below is reported an axample of navigation-manager component usage: - HTML code</p>
+<pre class="sourceCode html"><code class="sourceCode html"><span class="kw">&lt;paper-icon-button</span><span class="ot"> icon=</span><span class="st">&quot;visibility&quot;</span>
+<span class="ot">on-click=</span><span class="st">&quot;details&quot;</span><span class="ot"> title=</span><span class="st">&quot;View Product Details&quot;</span><span class="kw">&gt;&lt;/paper-icon-button&gt;</span></code></pre>
+<ul>
+<li>Javascript code</li>
+</ul>
+<pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="fu">details</span>(){
+<span class="kw">var</span> product = <span class="ot">document</span>.<span class="fu">createElement</span>(<span class="st">&#39;product-details&#39;</span>);
+<span class="kw">this</span>.<span class="ot">navigationManager</span>.<span class="fu">pushComponent</span>(product, <span class="st">&#39;500px&#39;</span>, <span class="st">&#39;Product Details&#39;</span>);
+}</code></pre>
+<div class="figure">
+<img src="img/product_details.png" alt="Product Details" /><p class="caption">Product Details</p>
+</div>
+<h3 id="message-broker-component">message-broker component</h3>
+<p>The communication among web components is managed by the Message Broker, a centralized messaging system based on the publish-subscribe Design Pattern.</p>
+<h4 id="architecture-1">Architecture</h4>
+<p>In software architecture, publish–subscribe is a messaging pattern involving 2 main actors: publishers and subscribers.</p>
+<p><strong>Publishers</strong> are senders of messages. They don't send messages to specific receivers, but define messages into classes, regardless of whether there are or not receivers (so called subscribers).</p>
+<p><strong>Subscribers</strong> are messages receivers. They don't know who are message senders (so called publishers), but they express interest in one or more classes and only receive messages that are of interest for them.</p>
+<div class="figure">
+<img src="img/publish-subscribe.png" alt="pubsub" /><p class="caption">pubsub</p>
+</div>
+<p>This component exposed 3 main interfaces: - subscribe, which is used by subscribers to express interest in one or more classes containing message definition; - unsubscribe, which is used by subscribers to express ended interest in one or more classes containing message definition; - publish, which is used by publishers to send notifications about one or more message classes.</p>
+<h4 id="usage-1"><a name="mbusage0001"></a> Usage</h4>
+<p><em>message-broker</em> web component is part of <em>owc-app</em> web component, which is included in OWC application.</p>
+<p>Here is an example on how to get a reference to <em>owc-app</em> web component in a different web component:</p>
+<pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="kw">this</span>.<span class="fu">owcApp</span> = <span class="ot">document</span>.<span class="fu">querySelector</span>(<span class="st">&#39;#owc-app&#39;</span>);</code></pre>
+<h5 id="publish-method-usage">Publish method usage</h5>
+<p>A possible use case of <strong>publish</strong> method is to notify when a new model from server is ready to be used by components that need that model.</p>
+<p>In this case the component acting as <em>publisher</em> uses the <strong>publish</strong> method in the following way:</p>
+<pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="kw">this</span>.<span class="ot">owcApp</span>.<span class="ot">messageBroker</span>.<span class="fu">publish</span>(topic,model,target);</code></pre>
+<p>where: - <strong>topic</strong> is a string representing topic name (i.e. message class name); - <strong>model</strong> is the variable containing the updated model; - <strong>target</strong> is the recipient component of the notification. If target is not specified, the notification impacts all components which expressed interest in the class containing message definition</p>
+<p>Here is an example of usage:</p>
+<pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="kw">this</span>.<span class="ot">owcApp</span>.<span class="ot">messageBroker</span>.<span class="fu">publish</span>(<span class="st">&#39;setNewModel&#39;</span>,<span class="kw">this</span>.<span class="fu">model</span>,<span class="kw">this</span>.<span class="fu">target</span>);</code></pre>
+<h5 id="subscribe-method-usage">Subscribe method usage</h5>
+<p>A possible use case of <strong>subscribe</strong> method is to perform action after a reception of a notification of model update.</p>
+<p>In this case the component acting as <em>subscriber</em> uses the <strong>subscribe</strong> method in the following way:</p>
+<pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="kw">this</span>.<span class="ot">owcApp</span>.<span class="ot">messageBroker</span>.<span class="fu">subscribe</span>(topic,
+  <span class="kw">function</span>(model){
+  ....
+},target);</code></pre>
+<p>where: - <strong>topic</strong> is a string representing topic name (i.e. message class name); - <strong>model</strong> is the variable containing the updated model; - <strong>target</strong> is the recipient component of the notification. If target is not specified, the notification impacts all components which expressed interest in the class containing message definition</p>
+<p>Here is an example of usage:</p>
+<pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="kw">this</span>.<span class="ot">owcApp</span>.<span class="ot">messageBroker</span>.<span class="fu">subscribe</span>(<span class="st">&#39;setNewModel&#39;</span>,
+  <span class="kw">function</span>(model){
+  <span class="kw">this</span>.<span class="fu">model</span>=model;
+},<span class="kw">this</span>.<span class="fu">target</span>);</code></pre>
+<h5 id="unsubscribe-method-usage">Unsubscribe method usage</h5>
+<p>A possible use case of <strong>unsubscribe</strong> method is to cease reception of a notification of model update.</p>
+<p>In this case the component acting as <em>subscriber</em> uses the <strong>unsubscribe</strong> method in the following way:</p>
+<pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="kw">this</span>.<span class="ot">owcApp</span>.<span class="ot">messageBroker</span>.<span class="fu">unsubscribe</span>(topic);</code></pre>
+<p>where <strong>topic</strong> is a string representing topic name (i.e. message class name)</p>
+<p>Here is an example of usage:</p>
+<pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="kw">this</span>.<span class="ot">owcApp</span>.<span class="ot">messageBroker</span>.<span class="fu">unsubscribe</span>(<span class="st">&#39;setNewModel&#39;</span>);</code></pre>
+<h3 id="toast-manager-component">toast-manager component</h3>
+<p>Toast manager component is devoted to show notification to users, as labels displayed on bottom of screen. Currently this web component manages the following notification types: - <strong>info</strong>, used to notify information messages, like login-in or log-out operation result; - <strong>warn</strong>, used to notify warning messages, like operations not supported.</p>
+<div class="figure">
+<img src="img/toast-manager.png" alt="toast-manager" /><p class="caption">toast-manager</p>
+</div>
+<h4 id="usage-2">Usage</h4>
+<p><em>toast-manager</em> web component is part of <em>owc-app</em> web component, which is included in OWC application.</p>
+<p>An example on how to get a reference to <em>owc-app</em> web component can be found at the following <a href="#mbusage0001">link</a>.</p>
+<p>Information messages can be displayed on the screen by means of the following syntax:</p>
+<pre class="sourceCode javascript"><code class="sourceCode javascript">  <span class="kw">this</span>.<span class="ot">owcApp</span>.<span class="ot">toastManager</span>.<span class="fu">info</span>(message);</code></pre>
+<p>where <em>message</em> is the string containing text to be shown.</p>
+<p>Here is an example of usage:</p>
+<pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="kw">this</span>.<span class="ot">owcApp</span>.<span class="ot">toastManager</span>.<span class="fu">info</span>(<span class="st">&#39;Completed new search.&#39;</span>);</code></pre>
+<div class="figure">
+<img src="img/toast-info-example.png" alt="toast-info-example" /><p class="caption">toast-info-example</p>
+</div>
+<p>Warning messages can be displayed on the screen by means of the following syntax:</p>
+<pre class="sourceCode javascript"><code class="sourceCode javascript">  <span class="kw">this</span>.<span class="ot">owcApp</span>.<span class="ot">toastManager</span>.<span class="fu">warn</span>(message);</code></pre>
+<p>where <em>message</em> is the string containing text to be shown.</p>
+<p>Here is an example of usage:</p>
+<pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="kw">this</span>.<span class="ot">owcApp</span>.<span class="ot">toastManager</span>.<span class="fu">warn</span>(<span class="st">&#39;Product Type Not Supported&#39;</span>);</code></pre>
+<div class="figure">
+<img src="img/toast-warn-example.png" alt="toast-warn-example" /><p class="caption">toast-warn-example</p>
+</div>
+<h3 id="semantic-manager-component">semantic-manager component</h3>
+<p>The Open Web Components (OWC) is composed by a generic set of components used for disseminating data regardless of their types. Ingested Objects in the DHuS have a specific class type, for every class type the UI components (e.g. List, Map) need to extract a set of attributes from the server model. This means that OWC software needs to know the semantic of the server model. To avoid hardcoded semantic in components code, OWC uses a generic model containing proper attributes for each different item, exploiting a Semantic Schema from Server.</p>
+<p>The <em>Semantic Manager</em> generates the generic model extracting the data from the Search Request Model and applying the mapping defined in the Semantic Schema.</p>
+<h4 id="architecture-2">Architecture</h4>
+<div class="figure">
+<img src="img/semanticmanager.png" alt="semanticmanager" /><p class="caption">semanticmanager</p>
+</div>
+<h3 id="metadata-processor-client-side-plugin-system">Metadata Processor (client side plugin system)</h3>
+<p>OWC Metadata Processor is a system to manage user's plugins to process metadata from searches, and to create automatic tasks client side.</p>
+<p>In other words Metadata processor is the plugin system client base, to script in javascript language, directly via browser without setup the development environment on the local machine.</p>
+<p>This means a simple processing environment of data from server without to rebuild or interact with the server.</p>
+<div class="figure">
+<img src="img/metadata-processor.png" alt="Metadata Processor" /><p class="caption">Metadata Processor</p>
+</div>
+<ul>
+<li><strong>Datasource</strong>: DHuS search</li>
+<li><strong>Processor</strong>: Parallel task runner</li>
+<li><strong>Data Visualizer</strong>: Data visualization component</li>
+</ul>
+<div class="figure">
+<img src="img/metadata-processor-workflow.png" alt="Metadata Processor" /><p class="caption">Metadata Processor</p>
+</div>
+<p>The data source module provides the data from the server (e.g. the search result model) to the processor. The Processor runs sequentially the threads of the plugin, passing as first input the model from the datasource, and then, it passes the output of the previous thread as input of the next thread. The outcome of the last thread is the result of the plugin. The outcome of the plugin represents the model of the visualizer component of the plugin (GUI part).</p>
+<p>So a specific plugin is composed with: - Main model input - A set of threads, the sequence of tasks to run - Visualizer component, data visualization component to show the outcome from the last thread of plugin</p>
+<h4 id="architecture-3">Architecture</h4>
+<p>The definition of a specific plugin is contained in the configuration file e.g.:</p>
+<pre><code>&quot;processor_plugins&quot;: [{
+    &quot;name&quot;: &quot;Products size average&quot;,
+    &quot;visualizer&quot;: &quot;average-visualizer&quot;,
+    &quot;webworkers&quot;: [&quot;processor-plugins/search.js&quot;,&quot;processor-plugins/001.js&quot;]
+}]</code></pre>
+<ul>
+<li><strong>name</strong>: Plugin name, to show in the the plugin selector.</li>
+<li><strong>visualizer</strong>: Web component to show the plugin outcome.</li>
+<li><strong>webworkers</strong>: array with the urls of threads implemented as web-workers.</li>
+</ul>
+<h5 id="web-worker">Web worker</h5>
+<p>Web workers are the thread functionality implementation for browser based javascript. The execution is parallel. <a href="https://en.wikipedia.org/wiki/Web_worker">Web Workers on wikipedia</a></p>
+<p>And example of a web workers follows (from wikipedia):</p>
+<pre><code>  var n = 4;
+  postMessage(n);
+}</code></pre>
+</body>
+</html>

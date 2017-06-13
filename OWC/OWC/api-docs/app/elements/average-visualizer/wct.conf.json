@@ -1,0 +1,8 @@
+{
+  "suites": ["./test"],
+  "webserver": {
+    "pathMappings": [
+      {"/elements/average-visualizer/bower_components": "bower_components"}
+    ]
+  }
+}

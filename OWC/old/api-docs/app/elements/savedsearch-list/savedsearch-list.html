@@ -1,0 +1,285 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+This component contains the list of user saved searches
+
+
+@demo demo/index.html
+-->
+<dom-module id="savedsearch-list">
+    <template>
+        <style type="text/css" is="custom-style">
+        #savedsearchContainer {
+            @apply(--layout-vertical);
+            height: var(--savedsearchesheight, 500px);
+            width: var(--savedsearcheswidth, 300px);
+            overflow-y: hidden !important;
+            overflow-x: hidden !important;
+            width: 100%!important;
+        }
+        
+        .savedsearchContainer {
+            @apply(--layout-vertical);
+            height: var(--savedsearchesheight, 500px);
+            width: var(--componenttemplatewidth, 98%);
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+        
+        paper-button {
+            background: #002664;
+            color: white;
+            padding: 5px 5px;
+            width: 98%;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
+        paper-button[toggles][active].colorful {
+            background-color: #002664;
+        }
+        
+        paper-button[toggles][active][raised].colorful {
+            background-color: rgba(66, 133, 244, 0.75);
+        }
+        
+        .savedsearchSection {
+            padding: 10px;
+        }
+        
+        .savedsearchTitle {
+            padding-bottom: 0px;
+            font-weight: bold;
+            font-size: 18px;
+            padding-left: 10px;
+            text-align: center;
+        }
+        
+        paper-material.section-item {
+            padding: 20px;
+            margin: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+            overflow-x: auto;
+            @apply(--layout-horizontal);
+        }
+        
+        .savedsearch-mini {
+            padding: 5px;
+            margin: 10px;
+        }
+        
+        .fieldContainer {
+            @apply(--layout-horizontal);
+            @apply(--layout-wrap);
+        }
+        
+        .flexchild {
+            @apply(--layout-flex);
+        }
+        
+        .flex2child {
+            @apply(--layout-flex-3);
+        }
+        
+        .flex3child {
+            @apply(--layout-flex-5);
+        }
+        
+        .buttonContainer {
+            margin-bottom: 0px;
+            height: 40px!important;
+            width: 98%!important;
+            overflow: hidden;
+        }
+        
+        .right {
+            float: right;
+            width: 200px;
+        }
+        
+        .containerFlexchild {
+            height: 100%;
+            width: 50%;
+            overflow-x: auto;
+            overflow-y: auto;
+            border: 1px solid grey;
+        }
+        
+        .componentList {
+            margin-left: 5px;
+        }
+        </style>
+        <div id="savedsearchContainer">
+            <div class="savedsearchContainer">
+                <div class="savedsearchTitle">Display {{savedsearches.length}} elements</div>
+                <div class="savedsearchSection flexchild">
+                    <iron-list id="savedsearcheslist" items="{{savedsearches}}" as="search" style="width: 100%!important">
+                        <template>
+                            <savedsearch-item parent="{{this}}" model="{{search}}"></savedsearch-item>
+                        </template>
+                    </iron-list>
+                </div>
+            </div>
+            <div class="buttonContainer">
+                <paper-button raised class="colorful right" on-click="clearSavedSearches" title="{{i18n('Clear Saved Searches')}}">{{i18n("Clear Saved Searches")}}</paper-button>
+            </div>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class SavedsearchList {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'savedsearch-list';
+                this.getSavedSearchesUrl = '/api/stub/users/0/searches?offset=:offset&count=:count';
+                this.countSavedSearchesUrl = '/api/stub/users/0/searches/count'
+                this.clearSavedSearchesUrl = '/api/stub/users/0/searches';
+
+
+                this.properties = {
+
+
+                    /**
+                     * List of configured File Scanner
+                     *
+                     * @type {Object}
+                     */
+                    savedsearches: {
+                        type: Array,
+                        value: [],
+                        notify: true
+                    },
+
+                    offset: {
+                        type: Number,
+                        value: 0,
+                        notify: true
+                    }
+
+
+                };
+
+            }
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+                this.owcApp = document.querySelector('#owc-app');
+                this.getSavedSearches();
+                this.resize();
+                var self=this;
+                self.owcApp.messageBroker.subscribe('update-savedsearches', function() {
+                    setTimeout(function() {                       
+                        self.getSavedSearches();                        
+                    }, 0);
+                });
+            }
+
+            /**             
+             *  Resize callbach handler 
+             *
+             * @return {null}
+             */
+            resize() {
+                var self = this;
+
+                self.customStyle['--savedsearchesheight'] = parseInt(self.parentPanel.getSize().height) + "px";
+                self.updateStyles();
+                self.customStyle['--savedsearcheswidth'] = parseInt(self.parentPanel.getSize().width) + "px";
+                self.updateStyles();
+
+
+            }
+
+            /**             
+             *  This method is used to delete all user saved searches
+             *
+             * @return {null}
+             */
+            clearSavedSearches() {
+                var self = this;
+                self.owcApp.httpManager.sendRequest(
+                    'DELETE',
+                    self.owcApp.config.baseUrl + self.clearSavedSearchesUrl
+                ).then(function() {
+                    self.owcApp.toastManager.info(self.i18n("User searches cleared"));
+                    self.getSavedSearches();
+                }, function() {
+                    self.owcApp.toastManager.error(self.i18n("Error cleaning user searches"));
+                });
+            }
+
+            /**             
+             *  This method is used to get the list of user saved searches via dedicated API 
+             *
+             * @return {null}
+             */
+            getSavedSearches() {
+                var self = this;
+                var count = 0;
+                self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + self.countSavedSearchesUrl
+                ).then(function(response) {
+                    count = response.data;
+                    self.owcApp.httpManager.sendRequest(
+                        'GET',
+                        self.owcApp.config.baseUrl + self.getSavedSearchesUrl.replace(':offset', self.offset).replace(':count', count)
+                    ).then(function(response) {                        
+                        self.savedsearches = response.data;                        
+
+                    });
+
+                });
+
+            }
+
+        };
+
+        Polymer(SavedsearchList);
+
+    })();
+    </script>
+</dom-module>

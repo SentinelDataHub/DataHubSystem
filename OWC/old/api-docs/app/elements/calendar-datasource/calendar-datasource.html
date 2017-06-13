@@ -1,0 +1,377 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+This component is devoted to handle Calendar Datasource
+
+
+@demo demo/index.html
+-->
+<dom-module id="calendar-datasource">
+    <script>
+    (function() {
+        'use strict';
+        class CalendarDatasource extends HTMLElement {
+
+            constructor() {
+                super();
+                this.beforeRegister();
+            }
+
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+
+            beforeRegister() {
+                this.is = 'calendar-datasource';
+                this._requestUrlFiltered = "/odata/v1/Products?$filter=ContentDate/Start%20gt%20datetime%27:datetime%27&$select=ContentDate&$format=json&$skip=:skip&$top=:top";
+                this._countUrlFiltered = "/odata/v1/Products/$count?$filter=ContentDate/Start%20gt%20datetime%27:datetime%27";
+                this._requestUrl = "/odata/v1/Products?$select=ContentDate&$format=json&$skip=:skip&$top=:top";
+                this._countUrl = "/odata/v1/Products/$count";
+                //this._countByDayUrl = "/odata/v1/Products/$count?$filter=(ContentDate/Start%20lt%20datetime%27:datetime1%27)%20and%20(ContentDate/Start%20ge%20datetime%27:datetime2%27)";
+                this._countByDayUrl = "/search?q=beginposition:[:day1%20TO%20:day2]&format=JSON&rows=0&group=true";
+                this.options = {
+                    headers: [{
+                        name: "Accept",
+                        value: "application/json"
+                    }]
+                };
+                this.owcApp = document.querySelector('#owc-app');
+                this._filter = false;
+                this._skip = 0;
+                this._top = 50;
+                this._startdate;
+                this._enddate;
+
+                /**
+                 * List reference
+                 *
+                 * @type {Object}
+                 */
+                this._calendar = null;
+
+                /**
+                 * List Coder
+                 *
+                 * @type {Object}
+                 */
+                this._coder = null;
+
+                /**
+                 * List Semantic Manager
+                 *
+                 * @type {Object}
+                 */
+                this._semanticManager = null;
+
+            }
+
+
+
+
+            /**
+             * This method sets the calendar reference
+             * @param {Object} calendar
+             *
+             * @return {null}
+             */
+            setCalendar(calendar) {
+                this._calendar = calendar;
+            }
+
+            /**
+             * This method sets the calendar coder reference
+             * @param {Object} calendarCoder
+             *
+             * @return {null}
+             */
+            setCoder(coder) {
+                this._coder = coder;
+            }
+
+            /**
+             * This method sets the calendar semantic manager reference
+             * @param {Object} calendartSemanticManager
+             *
+             * @return {null}
+             */
+            setSemanticManager(semanticManager) {
+                this._semanticManager = semanticManager;
+            }
+
+            /**
+             * This method sets the calendar container as delegate container
+             * @param {Object} delegate
+             *
+             * @return {null}
+             */
+            setContainer(container) {
+                this.delegateContainer = container;
+            }
+
+            /**
+             * This method is used to compute the datetime corresponding to last 90 days
+             * @param{Integer} days: number of days
+             *
+             * @return {Date}
+             */
+            computeDateTime(days) {
+                var date = moment(new Date());
+                date.subtract(days, 'days');
+                return date.format('YYYY-MM-DD') + 'T00:00:00.000Z';
+            }
+
+            /**
+             * This method is used to compute the date corresponding to last 90 days
+             * @param{Integer} days: number of days
+             *
+             * @return {Date}
+             */
+            computeDate(days) {
+                var date = moment(new Date());
+                date.subtract(days, 'days');
+                return date.format('YYYY-MM-DD');
+            }
+
+            /**
+             * This method generates url for http request
+             *
+             * @param {String} skip: start index
+             * @param {String} top : end index
+             * @param {String} filter: search filters                        
+             *
+             * @return {String} searchUrl
+             */
+            _generateSearchRequest(skip, top, filter) {
+
+                var datetime = this.computeDateTime(90);
+                var searchUrl = (filter) ? this._requestUrlFiltered : this._requestUrl;
+                searchUrl = searchUrl.replace(":skip", (skip) ? skip : '0');
+                searchUrl = searchUrl.replace(":top", (top) ? top : '50');
+                searchUrl = searchUrl.replace(":datetime", datetime);
+                this._enddate = datetime;
+                return searchUrl;
+            }
+
+            /**
+             * This method generates url for count request
+             *
+             * @param {String} filter
+             *
+             * @return {String} searchUrl
+             */
+            _generateCountRequest(filter) {
+
+                var datetime = this.computeDateTime(90);
+                var searchUrl = (filter) ? this._countUrlFiltered : this._countUrl;
+                searchUrl = searchUrl.replace(":datetime", datetime);
+                this._enddate = datetime;
+                return searchUrl;
+            }
+
+            /**
+             * This method generates url for count request between two dates
+             *
+             * @param {Integer} day1
+             * @param {Integer} day2
+             *
+             * @return {String} searchUrl
+             */
+            _generateCountByDayRequest(day1, day2) {
+                var searchUrl = this._countByDayUrl;
+                //searchUrl = searchUrl.replace(":datetime1", this.computeDateTime(day1));
+                searchUrl = searchUrl.replace(":day1", this.computeDateTime(day1));
+                //searchUrl = searchUrl.replace(":datetime2", this.computeDateTime(day2));
+                searchUrl = searchUrl.replace(":day2", this.computeDateTime(day2));
+                return searchUrl;
+            }
+
+
+            /**
+             * This method calculates minutes between two dates
+             *
+             * @param {String} lastupdate
+             *
+             * @return {Integer}
+             */
+            computeMinutesFromLastUpdate(lastupdate) {
+                var now = moment(new Date());
+                var last = moment(lastupdate);
+                return now.diff(last, 'minutes');
+            }
+
+
+            /**
+             * This method performs http requests used to retrieve products density in the last quarter. 
+             * A request per day is performed
+             *
+             * @return {null}
+             */
+            getCalendar() {
+                this.genericModel = [];
+                var self = this;
+                var promises = [];
+                var productsCount = [];
+                //for (let i = 0; i < 91; i++) {
+                for (let i = 0; i < 91; i++) {
+                    promises.push(
+                        self.owcApp.httpManager.sendRequest('GET', self.owcApp.config.baseUrl + self._generateCountByDayRequest(i+1 , i))
+                        .then(function(response) {
+                            var result = response.data;
+                            if (result && result.feed) {
+                                productsCount.push({
+                                    "date": self.computeDate(i+1),
+                                    "amount": result.feed['opensearch:totalResults']
+                                });
+                            }
+                        }, function(result) {})
+                    );
+                }
+                return Promise.all(promises)
+                    .then(function() {
+                        //console.log("productsCount -----",productsCount);
+                        self._semanticManager.processModel(productsCount)
+                            .then(function(genericModel) {
+                                var specificModel = self._coder.extractSpecificModel(genericModel);
+                                self._calendar.setNewModel(specificModel);
+                                self._calendar.createCalendar();
+                                self.owcApp.toastManager.info(self.i18n("completed_new_search_message"));
+
+                            });
+
+                    });
+
+            }
+
+            /**
+             * This method performs a real http request
+             *
+             * @return {null}
+             */
+            request() {
+
+                var self = this,
+                    filter = this._filter,
+                    skip = this._skip,
+                    top = this._top;
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + self._generateSearchRequest(skip, top, filter)
+                ).then(function(response) {
+                    if (response.status == 200) {
+
+                        return self._semanticManager.processModel(response.data)
+                            .then(function(genericModel) {
+                                var specificModel = self._coder.extractSpecificModel(genericModel);
+                                return specificModel;
+
+                            });
+                    } else
+                    //TODO: to complete and manage this part
+                        return new Promise(function(resolve, reject) {
+                        reject("model_empty");
+                    });
+                });
+            }
+
+            /**
+             * This method performs a real http count request
+             *
+             * @return {null}
+             */
+            requestCount() {
+
+                var self = this,
+                    filter = this._filter;
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + self._generateCountRequest(filter)
+                ).then(function(response) {
+
+                    if (response.status == 200)
+                        return response.data;
+
+                    else
+                    //TODO: to complete and manage this part
+                        return new Promise(function(resolve, reject) {
+                        reject("model_empty");
+                    });
+                });
+            }
+
+            /*
+             * This method is used to get data model for calendar 
+             * @param {String} filter: search filters
+             *
+             * @return {null}  
+             */
+            loadDataFromServer(filter) {
+                var self = this;
+                this._filter = filter;
+                this.requestCount()
+                    .then(function(count) {
+                        self._calendar.setProductCount(count);
+                        self._top = count;
+                        if (count > 0)
+                            self._calendar.hasProduct = true;
+                        else
+                            self._calendar.hasProduct = false;
+                        self.request()
+                            .then(function(specificModel) {
+                                self._calendar.setNewModel(specificModel);
+
+                                self._calendar.createCalendar();
+                                self.owcApp.toastManager.info(self.i18n("completed_new_search_message"));
+                            });
+                    });
+
+
+
+            }
+
+            /*
+             * This method is used by list datasource to retrieve calendar model
+             * @return{Object} calendar model
+             */
+            getModel() {
+                return this.model;
+            }
+
+
+        };
+
+        Polymer(CalendarDatasource);
+        eu.serco.Owc.CalendarDatasource = CalendarDatasource;
+
+    })();
+    </script>
+</dom-module>

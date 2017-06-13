@@ -1,0 +1,517 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+    This component retrieves and manages data
+
+
+    @demo demo/index.html
+    -->
+<dom-module id="data-source">
+    <script>
+    (function() {
+        'use strict';
+        class DataSource {
+
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'data-source';
+                this._requestUrl = "/api/stub/products?filter=:filter&offset=:offset&limit=:limit&sortedby=:sortedby&order=:order";
+                this._countUrl = "/api/stub/products/count?filter=:filter";
+                //this._pageSize = 10;
+                this.owcApp = document.querySelector('#owc-app');
+
+                /**
+                 * Current page
+                 *
+                 * @type {Integer}
+                 */
+                this._currentPage = 0;
+
+                /**
+                 * Current query (last done query)
+                 *
+                 * @type {String}
+                 */
+                this._currentQuery = "";
+
+                /**
+                 * List reference
+                 *
+                 * @type {Object}
+                 */
+                this._list = null;
+
+                /**
+                 * List Coder
+                 *
+                 * @type {Object}
+                 */
+                this._listCoder = null;
+
+                /**
+                 * List Coder
+                 *
+                 * @type {Object}
+                 */
+                this.nextSearch = true;
+
+                /**
+                 * List Container
+                 *
+                 * @type {Object}
+                 */
+                this._listContainer = null;
+
+                /**
+                 * List Semantic Manager
+                 *
+                 * @type {Object}
+                 */
+                this._listSemanticManager = null;
+
+                /**
+                 * List Semantic Manager
+                 *
+                 * @type {Object}
+                 */
+                this._owcquery = null;
+
+                /**
+                 * Search Component
+                 *
+                 * @type {Object}
+                 */
+                this._searchComponent = null;
+
+                /**
+                 * List Semantic Manager
+                 *
+                 * @type {Object}
+                 */
+                this._genericModel = null;
+                this._paginationEnable = true;
+                this._combo = null;
+
+                this._isPreviousPageLoadEnabled = true;
+                this._isNextPageLoadEnabled = true;
+                this._bufferStart = 0;
+                this._bufferEnd = 0;
+
+                this.filterAllValue = "*";
+
+                /**
+                 * Sort by
+                 *
+                 * @type {String}
+                 */
+                this.sortBy = "ingestiondate";
+
+                /**
+                 * Order by
+                 *
+                 * @type {String}
+                 */
+                this.orderBy = "desc";
+
+            }
+
+            attached(){
+               this._pageSize = this.owcApp.appconfig.page_size;
+            }
+
+
+            /**
+             * This method sets the list reference
+             * @param {Object} list: the list reference
+             *
+             * @return {null}
+             */
+            setList(list) {
+                this._list = list;
+            }
+
+            /**
+             * This method sets the list coder reference
+             * @param {Object} listCoder: the list coder reference
+             *
+             * @return {null}
+             */
+            setListCoder(listCoder) {
+                this._listCoder = listCoder;
+            }
+
+            /**
+             * This method sets the list container reference
+             * @param {Object} listCoder: the list container reference
+             *
+             * @return {null}
+             */
+            setListContainer(listContainer) {
+                this._listContainer = listContainer;
+            }
+
+            /**
+             * This method sets the search Component reference
+             * @param {Object} searchComponent: the search Component reference
+             *
+             * @return {null}
+             */
+            setSearchComponent(searchComponent) {
+                this._searchComponent = searchComponent;
+            }
+
+
+            /**
+             * This method sets the list semantic manager reference
+             * @param {Object} listSemanticManager: the list semantic manager reference
+             *
+             * @return {null}
+             */
+            setListSemanticManager(listSemanticManager) {
+                this._listSemanticManager = listSemanticManager;
+            }
+
+            /**
+             * This method sets the list owcquery reference
+             * @param {Object} owcquery: the owcquery reference
+             *
+             * @return {null}
+             */
+            setOwcQuery(owcquery) {
+                this._owcquery = owcquery;
+            }
+
+            /**
+             * This method sets the genericModel reference
+             * @param {Object} genericModel: the genericModel reference
+             *
+             * @return {null}
+             */
+            setGenericModel(genericModel) {
+                this._genericModel = genericModel;
+            }
+
+            /**
+             * This method sets the combo search container reference
+             * @param {Object} combo: the combo search container reference
+             *
+             * @return {null}
+             */
+            setCombo(combo) {
+                this._combo = combo;
+            }
+
+            /**
+             * This method generates url for http request
+             *
+             * @param {String} filter: query filters
+             * @param {String} offset: start index
+             * @param {String} limit: number of products per page
+             * @param {String} sortedby: sorting parameter
+             * @param {String} order: order parameter
+             * @return {String} searchUrl
+             */
+            _generateSearchRequest(filter, offset, limit, sortedby, order) {
+                var searchUrl = this._requestUrl;
+                searchUrl = searchUrl.replace(":filter", (filter) ? filter : this.filterAllValue);
+                searchUrl = searchUrl.replace(":offset", (offset) ? offset : '0');
+                searchUrl = searchUrl.replace(":limit", (limit) ? limit : '10');
+                searchUrl = searchUrl.replace(":sortedby", (sortedby) ? sortedby : 'ingestiondate');
+                searchUrl = searchUrl.replace(":order", (order) ? order : 'desc');
+                return searchUrl;
+            }
+
+            /**
+             * This method generates url for count request
+             *
+             * @param {String} filter: query filters
+             *
+             * @return {String} searchUrl
+             */
+            _generateCountRequest(filter) {
+                var searchUrl = this._countUrl;
+                searchUrl = searchUrl.replace(":filter", (filter) ? filter : this.filterAllValue);
+                return searchUrl;
+            }
+
+            /**
+             * This method performs a real http request
+             *
+             * @return {Object} genericModel: data model from server
+             */
+            request() {
+                var self = this,
+                    filter = (this._owcquery) ? this.createSearchFilter(this._owcquery) : '',
+                    limit = this._pageSize,
+                    offset = this._currentPage * limit,
+                    sortedby = "ingestiondate",
+                    order = "desc";
+                //self.nextSearch = false;
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + self._generateSearchRequest(filter, offset, limit, self.sortBy, self.orderBy)
+                ).then(function(response) {
+                    if (response.status == 200) {
+                        // self.nextSearch = true;
+                         //self._searchComponent.newSearch = true;
+                        if (self._listSemanticManager) {
+                            return self._listSemanticManager.process(response.data)
+                                .then(function(genericModel) {
+                                    response = null;
+                                    return genericModel;
+                                });
+                        } else {
+                            // if the semantic manager is not set, bypass the
+                            // processing
+                            return response.data;
+                        }
+
+                    } else
+                    //self.nextSearch = true;
+                    //self._searchComponent.newSearch = true;
+                        return new Promise(function(resolve, reject) {
+                            reject("model_empty");
+                        });
+                });
+            }
+
+            /**
+             * This method performs the subsequent http requests
+             * @param {String} offset: start index
+             * @param {String} limit: number of products per page
+             * @return {Object} genericModel: data model from server
+             */
+            newRequest(offset, limit) {
+                var self = this,
+                    filter = (this._owcquery) ? this.createSearchFilter(this._owcquery) : '',
+                    sortedby = "ingestiondate",
+                    order = "desc";
+
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + self._generateSearchRequest(filter, offset, limit, sortedby, order)
+                ).then(function(response) {
+                    if (response.status == 200)
+                        if (self._listSemanticManager) {
+                            return self._listSemanticManager.process(response.data)
+                                .then(function(genericModel) {
+                                    response = null;
+                                    return genericModel;
+                                });
+                        } else {
+                            return response.data;
+                        }
+                    else
+                        return new Promise(function(resolve, reject) {
+                            reject("model_empty");
+                        });
+                });
+            }
+
+            /**
+             * This method performs a real http request to get products number
+             *
+             * @return {Number}
+             */
+            requestCount() {
+                var self = this,
+                    filter = this._currentQuery;
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + self._generateCountRequest(filter)
+                ).then(function(response) {
+                    if (response.status == 200)
+                        return response.data;
+                    else
+                        return new Promise(function(resolve, reject) {
+                            reject("model_empty");
+                        });
+                });
+            }
+
+            /**
+             * This method is the public interface to get the model from server
+             *
+             * @return {null}
+             */
+            loadDataFromServer() {
+                var self = this;
+                self.nextSearch = false;
+                if (self._combo)
+                    self._combo.setQuery(self._currentQuery);
+                this._bufferStart = 0;
+
+                this.requestCount()
+                    .then(function(count) {
+                        self._listContainer && self._listContainer.setCount && self._listContainer.setCount(count);
+                        if ((count > 1)) {
+                            self._listContainer && self._listContainer.setCount && self._listContainer.setOneProduct(false);
+
+                        } else {
+                            if ((count == 0)) {
+                                self._listContainer && self._listContainer.setCount && self._listContainer.setOneProduct(false);
+                            }
+                        }
+                    });
+                this.request()
+                    .then(function(genericModel) {
+                        self._genericModel.setModel(null);
+                        self._genericModel.setModel(genericModel);
+                        self._bufferEnd = genericModel.length - 1;
+                        self._listContainer.start =   self._genericModel.startIndex;
+                        self._listContainer.end =   self._genericModel.endIndex;
+                        self.owcApp.toastManager.info(self.i18n("completed_new_search_message"));
+                        self.nextSearch = true;
+                        if(self._searchComponent)
+	                        self._searchComponent.newSearch = true;
+                    });
+            }
+
+            /**
+             * This method manages the filters to be included in the request
+             * @param {String} query: the current query
+             * @return {String} searchFilter
+             */
+            createSearchFilter(query) {
+                var searchFilter = '';
+                if (query.text != null) {
+                    searchFilter += query.text;
+                } else {
+                    searchFilter += '*';
+                }
+                if (query.footprint) searchFilter += ((query.text) ? ' AND ' : '') + query.footprint;
+                if (query.filters && query.filters!= '' ) searchFilter += ' AND '  + query.filters;
+                return searchFilter;
+            }
+
+            /**
+             * This method updates the current query
+             *
+             * @return {null}
+             */
+            updateQuery() {
+                this._currentQuery = this._owcquery;
+                this._currentQuery = this.createSearchFilter(this._currentQuery);
+            }
+
+            /**
+             * This method return the current query
+             *
+             * @return {Object} current query
+             */
+            getQuery() {
+                return this._currentQuery;
+            }
+
+            /**
+             * This method loads the the previous page of results for pagination optimization
+             *
+             * @return {null}
+             */
+            loadPreviousPage() {
+                if (this._isPreviousPageLoadEnabled) {
+                    var self = this;
+                    if (this._bufferStart == 0) {
+                        self._isPreviousPageLoadEnabled = false;
+                        self._genericModel.prependNewPage([]);
+                        return;
+                    }
+                    var offset = (this._bufferStart - this._pageSize < 0) ? 0 : (this._bufferStart - this._pageSize);
+                    var limit = (this._bufferStart < this._pageSize) ? this._bufferStart : this._pageSize;
+                    this.newRequest(offset, limit)
+                        .then(function(genericModel) {
+                            var newPageSize = genericModel.length;
+
+
+                            if ((self._genericModel.getModel().length + newPageSize) > self._genericModel._maxModelSize) {
+                                self._isNextPageLoadEnabled = true;
+                                self._bufferEnd = self._bufferEnd - newPageSize;
+                            }
+
+                            self._genericModel.prependNewPage(genericModel);
+                            self.lastElementIndex = newPageSize;
+                            self.paginationDirection = "top";
+
+                            self._bufferStart = self._bufferStart - newPageSize;
+                            self.owcApp.toastManager.info(self.i18n("loaded_new_page"));
+                            if (genericModel.length > 0 || offset == 0) {} else {
+                                self._isPreviousPageLoadEnabled = false;
+                            }
+                            self._listContainer.start =   self._genericModel.startIndex;
+                            self._listContainer.end =   self._genericModel.endIndex;
+                        });
+                }
+            }
+
+            /**
+             * This method loads the next page of results for pagination optimization
+             *
+             * @return {null}
+             */
+            loadNextPage() {
+                if (this._isNextPageLoadEnabled) {
+                    var self = this;
+                    var offset = this._bufferEnd + 1;
+                    var limit = this._pageSize;
+
+                    this.newRequest(offset, limit)
+                        .then(function(genericModel) {
+                            var newPageSize = genericModel.length;
+
+                            if ((self._genericModel.getModel().length + newPageSize) > self._genericModel._maxModelSize) {
+                                self._isPreviousPageLoadEnabled = true;
+                                self._bufferStart = self._bufferStart + newPageSize;
+                            }
+                            self._genericModel.appendNewPage(genericModel);
+                            self.owcApp.toastManager.info(self.i18n("loaded_new_page"));
+                            var lastElement = self._bufferEnd;
+                            self._bufferEnd = self._bufferEnd + newPageSize;
+                            self.paginationDirection = "bottom";
+                            self.lastElementIndex = lastElement;
+
+
+                            if (genericModel.length > 0) {} else {
+                                self._isNextPageLoadEnabled = false;
+                            }
+                            self._listContainer.start =   self._genericModel.startIndex;
+                            self._listContainer.end =   self._genericModel.endIndex;
+                        });
+                }
+            }
+        };
+        Polymer(DataSource);
+    })();
+    </script>
+</dom-module>

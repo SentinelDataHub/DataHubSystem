@@ -1,0 +1,765 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+<!--
+This is the main component for DHuS administrator functionality related to Filescanner configuration and upload management
+
+
+@demo demo/index.html
+-->
+<dom-module id="upload-container">
+    <template>
+        <style type="text/css" is="custom-style">
+        #uploadContainer {
+            @apply(--layout-vertical);
+            height: var(--uploadheight, 500px);
+            width: var(--uploadwidth, 100%);
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+        
+        paper-button {
+            background: #002664;
+            color: white;
+            padding: 5px 5px;
+            width: 98%;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
+        paper-button[toggles][active].colorful {
+            background-color: #002664;
+        }
+        
+        paper-button[toggles][active][raised].colorful {
+            background-color: rgba(66, 133, 244, 0.75);
+        }
+        
+        .uploadSection {
+            border-bottom: solid 1px;
+            padding: 10px;
+        }
+        
+        .uploadTitle {
+            padding-bottom: 0px;
+            font-weight: bold;
+        }
+        
+        paper-material.section-item {
+            padding: 20px;
+            margin: 10px;
+            max-height: 200px;
+            overflow: auto;
+        }
+        
+        paper-checkbox {
+            font-size: 16px;
+            --paper-checkbox-checked-color: var(--paper-indigo-900);
+        }
+        
+        .fieldContainer {
+            @apply(--layout-horizontal);
+        }
+        
+        .flexchild {
+            @apply(--layout-flex);
+        }
+        
+        .flex2child {
+            @apply(--layout-flex-5);
+        }
+        
+        .flex3child {
+            @apply(--layout-flex-5);
+        }
+        
+        paper-checkbox.showpwd {
+            font-size: 12px !important;
+        }
+        
+        .next-filescanner-box {
+            background-color: #C8C8C8;
+            margin: 10px;
+            font-size: 16px;
+            min-height: 30px;
+            line-height: 30px;
+            word-break: break-word;
+            white-space: normal;
+        }
+        
+        .buttonContainer {
+            margin-bottom: 0px;
+            height: 40px!important;
+            width: 98%!important;
+            overflow: hidden;
+        }
+        
+        .left {
+            float: left;
+            width: 120px;
+        }
+        
+        .right {
+            float: right;
+            width: 120px;
+        }
+        
+        .fs-number {
+            font-size: 15px;
+            text-align: center;
+            padding: 3px;
+            opacity: 0.95;
+            font-weight: bold;
+        }
+        
+        .fsContainer {
+            background-color: #ecf0f1;
+        }
+        
+        paper-textarea {
+            --paper-input-container-input: {
+                background-color: #b0b0b0;
+            }
+            ;
+        }
+        
+        #upload-file-info {
+            font-size: 16px;
+            margin-top: 10px
+        }
+        
+        paper-input.upload-file {
+            --paper-input-container-input: {
+                background: #002664;
+                color: white;
+                padding: 5px 5px;
+                width: 98%;
+                font-size: 16px;
+                cursor: pointer;
+                margin-top: 5px;
+            }
+            ;
+        }
+        </style>
+        <div id="uploadContainer">
+            <div class="uploadSection">
+                <div class="uploadTitle">{{i18n("Collections")}}</div>
+                <paper-material class="section-item">
+                    <div>
+                        <iron-list id="ironlist" items="{{collections}}" as="item" style="width: 100%!important">
+                            <template>
+                                <paper-checkbox model="{{item}}" checked="{{item.checked}}">{{item.name}}</paper-checkbox>
+                            </template>
+                        </iron-list>
+                    </div>
+                </paper-material>
+            </div>
+            <br>
+            <div class="uploadSection">
+                <div class="uploadTitle">{{i18n("File Scanners")}}</div>
+                <div>
+                    <paper-input value="{{scanner.url}}" name="Url to scan" label="Url to scan" always-float-label autofocus required error-message="Url empty" invalid="{{isUrlEmpty}}">{{scanner.url}}</paper-input>
+                </div>
+                <div>
+                    <paper-input value="{{scanner.username}}" label="Username" always-float-label>{{scanner.username}}</paper-input>
+                </div>
+                <div>
+                </div>
+                <div class="fieldContainer">
+                    <paper-input class="flexchild" type="{{pwdType}}" value="{{scanner.password}}" label="Password" placeholder="*********" always-float-label>{{scanner.password}}</paper-input>
+                    <paper-checkbox class="showpwd" id="upload-show-pwd" on-change="uploadPwdType">{{i18n("Show")}}</paper-checkbox>
+                </div>
+                <div>
+                    <paper-input value="{{scanner.pattern}}" label="Pattern" always-float-label>{{scanner.pattern}}</paper-input>
+                </div>
+                <div>
+                    <paper-textarea label="Scanning Information" always-float-label rows="5" max-rows="5" readonly="true" value="{{scanner.statusMessage}}">{{scanner.statusMessage}}</paper-textarea>
+                </div>
+                <template is="dom-if" if="{{nextFileScannerDate}}">
+                    <div class="next-filescanner-box">
+                        The next file scanner is going to run on {{nextFileScannerDate}}
+                    </div>
+                </template>
+                <div class="buttonContainer">
+                    <paper-button raised class="colorful left" on-click="refresh" title="{{i18n('Refresh All')}}">{{i18n("Refresh All")}}</paper-button>
+                    <template is="dom-if" if="{{enableAdd}}">
+                        <paper-button raised class="colorful right" on-click="addFileScanner" title="{{i18n('Add')}}">{{i18n("Add")}}</paper-button>
+                    </template>
+                    <template is="dom-if" if="{{!enableAdd}}">
+                        <paper-button raised class="colorful right" on-click="saveFileScanner" title="{{i18n('Save')}}">{{i18n("Save")}}</paper-button>
+                    </template>
+                </div>
+                <div class="fsContainer">
+                    <div class="fs-number">
+                        Display {{filescanners.length}} elements
+                    </div>
+                    <iron-list id="filescannerlist" items="{{filescanners}}" as="fs" style="width: 100%!important">
+                        <template>
+                            <filescanner-item parent="{{that}}" model="{{fs}}" data-args="fs.url" on-click="getFSInfo"></filescanner-item>
+                        </template>
+                    </iron-list>
+                </div>
+            </div>
+            <br>
+            <div class="uploadSection">
+                <div class="uploadTitle">{{i18n("Upload Product")}}</div>
+                <paper-input class="upload-file" label="" type="file" placeholder="{{i18n('no file choosen')}}" id="uploaded-file" value="{{uploadfile}}">
+                </paper-input>
+                <br>
+                <paper-button raised class="colorful right" on-click="upload" title="{{i18n('Upload')}}">{{i18n("Upload")}}</paper-button>
+            </div>
+            <br>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class UploadContainer {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'upload-container';
+                this.filescannerRequestUrl = "/api/stub/admin/filescanners";
+                this.filescannerUpdateRequestUrl = "/api/stub/admin/filescanners/:fsid";
+                this.nextFilescannerDateUrl = "/api/stub/admin/filescanners/next";
+                this.uploadUrl = "/api/upload";
+
+                this.properties = {
+
+
+                    /**
+                     * List of configured File Scanner
+                     *
+                     * @type {Object}
+                     */
+                    filescanners: {
+                        type: Array,
+                        value: [],
+                        notify: true
+                    },
+
+                    /**
+                     * file scanner model
+                     *
+                     * @type {Object}
+                     */
+                    scanner: {
+                        type: Object,
+                        value: {},
+                        notify: true
+                    },
+
+                    /**
+                     * Collections list
+                     *
+                     * @type {Object}
+                     */
+                    collections: {
+                        type: Array,
+                        value: [{
+                            "name": "",
+                            "checked": false
+                        }],
+                        notify: true
+                    },
+
+                    /**
+                     * parameter used to show add ore save button
+                     *
+                     * @type {Boolean}
+                     */
+                    enableAdd: {
+                        type: Boolean,
+                        value: true
+                    },
+
+                    uploadfile: {
+                        type: String,
+                        value: ""
+                    },
+
+                    nextFileScannerDate: {
+                        type: String,
+                        value: null
+                    },
+
+                    pwdType: {
+                        type: String,
+                        value: "password"
+                    }
+
+                };
+
+            }
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+                this.owcApp = document.querySelector('#owc-app');
+                var self = this;
+
+                window.addEventListener("resize", function() {
+                    self.resize();
+                });
+                self.owcApp.messageBroker.subscribe('update-filescanners', function() {
+                    setTimeout(function() {
+                        self.getODataCollections();
+                        self.getNextFileScannerDate();
+                        self.getFileScanners();
+                        self.clearScanner();
+                    }, 0);
+                });
+                self.getODataCollections();
+                self.getNextFileScannerDate();
+                self.getFileScanners();
+                self.clearScanner();
+            }
+
+            /**             
+             *  Resize callbach handler 
+             *
+             * @return {null}
+             */
+            resize() {
+                var self = this;
+
+                self.customStyle['--uploadheight'] = parseInt(self.parentPanel.getSize().height) + "px";
+                self.updateStyles();
+                self.customStyle['--uploadwidth'] = parseInt(self.parentPanel.getSize().width) + "px";
+                self.updateStyles();
+
+            }
+
+            /**             
+             *  Generate and perform collections list http request
+             *
+             * @return {null}
+             */
+            getODataCollections() {
+                var self = this;
+                var collectionsUrl = "/odata/v1/Collections";
+                var jsonParameter = "$format=json";
+                self.options = {
+                    headers: [{
+                        name: "Content-Type",
+                        value: "application/atom+xml"
+                    }, {
+                        name: "Accept",
+                        value: "application/json"
+                    }]
+                };
+
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + collectionsUrl + '?' + jsonParameter, self.options
+                ).then(function(response) {
+                    if (response.status == 200) {
+                        var collectionModel = response.data.d.results;
+                        var collections = [];
+                        for (var i = 0; i < collectionModel.length; i++) {
+                            collections.push({
+                                "name": collectionModel[i].Name,
+                                "checked": false
+                            });
+                        }
+                        self.collections = collections;
+                        return self.collections;
+                    } else
+                        return new Promise(function(resolve, reject) {
+                            reject("model_empty");
+                        });
+                });
+            }
+
+            /**             
+             *  Generate and perform http request to get next File Scanner scheduled date
+             *
+             * @return {null}
+             */
+            getNextFileScannerDate() {
+                var self = this;
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + self.nextFilescannerDateUrl
+                ).then(function(response) {
+                    self.nextFileScannerDate = response.data;
+                });
+
+            }
+
+            /**             
+             *  Generate and perform http request to get configured File Scanners list
+             *             
+             * @return {null}
+             */
+            getFileScanners() {
+                var self = this;
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + self.filescannerRequestUrl
+                ).then(function(response) {
+                    self.filescanners = response.data;
+                    for (var i = 0; i < self.filescanners.length; i++) {
+                        self.filescanners[i].toggle = false;
+                        self.filescanners[i].toggleHover = false;
+                        self.filescanners.x_state = -1;
+                        if (self.filescanners[i].active == true) {
+                            self.filescanners[i].styleColor = "color: #002664;";
+                        } else {
+                            self.filescanners[i].styleColor = "color: darkgray;";
+                        } 
+
+                    }
+                    for (var i = 0; i < self.filescanners.length; i++) {
+                        if (self.filescanners[i].status == 'ok') {
+                            self.filescanners[i].classicon = 'check';
+                        } else if (self.filescanners[i].status == 'error') {
+                            self.filescanners[i].classicon = 'clear';
+                        } else if (self.filescanners[i].status == 'added') {
+                            self.filescanners[i].classicon = 'help';
+                        } else if (self.filescanners[i].status == 'running') {
+                            self.filescanners[i].classicon = 'file-upload';
+                        } else {
+                            self.filescanners[i].classicon = 'help';
+                        }
+
+                    }
+                    self.owcApp.messageBroker.publish('update-fsitem');
+                });
+
+            }
+
+            /**             
+             *  This method is used to clean file scanner object on de-selection from list
+             *
+             * @return {null}
+             */
+            clearScanner() {
+                this.scanner = {};
+            }
+
+            /**             
+             *  This method is used to refresh upload page
+             *
+             * @return {null}
+             */
+            refresh() {
+                this.getFileScanners();
+                this.getODataCollections();
+                this.clearScanner();
+                this.getNextFileScannerDate();
+            }
+
+
+            /**             
+             *  This method is used to set selected collections for selected filescanner
+             *
+             * @param {Array}: selected, i.e. the list of selected collection 
+             * @return {null}
+             */
+            setSelectedCollections(selected) {
+
+                var newColl = [];
+                for (var i = 0; i < this.collections.length; i++) {
+                    if (_.contains(selected, this.collections[i].name)) {
+                        newColl.push({
+                            "name": this.collections[i].name,
+                            "checked": true
+                        });
+                        //this.collections[i].checked = true;
+                        //console.log("checked true");
+                    } else {
+                        //this.collections[i].checked = false;
+                        //console.log("checked false");
+                        newColl.push({
+                            "name": this.collections[i].name,
+                            "checked": false
+                        });
+                    }
+                }                
+                this.set('collections', []);
+                this.notifyPath('collections', []);
+                this.set('collections', newColl);
+                this.notifyPath('collections', newColl);
+                this.collections = newColl;
+
+            }
+
+            /**             
+             *  This method is used to set selected collections for selected filescanner
+             *             
+             * @return {Array}: list of selected collections 
+             */
+            getSelectedCollections() {
+                var selected = [];
+                for (var i = 0; i < this.collections.length; i++) {
+                    if (this.collections[i].checked) {
+                        selected.push(this.collections[i].name);
+                    }
+                }
+                return selected;
+            }
+
+            /**             
+             *  This method is used to reset collection selection
+             *
+             * @return {null}
+             */
+            clearSelectedCollections() {
+                var newColl = [];
+                for (var i = 0; i < this.collections.length; i++) {
+                    newColl.push({
+                        "name": this.collections[i].name,
+                        "checked": false
+                    });
+                }
+                this.set('collections', []);
+                this.notifyPath('collections', []);
+                this.set('collections', newColl);
+                this.notifyPath('collections', newColl);
+                this.collections = newColl;
+            }
+
+
+            /**             
+             *  This method is used to update password input type, i.e. : 
+             *  - type="text" if the "Show" checkbox is checked
+             *  - type="password" if the "Show" checkbox is NOT checked
+             *
+             * @param {Object} onchange event
+             * @return {null}
+             */
+            uploadPwdType(event) {
+
+                if (event.target.checked) {
+                    this.pwdType = 'text';
+                } else {
+                    this.pwdType = 'password';
+                }
+
+            }
+
+            /**             
+             *  This method is used to update scanner object with the file scanner selected from the list
+             *
+             * @param {Object} onclick event
+             * @return {null}
+             */
+            getFSInfo(event) {
+                    var currentScanner = {};
+                    
+                    var list = document.querySelectorAll('filescanner-item');
+                    
+                    for(var i=0; i<list.length; i++) {
+                      list[i].setToggle(false);
+                      list[i].updateSelection(); 
+                    }
+                                       
+                    if (event && event.model) {
+                        currentScanner = event.model.fs;
+                        if (currentScanner && this.scanner && currentScanner.id == this.scanner.id) {
+                            this.scanner = this.clearScanner();
+                            this.enableAdd = true;
+                            this.clearSelectedCollections(); 
+                            event.model._nodes[0].setToggle(false);
+                            event.model._nodes[0].updateSelection();                                                      
+                        } else {
+                            this.scanner = currentScanner;
+                            this.enableAdd = false;
+                           
+                            this.setSelectedCollections(this.scanner.collections);  
+                            event.model._nodes[0].setToggle(true); 
+                            event.model._nodes[0].updateSelection();                            
+                        }
+                    } else {
+                        this.enableAdd = true;
+                        this.clearSelectedCollections();
+                    }                    
+                  
+
+                }
+                //self.owcApp.toastManager.info("Synchronizer Deleted");
+
+            /**             
+             *  This method is used to create a new File Scanner
+             *
+             * @return {null}
+             */
+            addFileScanner() {
+                var self = this;
+                var idCollections = this.getSelectedCollections();
+                var model = {
+                    url: self.scanner.url,
+                    username: self.scanner.username,
+                    password: self.scanner.password,
+                    pattern: self.scanner.pattern,
+                    collections: idCollections,
+                    active: false
+                };
+                var options = {
+                    headers: [{
+                        name: "Content-Type",
+                        value: "application/json"
+                    }, {
+                        name: "Accept",
+                        value: "application/json"
+                    }]
+                };
+                options.body = JSON.stringify(model);
+                
+                return self.owcApp.httpManager.sendRequest(
+                    'POST',
+                    self.owcApp.config.baseUrl + self.filescannerRequestUrl, options
+                ).then(function(response) {
+                    if (response.status >= 200 && response.status < 300) {
+                        self.owcApp.toastManager.info(self.i18n("File Scanner added"));
+                        self.refresh();
+                    } else {
+                        self.owcApp.toastManager.error(self.i18n("Error in adding File Scanner"));
+                    }
+                }, function() {
+                    self.owcApp.toastManager.error(self.i18n("Error in adding File Scanner"));
+                });
+            }
+
+            /**             
+             *  This method is used to update an existing File Scanner
+             *
+             * @return {null}
+             */
+            saveFileScanner() {
+                var self = this;
+                var idCollections = this.getSelectedCollections();
+                var model = {
+                    url: self.scanner.url,
+                    username: self.scanner.username,
+                    password: self.scanner.password,
+                    pattern: self.scanner.pattern,
+                    collections: idCollections,
+                    id: self.scanner.id
+                };
+                var options = {
+                    headers: [{
+                        name: "Content-Type",
+                        value: "application/json"
+                    }, {
+                        name: "Accept",
+                        value: "application/json"
+                    }]
+                };
+                options.body = JSON.stringify(model);
+                return self.owcApp.httpManager.sendRequest(
+                    'PUT',
+                    self.owcApp.config.baseUrl + self.filescannerUpdateRequestUrl.replace(":fsid", model.id),
+                    options
+                ).then(function(response) {
+                    if (response.status >= 200 && response.status < 300) {
+                        self.owcApp.toastManager.info(self.i18n("File Scanner updated"));
+                        self.refresh();
+                    } else {
+                        self.owcApp.toastManager.error(self.i18n("Error in updating File Scanner"));
+                    }
+                }, function() {
+                    self.owcApp.toastManager.error(self.i18n("Error in updating File Scanner"));
+                });
+            }
+
+            // Accept:application/json, text/plain, *
+            // Accept-Encoding:gzip, deflate
+            // Accept-Language:en-US,en;q=0.8
+            // Authorization:Basic cm9vdDpyb290cGFzc3dvcmQ=
+            // Connection:keep-alive
+            // Content-Length:4063236
+            // Content-Type:multipart/form-data; boundary=----WebKitFormBoundaryKwZ0RA0AOD1x7GpA
+
+            /**             
+             *  This method is used to upload 
+             *
+             * @return {null}
+             **/
+
+            upload() {
+                var self = this;
+                var idCollections;
+                var file = document.querySelector('#uploaded-file').inputElement.files[0];
+                if (!file)
+                    return;
+                else {
+                    idCollections = this.getSelectedCollections();
+                    var fd = new FormData();
+                    fd.append('product', file);
+                    fd.append('collections', idCollections);
+                    var options = {
+                        headers: []
+                    };
+                    options.body = fd;
+                    return self.owcApp.httpManager.sendRequest(
+                        'POST',
+                        self.owcApp.config.baseUrl + self.uploadUrl,
+                        options
+                    ).then(function(response) {
+                        if (response.status == 200 || response.status == 201) {
+                            self.owcApp.toastManager.info(self.i18n("Product Upload Succeeded"));
+                        } else {
+                            self.owcApp.toastManager.error(self.i18n("Error uploading product"));
+                        }
+                    }, function() {
+                        self.owcApp.toastManager.error(self.i18n("Error uploading product"));
+                    });
+
+                }
+
+
+
+            }
+
+
+        }
+
+        Polymer(UploadContainer);
+
+    })();
+    </script>
+</dom-module>

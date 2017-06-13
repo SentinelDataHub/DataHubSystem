@@ -1,0 +1,422 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<!--
+synchronizer creator
+
+
+@demo demo/index.html
+-->
+<dom-module id="synchronizer-creator">
+    <template>
+        <style>
+        .container {
+            @apply(--layout-vertical);
+            height: var(--createheight, 500px);
+            width: var(--createwidth, 100%);
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+
+        .fieldContainer {
+            @apply(--layout-horizontal);
+        }
+
+        .flexchild {
+            @apply(--layout-flex);
+        }
+
+        .flex2child {
+            @apply(--layout-flex-5);
+        }
+
+        .flex3child {
+            @apply(--layout-flex-5);
+        }
+
+        .panelHeader {
+            background: #002664;
+            color: white;
+            padding: 5px 5px;
+            /*width: 20%;*/
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        paper-button {
+            background: #002664;
+            color: white;
+            padding: 5px 5px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            float: right;
+            margin-right: 10px
+        }
+
+        paper-button[toggles][active].colorful {
+            background-color: #002664;
+        }
+
+        paper-button[toggles][active][raised].colorful {
+            background-color: rgba(66, 133, 244, 0.75);
+        }
+        </style>
+        <div class="container">
+            <div class="panelHeader">Synchronizer Properties</div>
+            <form is="iron-form" method="get" action="/" id="basic">
+                <div class="fieldContainer">
+                    <paper-input class="flex2child" value="{{model.label}}" name="label" label="Label" required></paper-input>
+                    <div class="flexchild"></div>
+                    <paper-input class="flex2child" value="{{model.serviceUrl}}" label="Service Url" required></paper-input>
+                </div>
+                <div class="fieldContainer">
+                    <paper-input class="flex2child" value="{{model.serviceLoginUsername}}" label="Service Login Username" required></paper-input>
+                    <div class="flexchild"></div>
+                    <div class="flex2child"></div>
+                </div>
+                <div class="fieldContainer">
+                    <paper-input class="flex2child" type="password" value="{{model.serviceLoginPassword}}" error-message="Password doesn't match or is invalid" label="Service LogIn Password" required on-change="checkConfirmPassword"></paper-input>
+                    <div class="flexchild"></div>
+                    <paper-input class="flex2child" type="password" value="{{model.confirmPassword}}" error-message="Password doesn't match or is invalid" invalid="{{isPasswordInvalid}}" on-change="checkConfirmPassword" label="Service LogIn Confirm Password" required></paper-input>
+                </div>
+                <div class="fieldContainer">
+                    <paper-input class="flex2child" value="{{model.schedule}}" label="Schedule" required></paper-input>
+                    <div class="flexchild"></div>
+                    <paper-input class="flex2child" value="{{model.remoteIncoming}}" label="Remote Incoming"></paper-input>
+                </div>
+                <div class="fieldContainer">
+                    <paper-dropdown-menu class="flex2child" label="Request" value="{{model.request}}" required>
+                        <paper-menu selected="2" class="dropdown-content">
+                            <paper-item value="Request" disabled>Request</paper-item>
+                            <paper-item value="start">start</paper-item>
+                            <paper-item value="stop">stop</paper-item>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                    <div class="flexchild"></div>
+                    <paper-dropdown-menu class="flex2child" label="Target Collection" value="{{model.collections}}">
+                        <paper-menu class="dropdown-content">
+                            <template is="dom-repeat" items="{{collections}}">
+                                <paper-item>{{item}}</paper-item>
+                            </template>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                </div>
+                <div class="fieldContainer">
+                    <paper-input class="flex2child" value="{{model.pageSize}}" label="Page Size"></paper-input>
+                    <div class="flexchild"></div>
+                    <div class="flex2child"></div>
+                </div>
+                <div class="fieldContainer">
+                    <paper-input class="flex2child" value="{{model.copyProduct}}" label="Copy Product"></paper-input>
+                    <div class="flexchild"></div>
+                    <paper-input class="flex2child" value="{{model.filterParam}}" label="Filter Param"></paper-input>
+                </div>
+                <div class="fieldContainer">
+                    <paper-input class="flex2child" value="{{model.sourceCollection}}" label="Source Collection"></paper-input>
+                    <div class="flexchild"></div>
+                    <paper-input class="flex2child" value="{{model.lastCreationDate}}" label="Last Creation Date"></paper-input>
+                </div>
+                <br>
+                <br>
+                <paper-button class="flex2child" raised on-click="reset" title="Reset Form">Reset</paper-button>
+                <div class="flexchild"></div>
+                <paper-button class="flex2child" raised on-click="submitForm" title="Save">Save</paper-button>
+                <div class="output"></div>
+            </form>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class SynchronizerCreator {
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                    this.is = 'synchronizer-creator';
+                    this._url = "/odata/v1/Synchronizers";
+                    this._jsonParameter = "$format=json";
+                    this._requestHeaders = {
+                        'Content-Type': 'application/atom+xml',
+                        'Accept': 'application/json'
+                    };
+                    this.owcApp = document.querySelector('#owc-app');
+                    this.properties = {
+
+                        /**
+                         * internal model
+                         *
+                         * @type {Object}
+                         */
+                        model: {
+                            type: Object,
+                            value: {},
+                            notify: true
+                        },
+
+                        /**
+                         * Synchronizer options model
+                         *
+                         * @type {Object}
+                         */
+                        options: {
+                            type: Object,
+                            value: {},
+                            notify: true
+                        },
+
+                        /**
+                         * Collections list
+                         *
+                         * @type {Object}
+                         */
+                        collections: {
+                            type: Object,
+                            value: []
+                        },
+
+                        /**
+                         * Password check flag
+                         *
+                         * @type {Boolean}
+                         */
+                        checkFields: {
+                            type: Boolean,
+                            value: true
+                        }
+
+                    };
+
+                }
+                /**
+                 *  Called after the element is attached to the document.
+                 *  Can be called multiple times during the lifetime of an element.
+                 *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+                 *
+                 * @return {null}
+                 */
+            attached() {
+                var self = this;
+                self.reset();
+                var event = document.createEvent('Event');
+                event.initEvent('resize', true, true);
+                document.dispatchEvent(event);
+                window.addEventListener("resize", function() {
+                    self.resize();
+                });
+                self.collectionsRequest();
+
+            }
+
+            /**
+             *  Generate and send collections list http request
+             *
+             * @return {null}
+             */
+            collectionsRequest() {
+                var self = this;
+                var collectionsUrl = "/odata/v1/Collections";
+                var jsonParameter = "$format=json";
+                self.options = {
+                    headers: [{
+                        name: "Content-Type",
+                        value: "application/atom+xml"
+                    }, {
+                        name: "Accept",
+                        value: "application/json"
+                    }]
+                };
+
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + collectionsUrl + '?' + jsonParameter, self.options
+                ).then(function(response) {
+                    if (response.status == 200) {
+                        var collectionModel = response.data.d.results;
+                        var collections = [];
+                        for (var i = 0; i < collectionModel.length; i++) {
+                            collections.push(collectionModel[i].Name);
+                        }
+                        self.collections = collections;
+                        return self.collections;
+                    } else
+                        return new Promise(function(resolve, reject) {
+                            reject("model_empty");
+                        });
+                }).catch(function(error) {
+                    self.owcApp.toastManager.error("Synchronizer Creation Failed");
+                });;
+            }
+
+            /**
+             *  Resize event handler
+             *
+             * @return {null}
+             */
+            resize() {
+                var self = this;
+                self.customStyle['--createheight'] = parseInt(self.parentPanel.getSize().height) + "px";
+                self.updateStyles();
+                self.customStyle['--createwidth'] = parseInt(self.parentPanel.getSize().width) + "px";
+                self.updateStyles();
+
+            }
+
+            /**
+             *  Prepare data for http request
+             *
+             * @param {Object} model: POST body for creation of new synchronizer
+             * @return {null}
+             */
+            submitForm(model) {
+                var self = this;
+                self.checkConfirmPassword();
+                if (self.checkFields) {
+                    Polymer.dom(event).localTarget.parentElement.submit();
+                    var request = this.generateBodyFromModel(self.model);
+                    this.createSynchronizer(self.model);
+                }
+
+
+            }
+
+            /**
+             * Reset model
+             *
+             * @return {null}
+             */
+            reset() {
+                this.model = {};
+            }
+
+            /**
+             * This method is used to check if passwords fields added by user match.
+             *
+             * @return {null}
+             */
+            checkConfirmPassword() {
+                this.checkFields = true;
+                var check = true;
+                if (this.model.serviceLoginPassword != undefined || this.model.confirmPassword != undefined) {
+                    if (this.model.serviceLoginPassword && this.model.confirmPassword.trim().length > 0 && this.model.serviceLoginPassword.localeCompare(this.model.confirmPassword) == 0) {
+                        this.isPasswordInvalid = false;
+                    } else {
+                        this.isPasswordInvalid = true;
+                        check = false;
+                    }
+                }
+                this.checkFields = this.checkFields && check;
+            }
+
+            /**
+             *  Generate body for http request
+             *
+             * @param {Object} model: POST body for creation of new synchronizer
+             *
+             * @return {null}
+             */
+            generateBodyFromModel(model) {
+                return '<entry xmlns:d="http://schemas.microsoft.com/ado/2007/08/dataservices" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns="http://www.w3.org/2005/Atom"> \
+        <title type="text">Synchronizer</title> \
+        <category term="DHuS.Synchronizer" scheme="http://schemas.microsoft.com/ado/2007/08/dataservices/scheme" /> ' +
+                    ((model.collections && (model.collections != '')) ? '<link rel="http://schemas.microsoft.com/ado/2007/08/dataservices/related/TargetCollection" type="application/atom+xml;type=entry" title="TargetCollection" href="Collections(\'' + model.collections + '\')" />' : '') +
+                    '<content type="application/xml"> \
+            <m:properties> \
+                <d:Label>' + model.label + '</d:Label> \
+                <d:ServiceUrl>' + model.serviceUrl + '</d:ServiceUrl> \
+                <d:ServiceLogin>' + model.serviceLoginUsername + '</d:ServiceLogin> ' +
+                    ((model.serviceLoginPassword && (model.serviceLoginPassword != '')) ? ('<d:ServicePassword>' + model.serviceLoginPassword + '</d:ServicePassword> ') : '') +
+                    '<d:Schedule>' + model.schedule + '</d:Schedule> ' +
+                    ((model.remoteIncoming && (model.remoteIncoming != '')) ? ('<d:RemoteIncoming>' + model.remoteIncoming + '</d:RemoteIncoming> ') : '') +
+                    '<d:Request>' + model.request + '</d:Request> ' +
+                    ((model.copyProduct && (model.copyProduct != '')) ? ('<d:CopyProduct>' + model.copyProduct + '</d:CopyProduct> ') : '') +
+                    ((model.filterParam) ? ('<d:FilterParam>' + model.filterParam + '</d:FilterParam> ') : '') +
+                    ((model.sourceCollection && (model.sourceCollection != '')) ? ('<d:SourceCollection>' + model.sourceCollection + '</d:SourceCollection> ') : '') +
+                    ((model.lastCreationDate && (model.lastCreationDate != '')) ? ('<d:LastCreationDate>' + model.lastCreationDate + '</d:LastCreationDate> ') : '') +
+                    ((model.pageSize && (model.pageSize != '')) ? ('<d:PageSize>' + model.pageSize + '</d:PageSize> ') : '') +
+                    '</m:properties> \
+        </content> \
+      </entry>';
+            }
+
+            /**
+             *  Generate and send creation new synchronizer http request
+             *
+             * @param {Object} model: POST body for creation of new synchronizer
+             *
+             * @return {null}
+             */
+            createSynchronizer(model) {
+                var self = this;
+                var data = self.generateBodyFromModel(model);
+                self.options = {
+                    headers: [{
+                        name: "Content-Type",
+                        value: "application/atom+xml"
+                    }, {
+                        name: "Accept",
+                        value: "application/json"
+                    }],
+                    body: data
+                };
+
+
+                return self.owcApp.httpManager.sendRequest(
+                    'POST',
+                    self.owcApp.config.baseUrl + self._url, self.options
+                ).then(function(response) {
+                    if (response.status >= 200 && response.status < 300) {
+                        self.parentPanel.closePanel();
+                        self.owcApp.messageBroker.publish('updateSynch');
+                        self.owcApp.toastManager.info("Synchronizer Creation Done");
+                        return true;
+                    } else
+                    //TODO: to complete and manage this part
+                        self.owcApp.toastManager.error("Synchronizer Creation Failed");
+                    return new Promise(function(resolve, reject) {
+                        reject("error");
+                    });
+                });
+
+            }
+
+        };
+
+        Polymer(SynchronizerCreator);
+
+    })();
+    </script>
+</dom-module>

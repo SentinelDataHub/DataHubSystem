@@ -1,0 +1,286 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<!--
+This component contains the form used to create an event by means of OData API.<br/>This functionality is available only for users with *"EVENT MANAGER"* role.
+
+
+@demo demo/index.html
+-->
+
+<dom-module id="create-event">
+
+  <template>
+
+
+    <style>
+      .container {
+          @apply(--layout-vertical);
+          /*height: var(--createheight, 500px);*/
+          width: var(--createwidth, 100%);
+          overflow-y: auto;
+          overflow-x: auto;
+      }
+
+      .fieldContainer {
+          @apply(--layout-horizontal);
+      }
+
+      .flexchild {
+          @apply(--layout-flex);
+      }
+
+      .flex2child {
+          @apply(--layout-flex-5);
+      }
+
+      .flex3child {
+          @apply(--layout-flex-5);
+      }
+
+      .panelHeader {
+          background: #002664;
+          color: white;
+          padding: 5px 5px;
+          font-size: 16px;
+          font-weight: bold;
+          margin-bottom: 20px;
+          text-align: center;
+      }
+
+      paper-button {
+          background: #002664;
+          color: white;
+          padding: 5px 5px;
+          font-size: 16px;
+          font-weight: bold;
+          margin-bottom: 20px;
+          float: right;
+          margin-right: 10px
+      }
+
+      paper-button[toggles][active].colorful {
+          background-color: #002664;
+      }
+
+      paper-button[toggles][active][raised].colorful {
+          background-color: rgba(66, 133, 244, 0.75);
+      }
+
+    </style>
+
+    <div class="container">
+
+        <form is="iron-form" method="get" action="/" id="basic">
+
+            <div class="fieldContainer">
+                <paper-input class="flex2child" value="{{model.Category}}" name="category" label="Category" required></paper-input>
+                <div class="flexchild"></div>
+                <paper-input class="flex2child" value="{{model.Subcategory}}" name="sub-category" label="Sub-category" required></paper-input>
+            </div>
+
+            <div class="fieldContainer">
+                <paper-input class="flex2child" value="{{model.Title}}" name="title" label="Title" required></paper-input>
+                <div class="flexchild"></div>
+                <paper-input class="flex2child" value="{{model.Description}}" name="description" label="Description" required></paper-input>
+            </div>
+
+            <div class="fieldContainer">
+                <paper-input class="flex2child" value="{{StartDate}}" name="start-date" label="Start date" required></paper-input>
+                <div class="flexchild"></div>
+                <paper-input class="flex2child" value="{{StopDate}}" name="stop-date" label="Stop date" required></paper-input>
+            </div>
+
+            <div class="fieldContainer">
+                <paper-input class="flex2child" value="{{PublicationDate}}" name="publication-date" label="Publication Date" required></paper-input>
+                <div class="flexchild"></div>
+                <paper-input class="flex2child" value="{{model.Icon}}" name="icon" label="Icon" required></paper-input>
+            </div>
+
+            <div class="fieldContainer">
+
+                <paper-dropdown-menu class="flex2child" label="Local Event" value="{{localEvent}}" required>
+                    <paper-menu attr-for-selected="value" selected="{{localEvent}}" class="dropdown-content">
+                        <paper-item value="true">true</paper-item>
+                        <paper-item value="false">false</paper-item>
+                    </paper-menu>
+                </paper-dropdown-menu>
+
+                <div class="flexchild"></div>
+
+                <paper-dropdown-menu class="flex2child" label="Public Event" value="{{publicEvent}}" required>
+                    <paper-menu attr-for-selected="value" selected="{{publicEvent}}" class="dropdown-content">
+                        <paper-item value="true">true</paper-item>
+                        <paper-item value="false">false</paper-item>
+                    </paper-menu>
+                </paper-dropdown-menu>
+
+            </div>
+
+            <div class="fieldContainer">
+                <paper-input class="flex2child" value="{{model.Originator}}" name="originator" label="Originator" required></paper-input>
+                <div class="flexchild"></div>
+                <paper-input class="flex2child" value="{{model.HubTag}}" name="hub-tag" label="Hub Tag" required></paper-input>
+            </div>
+
+            <div class="fieldContainer">
+                <paper-input class="flex2child" value="{{model.MissionTag}}" name="mission-tag" label="Mission Tag" required></paper-input>
+                <div class="flexchild"></div>
+                <paper-input class="flex2child" value="{{model.InstrumentTag}}" name="instrument-tag" label="Instrument Tag" required></paper-input>
+            </div>
+
+            <div class="fieldContainer">
+                <paper-input class="flex2child" value="{{model.ExternalUrl}}" name="external-url" label="External Url" required></paper-input>
+                <div class="flexchild"></div>
+            </div>
+
+            <br>
+            <br>
+
+            <paper-button raised on-click="create" title="create">Create</paper-button>
+
+        </form>
+    </div>
+
+  </template>
+
+
+<script>
+    (function() {
+       'use strict';
+       class CreateEvent {
+
+          /* --- POLYMER LIFECYCLE METHODS --- */
+
+          /**
+           * BeforeRegister method Polymer calls before creating the element.
+           * This method is where you shoud define the is property (element's name) and
+           * properties  object.
+           *
+           * @return {null}
+           */
+           beforeRegister() {
+               this.is = 'create-event';
+               this.owcApp = document.querySelector('#owc-app');
+           }
+
+           attached(){
+             var now = moment().utc();
+
+             this.model = {
+
+              "Category":"",
+              "Subcategory":"",
+              "Title":"",
+              "Description":"",
+              "StartDate": now.format('YYYY-MM-DDTHH:mm:ss'),
+              "StopDate": now.format('YYYY-MM-DDTHH:mm:ss'),
+              "PublicationDate": now.format('YYYY-MM-DDTHH:mm:ss'),
+              "Icon":"",
+              "LocalEvent":true,
+              "PublicEvent":false,
+              "Originator":"",
+              "HubTag":"",
+              "MissionTag":"",
+              "InstrumentTag":"",
+              "ExternalUrl":""
+
+              }
+
+              this.set("PublicationDate",         this.model.PublicationDate);
+              this.notifyPath("PublicationDate",  this.model.PublicationDate);
+              this.set("StartDate",               this.model.StartDate);
+              this.notifyPath("StartDate",        this.model.StartDate);
+              this.set("StopDate",                this.model.StopDate);
+              this.notifyPath("StopDate",         this.model.StopDate);
+
+            }
+
+            create(){
+
+             var self = this;
+             var eventModel = _.clone(this.model);
+
+             eventModel.LocalEvent      = (this.localEvent == "true");
+             eventModel.PublicEvent     = (this.publicEvent == "true");
+
+             eventModel.StartDate       = this.StartDate;
+             eventModel.StopDate        = this.StopDate;
+             eventModel.PublicationDate = this.PublicationDate;
+
+             // check event model validity
+             if(
+                 this.StartDate == '' ||
+                 this.StartDate == null ||
+                 this.StopDate == '' ||
+                 this.StopDate == null||
+                 this.PublicationDate == '' ||
+                 this.PublicationDate == null
+               ){
+                 self.owcApp.toastManager.error("Event Update Failed: dates cannot be null.");
+                 return;
+               }
+
+
+             // http request
+             self.options = {
+                 headers: [{
+                     name: "Content-Type",
+                     value: "application/json"
+                 }, {
+                     name: "Accept",
+                     value: "application/json"
+                 }],
+                 body: JSON.stringify(eventModel)
+             };
+
+             self.owcApp.httpManager.sendRequest(
+                 'POST',
+                 self.owcApp.config.baseUrl + '/odata/v1/Events', self.options
+             ).then(function(response) {
+                 if (response.status >= 200 && response.status < 300) {
+                   self.owcApp.toastManager.info("Event Updated");
+                   self.owcApp.messageBroker.publish('updateEventsList');
+                   self.parentPanel.closePanel();
+                 } else {
+                   self.owcApp.toastManager.error("Event Update Failed");
+                 }
+             }).catch(function(error) {
+               self.owcApp.toastManager.error("Event Update Failed");
+             });
+         }
+
+       };
+
+      Polymer(CreateEvent);
+
+    })();
+  </script>
+
+</dom-module>

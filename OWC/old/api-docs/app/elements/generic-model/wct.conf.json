@@ -1,0 +1,8 @@
+{
+  "suites": ["./test"],
+  "webserver": {
+    "pathMappings": [
+      {"/elements/generic-model/bower_components": "bower_components"}
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "suites": ["./test"],
+  "webserver": {
+    "pathMappings": [
+      {"/components/http-manager/bower_componets": "bower_components"}
+    ]
+  }
+}

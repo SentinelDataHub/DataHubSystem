@@ -1,0 +1,362 @@
+<!--
+  @license
+
+ 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!-- <link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html"> -->
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
+<!--
+list with button for Auxiliary Data Search functionality
+
+
+@demo demo/index.html
+-->
+<dom-module id="adf-list-item">
+    <!-- VIEW  CODE HERE -->
+    <template>
+        <style>
+        /*.item.adf-list-item {
+      width: auto!important;
+    }
+*/
+        
+        .container {
+            @apply(--layout-horizontal);
+            @apply(--layout-wrap);
+            /*height: var(--container-height, 100px !important);*/
+        }
+        
+        .containerbis {
+            @apply(--layout-horizontal);
+            @apply(--layout-wrap);
+            height: auto!important);
+        }
+        /*.flexchild {
+      text-align: left;
+      top:5px;
+      @apply(--layout-flex);
+      
+    }*/
+        /*.flex2child {
+      @apply(--layout-flex-1);
+      @apply(--layout-horizontal);
+      @apply(--layout-self-end);
+       
+    }
+    .flex3child {
+      @apply(--layout-flex-1);
+      @apply(--layout-end);
+    }*/
+        
+        .item {
+            padding: 30px;
+            border-radius: 8px;
+            background-color: white;
+            /*width: 96%;*/
+            margin: 16px !important;
+            border: solid 1px #ecf0f1;
+        }
+        
+        .title {
+            font-size: 14px;
+            font-weight: bold;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            padding: 2px;
+            line-height: 35px;
+        }
+        
+        .attribute {
+            font-size: 14px!important;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        
+        .thumb {
+            margin-right: 5px;
+            width: 60px;
+            height: 60px;
+        }
+        /*.owc-list-item{
+      margin-top:5px !important; 
+      margin-right:10px!important;    
+    }*/
+        
+        .item.button-list-item.button-list-item {
+            line-height: 60px;
+        }
+        
+        .owc-list-item-thumb {
+            position: absolute;
+            top: var(--owc-list-item-thumb-top, 50px);
+            left: var(--owc-list-item-thumb-left, 30px);
+            display: inline-block;
+        }
+        /*.owc-list-item-title{
+      position:absolute; 
+      top:var(--owc-list-item-title-top, 20px);           
+      left:var(--owc-list-item-title-left,30px);
+      width:var(--owc-list-item-title-width, calc(100% - 50px));
+    }*/
+        
+        .owc-list-item-attributes-container {
+            /*position:absolute; */
+            top: var(--owc-list-item-attributes-container-top, 50px);
+            left: 105px;
+            width: 100%;
+        }
+        
+        .owc-list-item-files-container {
+            @apply(--layout-vertical);
+            /*position:absolute; */
+            /*top:var(--owc-list-item-title-container-top,10px); 
+      left:25px; */
+            /*width:calc(100% - 120px);*/
+        }
+        
+        .owc-list-item-title-container {}
+        
+        .owc-list-item-attribute {
+            width: calc(100% - 120px);
+        }
+        
+        .owc-list-item-title {
+            /*margin-top: 10px;
+      margin-left: 5px;*/
+            /*width:var(--owc-list-item-title-width, calc(100% - 50px));*/
+        }
+        
+        .owc-list-item-buttons {
+            /*position:absolute;
+      bottom:20px;  */
+            width: 100%;
+            height: 50px;
+            padding: 5px;
+            line-height: 60px;
+        }
+        
+        paper-icon-button.icon-buttons {
+            float: right !important;
+            padding: 8px !important;
+        }
+        
+        .adf-list-item-type {
+            float: right !important;
+        }
+        
+        .owc-list-item-fab {
+            float: left !important;
+            height: 30px;
+            margin-top: 10px;
+            line-height: 30px;
+            /*text-transform: uppercase;*/
+        }
+        
+        .mandatory {
+            color: #b31b1b !important;
+        }
+        
+        .optional {
+            color: #002664 !important;
+        }
+        
+        .type-mandatory {
+            color: #b31b1b !important;
+        }
+        
+        .type-optional {
+            color: #002664 !important;
+        }
+        
+        .button {
+            background-color: #505050;
+            color: #fff;
+            font-family: 'Open Sans', Helvetica, sans-serif;
+            font-size: 12px;
+        }
+        </style>
+        <div class=" item owc-list-item" id="{{model.uuid}}">
+            <div>
+                <div class="owc-list-item-files-container">
+                    <template is="dom-repeat" items="{{model.files}}" hidden="{{!model.files}}">
+                        <div class="owc-list-item-title-container">
+                            <paper-icon-button icon="file-download" class="icon-buttons " on-click="download" title="Download Product"></paper-icon-button>
+                            <div class="title owc-list-item-title" title="{{item.title}}">{{item.title}}</div>
+                            <div hidden="true">{{item.uuid}}</div>
+                        </div>
+                        <div class="flex2child">
+                            <div class="owc-list-item-attributes-container" hidden="{{!item.attributes}}">
+                                <template is="dom-repeat" items="{{item.attributes}}" hidden="{{!item.attributes}}">
+                                    <div class="attribute owc-list-item-attribute">{{item}}</div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <!-- <div  class="owc-list-item-attributes-container" hidden="{{!model.attributes}}">
+          <template is="dom-repeat" items="{{model.attributes}}" hidden="{{!model.attributes}}" >
+            <div class="attribute owc-list-item-attribute">{{item}}</div>
+          </template> 
+        </div> -->
+            </div>
+            <div class="owc-list-item-buttons">
+                <div class$="{{computeCssClass(model.mandatory)}}" label$="{{compute(model.mandatory)}}" title$="{{computeTitle(model.mandatory)}}">{{computeTitle(model.mandatory)}} ADF File</div>
+                <div class$="{{computeCssClassForType(model.mandatory)}}">ADF Type: {{model.type}}</div>
+            </div>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class AdfListItem extends HTMLElement {
+
+            beforeRegister() {
+                this.is = 'adf-list-item';
+                this.downloadUrl = '/api/wps/auxiliaries/download?uuid=:uuid&filename=:filename';
+                this.owcApp = document.querySelector('#owc-app');
+
+                this.properties = {
+
+                    /**
+                     * Model of list item
+                     *
+                     * @type {Object}
+                     */
+                    model: {
+                        type: Object,
+                        value: {}
+                    },
+
+                    /**
+                     * Parent reference. The parent is the container list.
+                     *
+                     * @type {object}
+                     */
+                    parent: {
+                        type: Object,
+                        value: {},
+                        notify: true
+                    }
+                };
+            }
+
+            /**             
+             *  Called when the element has created, but before property values are set
+             *  and local DOM is initialized.
+             *
+             * @return {null}
+             */
+            created() {
+                this.navigationManager = document.getElementById('navigation-manager');
+            }
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+
+            }
+
+            /**
+             * Check if the auxiliary file is mandatory or optional.
+             * 
+             * @return {String}
+             */
+            compute() {
+                var mandatory = "O";
+                if (this.model.mandatory == "Yes")
+                    mandatory = "M";
+                return mandatory;
+            }
+
+            /**
+             * Check if the auxiliary file title is mandatory or optional.
+             * 
+             * @return {String}
+             */
+            computeTitle() {
+                var title = "Optional";
+                if (this.model.mandatory == "Yes")
+                    title = "Mandatory";
+                return title;
+            }
+
+            /**
+             * Compute the css class of the auxiliary file.
+             * 
+             * @return {String}
+             */
+            computeCssClass() {
+                var cssclass = "attribute adf-list-item-type owc-list-item-fab ";
+                if (this.model.mandatory == "Yes")
+                    cssclass += "mandatory";
+                else
+                    cssclass += "optional";
+                return cssclass;
+            }
+
+            /**
+             * Compute the css class type of the auxiliary file.
+             * 
+             * @return {String}
+             */
+            computeCssClassForType() {
+                var cssclass = "attribute adf-list-item-type ";
+                if (this.model.mandatory == "Yes")
+                    cssclass += "type-mandatory";
+                else
+                    cssclass += "type-optional";
+                return cssclass;
+            }
+
+
+            /**
+             * Download product button onclick callback
+             * 
+             * @return {null}
+             */
+            download(e) {
+
+                var self = this;
+                var url = this.downloadUrl;
+                url = url.replace(':uuid', e.model.item.uuid);
+                url = url.replace(':filename', e.model.item.title);
+                window.location = self.owcApp.config.baseUrl + url;
+
+            }
+        };
+
+        Polymer(AdfListItem);
+
+    })();
+    </script>
+</dom-module>

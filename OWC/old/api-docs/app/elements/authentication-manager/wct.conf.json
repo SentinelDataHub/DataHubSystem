@@ -1,0 +1,8 @@
+{
+  "suites": ["./test"],
+  "webserver": {
+    "pathMappings": [
+      {"/elements/authentication-manager/bower_components": "bower_components"}
+    ]
+  }
+}

@@ -1,0 +1,377 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-material/paper-material.html">
+<!--
+        This component is the container of the elements in navigation manager
+
+
+            @demo demo/index.html
+            -->
+<dom-module id="paper-navigation-panel">
+    <template>
+        <style is="custom-style">
+        :host {
+            height: calc(100% - 2.5px) !important;
+            width: var(--host-width, 200px);
+            display: inline-block;
+            position: relative;
+            margin-left: var (--paper-navigation-panel-left, 5px !important);
+            margin-right: 5px;
+            min-width: 150px;
+        }
+        
+        :host {
+            height: var(--heightnav, 500px);
+        }
+        
+        :host:hover .close-panel-button,
+        :host.hover .close-panel-button {
+            display: block !important;
+        }
+        
+        .close-panel-button {
+            display: var(--close-panel-button-display, none);
+        }
+        
+        paper-material {
+            border-radius: 5px;
+            padding: var(--paper-navigation-panel-container-padding, 5px);
+            margin: var(--paper-navigation-panel-container-margin, 5px);
+            height: var(--paper-navigation-panel-container-height, calc(100% - 10px));
+            width: var(--paper-navigation-panel-container-width, calc(100% - 10px));
+            position: var(--paper-navigation-panel-container-position, relative);
+            margin-left: var (--paper-navigation-panel-left, 5px !important);
+            /*background: white;
+        opacity: var(--paper-navigation-panel-opacity, "0.94 !important");*/
+            opacity: var(--paper-navigation-panel-opacity, "0.94 !important");
+            /*background-color: rgba(255, 255, 255, 0.94)!important;*/
+        }
+        
+        .paper-navigation-panel-container {
+            position: absolute;
+            overflow: hidden;
+            width: calc(100% - 15px);
+            height: calc(100% - 45px);
+            font-size: 20px;
+        }
+        
+        .paper-navigation-panel {
+            overflow-x: auto;
+        }
+        
+        .paper-navigation-panel:hover .close-panel-button,
+        .paper-navigation-panel.hover .close-panel-button {
+            display: block;
+        }
+        
+        .close-panel-button {
+            position: var(--close-panel-button, absolute !important);
+            top: 2px;
+            right: 0px;
+            z-index: 200;
+            overflow: hidden;
+            display: var(--close-panel-button-display, none);
+            font-size: 10px;
+            width: 30px;
+            height: 30px;
+        }
+        
+        .close-panel-button:hover {
+            opacity: 0.6;
+        }
+        
+        paper-material {
+            background-color: var(--theme-background-color);
+        }
+        
+        .panel-title {
+            position: relative;
+            height: 35px;
+            font-size: 20px;
+            width: calc(100% - 5px);
+            text-align: center;
+            font-weight: bold;
+            top: 3px;
+        }
+        
+        #resizer {
+            position: absolute;
+            width: 5px;
+            height: calc(100% - 3px);
+            top: 5px;
+            right: 0;
+            z-index: 10000;
+            overflow: none !important;
+            cursor: e-resize;
+            opacity: 0;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            -o-user-select: none;
+            user-select: none;
+            display: var(--paper-navigation-panel-resize-display, block);
+            resize: horizontal;
+        }
+        </style>
+        <div id="resizer">
+        </div>
+        <div class="close-panel-button-container">
+            <paper-icon-button class="close-panel-button" icon="close" on-click="closePanel" alt="close"></paper-icon-button>
+        </div>
+        <paper-material elevation="1" class="paper-navigation-panel" id="paper-navigation-panel">
+            <div class="panel-title">{{title}}</div>
+            <div id="component-container" class="paper-navigation-panel-container"></div>
+        </paper-material>
+    </template>
+    <script>
+    'use strict';
+
+    class PaperNavigationPanel extends HTMLElement {
+
+        /**
+         * BeforeRegister method Polymer calls before creating the element.
+         * This method is where you shoud define the is property (element's name) and
+         * properties  object.
+         *
+         * @return {null}
+         */
+        beforeRegister() {
+            this.is = 'paper-navigation-panel';
+
+            this.size = {};
+
+            this.properties = {
+
+                /**
+                 * UUID of panel
+                 *
+                 * @type {Object}
+                 */
+                uuid: {
+                    type: Number,
+                    value: 0,
+                    notify: true,
+                    readOnly: false
+                },
+                /**
+                 * Size of panel
+                 *
+                 * @type {Object}
+                 */
+                size: {
+                    type: Object,
+                    value: {
+                        width: 0
+                    }
+                },
+
+                /**
+                 * Resizable boolean
+                 *
+                 * @type {Boolean}
+                 */
+                resizable: {
+                    type: Boolean,
+                    value: true
+                },
+
+                /**
+                 * Hide close button condition 
+                 *
+                 * @type {Boolean}
+                 */
+                hideclosebutton: {
+                    type: Boolean,
+                    value: false,
+                    notify: true,
+                    readOnly: false
+                },
+
+                /**
+                 * Panel title
+                 *
+                 * @type {String}
+                 */
+                title: {
+                    type: String,
+                    value: "",
+                    notify: true
+                }
+            };
+        }
+
+        /**
+         *  This method sets the paper-navigation-panel style for mobile view 
+         *
+         * @return {null}
+         */
+
+        fullScreen() {
+            this.style.height = parseInt(window.height) + 'px';
+            this.style.left = 0;
+            this.style.position = "fixed";
+            this.closeButtonAlwaysVisible();
+            this.disableResize();
+            this.customStyle['--paper-navigation-panel-container-width'] = '100% !important';
+            this.customStyle['--paper-navigation-panel-container-height'] = '100% !important';
+            this.customStyle['--paper-navigation-panel-left'] = '0 !important';
+            this.customStyle['--paper-navigation-panel-container-position'] = 'fixed';
+            this.customStyle['--paper-navigation-panel-opacity'] = "1.0 !important";
+            this.customStyle['--close-panel-button'] = 'fixed !important';
+            this.customStyle['--theme-background-color'] = 'white !important'
+            this.updateStyles();
+        }
+
+        /**
+         *  This method sets the paper-navigation-panel style for desktop view 
+         *
+         * @return {null}
+         */
+
+        normalScreen() {
+            var self = this;
+            var currentPanel = _.findWhere(self.navigationManager._navigationStack, {
+                uuid: self.uuid
+            });
+            var index = _.indexOf(self.navigationManager._navigationStack, currentPanel);
+            if (index >= 0) {
+                self.navigationManager.getContainer().childNodes[index].style.width = 500;
+                if (self.navigationManager.getContainer().childNodes[index])
+                    self.style.width = parseInt(self.navigationManager.getContainer().childNodes[index].size.width + 0);
+            }
+            if (self.navigationManager.getContainer().childNodes[index])
+                self.style.width = parseInt(self.navigationManager.getContainer().childNodes[index].size.width + 0);
+            this.style.left = 0;
+            this.style.position = "relative";
+            this.closeButtonHoverVisible();
+            this.activeResize();
+            this.customStyle['--paper-navigation-panel-container-padding'] = '5px';
+            this.customStyle['--paper-navigation-panel-container-margin'] = '5px auto';
+            this.customStyle['--paper-navigation-panel-container-width'] = 'calc(100% - 10px)';
+            this.customStyle['--paper-navigation-panel-container-height'] = 'calc(100% - 20px)';
+            this.customStyle['--host-width'] = "100px";
+            this.customStyle['--paper-navigation-panel-left'] = '5 !important';
+            this.customStyle['--paper-navigation-panel-container-position'] = 'relative';
+            /*this.customStyle['--paper-navigation-panel-opacity'] = "0.94 !important";*/
+            this.customStyle['--theme-background-color'] = '';
+            this.customStyle['--close-panel-button'] = 'absolute !important';
+            this.updateStyles();
+        }
+
+        /**
+         *  This method enables the paper-navigation-panel resize
+         *
+         * @return {null}
+         */
+        activeResize() {
+            this.customStyle['--paper-navigation-panel-resize-display'] = 'block';
+            this.updateStyles();
+        }
+
+        /**
+         *  This method disables the paper-navigation-panel resize
+         *
+         * @return {null}
+         */
+        disableResize() {
+            this.customStyle['--paper-navigation-panel-resize-display'] = 'none';
+            this.updateStyles();
+        }
+
+        /**
+         *  This method removes the current panel from the navigation manager
+         * 
+         * @return {null}
+         */
+        closePanel() {
+            this.navigationManager.removePanel(this.uuid);
+        }
+
+        /**
+         *  This method sets the close button always visible
+         *
+         * @return {null}
+         */
+        closeButtonAlwaysVisible() {
+            this.customStyle['--close-panel-button-display'] = 'block';
+            this.updateStyles();
+
+        }
+
+        /**
+         *  This method sets the close button visible only on hover
+         *
+         * @return {null}
+         */
+        closeButtonHoverVisible() {
+            this.customStyle['--close-panel-button-display'] = 'none';
+            this.updateStyles();
+        }
+
+        attached() {
+            var self = this;
+            this.__init();
+            if (self.properties.hideclosebutton.value) {
+                var containerView = Polymer.dom(self.root).querySelector('.close-panel-button-container');
+                Polymer.dom(containerView).removeChild(Polymer.dom(self.root).querySelector('.close-panel-button'));
+            }
+        }
+
+        /**
+         *  This method returns the height and width of component-container 
+         *
+         * @return {Object}
+         */
+        getSize() {
+            return {
+                height: this.$['component-container'].offsetHeight,
+                width: this.$['component-container'].offsetWidth
+            };
+        }
+
+        /**
+         *  This method manages the panel resize event
+         *
+         * @return {null}
+         */
+        __init() {
+            var self = this;
+            self.resize = false;
+
+            window.addEventListener('resize', function() {
+                if (typeof(self.content.resize) == "function")
+                    self.content.resize();
+            });
+
+            Polymer.dom(self.root).querySelector('#resizer').addEventListener('mousedown', function() {
+                self.startX = event.clientX;
+                self.startY = event.clientY;
+                Polymer.dom(self.root).querySelector('#navigation-panel');
+                self.startWidth = parseInt(self.style.width, 10);
+                self.startHeight = parseInt(self.style.height, 10);
+                self.resize = true;
+            }, false);
+
+            document.addEventListener('mouseup', function() {
+                self.resize = false;
+                if (typeof(self.content.resize) == "function") {
+                    $(window).trigger('resize');
+                    self.content.resize();
+                }
+            }, false);
+
+            document.addEventListener('mousemove', function(event) {
+                if (self.resize) {
+                    self.style.width = (self.startWidth + event.clientX - self.startX) + 'px';
+                    var currentPanel = _.findWhere(self.navigationManager._navigationStack, {
+                        uuid: self.uuid
+                    });
+                    var index = _.indexOf(self.navigationManager._navigationStack, currentPanel);
+                    self.navigationManager.getContainer().childNodes[index].size.width = parseInt(self.style.width + 0);
+                }
+            }, false);
+        }
+    };
+
+    Polymer(PaperNavigationPanel);
+    </script>
+</dom-module>

@@ -1,0 +1,23 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<dom-module id="component-c">
+    <template>
+        <style>
+        #component-c-container {
+            display: block;
+        }
+        </style>
+        <div id="component-c-container">
+            <button on-click="publish">publish 'say-hello' event</button>
+        </div>
+    </template>
+    <script>
+    'use strict';
+    Polymer({
+        is: 'component-c',
+
+        publish: function() {
+            document.getElementById('message-broker').publish('say-hello');
+        }
+    });
+    </script>
+</dom-module>

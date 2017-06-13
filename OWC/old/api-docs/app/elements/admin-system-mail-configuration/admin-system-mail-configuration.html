@@ -1,0 +1,270 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<!--
+Admin Panel to configure mail
+
+
+@demo demo/index.html
+-->
+
+<dom-module id="admin-system-mail-configuration">
+  <template>
+
+      <style>
+
+      :root {
+          --default-primary-color: green;
+      }
+
+      .section-item {
+          padding: 30px;
+          margin: 30px;
+      }
+
+      .remove-section-button {
+          float: right;
+      }
+
+      paper-button {
+          background: #002664;
+          color: white;
+          padding: 5px 5px;
+          width: 20%;
+          font-size: 16px;
+          font-weight: bold;
+          margin-bottom: 20px;
+          float: right;
+          top: 36px;
+          margin-right: 10px
+      }
+
+      paper-button[toggles][active].colorful {
+          background-color: #002664;
+      }
+
+      paper-button[toggles][active][raised].colorful {
+          background-color: rgba(66, 133, 244, 0.75);
+      }
+
+      #owcSettingsContainer {
+          height: var(--settingsheight, 90%);
+          width: var(--width, 98%);
+          overflow-y: auto;
+      }
+
+      .buttonContainer {
+          margin-bottom: 0px;
+          height: 100px!important;
+          width: 98%!important;
+          overflow: hidden;
+      }
+
+      .settingsHeader {
+          float: left;
+          margin-left: 10px;
+      }
+      </style>
+      <div class="buttonContainer">
+          <!-- <paper-button raised class="colorful" on-click="reset" title="{{i18n('reset')}}">{{i18n("reset")}}</paper-button> -->
+          <paper-button raised class="colorful" on-click="save" title="{{i18n('save')}}">{{i18n("save")}}</paper-button>
+      </div>
+      <div id="owcSettingsContainer">
+          <paper-material class="section-item">
+              <div>
+                  <form is="iron-form">
+                      <paper-input value="{{model.mailServerSmtp}}" name="smtp" label="{{i18n('SMTP Server')}}" required></paper-input>
+                      <paper-input value="{{model.mailServerPort}}" name="port" label="{{i18n('Port')}}" required></paper-input>
+                      <paper-checkbox checked="{{model.mailServerTls}}" name="tls" label="{{i18n('tls')}}">{{i18n('TLS')}}</paper-checkbox>
+                      <paper-input type="email" value="{{model.mailServerUser}}" name="port" label="{{i18n('Username')}}" required></paper-input>
+                      <paper-input type="password" value="{{model.mailServerPassword}}" name="password" label="{{i18n('Password')}}" required></paper-input>
+
+                      <paper-input type="email" value="{{model.mailServerFromMail}}" name="expeditor-mail" label="{{i18n('Expeditor mail')}}" required></paper-input>
+                      <paper-input value="{{model.mailServerFromName}}" name="expeditor-name" label="{{i18n('Expeditor Name')}}" required></paper-input>
+                      <paper-input type="email" value="{{model.mailServerReplyTo}}" name="reply-to" label="{{i18n('Reply to')}}" required></paper-input>
+
+                      <p>Mail user when:</p>
+                      <paper-checkbox checked="{{model.mailWhenCreate}}" name="creating-account" label="{{i18n('creating account')}}">{{i18n('creating account')}}</paper-checkbox>
+                      <br/>
+                      <paper-checkbox checked="{{model.mailWhenUpdate}}" name="adminitrator-updates-his-account" label="{{i18n('administrator updates his account')}}">{{i18n('administrator updated his account')}}</paper-checkbox>
+                      <br/>
+                      <paper-checkbox checked="{{model.mailWhenDelete}}" name="deleting-account" label="{{i18n('deleting account')}}">{{i18n('deleting account')}}</paper-checkbox>
+
+                      <br/>
+                      <h3>Support</h3>
+                      <paper-input type="email" value="{{model.supportMail}}" name="mail" label="{{i18n('Mail')}}" required></paper-input>
+                      <paper-input value="{{model.supportName}}" name="name" label="{{i18n('Name')}}" required></paper-input>
+                      <paper-input type="email" value="{{model.registrationMail}}" name="registration-mail" label="{{i18n('Registration mail')}}" required></paper-input>
+
+                  </form>
+
+              </div>
+          </paper-material>
+      </div>
+  </template>
+
+<script>
+    (function() {
+       'use strict';
+       class AdminSystemMailConfiguration {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            attached(){
+              var self = this;
+
+              this.getSystem()
+                .then(function(model){
+
+                  self.set('model', model);
+                  self.notifyPath('model', model);
+                  console.warn("getSystem then");
+                  console.log('<><><><><>model: ', model);
+
+                });
+            }
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+
+               var self = this;
+
+               this.is = 'admin-system-mail-configuration';
+
+
+               /**
+                * mail configuration model
+                *
+                * @type {Object}
+                */
+                this.properties = {
+                   model: {
+                       type: Object,
+                       value: null,
+                       notify: true
+                   }
+                }
+
+                this.systemUrl = "/api/stub/admin/system/configurations";
+                this.basicConfigUrl = "/api/stub/admin/system/configurations";
+                this.defaultConfigUrl = "/api/stub/admin/system/defaultconfigurations";
+
+                this.dumpedDatabasesUrl = "/api/stub/admin/system/dumpdatabases";
+                this.synchronizeLocalArchiveUrl = "/api/stub/admin/system/archive";
+
+
+                this.owcApp = document.querySelector('#owc-app');
+
+            }
+
+            save(){
+              var self = this;
+              var model = self.get('model');
+              var options = {
+                body: JSON.stringify(model),
+                headers: [{
+                    name: "Accept",
+                    value: "application/json"
+                }, {
+                    name: "Content-Type",
+                    value: "application/json"
+                }]
+               };
+
+              self.owcApp.httpManager.sendRequest(
+                  'PUT',
+                  self.owcApp.config.baseUrl + self.basicConfigUrl,
+                  options
+              ).then(function(response) {
+                  self.model = _.clone(self.model);
+                  self.set('model', self.model);
+                  self.owcApp.toastManager.info(self.i18n("Mail configuration saved"));
+              });
+
+            }
+
+            reset(){
+              alert("reset");
+            }
+
+            getSystem(){
+
+              var self = this;
+              var getSystemUrl = "";
+              return new Promise(
+                  function(resolve, reject) {
+                        self.owcApp.httpManager.sendRequest(
+                            'GET',
+                            self.owcApp.config.baseUrl + self.systemUrl
+                        ).then(function(response) {
+                            self.model = response.data;
+                            resolve(self.model);
+                        });
+                  });
+            }
+
+            basicSave(model){
+
+              var self = this;
+
+              self.owcApp.httpManager.sendRequest(
+                  'PUT',
+                  self.owcApp.config.baseUrl + self.basicConfigUrl,
+                  model
+              ).then(function(response) {
+                  self.model = response;
+                  self.model = _.clone(self.model);
+              });
+            }
+
+
+
+
+            init(){
+              var self = this;
+              this.getSystem()
+                .then(function(model){
+                  self.model = model;
+                });
+            }
+
+       };
+
+      Polymer(AdminSystemMailConfiguration);
+
+    })();
+  </script>
+
+</dom-module>

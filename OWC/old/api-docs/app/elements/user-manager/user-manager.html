@@ -1,0 +1,177 @@
+<!--
+  @license
+
+ 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+This class is used to handle user info and roles
+
+
+@demo demo/index.html
+-->
+<dom-module id="user-manager">
+    <template>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class UserManager {
+
+            constructor() {
+                this.beforeRegister();
+            }
+
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'user-manager';
+                this.owcApp = document.querySelector('#owc-app');
+                this.user = {};
+
+            }
+
+            /**
+             * Get user info from server
+             *
+             * @return {Object} User object
+             */
+            getUserInfo(username) {
+                var self = this;
+                return self.owcApp.httpManager.sendRequest('GET', self.owcApp.config.baseUrl +
+                    '/odata/v1/Users(\'' + username + '\')?$format=json').then(function(response) {
+                    if (response.status == 200) {
+
+                        self.setUserModel(response.data);
+                    }
+                }, function(response) {});
+            }
+
+            /**
+             * Set user information from OData user model
+             *
+             * @return {Object} User object
+             */
+            setUserModel(response) {
+                var self = this;
+                if (response && response.d) {
+                    self.user = {};
+                    self.user.username = response.d.Username;
+                    self.user.password = response.d.Password;
+                    self.user.firstname = response.d.FirstName;
+                    self.user.lastname = response.d.LastName;
+                    self.user.email = response.d.Email;
+                    self.user.domain = response.d.Domain;
+                    self.user.subDomain = response.d.SubDomain;
+                    self.user.usage = response.d.Usage;
+                    self.user.subUsage = response.d.SubUsage;
+                    self.user.country = response.d.Country;
+                }
+
+            }
+
+            /**
+             * Get user info from server
+             *
+             * @return {Object} User object
+             */
+            getUserRoles(username) {
+                var self = this;
+                return self.owcApp.httpManager.sendRequest('GET', self.owcApp.config.baseUrl +
+                    '/odata/v1/Users(\'' + username + '\')/SystemRoles?$format=json').then(function(response) {
+                    if (response.status == 200) {
+
+                        self.setUserRolesModel(response.data);
+                        //self.owcApp.userManager.user = response.data;
+                    }
+                }, function(response) {});
+            }
+
+            /**
+             * Set user roles from OData User/SystemRoles model
+             *
+             * @return {Object} User object
+             */
+            setUserRolesModel(response) {
+                var self = this;
+                if (response && response.d && response.d.results) {
+                    if (self.user) {
+                        var roles = [];
+                        for (var i = 0; i < response.d.results.length; i++) {
+                            roles.push(response.d.results[i].Name);
+                        }
+                        self.user.roles = roles;
+                    }
+                }
+
+            }
+
+            /**
+             * clear user info
+             *
+             * @return {null} 
+             */
+            clearUserInfo() {
+                this.user = {};
+            }
+
+            /**
+             * Check if user has DATA_MANAGER role
+             *
+             * @return {Boolean} true if user has DATA_MANAGER role, false otherwise
+             */
+            isDataManager() {
+                var isDataManager = false;
+                if (this.user && this.user.roles && this.user.roles.indexOf('DATA_MANAGER') >= 0)
+                    isDataManager = true;
+                return isDataManager;
+
+            }
+
+            /**
+             * Check if user is Logged In
+             *
+             * @return {Boolean} true if users Logged In, false otherwise
+             */
+
+            isLogged() {
+                return (this.user && this.user.roles);
+            }
+
+
+
+        };
+
+        Polymer(UserManager);
+        eu.serco.Owc.UserManager = UserManager;
+
+    })();
+    </script>
+</dom-module>

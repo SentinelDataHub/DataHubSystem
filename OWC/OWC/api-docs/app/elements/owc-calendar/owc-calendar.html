@@ -1,0 +1,1351 @@
+<!--
+    @license
+
+
+    Data HUb Service (DHuS) - For Space data distribution.
+    Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+    Copyright (C) 2013,2014,2015,2016 GAEL Systems
+    Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+    This file is part of DHuS software sources.
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+  -->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
+<link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<!--
+<i>owc-calendar</i> component is used to draw the calendar of publication density, based on product sensing start (beginposition Solr index).
+This component uses d3 javascript library to draw calendar object.
+More information about d3 library can be found at <a href="https://d3js.org/">https://d3js.org/</a>
+
+<img src="https://user-images.githubusercontent.com/10920750/27025688-aaa9abf8-4f5b-11e7-96e3-ea0f758ffe88.png" align="middle"></img>
+
+In the context of <b>OWC</b> software, this component is used together with:
+<ul>
+<li><i>calendar-datasource</i> component, which is devoted to perform HTTP search request towards server, making data available for a calendar graphical components used to show products publication density per day in the last 13 weeks;
+</li>
+<li><i>calendar-semantic-manager</i> component, which is in charge of generating a generic model extracting the data from HTTP search request and applying a mapping between data and a set of pre-defined rules;</li>
+<li><i>calendar-coder</i> component, which is in charge of getting fields useful for component representation from the data model resulting from <i>calendar-semantic-manager</i> component.</li>
+</ul>
+
+HTTP requests performed by this component are based on Solr OpenSearch API. 
+In order to get information needed to draw the calendar of the publication density per day in the last 13 weeks, the component performes 91 HTTP requests based on product sensing start (beginposition Solr index).
+More in detail, the HTTP request gets how many products are sensed between the midnight of a day and the midnight of the nex day.
+An example of the request is reported below.
+<pre>
+    /search?q=beginposition:[2017-03-15T00:00:00.000Z TO 2017-03-16T00:00:00.000Z]&format=JSON&rows=0&group=true
+</pre> 
+
+The information related to the number of products sensed in a date is extracted from the JSON object returned by the HTTP request, which is 
+<pre>
+response.feed['opensearch:totalResults']
+</pre>
+An example of HTTP response is reported below.
+<pre>
+{
+    "feed": {
+        "xmlns:opensearch": "http://a9.com/-/spec/opensearch/1.1/",
+        "xmlns": "http://www.w3.org/2005/Atom",
+        "title": "Data Hub Service search results for: beginposition:[2017-05-15T00:00:00.000Z TO 2017-05-16T00:00:00.000Z]",
+        "subtitle": "Displaying 0 to -1 of 1669 total results. Request done in 0 seconds.",
+        "updated": "2017-06-11T21:30:53.736Z",
+        "author": {
+            "name": "Data Hub Service"
+        },
+        "id": "https://scihub.copernicus.eu/demohub/search?q=beginposition:[2017-05-15T00:00:00.000Z TO 2017-05-16T00:00:00.000Z]",
+        "opensearch:totalResults": "1669",
+        "opensearch:startIndex": "0",
+        "opensearch:itemsPerPage": "0",
+        "opensearch:Query": {
+            "role": "request",
+            "searchTerms": "beginposition:[2017-05-15T00:00:00.000Z TO 2017-05-16T00:00:00.000Z]",
+            "startPage": "1"
+        },
+        "link": [{
+            "rel": "self",
+            "type": "application/atom+xml",
+            "href": "https://scihub.copernicus.eu/demohub/search?q=beginposition:[2017-05-15T00:00:00.000Z TO 2017-05-16T00:00:00.000Z]&start=0&rows=0"
+        }, {
+            "rel": "first",
+            "type": "application/atom+xml",
+            "href": "https://scihub.copernicus.eu/demohub/search?q=beginposition:[2017-05-15T00:00:00.000Z TO 2017-05-16T00:00:00.000Z]&start=0&rows=0"
+        }, {
+            "rel": "next",
+            "type": "application/atom+xml",
+            "href": "https://scihub.copernicus.eu/demohub/search?q=beginposition:[2017-05-15T00:00:00.000Z TO 2017-05-16T00:00:00.000Z]&start=NaN&rows=0"
+        }, {
+            "rel": "last",
+            "type": "application/atom+xml",
+            "href": "https://scihub.copernicus.eu/demohub/search?q=beginposition:[2017-05-15T00:00:00.000Z TO 2017-05-16T00:00:00.000Z]&start=1668&rows=0"
+        }, {
+            "rel": "search",
+            "type": "application/opensearchdescription+xml",
+            "href": "opensearch_description.xml"
+        }]
+    }
+}
+</pre>
+
+  -->
+<dom-module id="owc-calendar">
+    <!-- VIEW  CODE HERE -->
+    <template>
+        <style is="custom-style">
+        .nomap {
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            margin-bottom: 20px;
+        }
+        
+        .chart div {
+            font: 10px sans-serif;
+            padding: 3px;
+            margin: 1px;
+            color: white;
+            height: 100%;
+        }
+        
+        #wrapper {
+            width: 100%;
+            height: 100%;
+            margin: 0px;
+        }
+        
+        #chart_placeholder {
+            font: 10px sans-serif;
+            shape-rendering: crispEdges;
+            overflow-y: auto;
+        }
+        
+        #calendar-content .month {
+            fill: none !important;
+            stroke: #000;
+            stroke-width: 2px;
+        }
+        
+        #calendar-content .day {
+            fill: #fff !important;
+            stroke: #ccc !important;
+        }
+        
+        .RdYlGn .q0-11 {
+            fill: rgb(165, 0, 38)
+        }
+        
+        .RdYlGn .q1-11 {
+            fill: rgb(215, 48, 39)
+        }
+        
+        .RdYlGn .q2-11 {
+            fill: rgb(244, 109, 67)
+        }
+        
+        .RdYlGn .q3-11 {
+            fill: rgb(253, 174, 97)
+        }
+        
+        .RdYlGn .q4-11 {
+            fill: rgb(254, 224, 139)
+        }
+        
+        .RdYlGn .q5-11 {
+            fill: rgb(255, 255, 191)
+        }
+        
+        .RdYlGn .q6-11 {
+            fill: rgb(217, 239, 139)
+        }
+        
+        .RdYlGn .q7-11 {
+            fill: rgb(166, 217, 106)
+        }
+        
+        .RdYlGn .q8-11 {
+            fill: rgb(102, 189, 99)
+        }
+        
+        .RdYlGn .q9-11 {
+            fill: rgb(26, 152, 80)
+        }
+        
+        .RdYlGn .q10-11 {
+            fill: rgb(0, 104, 55)
+        }
+        
+        #calendar-content {
+            max-height: calc(100% - 50px);
+            overflow-y: auto !important;
+            overflow-x: hidden;
+            /*position: absolute;*/
+            width: 100%;
+        }
+        
+        #calendar-container {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: auto !important;
+        }
+        
+        #calendar-container header {
+            width: 100%;
+            height: 120px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            padding-top: 20px;
+        }
+        
+        @media screen and (min-width: 993px) and (max-width: 1200px) {
+            #calendar-container header {
+                font-size: 16px;
+            }
+        }
+        
+        @media screen and (min-width: 769px) and(max-width: 992px) {
+            #calendar-container header {
+                font-size: 14px;
+            }
+        }
+        
+        @media screen and (max-width: 768px) {
+            #calendar-container header {
+                font-size: 14px;
+            }
+        }
+        
+        #calendar-header {
+            width: 100%;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            /*height: 50%;*/
+            top: 50px;
+            left: 0;
+            right: 0;
+        }
+        
+        #calendar-footer {
+            width: 100%;
+            height: 50%;
+            bottom: -60px;
+            color: #373b50;
+            left: 0;
+            right: 0;
+            padding-top: 10px;
+            overflow: auto !important;
+        }
+        
+        #calendar-content .calendar-year-label {
+            font-size: 20px !important;
+            font-weight: bold !important;
+        }
+        
+        .calendar-title {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        #calendar-content .month-title {
+            font-size: 12px !important;
+        }
+        
+        .calendar-date-details {
+            max-height: calc(100% - 40px);
+            overflow-y: auto;
+            margin-top: 40px;
+            position: relative;
+        }
+        
+        .calendar-date-details > ul {
+            padding-left: 15px;
+        }
+        
+        .calendar-date-details li {
+            list-style-type: none;
+            margin: 0;
+            height: 20px !important;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .calendar-date-details li::before,
+        .calendar-date-details li::after {
+            content: '';
+            left: -30px;
+            position: absolute;
+            right: auto
+        }
+        
+        .calendar-date-details li::before {
+            border-left: 1px solid #eaeaea;
+            bottom: 50px;
+            height: 100%;
+            top: 0;
+            width: 1px
+        }
+        
+        .calendar-date-details li::after {
+            border-top: 1px solid #eaeaea;
+            height: 20px;
+            top: 25px;
+            width: 35px
+        }
+        
+        .calendar-date-details li > span {
+            display: inline-block;
+            padding: 5px;
+            text-decoration: none
+        }
+        
+        .calendar-date-details li.parent_li > span {
+            cursor: pointer
+        }
+        
+        .calendar-date-details > ul > li::before,
+        .calendar-date-details > ul > li::after {
+            border: 0
+        }
+        
+        .calendar-date-details li:last-child::before {
+            height: 30px
+        }
+        
+        .calendar-date-details li > span:hover {
+            background: #eaeaea;
+        }
+        
+        .calendar-date-details li.parent_li > span:hover + ul li.li_selected span {
+            background: #eaeaea;
+        }
+        
+        .calendar-date-details li > span > a {
+            color: #373b50;
+            text-decoration: none;
+        }
+        
+        .calendar-date-details li:hover > span:hover > a:hover {
+            background: #eaeaea;
+            text-decoration: none;
+        }
+        
+        .calendar-date-details li > span > span.glyphicon-folder-close,
+        .calendar-date-details li > span > span.glyphicon-folder-open {
+            margin-right: 5px;
+        }
+        
+        .calendar-date-details li.li_selected > span,
+        .calendar-date-details li.li_selected > span > a {
+            background: #eaeaea;
+        }
+        
+        .calendar-date-details li.li_selected > span:hover,
+        .calendar-date-details li.li_selected > span:hover > a {
+            background: #eaeaea;
+        }
+        
+        .calendar-selected-date {
+            height: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            padding-bottom: 5px;
+            padding-left: 20px;
+        }
+        
+        .calendar-details-description {
+            height: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            padding-left: 20px;
+        }
+        
+        paper-radio-button.interval {
+            --paper-radio-button-checked-color: var(--paper-grey-900);
+            --paper-radio-button-checked-ink-color: var(--paper-grey-900);
+            --paper-radio-button-unchecked-color: var(--paper-grey-500);
+            --paper-radio-button-unchecked-ink-color: var(--paper-grey-500);
+            --paper-radio-button-label-color: var(--paper-grey-900);
+        }
+        
+        .calendar-info-date {
+            font-size: 12px;
+            font-style: italic;
+            text-align: center;
+            text-align: -webkit-center;
+            padding-top: 10px;
+        }
+        
+        .mission-bar {
+            max-height: 20px !important;
+            background: grey;
+            padding-bottom: 0px !important;
+            padding-top: 20px;
+        }
+        
+        .mission-button {
+            height: 30px;
+            margin: auto;
+            width: 30px;
+        }
+        
+        .max-product-number-per-date {
+            font-size: 14px !important;
+            padding: 5px;
+        }
+        
+        .min-product-number-per-date {
+            font-size: 14px !important;
+            padding: 5px;
+        }
+        
+        .flex-horizontal {
+            @apply(--layout-horizontal);
+            @apply(--layout-center-justified);
+            width: 90%;
+        }
+        
+        .flexchild {
+            @apply(--layout-flex);
+        }
+        
+        .flex-vertical {
+            @apply(--layout-vertical);
+            overflow: auto !important;
+        }
+        
+        .flexchild-vertical {
+            @apply(--layout-flex);
+            overflow: auto !important;
+        }
+        
+        .calendar-info-hide {
+            display: none !important;
+            cursor: default !important;
+        }
+        
+        .calendar-info-icon {
+            padding: 5px;
+            cursor: pointer;
+            opacity: 1;
+            /*opacity: 0.65;*/
+        }
+        
+        .calendar-info-icon:hover {
+            opacity: 0.65;
+        }
+        </style>
+        <div id="calendar-header">
+            <header>
+                <div class="calendar-title" hidden="{{hasProduct}}">
+                    {{i18n('No products found')}}.
+                </div>
+                <div class=" calendar-title" hidden="{{!hasProduct}}">
+                    {{productnumber}} {{i18n('published products for sensing period:')}}
+                </div>
+                <div class=" calendar-title" hidden="{{!hasProduct}}">
+                    {{start}} {{i18n('to')}} {{end}}
+                </div>
+                <div class=" calendar-info-date" hidden="{{!lastupdate}}">
+                    Last Update: {{lastupdate}}
+                </div>
+                <div class="calendar-info-date ">click on a date for more details
+                </div>
+                <paper-radio-group selected="90days">
+                    <paper-radio-button id="all-products" name="all" class="interval" data-args="all" on-change="updateCalendar" hidden="{{!isDebug}}">All data</paper-radio-button>
+                    <paper-radio-button id="last-90" name="90days" class="interval" data-args="90" on-change="updateCalendar" hidden="{{!isDebug}}">Last 90 days</paper-radio-button>
+                </paper-radio-group>
+                <div class="container flex-horizontal">
+                    <div class="min-product-number-per-date">
+                        1
+                    </div>
+                    <div class="flexchild mission-bar"></div>
+                    <div class=" max-product-number-per-date">
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div id="calendar-container">
+            <div class="container flex-vertical">
+                <div class="container flex-vertical">
+                    <div id="calendar-content"></div>
+                    <div id="second-calendar-content"></div>
+                </div>
+            </div>
+        </div>
+        <calendar-coder id="calendar-coder"></calendar-coder>
+    </template>
+    <!-- MODEL-CONTROLLER CODE -->
+    <script>
+    (function() {
+        'use strict';
+        class OwcCalendar {
+
+            beforeRegister() {
+                this.is = 'owc-calendar';
+                this.owcApp = document.querySelector('#owc-app');
+
+                this.properties = {
+
+                    /**
+                     * Interanal property, If it is true the infinite scroll calls http requests,
+                     * if it is false the scroll event is ignored.
+                     *
+                     * @private
+                     * @type {Boolean}
+                     */
+                    readyToLoadNewPage: false,
+
+                    /**
+                     * UI variable: If it is true, the calendar is hidden. If it is false, the calendar is shown.
+                     * This property is mainly used to hide the empty calendar in case of 0 results
+                     *
+                     * @type {Boolean}
+                     */
+                    visible: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
+
+                    /**
+                     * Array object containing calendar data model, which is the result of data processing performed by the 
+                     * <i>calendar-coder</i> component on the <b>model</b> of the <i>calendar-semantic-manager</i> component
+                     *
+                     * @type {Array}
+                     */
+                    model: {
+                        type: Array,
+                        value: null,
+                        notify: true
+
+                    },
+
+                    /**
+                     * Object containing reference to <i>calendar-datasource</i> component. This object can be obtained using proper 
+                     * Polymer selection component method, like
+                     *   <pre>
+                     *   var datasource  = Polymer.dom(this.root).querySelector('#my-cal-ds');
+                     *   </pre>
+                     *
+                     * @type {Object}
+                     */
+                    datasource: {
+                        type: Object,
+                        value: {},
+                        notify: true
+
+                    },
+                    /**
+                     * Object containing reference to model resulting from <i>calendar-semantic-manager</i> component data processing
+                     * @type {Object}
+                     */
+                    genericModel: {
+                        type: Object,
+                        value: {},
+                        notify: true
+
+                    },
+                    /**
+                     * Object containing reference to <i>calendar-coder</i> component. This object can be obtained using proper 
+                     * Polymer selection component method, like
+                     *   <pre>
+                     *   var coder  = Polymer.dom(this.root).querySelector('#my-cal-coder');
+                     *   </pre>
+                     *
+                     * @type {Object}
+                     */
+                    coder: {
+                        type: Object,
+                        value: {},
+                        notify: true
+
+                    },
+
+
+                    /**
+                     * Object containing reference to calendar container component. 
+                     *               
+                     * @private
+                     * @type {Object}
+                     */
+                    container: {
+                        type: Object,
+                        value: null
+                    },
+
+                    /**
+                     * Variable containing the number of products sensed in the last quarter
+                     *
+                     * @type {Number}
+                     */
+                    productnumber: {
+                        type: Number,
+                        value: 0,
+                        notify: true
+                    },
+
+                    /**
+                     * Property used to check if calendar contains products (true) or not (false)
+                     *
+                     * @type {Boolean}
+                     */
+                    hasProduct: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
+                    /**
+                     * Switch variable for debug/development scenario
+                     *
+                     * @private
+                     * @type {Boolean}
+                     */
+                    isDebug: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
+                    /**
+                     * Property contained data managed by d3 library for drawing svg object representing the calendar of products distribution density
+                     *
+                     * @type {Array}
+                     */
+                    data: {
+                        type: Array,
+                        value: [],
+                        notify: true
+                    },
+
+                    /**
+                     * Property contained data managed by d3 library for drawing svg object representing news
+                     * Since OData API for new retrieval is not available in the current
+                     * distribution, this method is used only in demo instances
+                     * @private
+                     *
+                     * @type {Array}
+                     */
+                    events: {
+                        type: Array,
+                        value: [],
+                        notify: true
+                    },
+
+                    /**
+                     * Minimum date in generic model for which there are products available
+                     *
+                     * @private
+                     * @type {String}
+                     */
+                    mindate: {
+                        type: String,
+                        value: null,
+                        notify: true
+                    },
+
+                    /**
+                     * Maximum date in generic model for which there are products available
+                     *
+                     * @private
+                     * @type {String}
+                     */
+                    maxdate: {
+                        type: String,
+                        value: null,
+                        notify: true
+                    },
+
+                    /**
+                     * Start date property of a specific model item
+                     *
+                     * @private
+                     * @type {String}
+                     */
+                    start: {
+                        type: String,
+                        value: null,
+                        notify: true
+                    },
+
+                    /**
+                     * End date property of a specific model item
+                     *
+                     * @private
+                     * @type {String}
+                     */
+                    end: {
+                        type: String,
+                        value: null,
+                        notify: true
+                    },
+
+                    /**
+                     * Property containing products reference mission 
+                     * This will be used in future to add filters on mission to the calendar of
+                     * products distribution density
+                     * @private
+                     * @type {String}
+                     */
+                    mission: {
+                        type: String,
+                        value: 'all',
+                        notify: true
+                    },
+
+                    /**
+                     * Maximum number of products in a date of the reference period
+                     *
+                     * @type {String}
+                     */
+                    maxnumprodperdate: {
+                        type: Number,
+                        value: 0,
+                        notify: true
+                    },
+
+                    /**
+                     * Calendar last update. This property is used to avoid performing too many HTTP requests whenever the component is requested by users
+                     *
+                     * @private
+                     * @type {String}
+                     */
+                    lastupdate: {
+                        type: String,
+                        value: null,
+                        notify: true
+                    }
+                };
+            }
+
+            /**
+             *  This method is used to set property containing the number of products sensed in the last quarter
+             *
+             * @param {Number} count: product number
+             * @return {Number} productnumber
+             */
+            setProductCount(count) {
+                this.productnumber = count
+            }
+
+            /*detached() {
+
+                var self = this;
+                this.genericModel = null;
+                this.model = null;
+            }*/
+
+            /**
+             * This method is used to set <i>calendar-datasource</i> component
+             *
+             * @param {Object} delegate: object containing reference to <i>calendar-datasource</i> component. This object can be 
+             * obtained using proper Polymer selection component method, like
+             *   <pre>
+             *   var datasource  = Polymer.dom(this.root).querySelector('#my-cal-datasource');
+             *   </pre>
+             *            
+             */
+            setDelegate(delegate) {
+                this.datasource = delegate;
+            }
+
+            /**
+             * This method is used to set generic data model returned by <i>calendar-datasource</i> component
+             *
+             * @param {Object} genericModel: object containing data model returned by 
+             * <i>calendar-datasource</i> component
+             * @return {Object} genericModel           
+             */
+            setGenericModel(genericModel) {
+                this.genericModel = genericModel;
+            }
+
+            /**
+             * This method is used to set calendar container component
+             *
+             * @param {Object} calContainer: object containing reference to calendar container component. This object can be 
+             * obtained using proper Polymer selection component method, like
+             *   <pre>
+             *   var container  = Polymer.dom(this.root).querySelector('#my-cal-container');
+             *   </pre>
+             *            
+             */
+            setContainer(calContainer) {
+                this.container = calContainer;
+            }
+
+            /**
+             * This method is used to set <i>calendar-coder</i> component
+             *
+             * @param {Object} calCoder: object containing reference to <i>calendar-coder</i> component. This object can be 
+             * obtained using proper Polymer selection component method, like
+             *   <pre>
+             *   var coder  = Polymer.dom(this.root).querySelector('#my-ccal-oder');
+             *   </pre>
+             *            
+             */
+            setCoder(calCoder) {
+                this.coder = calCoder;
+            }
+
+            /**
+             * This method is used to update calendar of products density
+             * This method is deprecated, since based on OData requests with filter, which have bad performances.
+             * 
+             * @private
+             * @deprecated
+             *
+             * @param {Object} event: on-change event
+             */
+            updateCalendar(event) {
+                var args = event.target.getAttribute('data-args')
+
+                if (args == "90")
+                    this.datasource.loadDataFromServer(true);
+                else
+                    this.datasource.loadDataFromServer(false);
+            }
+
+            /**
+             * Public method used to update <b>model</b> property.
+             *
+             * @private
+             * @param {Object} page: updated list data model
+             *             
+             */
+            setNewModel(model) {
+                var self = this;
+                if (!model || model.length < 1 || !model.data || model.data.length < 1) {
+                    self.visible = false;
+                    return;
+                }
+                var coder = document.getElementById('calendar-coder');
+                var specificModel = coder.extractSpecificModel(model);
+                self.start = specificModel.startdate;
+                self.end = specificModel.enddate;
+                self.data = specificModel.data;
+                self.events = specificModel.events;
+                self.maxnumprodperdate = specificModel.maxnumprodperdate;
+                self.mindate = specificModel.mindate;
+                self.maxdate = specificModel.maxdate;
+                self.productnumber = specificModel.totalproducts;
+                if (self.owcApp.calendar && self.owcApp.calendar.lastupdate)
+                    self.lastupdate = moment(self.owcApp.calendar.lastupdate).utc().format();
+                else
+                    self.lastupdate = null;
+                if (self.productnumber > 0)
+                    self.hasProduct = true;
+                else
+                    self.hasProduct = false;
+                self.visible = true;
+
+                setTimeout(function() {
+
+                    self.set('model', specificModel);
+                    self.notifyPath('model', specificModel);
+                    self.set('productnumber', self.productnumber);
+                    self.notifyPath('productnumber', self.productnumber);
+                    self.set('visible', self.visible);
+                    self.notifyPath('visible', self.visible);
+                    var event = document.createEvent('Event');
+                    event.initEvent('resize', true, true);
+                    document.dispatchEvent(event);
+                }, 0);
+                self.readyToLoadNewPage = self.properties.paginationEnabled && true;
+
+            }
+
+            /**
+             * This method manages content panel behaviour on panel resize.             
+             */
+            resize() {
+                var self = this;
+                self.customStyle['--calendarheight'] = parseInt(self.parentPanel.getSize().height - 50) + "px";
+                self.updateStyles();
+                self.customStyle['--calendarwidth'] = parseInt(self.parentPanel.getSize().width - 50) + "px";
+                self.updateStyles();
+            }
+
+            /**
+             * This method returns the first color of a specific satellite mission
+             *
+             * @param {String} mission: satellite mission string
+             * @return {String} rgb color
+             */
+            getFirstColor(mission) {
+                switch (mission) {
+                    case 'Sentinel-1':
+                        return {
+                            "R": 253,
+                            "G": 200,
+                            "B": 47
+                        };
+                        break;
+                    case 'Sentinel-2':
+                        return {
+                            "R": 0,
+                            "G": 133,
+                            "B": 66
+                        };
+                        break;
+                    case 'Sentinel-3':
+                        return {
+                            "R": 0,
+                            "G": 152,
+                            "B": 219
+                        };
+                        break;
+                    default:
+                        return {
+                            "R": 227,
+                            "G": 114,
+                            "B": 34
+                        };
+                }
+            }
+
+            /**
+             * This method returns the second color of a specific satellite mission
+             *
+             * @param {String} mission: satellite mission string
+             * @return {String} rgb color
+             */
+            getSecondColor(mission) {
+                switch (mission) {
+                    case 'Sentinel-1':
+                        return {
+                            "R": 254,
+                            "G": 241,
+                            "B": 202
+                        };
+                        break;
+                    case 'Sentinel-2':
+                        return {
+                            "R": 216,
+                            "G": 236,
+                            "B": 226
+                        };
+                        break;
+                    case 'Sentinel-3':
+                        return {
+                            "R": 205,
+                            "G": 235,
+                            "B": 248
+                        };
+                        break;
+                    default:
+                        return {
+                            "R": 250,
+                            "G": 230,
+                            "B": 216
+                        };
+                }
+            }
+
+            /**
+             * This method sets the bar color of a specific satellite mission. Colour gradation 
+             * is more intense where product are more in quantity in a day, while is less intense 
+             * where product are less in quantity in a day
+             *
+             * @param {String} mission: satellite mission string
+             * @return {null}
+             */
+            setBarColor(mission) {
+                var firstCol = this.getFirstColor(mission);
+                var secondCol = this.getSecondColor(mission);
+                $('.mission-bar').attr("style", function() {
+                    var firstGradient = "rgb(" + firstCol.R + "," + firstCol.G + "," + firstCol.B + ")";
+                    var secondGradient = "rgb(" + secondCol.R + "," + secondCol.G + "," + secondCol.B + ")";
+                    return "background: " + firstGradient + "; " +
+                        "background: -o-linear-gradient(left," + firstGradient + "," + secondGradient + ");" +
+                        "background: -moz-linear-gradient(left," + firstGradient + "," + secondGradient + ");" +
+                        "background: linear-gradient(to left," + firstGradient + "," + secondGradient + ");";
+                });
+            }
+
+            /**
+             * This method returns the gradient color, for a specific mission, used to draw the 
+             * bar representing the minimum and the maximum numbers of products sensed in the 
+             * period of interest
+             *
+             * @param {Number} d: data value
+             * @param {String} mission: satellite mission string
+             * @return {String} rgb color
+             */
+            computeGradient(d, mission) {
+                var firstCol = this.getFirstColor(mission);
+                var secondCol = this.getSecondColor(mission);
+                var computedCol = "rgb(255,255,255)";
+                if (d && d.amount) {
+                    var p = d.amount / (this.maxnumprodperdate);
+                    computedCol = "rgb(" + parseInt(firstCol.R * p + secondCol.R * (1 - p)) + "," + parseInt(firstCol.G * p + secondCol.G * (1 - p)) + "," + parseInt(firstCol.B * p + secondCol.B * (1 - p)) + ")";
+                }
+                return computedCol;
+
+            }
+
+            /**
+             * This method is used to show the component representing the list of products sensed 
+             * in the selected date. 
+             *
+             * @param {String} date: item date
+             * @param {Number} productNumber: item product number              
+             */
+            createDetail(date, productNumber) {
+
+                var calendarDetail = document.createElement('calendar-details');
+                calendarDetail.selected_date = date;
+                if (productNumber)
+                    calendarDetail.productnumber = productNumber;
+                var panelTitle = this.i18n('Calendar Details');
+                document.getElementById('navigation-manager').pushComponent(calendarDetail, '500px', panelTitle);
+            }
+
+            /**
+             * This method is used to show the component representing the list of events occurred 
+             * in the selected date. 
+             * The OData API used to get events is not available in the current distribution, so 
+             * this method is used only in demo instances
+             * @param {String} date: item date
+             * @param {Number} productNumber: item product number              
+             */
+            showEvents(events, date) {
+
+                var filter = "";
+                for (var i = 0; i < events.length; i++) {
+                    filter += "Id%20eq%20" + events[i].uuid + "%20or%20";
+                }
+                var eventDetail = document.createElement('events-list');
+                eventDetail.addinfo = " on " + date;
+                if (filter.length > 0)
+                    eventDetail.defaultFilter = filter.substring(0, filter.length - 8);
+                document.getElementById('navigation-manager').pushComponent(eventDetail, '500px', 'News');
+            }
+
+            
+            /**
+             * This method is used to draw calendar of products distribution density by means of
+             * d3 library, using data retrieved by <i>calendar-datasource</i>, 
+             * <i>calendar-semantic-manager</i> and <i>calendar-coder</i> components
+             *             
+             */
+            createCalendar() {
+                var minyear, maxyear;
+                minyear = new Date(this.mindate).getFullYear();
+                maxyear = new Date(this.maxdate).getFullYear();
+                if (maxyear - minyear == 0) {
+                    this.drawCalendar(this.mindate, this.maxdate, "#calendar-content");
+                } else {
+                    this.drawCalendar(this.mindate, minyear + "-12-31", "#calendar-content");
+                    this.drawCalendar(maxyear + "-01-01", this.maxdate, "#second-calendar-content");
+                }
+
+            }
+
+            /**
+             * This method is used to draw calendar of products distribution density by means of
+             * d3 library, using data retrieved by <i>calendar-datasource</i>, 
+             * <i>calendar-semantic-manager</i> and <i>calendar-coder</i> components
+             *  
+             * @param {String} start: start date of the period of interest
+             * @param {Strng} end: end date of the period of interest
+             * @param {Strng} element: identifier of the div where svg object will be attached          
+             */
+            drawCalendar(start, end, element) {
+                if (this.owcApp && this.owcApp.appconfig && this.owcApp.appconfig.debug)
+                    this.isDebug = this.owcApp.appconfig.debug;
+                $(element).html("");
+                $('.max-product-number-per-date').text('');
+                $('.max-product-number-per-date').text(this.maxnumprodperdate);
+                this.setBarColor();
+
+                var startdate, enddate, startyear, endyear, startmonth, endmonth, startday, endday;
+                if (start && end) {
+                    startdate = new Date(start);
+                    enddate = new Date(end);
+                    startyear = startdate.getFullYear();
+                    endyear = enddate.getFullYear();
+                    startmonth = startdate.getMonth();
+                    endmonth = enddate.getMonth();
+                    startday = startdate.getDate();
+                    endday = enddate.getDate();
+
+                } else {
+
+                    startyear = new Date().getFullYear();
+                    endyear = new Date().getFullYear();
+                    startmonth = 0;
+                    endmonth = 11;
+                    startday = 1;
+                    endday = 31;
+                    startdate = new Date(startyear, startmonth, startday);
+                    enddate = new Date(endyear, endmonth, endday);
+                }
+                var self = this;
+                var monthGap = ((endmonth - startmonth) < 4) ? (endmonth - startmonth + 1) : (endmonth - startmonth + 2);
+                var cellSize = 35;
+                var paddingSize = 30,
+                    svgHeight = (endyear - startyear == 0) ? cellSize * 6 * monthGap : cellSize * 5 * 12,
+
+                    svgWidth = cellSize * 7 + (paddingSize * 2);
+
+                var percent = d3.format(".1%"),
+                    format = d3.time.format("%Y-%m-%d"),
+                    day = d3.time.format("%w"),
+                    week = d3.time.format("%U");
+
+                var color = d3.scale.quantize()
+                    .domain([-.05, .05])
+                    .range(d3.range(11).map(function(d) {
+                        return "q" + d + "-11";
+                    }));
+                var svg = d3.select(element).selectAll("svg")
+                    .data(d3.range(startyear, endyear + 1))
+                    .enter().append("svg")
+                    .attr("width", svgWidth)
+                    .attr("height", svgHeight)
+                    .attr("class", "RdYlGn")
+                    .attr("style", "padding-top: 10px; margin:auto; display: block;")
+                    .attr("xmlns:xlink", "http://www.w3.org/1999/xlink")
+                    .append("g")
+                    .attr("transform", "translate(" + paddingSize + ",25)");
+                svg.append("text")
+                    .attr("transform", "translate(" + (svgWidth / 2 - paddingSize) + "," + -5 + ")")
+                    .attr("class", "calendar-year-label")
+                    .attr("style", "font-size:16px; font-weight:bold;")
+                    .style("text-anchor", "middle")
+                    .text(function(d) {
+                        return d;
+                    });
+
+                var rect = svg.selectAll(".day")
+                    .data(function(d) {
+                        if (endyear - startyear == 0) {
+                            if (endmonth == 11 && endday == 31)
+                                return d3.time.days(new Date(startyear, startmonth, startday), new Date(endyear + 1, 0, 1));
+                            else
+                                return d3.time.days(new Date(startyear, startmonth, startday), new Date(endyear, endmonth, endday));
+                        } else
+                            return d3.time.days(new Date(d, 0, 1), new Date(d + 1, 0, 1));
+                    })
+                    .enter().append("rect")
+                    .attr("stroke", "#000")
+
+                .attr("class", "day")
+                    .attr("width", cellSize)
+                    .attr("height", cellSize)
+
+                .attr("y", function(d) {
+                        if (endyear - startyear == 0)
+                            return (d3.time.weekOfYear(d) - d3.time.weekOfYear(startdate)) * cellSize;
+                        else
+                            return week(d) * cellSize;
+                    })
+                    .attr("x", function(d) {
+                        if (endyear - startyear == 0)
+                            return d.getDay() * cellSize;
+                        else
+                            return day(d) * cellSize;
+                    })
+                    .datum(format)
+                    .attr("fill", function(d) {
+                        if (self.data[d] && self.data[d].amount)
+                            return self.computeGradient(self.data[d], self.mission);
+                        else
+                            return self.computeGradient(null, self.mission);
+                    })
+                    .attr("style", function(d) {
+                        var cursor = "cursor: default;";
+                        if (self.events[d]) {
+                            cursor = "cursor: pointer;";
+                        }
+                        return cursor;
+                    })
+                    .on('click', function(d) {
+
+                        if (self.data[d] && self.data[d].amount)
+                            self.createDetail(d, self.data[d].amount);
+                        if (self.events[d])
+                            self.showEvents(self.events[d], d);
+
+                    });
+
+                var evt = svg.selectAll("image")
+                    .data(function(d) {
+                        if (endyear - startyear == 0) {
+                            if (endmonth == 11 && endday == 31)
+                                return d3.time.days(new Date(startyear, startmonth, startday), new Date(endyear + 1, 0, 1));
+                            else
+                                return d3.time.days(new Date(startyear, startmonth, startday), new Date(endyear, endmonth, endday));
+                        } else {
+                            return d3.time.days(new Date(d, 0, 1), new Date(d + 1, 0, 1));
+                        }
+                    })
+                    .enter().append("svg:image")
+                    .attr("xlink:href", "images/info.png")
+                    .attr("y", function(d) {
+                        if (endyear - startyear == 0)
+                            return (d3.time.weekOfYear(d) - d3.time.weekOfYear(startdate)) * cellSize /*+ parseInt(cellSize*0.4 )*/ ;
+                        else
+                            return week(d) * cellSize /*+ parseInt(cellSize*0.4 )*/ ;
+                    })
+                    .attr("x", function(d) {
+                        if (endyear - startyear == 0)
+                            return d.getDay() * cellSize /*+ parseInt(cellSize*0.4 )*/ ;
+                        else
+                            return day(d) * cellSize /*+ parseInt(cellSize*0.4 )*/ ;
+                    })
+                    .attr("style", function(d) {
+
+                        if (!self.events[format(d)]) // Test icon placeholder. To replace with real event information
+                            return "display: none !important; cursor: default;";
+                        else
+                            return "padding: 5px; cursor: pointer; opacity: 1;";
+                    })
+                    .attr("width", function() {
+                        return cellSize - parseInt(cellSize * 0.6)
+                    })
+                    .attr("height", function() {
+                        return cellSize - parseInt(cellSize * 0.6)
+                    })
+                    .datum(format)
+                    .on('click', function(d) {
+                        //var dateTitle = d + ": No products sensed";
+                        if (self.data[d] && self.data[d].amount)
+                            self.createDetail(d, self.data[d].amount);
+                        if (self.events[d])
+                            self.showEvents(self.events[d], d);
+
+                    });
+
+                rect.append("title")
+                    .text(function(d) {
+                        var dateTitle = d;
+                        if (self.data[d] && self.data[d].amount)
+                            dateTitle = d + ": " + self.data[d].amount + ((self.data[d].amount > 1) ? " products" : " product");
+                        return dateTitle;
+                    });
+
+                svg.selectAll(".month")
+                    .data(function(d) {
+                        if (endyear - startyear == 0)
+                            return d3.time.months(new Date(startyear, startmonth, startday), new Date(endyear, endmonth, endday));
+                        else
+                            return d3.time.months(new Date(d, 0, 1), new Date(d + 1, 0, 1));
+                    })
+                    .enter().append("path")
+                    .attr("class", "month")
+                    .attr("style", "fill: none; stroke: #000; stroke-width: 3px;")
+                    .attr("d", self.monthPath)
+                    .attr("transform", function(d) {
+                        if (endyear - startyear == 0)
+                            return "translate(0,-" + (d3.time.weekOfYear(startdate) * cellSize) + ")"
+                        else
+                            return
+                    });
+
+                var month_titles = svg.selectAll(".month-title") // Jan, Feb, Mar and the whatnot
+                    .data(function(d) {
+                        if (endyear - startyear == 0)
+                            return d3.time.months(new Date(startyear, startmonth, startday), new Date(endyear, endmonth, endday));
+                        else
+                            return d3.time.months(new Date(d, 0, 1), new Date(d + 1, 0, 1));
+                    })
+                    .enter().append("text")
+                    .text(self.monthTitle)
+                    .attr("class", "month-title")
+                    .attr("style", "font-size:12px;")
+                    .attr("y", function(d) {
+                        if (endyear - startyear == 0)
+                            return ((d3.time.weekOfYear(d) - d3.time.weekOfYear(startdate)) + 1) * cellSize;
+                        else
+                            return (d3.time.weekOfYear(d) + 1) * cellSize;
+                    })
+                    .attr("x", "-5")
+                    .attr("d", self.monthPath)
+                    .attr("transform", function(d) {
+                        if (endyear - startyear == 0)
+                            return "rotate(-90,-5," + ((d3.time.weekOfYear(d) - d3.time.weekOfYear(startdate)) + 1) * cellSize + ")"
+                        else
+                            return "rotate(-90,-5," + ((d3.time.weekOfYear(d) + 1) * cellSize) + ")"
+                    });
+                rect.filter(function(d) {
+                        return d in self.data;
+                    })
+                    .attr("class", "")
+                    .attr("fill", function(d) {
+                        var greenGraduation = parseInt(self.data[d].amount / (self.productnumber) * 255);
+                        return self.computeGradient(self.data[d], self.mission);
+                    })
+                    .select("title")
+                    .text(function(d) {
+                        if (self.data[d] && self.data[d].amount)
+                            return d + ": " + self.data[d].amount + ((self.data[d].amount > 1) ? " products" : " product");
+                        else
+                            return "No products found on " + d;
+                    });
+            }
+
+            /**
+             * Generate and return month path attribute
+             *
+             * @param {Date} t0: date             
+             * @return {String} svg month path object
+             */
+            monthPath(t0) {
+                var day = d3.time.format("%w"),
+                    week = d3.time.format("%U");
+
+                var cellSize = 35;
+                var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
+                    d0 = +day(t0),
+                    w0 = +week(t0),
+                    d1 = +day(t1),
+                    w1 = +week(t1);
+
+                return "M" + d0 * cellSize + "," + (w0) * cellSize + "H" + 7 * cellSize + "V" + (w1) * cellSize + "H" + (d1 + 1) * cellSize + "V" + (w1 + 1) * cellSize + "H" + 0 + "V" + (w0 + 1) * cellSize + "H" + d0 * cellSize + "Z";
+            }
+
+            /**
+             * This method returns the month string title, from the t0 date
+             *
+             * @param {Date} t0: date             
+             * @return {String}: month title
+             */
+            monthTitle(t0) {
+                var monthNames = ["January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"
+                ];
+                return monthNames[t0.getMonth()];
+            }
+
+
+        };
+
+        Polymer(OwcCalendar);
+        eu.serco.Owc.OwcCalendar = OwcCalendar;
+
+    })();
+    </script>
+</dom-module>

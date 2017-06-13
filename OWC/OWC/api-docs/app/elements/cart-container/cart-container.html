@@ -1,0 +1,345 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../cart-coder/cart-coder.html">
+<!--
+This is the container for user cart list. 
+
+
+@demo demo/index.html
+-->
+<dom-module id="cart-container">
+    <style is="custom-style">
+    .child {
+        margin-bottom: 0px;
+        height: 50px!important;
+        border-style: solid;
+        border-color: #EEEEEE;
+        border-width: 3px;
+        overflow-y: scroll;
+    }
+    
+    .childVertical {
+        padding: 2px;
+        margin: 3px;
+        border-style: solid;
+        border-width: 1px;
+        overflow-y: scroll;
+    }
+    
+    .container {
+        @apply(--layout-horizontal);
+    }
+    
+    .containerVertical {
+        @apply(--layout-vertical);
+    }
+    
+    .flexchild {
+        @apply(--layout-flex-3);
+    }
+    
+    #cart-container-main-container {
+        height: var(--listheight, 500px);
+        width: var(--listwidth, 100%);
+        overflow-y: auto;
+        overflow-x: auto;
+    }
+    
+    #cart {
+        width: 90%!important;
+    }
+    
+    .cart-number {
+        font-size: 15px;
+        text-align: center;
+        padding: 3px;
+        opacity: 0.95;
+        font-weight: bold;
+    }
+    
+    paper-fab.blue {
+        --paper-fab-background: #002664;
+    }
+    
+    .cart-button {
+        margin: 5px 15px;
+    }
+    
+    .right {
+        float: right;
+    }
+    </style>
+    <template>
+        <div id="cartNumber" class="cart-number"> <span hidden$="{{!compute(count)}}">Your cart contains {{count}} <span hidden="{{oneProduct}}">{{i18n('products')}}</span> <span hidden="{{!oneProduct}}">{{i18n('product')}} </span> . Display {{start}} to {{end}} of {{count}} <span hidden="{{oneProduct}}">{{i18n('products')}}</span> <span hidden="{{!oneProduct}}">{{i18n('product')}} </span> </span><span hidden$="{{compute(count)}}">{{i18n('Your cart is empty')}} </span>
+        </div>
+        <div class="container right">
+            <paper-fab mini class="blue cart-button" icon="file-download" on-click="downloadCart" title="Download Cart">Download Cart</paper-fab>
+            <paper-fab mini class="blue cart-button" icon="delete-forever" on-click="clearCart" title="Clear Cart">Clear Cart</paper-fab>
+        </div>
+        <div id="cart-container-main-container">
+            <owc-list id="cart"></owc-list>
+            <data-source id="cart-data-source"></data-source>
+            <cart-coder id="cart-coder"></cart-coder>
+            <semantic-manager id="cart-semantic-manager"></semantic-manager>
+            <generic-model id="cart-generic-model"></generic-model>
+            <owc-cart-manager id="cart-list-manager"></owc-cart-manager>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class CartContainer {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+
+            beforeRegister() {
+                this.is = 'cart-container';
+
+                this.owcApp = document.querySelector('#owc-app');
+                this.downloadCartUrl = "/odata/v1/Users(':userid')/Cart?$format=application/metalink4%2Bxml";
+                this.clearCartUrl = "/api/stub/users/0/cart/0/clear";
+                this.properties = {
+
+                    /**
+                     * userid property
+                     *
+                     * @type {Number}
+                     */
+                    oneProduct: {
+                        type: Number,
+                        value: 0
+                    },
+
+                    /**
+                     * product count in cart
+                     *
+                     * @type {Number}
+                     */
+                    count: {
+                        type: Number,
+                        value: null
+                    },
+
+                    /**
+                     * product count in cart
+                     *
+                     * @type {Number}
+                     */
+                    start: {
+                        type: Number,
+                        value: 0
+                    },
+
+                    /**
+                     * product count in cart
+                     *
+                     * @type {Number}
+                     */
+                    end: {
+                        type: Number,
+                        value: 0
+                    }
+
+                }
+            }
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+                var self = this;
+                this.cartManager = Polymer.dom(self.root).querySelector('#cart-list-manager');
+                this.list = Polymer.dom(self.root).querySelector('#cart'),
+
+                this.loadDataFromServer();
+                self.owcApp.messageBroker.subscribe('updateCart',
+                    function() {
+                        self.cartManager.getCartIds().then(function(cartIdsModel) {
+                            self.list.cartIds = cartIdsModel;
+                            self.set('self.list.cartIds', []);
+                            self.set('self.list.cartIds', self.list.cartIds);
+                            self.notifyPath('self.list.cartIds', self.list.cartIds);                            
+                            self.loadDataFromServer();
+                        });
+
+                    });
+
+            }
+
+
+            /**
+             * This method is used to load from server data needed to create cart list
+             *
+             * @return {null}
+             */
+            loadDataFromServer() {
+                var self = this,                    
+                    datasource = Polymer.dom(self.root).querySelector('#cart-data-source'),
+                    genModel = Polymer.dom(self.root).querySelector('#cart-generic-model'),
+                    semanticManager = Polymer.dom(self.root).querySelector('#cart-semantic-manager'),
+                    coder = Polymer.dom(self.root).querySelector('#cart-coder'),
+                    listContainer = Polymer.dom(self.root).querySelector('#cart-container-main-container');
+                    
+
+
+                datasource._requestUrl = "/api/stub/users/0/carts/0?offset=:offset&count=:limit";
+                datasource._countUrl = "/odata/v1/Users(':filter')/Cart/$count";
+
+                semanticManager.init();
+                // users list
+                datasource.setList(self.list);
+                // useless?
+                // datasource.setListContainer(listContainer);
+                // query ---> just the text empty by default
+
+
+                datasource._pageSize = 7;
+                datasource._currentQuery = this.owcApp.authenticationManager.username;
+
+                // target message broker
+
+                // generic model
+                datasource.setGenericModel(genModel);
+                datasource.setListSemanticManager(semanticManager);
+                datasource.setListContainer(this);
+                self.list.setCoder(coder);
+
+                self.list.setGenericModel(genModel);
+                self.list.setDelegate(datasource);
+                self.list.setCartManager(self.cartManager);
+                self.list.default = true;
+                self.list.users = false;
+                self.list.isCart = true;
+                self.list.setContainer(listContainer);
+
+                // TODO: to set the filter from the form               
+                // run request
+                datasource.loadDataFromServer();
+            }
+
+
+
+
+
+            /**
+             * Resize method (called from navigation panel)
+             *
+             * @return {null}
+             */
+            resize() {
+                this.customStyle['--listheight'] = parseInt(this.parentPanel.getSize().height - 74) + "px";
+                this.updateStyles();
+                this.customStyle['--listwidth'] = parseInt(this.parentPanel.getSize().width) + "px";
+                this.updateStyles();
+            }
+
+            /**
+             *  This method is used to set product count
+             *
+             * @return {Number} product count
+             * @return {null} 
+             */
+            setCount(count) {
+                this.count = count;
+            }
+
+            /**
+             *  This method is used to check if product list contains more than 1 product
+             *
+             * @return {Boolean} true if list has one product, false otherwise
+             * @return {null} 
+             */
+            setOneProduct(oneProduct) {
+                this.oneProduct = oneProduct;
+            }
+
+            /**
+             *  This method returns true if the number of product is greater than zero
+             *
+             * @return {null}
+             */
+            compute() {
+                var isVisible = (this.count > 0) ? true : false;
+                return isVisible;
+            }
+
+            /**
+             *  This method is used to perform metalink download containing cart
+             *
+             * @return {null}
+             */
+            downloadCart() {
+                var userid = this.owcApp.authenticationManager.username;
+                window.location = this.owcApp.config.baseUrl + this.downloadCartUrl.replace(':userid', userid);
+
+            }
+
+            /**
+             *  This method is used to clear user cart
+             *
+             * @return {Object} Promise with request outcome
+             */
+            clearCart() {
+                var self = this;
+
+                return this.owcApp.httpManager.sendRequest(
+                    'POST',
+                    self.owcApp.config.baseUrl + self.clearCartUrl
+
+                ).then(
+                    function(response) {
+                        self.owcApp.toastManager.info(self.i18n("User cart cleared"));
+                        self.loadDataFromServer();
+
+                    },
+                    function() {
+                        self.owcApp.toastManager.warn(self.i18n("Error clearing user cart"));
+                    });
+            }
+
+        };
+
+        Polymer(CartContainer);
+
+    })();
+    </script>
+</dom-module>

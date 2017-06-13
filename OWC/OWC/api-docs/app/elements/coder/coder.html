@@ -1,0 +1,251 @@
+<!--
+  @license
+
+ 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+coder
+
+
+@demo demo/index.html
+-->
+<dom-module id="coder">
+    <!-- VIEW  CODE HERE -->
+    <template>
+        <!-- view code here -->
+    </template>
+    <!-- MODEL-CONTROLLER CODE -->
+    <script>
+    (function() {
+        'use strict';
+        class Coder {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'coder';
+
+                /* --- CLASS PROPERTIES --- */
+
+                this.properties = {
+
+                    /* --- PUBLIC PROPERTIES --- */
+
+                    /**
+                     * Public property description
+                     *
+                     * @type {Object}
+                     */
+                    publicProperty: {
+                        //  type: [ Boolean | Date | Number | String | Array | Object ]                 
+                        type: Object,
+
+                        // value: Default value for the property
+                        value: null,
+
+                        // notify: if true the property is available for two-way data binding.
+                        notify: true,
+
+                        // readOnly: if true the property can't be set directly by assignment or data binding.
+                        readOnly: false,
+
+                        // reflectToAttribute: Set to true to cause the corresponding attribute
+                        //                                  to be set on the host node when the property value
+                        //                                  changes.  
+                        reflectToAttribute: false,
+
+
+                        // observer: The value is interpreted as a method name to be invoked when the property
+                        //                  value changes.
+                        observer: '_publicPropertyChanged'
+                    },
+
+                    /**
+                     * Computed property description
+                     *
+                     * @type {Object}
+                     */
+                    computedProperty: {
+                        //  type: [ Boolean | Date | Number | String | Array | Object ]                 
+                        type: String,
+
+                        // value: Default value for the property
+                        value: null,
+
+                        // computed: The value is interpreted as a method name and argument list.
+                        //                    The method is invoked to calculate the value whenever any of the
+                        //                    argument values changes
+                        computed: '_computeComputedProperty(publicProperty, _privateProperty)',
+
+                    },
+
+                    /* --- PRIVATE PROPERTIES --- */
+                    /**
+                     * Private property description
+                     *
+                     * @type {Object}
+                     */
+                    _privateProperty: {
+                        //  type: [ Boolean | Date | Number | String | Array | Object ]                 
+                        type: Object,
+
+                        // value: Default value for the property
+                        value: null,
+
+                        // notify: if true the property is available for two-way data binding.
+                        notify: true,
+
+                        // readOnly: if true the property can't be set directly by assignment or data binding.
+                        readOnly: false,
+
+                        // reflectToAttribute: Set to true to cause the corresponding attribute
+                        //                                  to be set on the host node when the property value
+                        //                                  changes.  
+                        reflectToAttribute: false,
+
+
+                        // observer: The value is interpreted as a method name to be invoked when the property
+                        //                  value changes.
+                        observer: '_privatePropertyChanged'
+                    }
+                };
+            }
+
+            /**             
+             *  Called when the element has created, but before property values are set
+             *  and local DOM is initialized.
+             *
+             * @return {null}
+             */
+            created() {
+
+            }
+
+            /**             
+             * Called after property values are set and local DOM is initialized
+             *
+             * @return {null}
+             */
+            ready() {
+
+            }
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+
+            }
+
+            /**             
+             *   Called after the element is detached from the document. 
+             *   Can be called multiple times during the lifetime of an element.
+             *
+             * @return {null}
+             */
+            detached() {
+
+            }
+
+
+            /* --- PRIVATE METHODS --- */
+
+            /**             
+             *   Private method sample            
+             *
+             * @param {?Object} paramExample: method parameter sample
+             * @return {null}
+             */
+            _privateMethod(paramExample) {
+
+            }
+
+            /**             
+             *   Called when publicProperty value changes.
+             *   Can be called multiple times during the lifetime of an element.
+             *
+             * @param {?Object} newValue: the new value of public Property
+             * @param {?Object} oldValue: the old value of public Property
+             * @return {null}
+             */
+            _publicPropertyChanged(newValue, oldValue) {
+
+            }
+
+
+            /**             
+             *   Called when privateProperty value changes.
+             *   Can be called multiple times during the lifetime of an element.
+             *
+             * @param {?Object} newValue: the new value of private Property
+             * @param {?Object} oldValue: the old value of private Property
+             * @return {null}
+             */
+            _privatePropertyChanged(newValue, oldValue) {
+
+            }
+
+            /**             
+             *   Generates the value of computed property as concatenation of 
+             *   _privateProperty and publicProperty
+             * @param {?Object} a: sample param
+             * @param {?Object} b: sample param
+             * @return {String}
+             */
+            _computeComputedProperty(publicProperty, _privateProperty) {
+                return publicProperty + _privateProperty;
+            }
+
+
+            /* --- PUBLIC METHODS --- */
+
+            /**             
+             *   Public method sample            
+             *
+             * @param {?Object} paramExample: method parameter sample
+             * @return {null}
+             */
+            publicMethod(paramExample) {
+
+            }
+
+        };
+
+        Polymer(Coder);
+
+    })();
+    </script>
+</dom-module>

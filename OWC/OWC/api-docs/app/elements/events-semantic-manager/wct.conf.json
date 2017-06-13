@@ -1,0 +1,8 @@
+{
+  "suites": ["./test"],
+  "webserver": {
+    "pathMappings": [
+      {"/elements/events-semantic-manager/bower_components": "bower_components"}
+    ]
+  }
+}

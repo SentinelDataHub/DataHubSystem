@@ -1,0 +1,194 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+
+<b>OWC coders</b> componenents are designed to get fields useful for component representation from the <i>generic-model</i> component, implementing the data-binding between the Model and the View
+
+<i>list-coder</i> component is one of the available <b>OWC coders</b> componenents and it is devoted to get from <i>generic-model</i> component the fields useful for <i>owc-list</i> component, applying eventually formatting or coding rules in order to fit data to the component structure.
+
+Information extracted from <i>generic-model</i> component by means of <i>list-coder</i> component are:
+<ul>
+<li>product identifier;</li>
+<li>product thumbnail;</li>
+<li>product attributes like size, sensing date (properly formatted) and instrument.</li>
+</ul>
+-->
+<dom-module id="list-coder">
+    <!-- MODEL-CONTROLLER CODE -->
+    <script>
+    (function() {
+        'use strict';
+        class ListCoder extends HTMLElement {
+            
+            /**
+             * Default class constructor             
+             */
+            constructor() {
+                super();
+            }
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             */
+            beforeRegister() {
+                this.is = 'list-coder';
+                this.owcApp = document.querySelector('#owc-app');                
+                this.properties = {};
+            }
+
+            /**             
+             *  This method is used to check if a product is online (i.e. physically present in DHuS archive) or   *  offline (i.e. to be retrieved from a long term archive).
+             *  
+             *  @private
+             *  @param {String} product uuid, used in the OData request to get product content length 
+             *  (download size)
+             *
+             *  @return {Object} HTTP Promise object, containing HTTP response
+             */
+            _getIsOnline(id) {
+                var self = this;
+                var url = (this.owcApp.appconfig.odataContentLengthUrl) ? this.owcApp.appconfig.odataContentLengthUrl : "/odata/v1/Products(%27:uuid%27)/ContentLength/$value";
+                return this.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + url.replace(':uuid', id)
+                ).then(function(response) {
+                    if (response.status == 200) {
+                        return parseInt(response.data);
+                    } else {
+                        return -1
+                    }
+                }, function() {
+                    return -1;
+                });
+            }
+
+            /**
+             * this method is used to get OData url needed to show thumbnails in the list (if a thumbnail is avalaible)
+             *
+             * @param {Object} product data item
+             * @return {String} thumbnail OData url (if thumbnail is avalaible), default placeholder url otherwise
+             */
+            getQuicklook(item) {
+                var self = this;
+                var IMAGE_PLACE_HOLDER_URL = self.owcApp.config.clientUrl + '/images/placeholder.png';
+                return (item
+                    .quicklook) ? self.owcApp.config.baseUrl + "/odata/v1/Products('" + item.uuid + "')/Products('Thumbnail')/$value" : IMAGE_PLACE_HOLDER_URL;
+            }
+
+            /**
+             * This method is used to compute JTS footprint from gml coordinates. At present this method is not used, but this implementation will be useful if a map containing product footprint will be added in <i>product-details</i> component
+             *
+             * @param {Array} product footprint coordinates
+             * @return {String} WKT multipolygon
+             */
+            createJTSMultipolygon(multipoly) {
+                if (!multipoly) return '';
+                var jtsmultipoly = 'MULTIPOLYGON(';
+                for (var i = 0; i < multipoly.length; i++) {
+                    var poly = multipoly[i];
+                    jtsmultipoly += '((';
+                    var ycoord;
+                    var y0coord;
+                    for (var j = 0; j < poly.length - 1; j++) {
+                        if (poly[j][1] > 85.05)
+                            ycoord = 85.05;
+                        else if (poly[j][1] < -85.05)
+                            ycoord = -85.05;
+                        else
+                            ycoord = poly[j][1];
+                        jtsmultipoly += poly[j][0] + ' ' + ycoord + ',';
+                    }
+                    if (poly[0][1] > 85.05)
+                        y0coord = 85.05;
+                    else if (poly[0][1] < -85.05)
+                        y0coord = -85.05;
+                    else
+                        y0coord = poly[0][1];
+                    jtsmultipoly += (poly[0][0]) + ' ' + y0coord + ')),';
+                }
+                jtsmultipoly = jtsmultipoly.substring(0, jtsmultipoly.length - 1) + ')';
+                multipoly = null; // optimization
+                return jtsmultipoly;
+            }
+
+            /**
+             * This method is used to extract a specific list model from a generic data model, on the basis of list component structure
+             *
+             * @param {Object} generic model processed by means of <i>semantic-manager</i> component
+             * @return {Object} specific model, i.e. a data model specific for <i>owc-list</i> component
+             */
+            extractSpecificModel(genericModel) {
+
+                var test = (JSON.parse(JSON.stringify(genericModel)));
+                var sensingLabel = "Sensing start";
+                var validityLabel = "Validity start";
+                var dateLabel = "date";
+                var promises = [];
+                var self = this;
+                if (test != null) {
+                    for (let i = 0; i < genericModel.length; i++) {
+                        test[i].thumb = this.getQuicklook(genericModel[i]);
+                        for (let j = 0; genericModel[i].attributes && j < genericModel[i].attributes.length; j++) {
+                            var keys = Object.keys(genericModel[i].attributes[j]);
+                            if ((keys[0].toUpperCase() == sensingLabel.toUpperCase()) || (keys[0].toUpperCase() == validityLabel.toUpperCase()) || (keys[0].toUpperCase() == dateLabel.toUpperCase())) {
+                                test[i].attributes[j] = String(this.i18n(keys[0]) + ": " + moment(genericModel[i].attributes[j][keys[0]]).format('YYYY-MM-DD HH:mm:ss'));
+                            } else {
+                                test[i].attributes[j] = String(this.i18n(keys[0]) + ": " + genericModel[i].attributes[j][keys[0]]);
+                            }
+
+                        }
+                        test[i].showAdf = true;
+                        promises.push(
+                            self._getIsOnline(genericModel[i].uuid)
+                            .then(function(result) {
+
+                                if (result > 0)
+                                    test[i].isOnline = true;
+                                else
+                                    test[i].isOnline = false;
+
+                            })
+                        );
+                    }
+                    return Promise.all(promises)
+                        .then(function() {
+                            return test;
+                        });
+                } else {
+                    return test;
+                }
+            }            
+        };
+
+        Polymer(ListCoder);
+    })();
+    </script>
+</dom-module>

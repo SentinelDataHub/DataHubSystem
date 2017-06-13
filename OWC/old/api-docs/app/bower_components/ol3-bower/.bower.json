@@ -1,0 +1,20 @@
+{
+  "name": "ol3",
+  "version": "3.4.0",
+  "description": "OpenLayers 3",
+  "main": [
+    "ol.js",
+    "ol.css"
+  ],
+  "ignore": [],
+  "homepage": "https://github.com/baasgeo/ol3-bower",
+  "_release": "3.4.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "3.4.0",
+    "commit": "7f048dfcf5094e5c13e3b7925800c37ccd5bfd24"
+  },
+  "_source": "https://github.com/baasgeo/ol3-bower.git",
+  "_target": "3.4.0",
+  "_originalSource": "ol3-bower"
+}

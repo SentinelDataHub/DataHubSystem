@@ -1,0 +1,267 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+ComponentsCoder is devoted to take from Generic Model the fields useful for component representation, implementing the data-binding between the Model and the View.
+
+@demo demo/index.html
+-->
+<dom-module id="map-coder">
+    <!-- VIEW  CODE HERE -->
+    <template>
+        <!-- view code here -->
+    </template>
+    <!-- MODEL-CONTROLLER CODE -->
+    <script>
+    (function() {
+        'use strict';
+        class MapCoder {
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'map-coder';
+                this.owcApp = document.querySelector('#owc-app');
+                this.DHuSMapConfig = {
+                    webAppRoot: "",
+                    styles: {
+                        selection: {
+                            fill: {
+                                color: [255, 255, 255, 0.6]
+                            },
+                            stroke: {
+                                color: [255, 255, 255, 1],
+                                width: 5
+                            }
+                        },
+                        highlight: {
+                            fill: {
+                                color: [255, 255, 255, 0.3]
+                            },
+                            stroke: {
+                                color: [255, 255, 255, 0.6],
+                                width: 1
+                            }
+                        },
+                        "default": {
+                            fill: {
+                                color: [255, 255, 255, 0.4]
+                            },
+                            stroke: {
+                                color: [0, 153, 255, 1],
+                                width: 1
+                            }
+                        }
+                    },
+                    mapToggleButton: {
+                        active3DlabelText: "3d Map",
+                        active2DlabelText: "2d Map"
+                    },
+                    selectionButton: {
+                        activedText: "Disable selection",
+                        disabledText: "Active selection",
+                        activedIcon: "flip-to-front",
+                        disabledIcon: "open-with",
+                        clearImageIcon: "flip-to-back"
+                    },
+                    map3dActive: false,
+                    map: {
+                        transformation: {
+                            source: 'EPSG:4326',
+                            destination: 'EPSG:3857'
+                        },
+                        defaultCenter: {
+                            coordinates: [13.707047, 51.060086]
+                        },
+
+                        defaultZoom: 4,
+                        minZoom: 1.3,
+                        maxZoom: 19,
+                        defaultLayer: 'sat'
+                    },
+                    cesium: {
+                        terrainProviderUrl: '//cesiumjs.org/stk-terrain/tilesets/world/tiles'
+                    },
+                    events: {
+                        changedModel: 'changed-model',
+                        newModel: 'new-model'
+                    },
+
+                };
+
+                this.properties = {
+
+                    PolyStyles: {
+                        type: Array,
+                        value: [],
+                        notify: true
+                    }
+
+                };
+            }
+
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+
+                var self = this;
+                self.owcApp.httpManager.sendRequest('GET', self.owcApp.config.clientUrl + '/conf/styles.json').then(function(response) {
+                    setTimeout(function() {
+                        self.PolyStyles = (response.status == 200) ? response.data : {};
+                    }, 0);
+                });
+
+            }
+
+            /*  Style Definition Begin  */
+            getStyleFromProduct(product) {
+                    var self = this;
+                    var product_styles = {};
+                    for (var i = 0; i < self.PolyStyles.length; i++) {
+                        //console.warn("STYLE INDEX: " + i);       
+                        var elem = self.PolyStyles[i].matches;
+                        //console.warn("PolyStyles["+i+"].matches");
+                        //console.warn(elem);
+                        var checkStyle = true;
+                        for (var j = 0; j < elem.length && checkStyle; j++) {
+                            var checkIndex = false;
+                            if (product.attributes[1] && product.attributes[1].Instrument && product.attributes[1].Instrument == elem[j].value) {
+                                checkIndex = true;
+                                break;
+                            }
+                            
+
+                        }
+                        checkStyle = checkStyle && checkIndex;
+                        if (checkStyle) {
+                            product_styles.default_style = new ol.style.Style({
+                                fill: new ol.style.Fill(self.PolyStyles[i].styles.fill),
+                                stroke: new ol.style.Stroke(self.PolyStyles[i].styles.stroke)
+                            });
+                            product_styles.selected_style = new ol.style.Style({
+                                fill: new ol.style.Fill(self.PolyStyles[i].selected_styles.fill),
+                                stroke: new ol.style.Stroke(self.PolyStyles[i].selected_styles.stroke)
+                            });
+                            product_styles.highlighted_style = new ol.style.Style({
+                                fill: new ol.style.Fill(self.PolyStyles[i].highlighted_styles.fill),
+                                stroke: new ol.style.Stroke(self.PolyStyles[i].highlighted_styles.stroke)
+                            });
+                            product_styles.label_style = self.PolyStyles[i].label_style;
+                            product_styles.instrlabel_style = self.PolyStyles[i].instrlabel_style;              
+                            return product_styles;
+                        } else {
+                            //console.warn("STYLE NOT FOUND!!!!");
+                        }
+                    }
+                    product_styles.default_style = new ol.style.Style({
+                        fill: new ol.style.Fill(self.DHuSMapConfig.styles.default.fill),
+                        stroke: new ol.style.Stroke(self.DHuSMapConfig.styles.default.stroke)
+                    });
+                    product_styles.selected_style = new ol.style.Style({
+                        fill: new ol.style.Fill(self.DHuSMapConfig.styles.selection.fill),
+                        stroke: new ol.style.Stroke(self.DHuSMapConfig.styles.selection.stroke)
+                    });
+                    product_styles.highlighted_style = new ol.style.Style({
+                        fill: new ol.style.Fill(self.DHuSMapConfig.styles.highlight.fill),
+                        stroke: new ol.style.Stroke(self.DHuSMapConfig.styles.highlight.stroke)
+                    });
+                    return product_styles;
+
+                }
+                /**
+                 * this method is used to compute JTS footprint from gml coordinates
+                 *
+                 * @param {Array} product footprint coordinates
+                 * @return {String} WKT multipolygon
+                 */
+            createJTSMultipolygon(multipoly) {
+
+                if (!multipoly) return '';
+                var jtsmultipoly = 'MULTIPOLYGON(';
+                for (var i = 0; i < multipoly.length; i++) {
+                    var poly = multipoly[i];
+                    jtsmultipoly += '((';
+                    var ycoord;
+                    var y0coord;
+                    for (var j = 0; j < poly.length - 1; j++) {
+                        if (poly[j][1] > 85.05)
+                            ycoord = 85.05;
+                        else if (poly[j][1] < -85.05)
+                            ycoord = -85.05;
+                        else
+                            ycoord = poly[j][1];
+                        jtsmultipoly += poly[j][0] + ' ' + ycoord + ',';
+                    }
+                    if (poly[0][1] > 85.05)
+                        y0coord = 85.05;
+                    else if (poly[0][1] < -85.05)
+                        y0coord = -85.05;
+                    else
+                        y0coord = poly[0][1];
+                    jtsmultipoly += (poly[0][0]) + ' ' + y0coord + ')),';
+                }
+                jtsmultipoly = jtsmultipoly.substring(0, jtsmultipoly.length - 1) + ')';
+                return jtsmultipoly;
+            }
+
+
+            /**
+             * this method is used to extract a specific list model from a generic data model
+             *
+             * @param {Object} generic model
+             * @return {Object} specific model
+             */
+            extractSpecificModel(genericModel) {
+                var self = this;
+                if (genericModel != null) {
+                    for (var i = 0; i < genericModel.length; i++) {
+                        var product_styles = self.getStyleFromProduct(genericModel[i]);
+                        genericModel[i].default_style = product_styles.default_style;
+                        genericModel[i].footprint = this.createJTSMultipolygon(genericModel[i].footprintGml);
+
+                    }
+                }
+                return genericModel;
+            }
+        };
+
+        Polymer(MapCoder);
+
+    })();
+    </script>
+</dom-module>

@@ -1,0 +1,228 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+The communication among web components is managed by the Message Broker, a centralized messaging system based on the publish-subscribe Design Pattern.
+
+<h4>Architecture</h4>
+
+In software architecture, publish–subscribe is a messaging pattern involving 2 main actors: publishers and subscribers.
+
+Publishers are senders of messages. They don't send messages to specific receivers, but define messages into classes, regardless of whether there are or not receivers (so called subscribers).
+
+Subscribers are messages receivers. They don't know who are message senders (so called publishers), but they express interest in one or more classes and only receive messages that are of interest for them.
+This component exposed 3 main interfaces:
+<img src="http://sentineldatahub.github.io/DataHubSystem/assets/images/publish-subscribe.png"></img>
+<ul>
+<li> subscribe, which is used by subscribers to express interest in one or more classes containing message definition;</li>
+<li> unsubscribe, which is used by subscribers to express ended interest in one or more classes containing message definition;</li>
+<li> publish, which is used by publishers to send notifications about one or more message classes.</li>
+</ul>
+<strong>Usage</strong>
+message-broker web component is part of owc-app web component, which is included in OWC application.
+
+Here is an example on how to get a reference to owc-app web component in a different web component:
+
+this.owcApp = document.querySelector('#owc-app');
+
+<strong>Publish method usage</strong>
+
+<pre>this.owcApp.messageBroker.publish(topic,model,target);</pre>
+where:
+<ul>
+<li> topic is a string representing topic name (i.e. message class name);</li>
+<li>model is the variable containing the updated model</li>
+<li> target is the recipient component of the notification. If target is not specified, the notification impacts all components which expressed interest in the class </li>
+</ul>
+
+containing message definition
+Here is an example of usage:
+
+<pre>
+this.owcApp.messageBroker.subscribe('setNewModel',
+ function(model){
+ this.model=model;
+},this.target);
+</pre>
+
+<strong>Unsubscribe method usage</strong>
+A possible use case of unsubscribe method is to cease reception of a notification of model update.
+
+In this case the component acting as subscriber uses the unsubscribe method in the following way:
+
+<pre> this.owcApp.messageBroker.unsubscribe(topic);</pre>
+
+where topic is a string representing topic name (i.e. message class name)
+
+Here is an example of usage:
+
+<pre> this.owcApp.messageBroker.unsubscribe('setNewModel');</pre>
+
+
+
+-->
+<dom-module id="message-broker">
+    <script>
+    (function() {
+        'use strict';
+        class MessageBroker extends HTMLElement {
+
+            /**
+             * class constructor
+             */
+            constructor() {
+                super();
+                this.beforeRegister();
+            }
+
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'message-broker';
+                this.topics = {};
+                this.lastUid = -1;
+            }
+
+
+
+            /**
+             * This method is devoted to send a message to subscribed objects
+             *
+             * @param {?String} topic: event name to subscribe
+             * @param {?String} data: callback parameter
+             * @return {boolean}
+             */
+            publish(topic, data, target) {
+                var self = this;
+                if (!self.topics.hasOwnProperty(topic)) {
+                    return false;
+                }
+                if (!target) {
+                    var notify = function() {
+                        var subscribers = self.topics[topic],
+                            throwException = function(e) {
+                                return function() {
+                                    throw e;
+                                };
+                            };
+                        for (var i = 0, j = subscribers.length; i < j; i++) {
+                            try {
+                                subscribers[i].func(topic,data);
+                            } catch (e) {
+                                setTimeout(throwException(e), 0);
+                            }
+                        }
+                    };
+                } else {
+                    var notify = function() {
+                        var subscribers = self.topics[topic],
+                            throwException = function(e) {
+                                return function() {
+                                    throw e;
+                                };
+                            };
+                        for (var i = 0, j = subscribers.length; i < j; i++) {
+                            if (subscribers[i].target == target) {
+                                try {
+                                    subscribers[i].func(topic,data);
+                                } catch (e) {
+                                    setTimeout(throwException(e), 0);
+                                }
+                            }
+
+                        }
+                    };
+                }
+
+                setTimeout(notify, 0);
+
+                return true;
+            }
+
+            /**
+             * Subscribe a call back for a specific topic
+             *
+             * @param {?String} topic: event name to subscribe
+             * @param {?Function} func: callback
+             * @return {String} generated token
+             */
+            subscribe(topic, func, target) {
+                var self = this;
+                if (!self.topics.hasOwnProperty(topic)) {
+                    self.topics[topic] = [];
+                }
+                var token = (++self.lastUid).toString();
+                if (target) {
+                    self.topics[topic].push({
+                        token: token,
+                        func: func,
+                        target: target
+                    });
+                } else {
+                    self.topics[topic].push({
+                        token: token,
+                        func: func
+                    });
+                }
+                return token;
+            }
+
+            /**
+             * Unsubscribe to an event via token
+             *
+             * @param {?Number} token.
+             * @return {boolean}
+             */
+            unsubscribe(token) {
+                var self = this;
+                for (var m in self.topics) {
+                    if (self.topics.hasOwnProperty(m)) {
+                        for (var i = 0, j = self.topics[m].length; i < j; i++) {
+                            if (self.topics[m][i].token === token) {
+                                self.topics[m].splice(i, 1);
+                                return token;
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+
+        };
+        Polymer(MessageBroker);
+        if (typeof eu != 'undefined' && typeof eu.serco != 'undefined' && typeof eu.serco.Owc != 'undefined')
+            eu.serco.Owc.MessageBroker = MessageBroker;
+
+    })();
+    </script>
+</dom-module>

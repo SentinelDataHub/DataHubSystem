@@ -1,0 +1,198 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+<i>owc-query</i> component is used to set filter in HTTP requests supporting filter parameters, like the HTTP request used to retrive products list
+
+This component is designed to manage the following kind of filters:
+<ul>
+<li>text filter, which is set by means of text or combo fields;</li>
+<li>geographical filter (useful for opensearch queries), which is set by means of area selection on maps;</li>
+<li>advanced filters, which can be set by means of text and/or combo and/or checkbox fields.</li>
+</ul>
+An usage example of 'owc-query' component is reported below
+
+<i>owc-query</i> can be included in a component used to perform HTTP request (e.g. <i>data-source</i> component), specifying an <b>id</b> for it
+
+<pre>
+&lt;owc-query id="my-component-query"&gt;&lt;/owc-query&gt;
+</pre>
+
+After that, the component can be retrieved using proper Polymer selection component method, in order to set properly the text filter and/or the geographical filter and/or the advenced filters
+
+<pre>
+var owcquery         = Polymer.dom(this.root).querySelector('#admin-users-query'),
+owcquery.setText(text);  //e.g. text="instrumentshortname: OLCI";
+owcquery.setFootprint(footprint); //e.g. footprint = 'footprint:"Intersects(POLYGON((9.048843875000012 39.323305114707296,18.541031375000003 39.323305114707296,18.541031375000003 43.91931457487351,9.048843875000012 43.91931457487351,9.048843875000012 39.323305114707296)))"';
+</pre>
+
+Finally, component's parameters can be used to create the HTTP request filter, for instance by means of a specific method implemented in the component where <i>owc-query</i> has been included
+
+<pre>
+createSearchFilter() {
+    var searchFilter = '';
+    if (owcquery.getText() != null) {
+        searchFilter += owcquery.getText();
+    } else {
+        searchFilter += '*';
+    }
+    if (owcquery.getFootprint()) searchFilter += ((owcquery.getText()) ? ' AND ' : '') + owcquery.getFootprint();
+    
+    return searchFilter;
+}
+</pre>
+
+-->
+<dom-module id="owc-query">
+    <template></template>
+    <script>
+    (function() {
+        'use strict';
+        class OwcQuery extends HTMLElement {
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *             
+             */
+            beforeRegister() {
+                this.is = 'owc-query';
+
+                this.properties = {
+
+                    /**
+                     * text filter, which can be set by means of text or combo fields
+                     *
+                     * @type {String}
+                     */
+                    text: {
+                        //  type: [ Boolean | Date | Number | String | Array | Object ]
+                        type: String,
+
+                        // value: Default value for the property
+                        value: "",
+
+                        // notify: if true the property is available for two-way data binding.
+                        notify: true
+                    },
+
+                    /**
+                     * advanced filters, which can be set by means of text and/or combo and/or checkbox fields in an advanced 
+                     * filters panel
+                     *
+                     * @type {String}
+                     */
+                    filters: {
+                        //  type: [ Boolean | Date | Number | String | Array | Object ]
+                        type: String,
+
+                        // value: Default value for the property
+                        value: "",
+
+                        // notify: if true the property is available for two-way data binding.
+                        notify: true
+                    },
+                    /**
+                     * geographical filter, which can be set by means of area selection on maps
+                     *
+                     * @type {String}
+                     */
+                    footprint: {
+                        //  type: [ Boolean | Date | Number | String | Array | Object ]
+                        type: String,
+
+                        // value: Default value for the property
+                        value: "",
+
+                        // notify: if true the property is available for two-way data binding.
+                        notify: true
+                    }
+                };
+
+                this.text = "";
+                this.properties.text = "";
+                this.footprint = "";
+                this.properties.footprint = "";
+            }
+
+
+            /**
+             *  This method is used to set the text filter of <i>owc-query</i> object
+             *
+             * @param {String} text: text part of the query            
+             */
+            setText(text) {
+                this.text = text;
+            }
+
+
+            /**
+             *  This method is used to set the geographical filter of <i>owc-query</i> object
+             *
+             * @param {String} footprint: footprint of selected area             
+             */
+            setFootprint(footprint) {
+                this.footprint = footprint;
+            }
+
+            /**
+             *  This method is used to set the advanced filter of <i>owc-query</i> object
+             *
+             * @param {String} filters: a set of advanced filters combined used logical AND/OR operators
+             * @return {null}
+             */
+            setFilters(filters) {
+                this.filters = filters;
+            }
+
+            /**
+             *  This method is used to get the text filter of <i>owc-query</i> object
+             *
+             * @return {String}: the text part of the query object
+             */
+            getText() {
+                return this.text;
+            }
+
+
+            /**
+             *  This method is used to get the geographical filter of <i>owc-query</i> object
+             *
+             * @return {String}: this method returns the footprint part of the query object
+             */
+            getFootprint() {
+                return this.footprint;
+            }
+
+        };
+
+        Polymer(OwcQuery);
+
+    })();
+    </script>
+</dom-module>

@@ -1,0 +1,87 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<dom-module id="httpcomp-a">
+    <template>
+        <style>
+        #httpcomp-a-container {
+            width: 50%;
+            height: 100px;
+            background-color: beige;
+            display: inline-block;
+        }
+        </style>
+        <div id="httpcomp-a-container">
+            <h3>Send Correct Request<h3>
+    <button on-click="send" >send request</button> 
+    {{response}}  
+  </div>
+</template>
+
+<script>
+  'use strict';
+  Polymer({
+    is: 'httpcomp-a',
+
+    /**
+     *  Called after the element is attached to the document. 
+     *  Can be called multiple times during the lifetime of an element. 
+     *  The first `attached` callback is guaranteed not to fire until after `ready
+     *
+     * @return {null}
+     */
+    attached: function(){      
+
+    },
+    
+    /**
+     *  Sample of http request
+     *
+     * @return {null}
+     */
+    _send: function(){
+      var httpManager = document.getElementById('http-manager');
+      if(httpManager)
+        httpManager.parentNode.removeChild(httpManager);
+      
+      httpManager = document.createElement('http-manager');
+
+      var param = {
+        url:"posts/1"
+      }
+
+      httpManager.setDemoMode(true);
+      httpManager.setBaseUrl('http://jsonplaceholder.typicode.com/')
+      httpManager.sendRequest('GET', param.url)
+      .then((response) => {
+        
+          this.response=JSON.parse(response.data).title;                                  
+      });
+    },
+
+    /**
+     *  Object containing class properties
+     */
+    properties: {
+
+    /**
+     *  Object containing http sample response properties
+     */
+      response:{
+        type: String,
+        value:""
+      }
+      
+    },
+
+    /**
+     *  Method used to sand sample http request
+     *
+     * @return {null}
+     */
+    send: function(){
+      this._send();
+    }
+    
+    
+  });
+</script>
+</dom-module>

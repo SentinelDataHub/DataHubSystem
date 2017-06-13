@@ -1,0 +1,145 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+`authentication-manager` component is devoted to inject user credential in each http request performed within OWC application.
+This component manages authentication towards application server in the following way:
+- it checks for stored credentials at each http request
+    - if there are stored credentials in session, the request is forwarded to server.
+    - if there aren’t stored credentials, the login panel is shown, so that user can authenticate on the server.
+      If credential  are valid, they are stored on session and the request is forwarded to server.
+      If credential are not valid, an error message is shown to notify user about authentication failure.
+Credentials are removed from session when current user logs out from the system.
+
+-->
+<dom-module id="authentication-manager">
+    <script>
+    (function() {
+        'use strict';
+        class AuthenticationManager {
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             */
+            beforeRegister() {
+                this.is = 'authentication-manager';
+                this.owcApp = document.querySelector('#owc-app');
+                this.logged = false;
+                this.username = "";
+                this.password = "";
+            }
+
+            /**
+             *   This method is used to verify if there are user credentials stored in a session
+             *
+             * @return {boolean} true if user credential are stored (logged-in user), false otherwise
+             */
+            isLogged() {
+                return this.logged;
+            }
+
+            /**
+             *   This method is used to remove user credentials from session when the logged-in user logs out from the system 
+             *
+             */
+            logout() {
+                var self = this;
+                var logoutURL = self.owcApp.config.baseUrl + "/logout";
+                return self.owcApp.httpManager.sendRequest('POST', logoutURL)
+                    .then(
+                        function(response) {
+                            if (response.status == 200) {
+                                self.logged = false;
+                                self.username = null;
+                                self.password = null;
+                                self.basicAuthentication = null;
+                                self.owcApp.toastManager.info(self.i18n("logged_out_message"));
+                            }
+                        },
+                        function(reject) {});
+            }
+
+            /**
+             * This method is used to allow users to perform authentication on the service.
+             * If inserted credentials  are valid, they are stored on session and the request is forwarded to server.
+             * If inserted credential are not valid, an error message is shown to notify user about authentication failure
+             *
+             * @param {string} username: user's username
+             * @param {string} password: user's password
+             * @return {Object} Login request outcome as JavaScript Promise
+             */
+            login(username, password) {
+                var self = this;
+                var loginURL = self.owcApp.config.baseUrl + "/login";
+                var options = {
+                    headers: [{
+                        name: "Content-Type",
+                        value: "application/x-www-form-urlencoded"
+                    }, {
+                        name: "Authorization",
+                        value: ("Basic " + window.btoa(username + ':' + password))
+                    }],
+                    body: $.param({
+                        "login_username": username,
+                        "login_password": password
+                    })
+                }
+                return self.owcApp.httpManager.sendRequest('POST', loginURL, options)
+                    .then(
+                        function(response) {
+                            if (response.status == 200) {
+                                self.logged = true;
+                                self.username = username;
+                                self.password = password;
+                                self.basicAuthentication = "Basic " + window.btoa(username + ':' + password);
+                                self.owcApp.toastManager.info(self.i18n("logged_in_message"));
+                            }
+                        },
+                        function(reject) {});
+            }
+
+            /**
+             *   This method is used to show login panel when an user attempts to perform an HTTP request before authenticating on the system
+             *
+             */
+            showLogin() {
+                var login = document.createElement('login-container');
+                document.getElementById('navigation-manager').pushComponent(login, '500px', 'login');
+            }
+        };
+
+
+
+        Polymer(AuthenticationManager);
+        eu.serco.Owc.AuthenticationManager = AuthenticationManager;
+
+    })();
+    </script>
+</dom-module>

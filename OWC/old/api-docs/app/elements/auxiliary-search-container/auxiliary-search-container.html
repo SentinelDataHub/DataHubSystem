@@ -1,0 +1,256 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+This is the component used to retrieve the list of ADF which could be used to re-process a product
+
+
+@demo demo/index.html
+-->
+<dom-module id="auxiliary-search-container">
+    <!-- VIEW  CODE HERE -->
+    <template>
+        <style is="custom-style">
+        .child {
+            @apply(--layout-vertical);
+        }
+
+        .container {
+            @apply(--layout-horizontal);
+        }
+
+        .containerVertical {
+            @apply(--layout-vertical);
+        }
+
+        .flexchild {
+            @apply(--layout-flex-3);
+        }
+
+        #adfsearch-container {
+            height: var(--listheight, 500px);
+            width: var(--listwidth, 300px);
+            overflow-y: auto;
+            overflow-x: auto;
+            width: 100%!important;
+            /*height: 10px;*/
+        }
+
+        .title {
+            font-size: 14px;
+            margin-top: 5px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .product-title {
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        </style>
+        <div id="adf-search-summary" class="child">
+            <div hidden$="{{!compute(auxiliarynumber)}}">
+                <div class="title product-title" title="{{productname}} "> {{productname}} </div>
+                <div class="title">{{i18n('contains')}} {{auxiliarynumber}} {{i18n('Auxiliary Data Files')}}</div>
+            </div>
+            <div hidden$="{{compute(auxiliarynumber)}}">
+                <div class="title">{{i18n("No Auxiliary Data Files found for product")}}</div>
+                <div class="title product-title" title="{{productname}} "> {{productname}} </div>
+            </div>
+        </div>
+        <div id="adfsearch-container">
+            <div class="flexchild childVertical">
+                <owc-list id="adfsearch" show-adfitem="{{showAdfitem}}"></owc-list>
+                <auxiliary-search-datasource id="auxiliary-search-datasource"></auxiliary-search-datasource>
+                <auxiliary-search-coder id="auxiliary-search-coder"></auxiliary-search-coder>
+            </div>
+        </div>
+    </template>
+    <!-- MODEL-CONTROLLER CODE -->
+    <script>
+    (function() {
+        'use strict';
+        class AuxiliarySearchContainer {
+
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'auxiliary-search-container';
+                this.owcApp = document.querySelector('#owc-app');
+
+
+                this.properties = {
+
+
+
+                    /**
+                     * This property contains the number of ADF files for a product
+                     *
+                     * @type {Object}
+                     */
+                    auxiliarynumber: {
+                        type: Number,
+                        value: 0,
+                        notify: true
+                    },
+
+                    /**
+                     * This property contains the product name from which ADF list needs to be retrieved
+                     *
+                     * @type {Object}
+                     */
+                    productname: {
+                        type: String,
+                        notify: true
+                    },
+
+                    /**
+                     * This property contains the product name from which ADF list needs to be retrieved
+                     *
+                     * @type {Object}
+                     */
+                    producttype: {
+                        type: String,
+                        notify: true
+                    },
+
+                    /**
+                     * This property is used to check if adf-list-item is shown or not
+                     *
+                     * @type {Object}
+                     */
+                    showAdfitem: {
+                        type: Boolean,
+                        value: true,
+                        notify: true
+                    }
+                };
+            }
+
+
+            /**
+             * Called after the element is attached to the document.
+             * Can be called multiple times during the lifetime of an element.
+             * The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+                var self = this,
+                    list = Polymer.dom(self.root).querySelector('#adfsearch'),
+                    datasource = document.getElementById('auxiliary-search-datasource'),
+                    listCoder = document.getElementById('auxiliary-search-coder'),
+                    listSemanticManager = document.createElement('auxiliary-search-semantic-manager');
+
+                list.setDelegate(datasource);
+                list.default = false;
+                list.showAdfitem = true;
+                list.setCoder(listCoder);
+                datasource.setList(list);
+                datasource.setListCoder(listCoder);
+                datasource.setListSemanticManager(listSemanticManager);
+                //console.log('aux searchlistSemanticManager',listSemanticManager);
+
+                self.list = list;
+                datasource.setListContainer(this);
+                self.datasource = datasource;
+                self.datasource.loadDataFromServer(self.producttype, self.productname);
+
+                Polymer.dom(self.root).querySelector("#adfsearch-container").addEventListener("resize", function() {});
+                // window.addEventListener("resize", function() {
+                //   self.resize();
+                // });
+            }
+
+            /**
+             * This method is used to initialize content panel behaviour
+             *
+             * @return {null}
+             */
+            _initResize() {
+                var event = document.createEvent('Event');
+                event.initEvent('resize', true, true);
+                document.dispatchEvent(event);
+            }
+
+
+
+            /**
+             * This method is used to manage content panel behaviour on panel resize
+             *
+             * @return {null}
+             */
+            resize() {
+                var self = this;
+                self.customStyle['--listheight'] = parseInt(self.parentPanel.getSize().height - $("#adf-search-summary").height()) + "px";
+                self.updateStyles();
+                self.customStyle['--listwidth'] = parseInt(self.parentPanel.getSize().width - 50) + "px";
+                self.updateStyles();
+            }
+
+            /**
+             * This method is used to verify if the list contains products or not
+             *
+             * @param {?Object} adfnumber: adf number
+             * @return {Boolean}: true if adf number is gt 0, false otherwise
+             */
+            compute(adfnumber) {
+                var hasAuxiliary = (this.auxiliarynumber > 0) ? true : false;
+                return hasAuxiliary;
+
+            }
+
+            /**
+             * This method is used to get information from adf list datasource model and to update the list accordingly
+             * @return {null}
+             */
+            readModelFromDS() {
+                var self = this;
+                var model = self.datasource.getModel();
+                self.list.readyToLoadNewPage = false;
+                self.auxiliarynumber = model.length;
+                //          console.log('readModelFromDS adf search', model);
+                self._initResize();
+            }
+
+
+
+        };
+
+        Polymer(AuxiliarySearchContainer);
+        eu.serco.Owc.AuxiliarySearchContainer = AuxiliarySearchContainer;
+
+    })();
+    </script>
+</dom-module>

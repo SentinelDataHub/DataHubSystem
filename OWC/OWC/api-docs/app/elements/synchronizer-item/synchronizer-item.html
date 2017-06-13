@@ -1,0 +1,328 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-icons/av-icons.html">
+<!--
+synchronizer item
+
+
+@demo demo/index.html
+-->
+<dom-module id="synchronizer-item">
+    <template>
+        <style type="text/css">
+        .container {
+            @apply(--layout-horizontal);
+            @apply(--layout-wrap);
+            height: var(--container-height, 150px !important);
+        }
+
+        .owc-list-item-title {
+            position: absolute;
+            top: var(--owc-list-item-title-top, 20px);
+            left: var(--owc-list-item-title-left, 30px);
+            width: var(--owc-list-item-title-width, calc(100% - 50px));
+        }
+
+        .owc-list-item-footer {
+            position: absolute;
+            top: var(--owc-list-item-title-top, 90px);
+            left: var(--owc-list-item-title-left, 30px);
+            width: var(--owc-list-item-title-width, calc(100% - 50px));
+            padding-top: 10px;
+        }
+
+        .title {
+            font-size: 14px;
+            font-weight: bold;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        iron-list {
+            background-color: var(--paper-grey-200, #eee);
+        }
+
+        .item {
+            @apply(--layout-horizontal);
+            @apply(--layout-wrap);
+            border-radius: 8px;
+            background-color: white;
+            margin: 16px !important;
+            border: solid 1px #ecf0f1;
+        }
+
+        .owc-list-item {
+            margin-top: 5px !important;
+            margin-right: 10px!important;
+            margin-left: 7px!important;
+        }
+
+        .owc-list-item-attributes-container {
+            position: absolute;
+            top: var(--owc-list-item-attributes-container-top, 50px);
+            left: var(--owc-list-item-title-left, 30px);
+            width: 90%;
+        }
+
+        .owc-list-item-attribute {
+            width: calc(100% - 120px);
+        }
+
+        .attribute {
+            font-size: 12px!important;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .owc-list-item-buttons {
+            position: absolute;
+            bottom: 15px;
+            right: 15px
+        }
+        </style>
+        <div class="item owc-list-item" id="{{model.Id}}">
+            <div class="container">
+                <div hidden>{{model.Id}}</div>
+                <div class="title owc-list-item-title">
+                    <span hidden="{{!model.Label}}" title="{{model.Label}}">{{model.Label}} - </span>
+                    <span hidden="{{!model.CreationDate}}" title="{{model.CreationDate}}">{{model.CreationDate}}</span>
+                </div>
+                <div class="owc-list-item-attributes-container">
+                    <div class="attribute owc-list-item-attribute">
+                        Service Url: {{model.ServiceUrl}}
+                    </div>
+                    <div class="attribute owc-list-item-attribute">
+                        Copy Product: {{model.CopyProduct}}
+                    </div>
+                    <div class="attribute owc-list-item-attribute">
+                        Schedule: {{model.Schedule}}
+                    </div>
+                </div>
+                <br>
+                <div class="title owc-list-item-footer" title="{{model.LastIngestionDate}}">
+                    <span hidden="{{!model.LastIngestionDate}}" title="{{model.LastIngestionDate}}">Last Ingestion Date:{{model.LastIngestionDate}} - </span>
+                    <span hidden="{{!model.Status}}" title="{{model.Status}}">Synchronizer Status:{{model.Status}}</span>
+                </div>
+                <div class="owc-list-item-buttons">
+                    <paper-icon-button icon="av:play-arrow" on-click="startSynch" title="Play Synchronizer"></paper-icon-button>
+                    <paper-icon-button icon="av:stop" on-click="stopSynch" title="Stop Synchronizer"></paper-icon-button>
+                    <paper-icon-button icon="icons:close" on-click="deleteSynch" title="Delete Synchronizer"></paper-icon-button>
+                    <paper-icon-button icon="icons:create" on-click="editSynch" title="Edit Synchronizer"></paper-icon-button>
+                </div>
+            </div>
+        </div>
+    </template>
+    <script>
+    (function(document) {
+        'use strict';
+        class SynchronizerItem {
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'synchronizer-item';
+                this._url = "/odata/v1/Synchronizers";
+                this._jsonParameter = "$format=json";
+                this._requestHeaders = {
+                    'Content-Type': 'application/atom+xml',
+                    'Accept': 'application/json'
+                };
+                this.options = {
+                    headers: [{
+                        name: "Accept",
+                        value: "application/json"
+                    }, {
+                        name: "Content-Type",
+                        value: "application/atom+xml"
+                    }]
+
+                };
+                this.owcApp = document.querySelector('#owc-app');
+                this.properties = {
+
+                    /**
+                     * Model of list item
+                     *
+                     * @type {Object}
+                     */
+                    model: {
+                        type: Object,
+                        value: {}
+                    },
+
+                    /**
+                     * Synchronizer model
+                     *
+                     * @type {Object}
+                     */
+                    synchronizerModel: {
+                        type: Object,
+                        value: {}
+                    },
+
+                    /**
+                     * Creation date of synchronizer
+                     *
+                     * @type {Object}
+                     */
+                    creationDate: {
+                        type: Object,
+                        value: null
+                    }
+
+                }
+            };
+
+            attached() {
+                var self = this;
+                self.navigationManager = document.getElementById('navigation-manager');
+            }
+
+
+            /**
+             * Push in navigation manager the synchronizer editor
+             *
+             * @return {null}
+             */
+            editSynch() {
+                var self = this;
+                self.readSynchronizer(self.model.Id).then(function(response) {
+                    self.synchronizerModel = response;
+                    var newSynch = document.createElement('synchronizer-editor');
+                    self.synchronizerModel.data.d.TargetCollection = response.collections;
+                    if (self.synchronizerModel.data.d.Status == 'STOPPED'){
+                      self.synchronizerModel.data.d.Request = 'stop';
+                    }
+                    newSynch.setModel(self.synchronizerModel);
+                    self.navigationManager.pushComponent(newSynch, '500px', 'Synchronizer Editor');
+
+                });
+            }
+
+            /**
+             * Get synchronizer data from api via id
+             *
+             * @param {Number} id: synchronizer id
+             *
+             * @return {null}
+             */
+            readSynchronizer(id) {
+                var self = this;
+                return self.owcApp.httpManager.sendRequest(
+                    'GET', self.owcApp.config.baseUrl + self._url + '(' + id + 'L)?' + self._jsonParameter,
+                    self.options
+                ).then(function(synchronizerModel) {
+                    synchronizerModel.collections = '';
+                    return self.owcApp.httpManager.sendRequest(
+                        'GET', self.owcApp.config.baseUrl + self._url + '(' + id + 'L)/TargetCollection',
+                        self.options
+                    ).then(function(collections) {
+                        synchronizerModel.collections = collections.data.d['Name'];
+                        return synchronizerModel;
+                    }, function() {
+                        return synchronizerModel;
+                    });
+                });
+            }
+
+            /**
+             * Create and send http request to delete a synchronizer
+             *
+             * @return {null}
+             */
+            deleteSynch() {
+                var self = this
+
+                return self.owcApp.httpManager.sendRequest(
+                    "DELETE", self.owcApp.config.baseUrl + self._url + '(' + self.model.Id + 'L)', self.options
+                ).then(function() {
+                    self.owcApp.messageBroker.publish('updateSynch');
+                    self.owcApp.toastManager.info("Synchronizer Deleted");
+                    return true;
+                });
+
+
+            }
+
+            /**
+             * Start the synchronizer
+             *
+             * @return {null}
+             */
+            startSynch() {
+                var self = this;
+                var newSynch = document.createElement('synchronizer-editor');
+                var modelStart = {
+                    Label: self.model.Label,
+                    ServiceUrl: self.model.ServiceUrl,
+                    ServiceLogin: self.model.ServiceLogin,
+                    ServiceLoginPassword: null,
+                    Schedule: self.model.Schedule,
+                    RemoteIncoming: self.model.RemoteIncoming,
+                    Request: "start"
+                }
+                newSynch.updateSynchronizer(self.model.Id, modelStart);
+            }
+
+            /**
+             * Stop the synchronizer
+             *
+             * @return {null}
+             */
+            stopSynch() {
+              
+              var self = this;
+              var synchEditor = document.createElement('synchronizer-editor');
+              var modelStart = {
+                    Label: self.model.Label,
+                    ServiceUrl: self.model.ServiceUrl,
+                    ServiceLogin: self.model.ServiceLogin,
+                    ServiceLoginPassword: null,
+                    Schedule: self.model.Schedule,
+                    RemoteIncoming: self.model.RemoteIncoming,
+                    Request: "stop"
+              };
+              synchEditor.stop(self.model.Id,modelStart);
+              //synchEditor.updateSynchronizer(self.model.Id, self.model);
+            }
+
+
+        };
+
+        Polymer(SynchronizerItem);
+
+    })(document);
+    </script>
+</dom-module>

@@ -1,0 +1,42 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+
+<dom-module id="component-x">
+<template>
+  <style>
+    #component-c-container{
+      display:block;
+    }
+  </style>
+  <div id="component-c-container">
+    <input value="{{paramone::input}}">
+    <input value="{{paramtwo::input}}">
+    <button on-click="logIn" >LOGIN</button>
+    <button on-click="logOut" >LOGOUT</button>
+    <br>
+    <br>
+    <button on-click="isLogged">isLogged?</button>
+  </div>
+</template>
+
+<script>
+  'use strict';
+  Polymer({
+    is: 'component-x',
+
+    logIn: function () {
+
+      //document.getElementById('authentication-manager').login(this.paramone,this.paramtwo);
+      document.getElementById("owc-app").authenticationManager.login(this.paramone,this.paramtwo);      
+    },
+
+    isLogged: function() {
+      alert("is logged:" + document.getElementById("owc-app").authenticationManager.isLogged());
+    },
+
+      logOut: function() {
+      document.getElementById("owc-app").authenticationManager.logout();
+    }
+
+  });
+</script>
+</dom-module>

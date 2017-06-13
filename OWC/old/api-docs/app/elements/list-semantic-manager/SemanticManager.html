@@ -1,0 +1,225 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<script>
+(function() {
+    'use strict';
+    let singleton = Symbol();
+    let singletonEnforcer = Symbol();
+
+    class SemanticManager {
+        /**
+         *  Semantic manager initialization
+         *
+         * @param {} :
+         * @return {}
+         */
+        init() {
+            this.owcApp = document.querySelector('#owc-app');
+            this.schemaProvider = this.owcApp.Owc.SchemaProvider.instance;
+        }
+
+        /**
+         *  Semantic manager singleton constructor
+         *
+         */
+        constructor(enforcer) {
+            if (enforcer != singletonEnforcer)
+                throw "Cannot construct singleton; use SemanticManager.instance!";
+        }
+
+        /**
+         * BeforeRegister method Polymer calls before creating the element.
+         * This method is where you shoud define the is property (element's name) and
+         * properties  object.
+         *
+         * @return {null}
+         */
+        beforeRegister() {
+            this.is = "semantic-manager";
+        }
+
+        /**
+         * @returns Singleton
+         */
+        static get instance() {
+            if (!this[singleton]) {
+                this[singleton] = new SemanticManager(singletonEnforcer);
+                this[singleton].init();
+            }
+            return this[singleton];
+        }
+
+        /**
+         *  Process method
+         *
+         * This method generates the generic model from Specific model
+         * Exploiting the semantic schema
+         * @param {Object} model: the model from server
+         * @return {Object} : The generic model
+         */
+        process(model) {
+            this.genericModel = [];
+            var self = this;
+            var promises = [];
+            for (let i = 0; i < model.length; i++) {
+                promises.push(
+                    self._getProductClass(model[i])
+                    .then(function(itemClass) {
+                        return self._getClassSchema(itemClass)
+                            .then(function(classSchema) {
+                                var processedItem = self._processItemBySchema(model[i], classSchema);
+                                if (processedItem && processedItem != {})
+                                    self.genericModel.push(processedItem);
+                            });
+                    })
+                );
+            }
+            return Promise.all(promises)
+                .then(function() {
+                    return self.genericModel;
+                });
+        }
+
+        /**
+         *  Get product class method
+         *
+         * This method returns the class of a product, via
+         * the uuid property
+         *
+         * @param {String} uuid: the uuid of product
+         * @return {String} : The product class
+         */
+        _getProductClass(product) {
+            var itemClass = (product.itemClass) ? product.itemClass.substring(product.itemClass.lastIndexOf("/") + 1) : '';
+            return new Promise(function(resolve, reject) {
+                resolve(itemClass);
+            });
+        }
+
+        /**
+         *  Get Schema from class
+         *
+         * This method returns the semantic schema from a class
+         *
+         * @param {Object} model: the model from server
+         * @return {Object} : The generic model
+         */
+        _getClassSchema(className) {
+            return this.schemaProvider.get(className);
+        }
+
+        /**
+         * Process single model from server item using Schema
+         *
+         * @param {Object} item: the model item from server
+         * @param {Object} schema: the schema of specific item class
+         * @return {Object} : The item of generic model
+         */
+        _processItemBySchema(item, schema) {
+            let newItem = {};
+            if (!schema) return null;
+            for (let i = 0; i < schema.model.valuesExtractor.length; i++) {
+                let id = null;
+                let type = null;
+                let valueExtractor = null;
+
+                if (schema.model.valuesExtractor[i].hasOwnProperty("@id"))
+                    id = schema.model.valuesExtractor[i]["@id"];
+                if (schema.model.valuesExtractor[i].hasOwnProperty("@type"))
+                    type = schema.model.valuesExtractor[i]["@type"];
+                if (id && type)
+                    switch (type) {
+                        case 'Object':
+                        case 'String':
+                        case 'Number':
+                            if (schema.model.valuesExtractor[i].hasOwnProperty("valueExtractor"))
+                                valueExtractor = schema.model.valuesExtractor[i]["valueExtractor"];
+                            var value = this._extract(item, valueExtractor);
+                            if (value)
+                                newItem[id] = value;
+                            break;
+                        case 'Array':
+                            newItem[id] = [];
+                            if (schema.model.valuesExtractor[i].hasOwnProperty("valuesExtractor")) {
+                                let valuesExtractor = schema.model.valuesExtractor[i]["valuesExtractor"];
+                                for (let j = 0; j < valuesExtractor.length; j++) {
+                                    let itemId = (valuesExtractor[j].hasOwnProperty("@id")) ? valuesExtractor[j]["@id"] : null;
+                                    let type = ((valuesExtractor[j].hasOwnProperty("@type")) ? valuesExtractor[j]["@type"] : null);
+                                    if (itemId && type == "Object") {
+                                        let tmp = {};
+                                        tmp[itemId] = this._extract(item, valuesExtractor[j]);
+
+                                        if (tmp[itemId])
+                                            newItem[id].push(tmp);
+                                    } else {
+                                        var processedSub = this._extract(item, valuesExtractor[j]);
+                                        if (processedSub)
+                                            newItem[id].push(processedSub);
+                                    }
+                                }
+                            }
+                            break;
+                    }
+            }
+            return newItem;
+        }
+
+        /**
+         * Extract information from a given schema node
+         *
+         * @param {Object} node: schema node
+         * @param {Object} valueExtractor: information to extract from node
+         * @return {Object} : subNode containing information value
+         */
+        _extract(node, valueExtractor) {
+            if (!node || !valueExtractor) return;
+            let subNode = node;
+            let complexObject = {};
+            let valueExtractorType = (valueExtractor.hasOwnProperty("@type")) ? valueExtractor["@type"] : null;
+            let id = (valueExtractor.hasOwnProperty("@id")) ? valueExtractor["@id"] : null;
+            let type = (valueExtractor.hasOwnProperty("@type")) ? valueExtractor["@type"] : null;
+            if (valueExtractor.hasOwnProperty("relativePath")) {
+                let relativePathArray = valueExtractor.relativePath.split('/');
+                for (let i = 0; i < relativePathArray.length; i++)
+                    subNode = subNode[relativePathArray[i]];
+            }
+            if (valueExtractor.hasOwnProperty("findWhere"))
+                subNode = _.findWhere(subNode, valueExtractor.findWhere);
+            if (valueExtractor.hasOwnProperty("valueExtractor"))
+                return this._extract(subNode, valueExtractor.valueExtractor);
+            if (valueExtractor.hasOwnProperty("value"))
+                subNode = subNode.Value;
+
+            return subNode;
+        }
+    };
+
+    Polymer(SemanticManager);
+    eu.serco.Owc.SemanticManager = SemanticManager;
+
+
+})();
+</script>

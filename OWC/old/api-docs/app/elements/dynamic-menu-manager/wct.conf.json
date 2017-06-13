@@ -1,0 +1,8 @@
+{
+  "suites": ["./test"],
+  "webserver": {
+    "pathMappings": [
+      {"/elements/dynamic-menu-manager/bower_components": "bower_components"}
+    ]
+  }
+}

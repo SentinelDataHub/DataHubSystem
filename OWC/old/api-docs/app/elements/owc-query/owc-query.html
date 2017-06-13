@@ -1,0 +1,164 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+owc search query object/manager
+
+
+@demo demo/index.html
+-->
+<dom-module id="owc-query">
+    <template></template>
+    <script>
+    (function() {
+        'use strict';
+        class OwcQuery extends HTMLElement {
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'owc-query';
+
+                this.properties = {
+
+                    /**
+                     * query text
+                     *
+                     * @type {String}
+                     */
+                    text: {
+                        //  type: [ Boolean | Date | Number | String | Array | Object ]
+                        type: String,
+
+                        // value: Default value for the property
+                        value: "",
+
+                        // notify: if true the property is available for two-way data binding.
+                        notify: true
+                    },
+
+                    /**
+                     * query filters from advanced search
+                     *
+                     * @type {String}
+                     */
+                    filters: {
+                        //  type: [ Boolean | Date | Number | String | Array | Object ]
+                        type: String,
+
+                        // value: Default value for the property
+                        value: "",
+
+                        // notify: if true the property is available for two-way data binding.
+                        notify: true
+                    },
+                    /**
+                     * footprint filter string
+                     *
+                     * @type {String}
+                     */
+                    footprint: {
+                        //  type: [ Boolean | Date | Number | String | Array | Object ]
+                        type: String,
+
+                        // value: Default value for the property
+                        value: "",
+
+                        // notify: if true the property is available for two-way data binding.
+                        notify: true
+                    }
+                };
+
+                this.text = "";
+                this.properties.text = "";
+                this.footprint = "";
+                this.properties.footprint = "";
+            }
+
+
+            /**
+             *  Set text part of query object
+             *
+             * @param {String} text: text part of the query
+             * @return {null}
+             */
+            setText(text) {
+                this.text = text;
+            }
+
+
+            /**
+             * Set footprint part of query object
+             *
+             * @param {String} footprint: footprint of selected area
+             * @return {null}
+             */
+            setFootprint(footprint) {
+                this.footprint = footprint;
+            }
+
+            /**
+             * Set filters part of query object
+             *
+             * @param {String} filters
+             * @return {null}
+             */
+            setFilters(filters) {
+                this.filters = filters;
+            }
+
+            /**
+             *  Get text part of query object
+             *
+             * @return {String}: this method returns the text part of the query object
+             */
+            getText() {
+                return this.text;
+            }
+
+
+            /**
+             *  Get footprint part of query
+             *
+             * @return {String}: this method returns the footprint part of the query object
+             */
+            getFootprint() {
+                return this.footprint;
+            }
+
+        };
+
+        Polymer(OwcQuery);
+
+    })();
+    </script>
+</dom-module>

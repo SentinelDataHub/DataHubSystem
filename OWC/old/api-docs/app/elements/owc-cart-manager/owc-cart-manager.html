@@ -1,0 +1,185 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+owc cart manager
+
+
+@demo demo/index.html
+-->
+<dom-module id="owc-cart-manager">
+    <script>
+    (function() {
+        'use strict';
+        class OwcCartManager {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'owc-cart-manager';
+                this.owcApp = document.querySelector('#owc-app');
+                this.getCartIdsUrl = "/api/stub/users/0/cart/0/getcartids";
+
+                this.properties = {
+                    /**
+                     *  options model
+                     *
+                     * @type {Object}
+                     */
+                    options: {
+                        type: Object,
+                        value: {},
+                        notify: true
+                    },
+                    addURL: {
+                        type: String,
+                        value: ""
+                    },
+                    removeURL: {
+                        type: String,
+                        value: ""
+                    }
+                }
+
+            }
+
+
+            attached() {
+                var self = this;
+                self.addURL = self.owcApp.config.baseUrl + '/odata/v1/Users(%27' + self.owcApp.authenticationManager.username + '%27)/\$links/Cart';
+
+            }
+
+
+
+            /**
+             * This method performs a real http request
+             *
+             * @return {Object} cartIdsModel: data model from server
+             */
+            getCartIds() {
+                var self = this;
+
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + self.getCartIdsUrl
+                ).then(function(response) {
+                    if (response.status == 200) {
+                        return response.data;
+
+                    } else
+                        return new Promise(function(resolve, reject) {
+                            reject("model_empty");
+                        });
+                });
+            }
+
+            generateURI(uuid) {
+                var self = this;
+                return '<uri xmlns="http://schemas.microsoft.com/ado/2007/08/dataservices">' +
+                    self.owcApp.config.baseUrl + '/odata/v1/Products(%27' + uuid + '%27)</uri>'
+            }
+
+            generateDeleteURL(uuid) {
+                var self = this;
+               return  self.owcApp.config.baseUrl + '/odata/v1/Users(%27' + self.owcApp.authenticationManager.username + '%27)/\$links/Cart(%27' + uuid + '%27)';
+            }
+
+
+            addToCart(uuid) {
+                var self = this;
+                var URI = self.generateURI(uuid);
+                self.options = {
+                    headers: [{
+                        name: "Content-Type",
+                        value: "application/xml"
+                    }],
+                    body: URI
+                };
+
+                return self.owcApp.httpManager.sendRequest(
+                    'POST',
+                    self.addURL, self.options
+                ).then(function(response) {
+                    if (response.status >= 200 && response.status < 300) {
+                        self.owcApp.messageBroker.publish('updateCart');
+                        self.owcApp.toastManager.info("Product added to cart");
+                        return true;
+                    } else
+                    //TODO: to complete and manage this part
+                        self.owcApp.toastManager.error("Addition to cart failed");
+                    return new Promise(function(resolve, reject) {
+                        reject("error");
+                    });
+                });
+
+            }
+
+
+
+
+
+            removeFromCart(uuid) {
+                var self = this;
+                self.options = {
+                    headers: [{
+                        name: "Content-Type",
+                        value: "application/xml"
+                    }]
+                };
+                var url = self.generateDeleteURL(uuid);
+                
+                return self.owcApp.httpManager.sendRequest(
+                    'DELETE', url, self.options
+                ).then(function(response) {
+                    if (response.status >= 200 && response.status < 300) {
+                        self.owcApp.messageBroker.publish('updateCart');
+                        self.owcApp.toastManager.info("Product removed from cart");
+                        return true;
+                    } else
+                    //TODO: to complete and manage this part
+                        self.owcApp.toastManager.error("Failed");
+                    return new Promise(function(resolve, reject) {
+                        reject("error");
+                    });
+                });
+            }
+
+        };
+
+        Polymer(OwcCartManager);
+
+    })();
+    </script>
+</dom-module>

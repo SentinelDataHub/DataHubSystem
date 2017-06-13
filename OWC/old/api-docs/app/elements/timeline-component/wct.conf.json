@@ -1,0 +1,8 @@
+{
+  "suites": ["./test"],
+  "webserver": {
+    "pathMappings": [
+      {"/elements/timeline-component/bower_components": "bower_components"}
+    ]
+  }
+}

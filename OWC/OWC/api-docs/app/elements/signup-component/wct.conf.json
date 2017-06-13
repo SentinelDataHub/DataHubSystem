@@ -1,0 +1,8 @@
+{
+  "suites": ["./test"],
+  "webserver": {
+    "pathMappings": [
+      {"/elements/signup-component/bower_components": "bower_components"}
+    ]
+  }
+}

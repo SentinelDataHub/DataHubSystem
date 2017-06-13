@@ -1,0 +1,417 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<!--
+This component represents one element of the events list. It is formed mainly by a title, a description and action buttons
+
+
+@demo demo/index.html
+-->
+<dom-module id="event-list-item">
+    <template>
+        <style>
+        .button-color {
+            color: blue;
+        }
+
+        .item.button-list-item {
+            width: auto!important;
+        }
+
+        .container {
+            @apply(--layout-horizontal);
+            @apply(--layout-wrap);
+            height: var(--container-height, 120px !important);
+        }
+
+        .containerbis {
+            @apply(--layout-horizontal);
+            @apply(--layout-wrap);
+            height: auto!important);
+        }
+
+        .flexchild {
+            text-align: left;
+            /*top:50px!important;*/
+            @apply(--layout-flex-4);
+            margin-top: 40px;
+        }
+
+        .flex2child {
+            @apply(--layout-flex-10);
+            @apply(--layout-horizontal);
+            @apply(--layout-self-end);
+        }
+
+        .flex3child {
+            @apply(--layout-flex-12);
+            @apply(--layout-vertical);
+        }
+
+        iron-list {
+            background-color: var(--paper-grey-200, #eee);
+        }
+
+        .item {
+            @apply(--layout-horizontal);
+            @apply(--layout-wrap);
+            padding: 30px;
+            border-radius: 8px;
+            background-color: white;
+            width: 96%;
+            margin: 10px !important;
+            border: solid 1px #ecf0f1;
+        }
+
+        .item-complete {
+            height: 60px;
+        }
+
+        .title {
+            font-size: 14px;
+            font-weight: bold;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .attribute {
+            font-size: 12px!important;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .icon {
+            margin-right: 5px;
+            max-width: var(--paper-item-icon-width, 60px);
+            max-height: 60px;
+        }
+
+        .owc-list-item {
+            /*margin-top: 5px !important;*/
+            margin-right: 10px!important;
+            width: initial !important;
+            padding: 30px 20px;
+        }
+
+        .item.button-list-item.button-list-item {}
+
+        .list-item-icon {
+            /*position:absolute;*/
+            top: var(--owc-list-item-thumb-top, 120px);
+            left: var(--owc-list-item-thumb-left, 10px);
+            display: inline-block;
+        }
+
+        .list-item-title {
+            position: absolute;
+            top: var(--owc-list-item-title-top, 20px);
+            left: var(--owc-list-item-title-left, 30px);
+            width: var(--owc-list-item-title-width, calc(70% - 80px));
+            float: left !important;
+            position: absolute;
+        }
+
+        .list-item-date {
+            position: absolute;
+            top: var(--owc-list-item-title-top, 20px);
+            right: var(--owc-list-item-title-left, 10px);
+            width: var(--owc-list-item-title-width, 30%);
+            float: right !important;
+
+        }
+
+        .list-item-description-container {
+            position: absolute;
+            top: var(--list-item-description-container-top, 50px);
+            left: var(--paper-item-description-left, 110px);
+            text-align: justify;
+            right: 20px;
+            word-break: break-all;
+            white-space: initial;
+        }
+
+        .list-item-description {
+            font-size: 14px;
+            word-break: break-word;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            /* number of lines to show */
+            -webkit-box-orient: vertical;
+        }
+
+        .owc-list-item-buttons {
+            position: absolute;
+            bottom: 5px;
+            right: 15px
+        }
+
+        paper-icon-button {}
+        </style>
+        <div class="item item-complete owc-list-item" id="{{model.Id}}" hidden="{{!visible}}">
+            <div>
+                <div class="title list-item-title" hidden="{{!model.Title}}" title="{{model.Title}}">
+                    {{model.Title}}
+                </div>
+                <div class="title list-item-date" hidden="{{!date}}" title="{{date}}">
+                    {{date}}
+                </div>
+                <div hidden="{{!model.Icon}}">
+                    <img id="evt-image" on-error="imageError" class="icon list-item-icon" src="{{model.Icon}}">
+                </div>
+                <div class="flex2child">
+                    <div class="list-item-description-container" hidden="{{!model.Description}}">
+                        <div class="description list-item-description">{{model.Description}}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="owc-list-item-buttons">
+                <paper-icon-button icon="visibility" on-click="showEvent" title="Show event details"></paper-icon-button>
+                <paper-icon-button icon="create" on-click="updateEvent" title="Update Event" hidden$="{{!isEventManager}}"></paper-icon-button>
+                <paper-icon-button icon="delete" on-click="deleteEvent" title="Delete event" hidden$="{{!isEventManager}}"></paper-icon-button>
+            </div>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class EventListItem {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * this method is used to convert events date in ISO date
+             *
+             * @param {string} edm.datetime
+             * @return {string} iso date
+             */
+            _extractDateFromJson(date) {
+                var dateString = null;
+                if (date) {
+                    var exdate = date.substring(date.indexOf('(') + 1, date.indexOf(")"));
+                    dateString = moment.unix((exdate / 1000)).format('YYYY-MM-DD HH:mm:ss');
+                }
+                return dateString;
+            }
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'event-list-item';
+                this.owcApp = document.querySelector('#owc-app');
+                this.deleteEventUrl = "/odata/v1/Events(:idL)"
+
+                this.properties = {
+
+                    /**
+                     * Model of list item
+                     *
+                     * @type {Object}
+                     */
+                    model: {
+                        type: Object,
+                        value: {}
+                    },
+
+                    /**
+                     * Model of list item
+                     *
+                     * @type {Object}
+                     */
+                    list: {
+                        type: Object,
+                        value: {}
+                    },
+
+                    /**
+                     * Parent reference. The parent is the container list.
+                     *
+                     * @type {object}
+                     */
+                    parent: {
+                        type: Object,
+                        value: {},
+                        notify: true
+                    },
+
+                    /**
+                     * Parent reference. The parent is the container list.
+                     *
+                     * @type {object}
+                     */
+                    target: {
+                        type: String,
+                        value: null
+                    },
+
+                    /**
+                     * Property indicating if logged user is an events manager or not.
+                     *
+                     * @type {Boolean}
+                     */
+                    isEventManager: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
+                    visible: {
+                        type: Boolean,
+                        value: true,
+                    }
+
+                };
+            }
+
+            /**
+             *  Called when the element has created, but before property values are set
+             *  and local DOM is initialized.
+             *
+             * @return {null}
+             */
+            created() {
+                this.navigationManager = document.getElementById('navigation-manager');
+
+            }
+
+            /**
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+                var self = this;
+                var user = this.owcApp.userManager.user;
+                self.visible = true;
+                self.set('visible', self.visible);
+                self.notifyPath('visible', self.visible);
+                this.customStyle['--paper-item-description-left'] = "110px";
+                this.customStyle['--paper-item-icon-width'] = "60px";
+                this.updateStyles();
+                if (user && user.roles && user.roles.indexOf('EVENT_MANAGER') >= 0)
+                    this.isEventManager = true;
+                //
+                this.date = this._extractDateFromJson(this.model.PublicationDate);
+                this.set("date", this.date);
+                this.notifyPath("date", this.date);
+            }
+
+
+
+            /**
+             * Callback for on error icon event.
+             *
+             * @return {null}
+             */
+            imageError() {
+                // var IMAGE_PLACE_HOLDER_URL = this.owcApp.config.clientUrl + '/images/placeholder.png';
+                Polymer.dom(this.root).querySelector("#evt-image").src = "";
+                this.model.Icon = null;
+
+                this.customStyle['--paper-item-description-left'] = "110px";
+                this.customStyle['--paper-item-icon-width'] = "0px";
+                this.updateStyles();
+            }
+
+            /**
+             * This method is used to delete a DHuS event, using the proper OData API
+             *
+             * @return {null}
+             */
+            deleteEvent() {
+                var self = this;
+                return this.owcApp.httpManager.sendRequest(
+                    'DELETE',
+                    self.owcApp.config.baseUrl + self.deleteEventUrl.replace(":id", self.model.Id)
+                ).then(
+                    function(response) {
+                        self.owcApp.toastManager.info(self.i18n("Event deleted with success"));
+                        self.owcApp.messageBroker.publish('updateEventsList');
+                        self.visible = false;
+                        self.set('visible', self.visible);
+                        self.notifyPath('visible', self.visible);
+                    },
+                    function() {
+                        self.owcApp.toastManager.warn(self.i18n("Error deleting event"));
+                    });
+
+            }
+
+            /**
+             * This method is used to display `event-details` component on the screen
+             *
+             */
+            showEvent() {
+                var evtDetail = document.createElement('event-details');
+                evtDetail.model = this.model;
+                evtDetail.readonly = true;
+                this.navigationManager.pushComponent(evtDetail, '500px', 'Event Details');
+            }
+
+            /**
+             * This method is used to display `update-event` component on the screen
+             *
+             */
+            updateEvent() {
+                var updateEvt = document.createElement('update-event');
+                updateEvt.model = this.model;
+                this.navigationManager.pushComponent(updateEvt, '500px', 'Update Event');
+            }
+
+            setList(list) {
+                this.list = list;
+            }
+
+            /**
+             * Set the target
+             *
+             * @param {Object} target
+             *
+             * @return {null}
+             */
+            setTarget(target) {
+                this.target = target;
+            }
+
+        };
+
+        Polymer(EventListItem);
+
+    })();
+    </script>
+</dom-module>

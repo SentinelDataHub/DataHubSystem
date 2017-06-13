@@ -1,0 +1,69 @@
+<script>
+var DHuSMapConfig = {
+    webAppRoot: "",
+    styles: {
+        selection: {
+            fill: {
+                color: [255, 255, 255, 0.6]
+            },
+            stroke: {
+                color: [255, 255, 255, 1],
+                width: 5
+            }
+        },
+        highlight: {
+            fill: {
+                color: [255, 255, 255, 0.3]
+            },
+            stroke: {
+                color: [255, 255, 255, 0.6],
+                width: 1
+            }
+        },
+        "default": {
+            fill: {
+                color: [255, 255, 255, 0.4]
+            },
+            stroke: {
+                color: [0, 153, 255, 1],
+                width: 1
+            }
+        }
+    },
+    mapToggleButton: {
+        active3DlabelText: "3d Map",
+        active2DlabelText: "2d Map"
+    },
+    selectionButton: {
+        activedText: "Disable selection",
+        disabledText: "Active selection",
+        activedIcon: "flip-to-front",
+        disabledIcon: "open-with",
+        clearImageIcon: "flip-to-back"
+    },
+    map3dActive: false,
+    map: {
+        transformation: {
+            source: 'EPSG:4326',
+            destination: 'EPSG:3857'
+        },
+        defaultCenter: {
+            coordinates: [13.707047, 51.060086]
+        },
+
+        defaultZoom: 4,
+        minZoom: 1.3,
+        maxZoom: 19,
+        defaultLayer: 'sat'
+    },
+    cesium: {
+        terrainProviderUrl: '//cesiumjs.org/stk-terrain/tilesets/world/tiles'
+    },
+    events: {
+        changedModel: 'changed-model',
+        newModel: 'new-model'
+    },
+
+};
+
+</script>

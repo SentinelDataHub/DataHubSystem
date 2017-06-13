@@ -1,0 +1,8 @@
+{
+  "suites": ["./test"],
+  "webserver": {
+    "pathMappings": [
+      {"/elements/owc-cart-manager/bower_components": "bower_components"}
+    ]
+  }
+}

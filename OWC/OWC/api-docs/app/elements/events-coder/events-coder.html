@@ -1,0 +1,132 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+This component is used to get, from data model retrieved from server, information useful for events representation, in order to perform the data-binding between Model and View
+
+
+@demo demo/index.html
+-->
+<dom-module id="events-coder">
+    <script>
+    (function() {
+        'use strict';
+        class EventsCoder extends HTMLElement {
+
+            /**
+             * class constructor
+             */
+            constructor() {
+                super();
+            }
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'events-coder';
+
+            }
+
+
+            /**
+             * this method is used to convert events date in ISO date
+             *
+             * @param {string} edm.datetime
+             * @return {string} iso date
+             */
+            _extractDateFromJson(date) {              
+                var dateString = null;
+                if (date) {
+                    var exdate = date.substring(date.indexOf('(') + 1, date.indexOf(")"));
+                    dateString = moment.unix((exdate / 1000)).format('YYYY-MM-DDTHH:mm:ss');
+                }
+                return dateString;
+            }
+
+
+            /**
+             * this method is used to extract a specific list model from a generic data model
+             *
+             * @param {Object} generic model
+             * @return {Object} specific model
+             */
+            extractSpecificModel(genericModel) {
+                var model = _.clone(genericModel);
+                // console.warn("--->> EventsCoder");
+                // console.log("genericModel: ", genericModel);
+                // var evtModel = [];
+                // var events = [];
+                // var evt;
+                // if (genericModel )
+                //     events = genericModel;
+                 for (var i = 0; i < model.length; i++) {
+
+                  //  model[i].PublicationDate = this._extractDateFromJson(model[i].PublicationDate)
+                   //
+                  //  model[i].StartDate = this._extractDateFromJson(model[i].StartDate);
+                  //  model[i].StopDate  = this._extractDateFromJson(model[i].StopDate);
+                //     evt = {};
+                //
+                //     evt.uuid = events[i].Id;
+                //     evt.category = events[i].Category;
+                //     evt.subcategory = events[i].Subcategory;
+                //     evt.title = events[i].Title;
+                //     evt.description = events[i].Description;
+                //     evt.startdate = this._extractDateFromJson(events[i].StartDate);
+                //     evt.stopdate = this._extractDateFromJson(events[i].StopDate);
+                //     evt.date = this._extractDateFromJson(events[i].PublicationDate);
+                //     evt.icon = events[i].Icon;
+                //     evt.localevent = events[i].LocalEvent;
+                //     evt.publicevent = events[i].PublicEvent;
+                //     evt.originator = events[i].Originator;
+                //     evt.hubtag = events[i].HubTag;
+                //     evt.missiontag = events[i].MissionTag;
+                //     evt.instrumenttag = events[i].InstrumentTag;
+                //     evt.externalurl = events[i].ExternalUrl;
+                //     evtModel.push(evt);
+                 }
+                // console.warn("--->> EventsCoder POST");
+                // console.log("genericModel POST: ", evtModel);
+                return new Promise(function(resolve, reject) {
+                    resolve(model);
+                });               
+            }
+
+        };
+
+        Polymer(EventsCoder);
+
+    })();
+    </script>
+</dom-module>

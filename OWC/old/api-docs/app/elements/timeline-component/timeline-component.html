@@ -1,0 +1,696 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<script type="text/javascript" src="http://static.mentful.com/gantt-chart-d3v2.js"></script>
+<!--
+timeline component
+
+
+@demo demo/index.html
+-->
+<dom-module id="timeline-component">
+    <template>
+        <style is="custom-style">
+        html,
+        body,
+        #timeline-content {
+            width: 20%;
+            height: 20%;
+            margin: 0px;
+        }
+        
+        .fieldContainer {
+            @apply(--layout-vertical);
+        }
+        
+        .flexchild {
+            @apply(--layout-flex);
+        }
+        
+        .flex2child {
+            @apply(--layout-flex-2);
+        }
+        
+        .chart {
+            font-family: Arial, sans-serif;
+            font-size: 14px!important;
+        }
+        
+        .axis path,
+        .axis line {
+            fill: none;
+            stroke: #000;
+            shape-rendering: crispEdges;
+        }
+        
+        .bar {
+            fill: #33b5e5;
+        }
+        
+        .bar-failed {
+            fill: #CC0000;
+        }
+        
+        .bar-running {
+            fill: #669900;
+        }
+        
+        .bar-succeeded {
+            fill: #33b5e5;
+        }
+        
+        .bar-killed {
+            fill: #ffbb33;
+        }
+        
+        #forkme_banner {
+            display: block;
+            position: absolute;
+            top: 0;
+            right: 2px;
+            z-index: 2;
+            padding: 2px 50px 2px 2px;
+            color: #fff;
+            background: url('http://dk8996.github.io/Gantt-Chart/images/blacktocat.png') #0090ff no-repeat 95% 50%;
+            font-weight: 700;
+            box-shadow: 0 0 2px rgba(0, 0, 0, .5);
+            border-bottom-left-radius: 2px;
+            border-bottom-right-radius: 2px;
+            text-decoration: none;
+        }
+        
+        #timeline-container {
+            font-size: 14px!important;
+            height: var(--timeheight, 500px);
+            width: var(--timewidth, 20%);
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+        
+        .products-number {
+            font-size: 15px;
+            text-align: center;
+            padding: 3px;
+            opacity: 0.95;
+            font-weight: bold;
+        }
+        
+        h5 {
+            text-align: center;
+            -webkit-margin-after: 0em;
+            -webkit-margin-before: 0.5em;
+        }
+        </style>
+        <div class="fieldContainer" hidden="{{hide}}">
+            <h5>{{i18n('Products ordered by descending sensing date')}}</h5>
+            <div class="products-number">Sensing period: {{startDate}} - {{endDate}}</div>
+            <div class="flexchild">
+                <div class="products-number">
+                    <paper-icon-button icon="chevron-left" on-click="next" disabled="{{disablednext}}" title="{{i18n('click here to see products with older sensing date')}}"></paper-icon-button> display from {{from}} to {{to}} of {{count}} products
+                    <paper-icon-button icon="chevron-right" on-click="previous" disabled="{{disabled}}" title="{{i18n('click here to see products with newer sensing date')}}"></paper-icon-button>
+                </div>
+            </div>
+        </div>
+        <div id="timeline-container">
+            <div id="timeline-content"></div>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class TimelineComponent {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'timeline-component';
+                this.owcApp = document.querySelector('#owc-app');
+                this.odataUrl = "/odata/v1/Products?$select=Name,ContentDate&$orderby=ContentDate/Start%20desc&$skip=:skip&$top=:top&$format=json";
+                this.odataCountUrl = "/odata/v1/Products/$count"
+                this.properties = {
+
+                    /**
+                     * Public property description
+                     *
+                     * @type {Object}
+                     */
+                    model: {
+                        type: Object,
+                        value: null
+                    },
+
+                    skip: {
+                        type: Number,
+                        value: 0
+                    },
+
+                    top: {
+                        type: Number,
+                        value: 25
+                    },
+
+                    count: {
+                        type: Number,
+                        value: 0
+                    },
+                    disabled: {
+                        type: Boolean,
+                        value: true
+                    },
+                    disablednext: {
+                        type: Boolean,
+                        value: false
+                    },
+                    hide: {
+                        type: Boolean,
+                        value: true
+                    }
+
+                }
+            }
+
+            /**
+             * generate url for request
+             *
+             * @param {String} filter
+             * @param {String} offset
+             * @param {String} limit
+             *
+             * @return {null}
+             */
+            _generateSearchRequest(skip, top) {
+                var searchUrl = this.odataUrl;
+                searchUrl = searchUrl.replace(":skip", (skip) ? skip : '0');
+                searchUrl = searchUrl.replace(":top", (top) ? top : '25');
+                return searchUrl;
+            }
+
+            /**
+             * This method is used to perform a new timeline request (most recent products)
+             */
+            next() {
+                var self = this;
+                self.disabled = false;
+                self.skip = self.skip + self.top;
+                self.from = self.from + self.top;
+                self.to = self.skip + self.top;
+                if (self.to >= self.count) {
+                    self.to = self.count;
+                    self.disablednext = true;
+                }
+                self.request();
+            }
+
+
+
+            /**
+             * This method is used to perform a new timeline request (less recent products)
+             */
+            previous() {
+                var self = this;
+                self.disablednext = false;
+                if (self.skip >= 0) {
+                    self.disabled = false;
+                    self.skip = self.skip - self.top;
+                    self.from = self.from - self.top;
+                    self.to = self.from + self.top - 1;
+                    if (self.from <= 1) {
+                        self.from = 1;
+                        self.skip = 0;
+                        self.disabled = true;
+                    }
+
+                    self.request();
+                }
+            }
+
+            /**
+             * request: http request used to retrieve product number
+             *
+             * @return {Object} product number
+             */
+            requestCount() {
+                var self = this;
+                return self.owcApp.httpManager.sendRequest('GET', self.owcApp.config.baseUrl + self.odataCountUrl).then(function(response) {
+                    if (response.status == 200) {
+                        self.count = response.data;
+                        if (self.count > 0) {
+                            self.hide = false;
+                        }
+
+                        if (self.top > self.count) {
+                            self.top = self.count;
+                            self.disabled = true;
+                            self.disablednext = true;
+                        }
+
+                        self.from = self.skip + 1;
+                        self.to = parseInt(self.skip + self.top);
+
+                        return self.count;
+                    } else {
+                        return new Promise(function(resolve, reject) {
+                            reject("model_empty");
+                        });
+                    }
+
+                });
+            }
+
+            /**
+             * request: http request used to retrieve product data model
+             *
+             * @return {Object} product data model
+             */
+            request() {
+                var self = this;
+                //var premodel = [];
+                return self.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + self._generateSearchRequest(self.skip, self.top)
+                ).then(function(response) {
+                    if (response.status == 200) {
+                        return self.processModel(response.data.d.results).then(function(timeModel) {
+                            //premodel = response.data.d.results;
+
+                            self.model = timeModel;
+                            return self.createTimeline(self.model).then(function(m) {});
+
+                        });
+
+                    } else
+                        return new Promise(function(resolve, reject) {
+                            reject("model_empty");
+                        });
+                });
+
+                setTimeout(function() {
+                    self.resize();
+                }, 0);
+            }
+
+
+            /**
+             *  Public method used to process model from server and create the proper data for timeline creation
+             * 
+             * @param {Object} model: http response from server 
+             * @return {Promise}: processed model
+             */
+            processModel(model) {
+                var timeModel = [];
+                var item = {};
+                for (var i = 0; i < model.length; i++) {
+                    if (model[i].ContentDate.Start != null) {
+                        item.name = model[i].Name;
+                        item.taskName = model[i].Name.substring(0, 2);
+
+                        if (item.taskName) {
+                            item.status = (window.taskStatus[item.taskName]) ? window.taskStatus[item.taskName] : null;
+                        } else {
+                            item.status = null;
+                        }
+
+
+                        var startDate = model[i].ContentDate.Start.substring(model[i].ContentDate.Start.indexOf('(') + 1, model[i].ContentDate.Start.indexOf(")"));
+                        item.startDate = new Date(moment.unix((startDate / 1000)).format('YYYY-MM-DD HH:mm:ss'));
+                        var endDate = model[i].ContentDate.End.substring(model[i].ContentDate.End.indexOf('(') + 1, model[i].ContentDate.End.indexOf(")"));
+                        item.endDate = new Date(moment.unix((endDate / 1000)).format('YYYY-MM-DD HH:mm:ss'));
+
+                        if (item.endDate && item.startDate && (item.endDate - item.startDate) >= 0) {
+                            timeModel.push(item);
+                        } else {}
+
+                        item = {};
+                    }
+                }
+
+                return new Promise(function(resolve, reject) {
+                    resolve(timeModel);
+                });
+
+            }
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+                var self = this;
+
+                self.requestCount();
+
+
+                self.request();
+
+                window.taskStatus = this.owcApp.appconfig.timeline.styles;
+
+                window.taskNames = _.keys(this.owcApp.appconfig.timeline.styles);
+            }
+
+            /**             
+             *  This method update the configured list of missions from data model 
+             *
+             * @param {Object} model: processed model 
+             * @return {Object}
+             */
+            updateTasknameList(model) {
+                for (var i = 0; i < model.length; i++) {
+                    if (window.taskNames.indexOf(model[i].taskName) < 0) {
+                        window.taskNames.push(model[i].taskName);
+                    }
+                }                
+            }
+
+            /**             
+             *  This method is used to create Timeline d3 object on the basis of information retrieved via OData from DHuS
+             *
+             * @param {Object} model: processed model 
+             * @return {Promise}: processed model
+             */
+            createTimeline(timeModel) {
+                var self = this;
+                window.tasks = timeModel;
+                this.updateTasknameList(timeModel);
+
+                tasks.sort(function(a, b) {
+                    return a.endDate - b.endDate;
+                });
+                var maxDate = tasks[tasks.length - 1].endDate;
+                self.endDate = moment(maxDate).format('YYYY-MM-DD HH:mm:ss');
+                tasks.sort(function(a, b) {
+                    return a.startDate - b.startDate;
+                });
+                var minDate = tasks[0].startDate;
+                self.startDate = moment(minDate).format('YYYY-MM-DD HH:mm:ss');
+                var format = "%d %m %Y %H:%M";
+                var height = document.getElementById("timeline-container").clientHeight;
+                var width = document.getElementById("timeline-container").clientWidth;
+                var gantt = d3.gantt().taskTypes(window.taskNames).taskStatus(window.taskStatus).tickFormat(format);
+                gantt(tasks);
+
+                //d3.gantt().taskTypes(taskNames).taskStatus(taskStatus).tickFormat(format).height(_height).width(_width);
+                setTimeout(function() {
+                    self.resize();
+                }, 0);
+
+                return new Promise(function(resolve, reject) {
+                    resolve(timeModel);
+                });
+
+            }
+
+
+            /**
+             * Resize method (called when component is attached to DOM)
+             *             
+             * @return {null}
+             */
+            resize() {
+                this.customStyle['--timeheight'] = parseInt(this.parentPanel.getSize().height - 100) + "px";
+                this.updateStyles();
+                this.customStyle['--timewidth'] = parseInt(this.parentPanel.getSize().width) + "px";
+                this.updateStyles();
+                var format = "%d %m %Y %H:%M";
+                if (document.getElementById("timeline-container")) {
+                    var height = document.getElementById("timeline-container").clientHeight;
+                    var width = document.getElementById("timeline-container").clientWidth;
+                    $("#timeline-content").html("");
+
+                    var gantt = d3.gantt().taskTypes(window.taskNames).taskStatus(window.taskStatus).tickFormat(format);
+                    if (window.tasks)
+                        gantt(window.tasks)
+                }
+            }
+
+
+
+        };
+
+        Polymer(TimelineComponent);
+
+    })();
+    </script>
+    <script>
+    d3.gantt = function() {
+        var FIT_TIME_DOMAIN_MODE = "fit";
+        var FIXED_TIME_DOMAIN_MODE = "fixed";
+
+        var margin = {
+            top: 0,
+            right: 40,
+            bottom: 60,
+            left: 80
+        };
+        var timeDomainStart = d3.time.day.offset(new Date(), -3);
+        var timeDomainEnd = d3.time.hour.offset(new Date(), +3);
+        var timeDomainMode = FIT_TIME_DOMAIN_MODE; // fixed or fit
+        var taskTypes = [];
+        var taskStatus = [];
+        //var height = document.body.clientHeight - margin.top - margin.bottom-5;
+        var height = document.getElementById("timeline-container").clientHeight - 80;
+        // var width = document.body.clientWidth - margin.right - margin.left-5;
+        var width = document.getElementById("timeline-container").clientWidth - 160;
+        var middle = parseInt(width / 2);
+
+        var tickFormat = "%d %m %Y %H:%M";
+
+        var keyFunction = function(d) {
+            return d.startDate + d.taskName + d.endDate;
+        };
+
+        var rectTransform = function(d) {
+            return "translate(" + x(d.startDate) + "," + y(d.taskName) + ")";
+        };
+
+        var x = d3.time.scale().domain([timeDomainStart, timeDomainEnd]).range([0, width]).clamp(true);
+
+        var y = d3.scale.ordinal().domain(taskTypes).rangeRoundBands([0, height - margin.top - margin.bottom], .1);
+
+        var xAxis = d3.svg.axis().scale(x).orient("bottom").tickFormat(d3.time.format(tickFormat)).tickSubdivide(true)
+            .tickSize(8).tickPadding(8);
+        var yAxis = d3.svg.axis().scale(y).orient("left").tickSize(0);
+
+        var initTimeDomain = function(tasks) {
+            if (timeDomainMode === FIT_TIME_DOMAIN_MODE) {
+                if (tasks === undefined || tasks.length < 1) {
+                    timeDomainStart = d3.time.day.offset(new Date(), -3);
+                    timeDomainEnd = d3.time.hour.offset(new Date(), +3);
+                    return;
+                }
+                tasks.sort(function(a, b) {
+                    return a.endDate - b.endDate;
+                });
+                timeDomainEnd = tasks[tasks.length - 1].endDate;                
+                tasks.sort(function(a, b) {
+                    return a.startDate - b.startDate;
+                });
+                timeDomainStart = tasks[0].startDate;
+                if(timeDomainStart.getTime() === timeDomainEnd.getTime()) {
+                    timeDomainEnd = d3.time.minute.offset(timeDomainEnd, +1);                    
+                }
+            }
+        };
+
+        var initAxis = function() {
+            x = d3.time.scale().domain([timeDomainStart, timeDomainEnd]).range([0, width]).clamp(true);
+            y = d3.scale.ordinal().domain(taskTypes).rangeRoundBands([0, height - margin.top - margin.bottom], .1);
+            xAxis = d3.svg.axis().scale(x).orient("bottom").tickFormat(d3.time.format(tickFormat)).tickSubdivide(true)
+                .tickSize(8).tickPadding(8);
+
+            yAxis = d3.svg.axis().scale(y).orient("left").tickSize(0);
+        };
+
+        function gantt(tasks) {
+
+            var MIN_WIDTH = 2;
+            initTimeDomain(tasks);
+            initAxis();
+
+            var svg = d3.select("#timeline-content")
+                .append("svg")
+                .attr("class", "chart")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("class", "gantt-chart")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
+
+            svg.selectAll(".chart")
+                .data(tasks, keyFunction).enter()
+                .append("rect")
+                .attr("rx", 5)
+                .attr("ry", 5)
+                .attr("fill", function(d) {
+                    if (d.status == null) {
+                        return "#33b5e5"; //default color
+                    } else {
+                        return d.status;
+                    }
+                })
+                .attr("stroke", function(d) {
+                    if (d.status == null) {
+                        return "#33b5e5"; //default color
+                    } else {
+                        return d.status;
+                    }
+                })
+                .attr("fill-opacity",0.3)
+                .attr("y", 0)
+                .attr("transform", rectTransform)
+                .attr("height", function(d) {
+                    return y.rangeBand();
+                })
+                .attr("class", "rect-class")
+                .attr("width", function(d) {
+                    if ((x(d.endDate) - x(d.startDate)) < MIN_WIDTH) {
+                        return MIN_WIDTH;
+                    } else {
+                        return (x(d.endDate) - x(d.startDate));
+                    }
+                });
+
+
+            svg.append("g")
+                .attr("class", "x axis").attr("fill", "#022663")
+                .attr("transform", "translate(0, " + (height - margin.top - margin.bottom) + ")")
+
+            .call(xAxis)
+                .selectAll("text")
+                .style("text-anchor", "end")
+                .attr("dx", "-.8em")
+                .attr("dy", ".15em")
+                .attr("transform", function(d) {
+                    return "rotate(-55)"
+                });
+
+            svg.append("g").attr("class", "y axis").attr("fill", "#022663").call(yAxis);
+
+            svg.append("text")
+                .attr("x", middle)
+                .attr("y", height + margin.top + margin.bottom)
+                .attr("text-anchor", "middle")
+                .attr("fill", "#022663")
+                .text("Sensing Date");
+
+            svg.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("x", 0 - parseInt(height / 2))
+                .attr("y", 0 - margin.left)
+                .attr("dy", "1em")
+                .attr("text-anchor", "middle")
+                .attr("fill", "#022663")
+                .text("Missions");
+
+            svg.selectAll(".rect-class").append("title")
+                .text(function(d) {
+                    return d.name;
+                });
+
+            return gantt;
+
+        };
+
+        gantt.margin = function(value) {
+            if (!arguments.length)
+                return margin;
+            margin = value;
+            return gantt;
+        };
+
+        gantt.timeDomain = function(value) {
+            if (!arguments.length)
+                return [timeDomainStart, timeDomainEnd];
+            timeDomainStart = +value[0], timeDomainEnd = +value[1];
+            return gantt;
+        };
+
+        /**
+         * @param {string}
+         *                vale The value can be "fit" - the domain fits the data or
+         *                "fixed" - fixed domain.
+         */
+        gantt.timeDomainMode = function(value) {
+            if (!arguments.length)
+                return timeDomainMode;
+            timeDomainMode = value;
+            return gantt;
+
+        };
+
+        gantt.taskTypes = function(value) {
+            if (!arguments.length)
+                return taskTypes;
+            taskTypes = value;
+            return gantt;
+        };
+
+        gantt.taskStatus = function(value) {
+            if (!arguments.length)
+                return taskStatus;
+            taskStatus = value;
+            return gantt;
+        };
+
+        gantt.width = function(value) {
+            if (!arguments.length)
+                return width;
+            width = +value;
+            return gantt;
+        };
+
+        gantt.height = function(value) {
+            if (!arguments.length)
+                return height;
+            height = +value;
+            return gantt;
+        };
+
+        gantt.tickFormat = function(value) {
+            if (!arguments.length)
+                return tickFormat;
+            tickFormat = value;
+            return gantt;
+        };
+
+
+
+        return gantt;
+    };
+    </script>
+</dom-module>

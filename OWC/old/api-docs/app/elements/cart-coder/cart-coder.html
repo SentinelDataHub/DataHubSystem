@@ -1,0 +1,106 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+This component is the coder for users cart
+
+
+@demo demo/index.html
+-->
+<dom-module id="cart-coder">
+    <script>
+    (function() {
+        'use strict';
+        class CartCoder extends HTMLElement {
+
+            /**
+             * class constructor             
+             */
+            constructor() {
+                    super();
+                }
+                /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'cart-coder';
+                this.owcApp = document.querySelector('#owc-app');
+                this.properties = {};                
+            }
+
+            /**
+             * this method is used to get Quicklook OData url (if Quicklook is avalaible)
+             *
+             * @param {Object} product item
+             * @return {String} Quicklook OData url (if Quicklook is avalaible), default placeholder url otherwise
+             */
+            getQuicklook(item) {
+                var self = this;
+                var IMAGE_PLACE_HOLDER_URL = self.owcApp.config.clientUrl + '/images/placeholder.png';
+                return (item
+                    .quicklook) ? self.owcApp.config.baseUrl + "/odata/v1/Products('" + item.uuid + "')/Products('Thumbnail')/$value" : IMAGE_PLACE_HOLDER_URL;
+            }
+
+            
+            /**
+             * this method is used to extract a specific list model from a generic data model
+             *
+             * @param {Object} generic model
+             * @return {Object} specific model
+             */
+            extractSpecificModel(genericModel) {
+
+                var test = (JSON.parse(JSON.stringify(genericModel)));
+
+                if (test != null) {
+                    for (let i = 0; i < genericModel.length; i++) {
+                        test[i].thumb = this.getQuicklook(genericModel[i]);
+                        for (let j = 0; genericModel[i].attributes && j < genericModel[i].attributes.length; j++) {
+                            var keys = Object.keys(genericModel[i].attributes[j]);
+                            test[i].attributes[j] = String(this.i18n(keys[0]) + ": " + genericModel[i].attributes[j][keys[0]]);
+
+                        }
+                        test[i].showAdf = true;
+                    }
+                }
+
+                return test;
+            }
+
+        };
+
+        Polymer(CartCoder);
+
+    })();
+    </script>
+</dom-module>

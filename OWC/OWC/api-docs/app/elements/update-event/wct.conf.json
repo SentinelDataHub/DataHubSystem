@@ -1,0 +1,8 @@
+{
+  "suites": ["./test"],
+  "webserver": {
+    "pathMappings": [
+      {"/elements/update-event/bower_components": "bower_components"}
+    ]
+  }
+}

@@ -1,0 +1,338 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+This component is devoted to contain information related to a Filescanner object
+
+
+@demo demo/index.html
+-->
+<dom-module id="filescanner-item">
+    <template>
+        <style type="text/css" is="custom-style">
+        .container {
+            @apply(--layout-horizontal);
+            @apply(--layout-wrap);
+            height: var(--container-height, 70px !important);
+        }
+        
+        .owc-list-item-title {
+            position: absolute;
+            top: var(--owc-list-item-title-top, 20px);
+            left: var(--owc-list-item-title-left, 30px);
+            width: var(--owc-list-item-title-width, calc(100% - 50px));
+        }
+        
+        .owc-list-item-footer {
+            position: absolute;
+            top: var(--owc-list-item-title-top, 90px);
+            left: var(--owc-list-item-title-left, 30px);
+            width: var(--owc-list-item-title-width, calc(100% - 50px));
+            padding-top: 10px;
+        }
+        
+        .title {
+            font-size: 14px;
+            font-weight: bold;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        
+        iron-list {
+            background-color: var(--paper-grey-200, #eee);
+        }
+        
+        .item {
+            @apply(--layout-horizontal);
+            @apply(--layout-wrap);
+            border-radius: 8px;
+            background-color: white;
+            margin: 16px !important;
+            border: solid 1px #ecf0f1;
+        }
+        
+        .owc-list-item {
+            margin-top: 5px !important;
+            margin-right: 10px!important;
+            margin-left: 7px!important;
+            background: var(--container-background, white);
+        }
+        
+        .owc-list-item-attributes-container {
+            position: absolute;
+            top: var(--owc-list-item-attributes-container-top, 50px);
+            left: var(--owc-list-item-title-left, 30px);
+            width: 90%;
+        }
+        
+        .owc-list-item-attribute {
+            width: calc(100% - 120px);
+        }
+        
+        .attribute {
+            font-size: 12px!important;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        
+        .owc-list-item-buttons {
+            position: absolute;
+            bottom: 15px;
+            right: 15px
+        }
+        
+        iron-icon.fsstatus {
+            --iron-icon-width: 18px;
+            --iron-icon-height: 18px;
+            --iron-icon-fill-color: #002664;
+        }
+        </style>
+        <div class="item owc-list-item" id="filescanner-item{{model.id}}" style="{{model.selectionColor}}" >
+            <div class="container">
+                <div hidden>{{model.id}}</div>
+                <div class="title owc-list-item-title">
+                    <iron-icon icon="{{model.classicon}}" class="fsstatus"></iron-icon>
+                    <span title="{{model.url}}">{{model.url}}</span>
+                </div>
+                <div class="owc-list-item-buttons">
+                    <paper-icon-button icon="av:play-arrow" on-click="startFilescanner" title="Play File Scanner"></paper-icon-button>
+                    <paper-icon-button icon="av:stop" on-click="stopFilescanner" title="Stop File Scanner"></paper-icon-button>
+                    <paper-icon-button icon="icons:schedule" style="{{model.styleColor}}" on-click="scheduleFilescanner" title="Schedule File Scanner"></paper-icon-button>
+                    <paper-icon-button icon="icons:close" on-click="deleteFilescanner" title="Delete File Scanner"></paper-icon-button>
+                </div>
+            </div>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class FilescannerItem {
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'filescanner-item';
+                this.filescannerDeleteRequestUrl = "/api/stub/admin/filescanners/:fsid";
+                this.filescannerActivateDeactivateUrl = "/api/stub/admin/filescanners/:fsid?activate=:status";
+                this.filescannerStartUrl = "/api/stub/admin/filescanners/:fsid?start=true";
+                this.filescannerStopUrl = "/api/stub/admin/filescanners/:fsid?stop=true";
+                this.owcApp = document.querySelector('#owc-app');
+                this.options = {
+                    headers: [{
+                        name: "Content-Type",
+                        value: "application/json"
+                    }, {
+                        name: "Accept",
+                        value: "application/json"
+                    }],
+                    body: JSON.stringify({})
+                };
+                this.properties = {
+
+                    /**
+                     * Model of list item
+                     *
+                     * @type {Object}
+                     */
+                    model: {
+                        type: Object,
+                        value: {}
+                    }
+
+
+                };
+            }
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+                var self = this;
+                self.owcApp.messageBroker.subscribe('update-fsitem', function() {
+                    setTimeout(function() {
+                        self.clearSelection();
+                    }, 0);
+                });
+            }
+
+            /**             
+             *  This method is used to update element background color according to element selection/deselection
+             *
+             * @return {null}
+             */
+            setToggle(toggle) {                
+                //this.model.toggle = !this.model.toggle;
+                this.model.toggle=toggle;                
+            }
+
+            /**             
+             *  This method is used to update element background color according to element selection/deselection
+             *
+             * @return {null}
+             */
+            updateSelection() {                
+                //this.model.toggle = !this.model.toggle;
+                var toggle = this.model.toggle;
+                this.model.selectionColor = (!toggle) ? "white" : "#b0b0b0";
+
+                this.customStyle['--container-background'] = this.model.selectionColor;
+                this.updateStyles();
+            }
+
+            /**             
+             *  This method is used to restore default element background color
+             *
+             * @return {null}
+             */
+            clearSelection() {
+
+                this.model.selectionColor = "white";                
+                this.customStyle['--container-background'] = this.model.selectionColor;
+                this.updateStyles();
+            }
+
+            /**             
+             *  This method is used to perform HTTP request needed for playing a file scanner
+             *
+             * @return {null}
+             */
+            startFilescanner() {
+                var self = this;
+                return self.owcApp.httpManager.sendRequest(
+                    'PUT',
+                    self.owcApp.config.baseUrl + self.filescannerStartUrl.replace(":fsid", self.model.id), self.options
+                ).then(function(response) {
+                    if (response.status >= 200 && response.status < 300) {
+                        self.owcApp.toastManager.info(self.i18n("File Scanner Played"));
+                        self.owcApp.messageBroker.publish('update-filescanners');
+                    } else {
+                        self.owcApp.toastManager.error(self.i18n("Error in playing File Scanner"));
+                    }
+                }, function() {
+                    self.owcApp.toastManager.error(self.i18n("Error in playing File Scanner"));
+                });
+            }
+
+            /**             
+             *  This method is used to perform HTTP request needed for stopping a file scanner
+             *
+             * @return {null}
+             */
+            stopFilescanner() {
+                var self = this;
+                return self.owcApp.httpManager.sendRequest(
+                    'PUT',
+                    self.owcApp.config.baseUrl + self.filescannerStopUrl.replace(":fsid", self.model.id), self.options
+                ).then(function(response) {
+                    if (response.status >= 200 && response.status < 300) {
+                        self.owcApp.toastManager.info(self.i18n("File Scanner stopped"));
+                        self.owcApp.messageBroker.publish('update-filescanners');
+                    } else {
+                        self.owcApp.toastManager.error(self.i18n("Error in stopping File Scanner"));
+                    }
+                }, function() {
+                    self.owcApp.toastManager.error(self.i18n("Error in stopping File Scanner"));
+                });
+            }
+
+            /**             
+             *  This method is used to perform HTTP request needed for activating/deactivating a file scanner
+             *
+             * @return {null}
+             */
+            scheduleFilescanner() {
+                var self = this;
+                var status = !self.model.active;
+                return self.owcApp.httpManager.sendRequest(
+                    'PUT',
+                    self.owcApp.config.baseUrl +
+                    self.filescannerActivateDeactivateUrl.replace(":fsid", self.model.id).replace(":status", status),
+                    self.options
+                ).then(function(response) {
+                    if (response.status >= 200 && response.status < 300) {
+                        if (status) {
+                            self.owcApp.toastManager.info(self.i18n("File Scanner is activated"));
+                        } else {
+                            self.owcApp.toastManager.info(self.i18n("File Scanner is deactivated"));
+                        }
+                        self.owcApp.messageBroker.publish('update-filescanners');
+                    } else {
+                        if (status) {
+                            self.owcApp.toastManager.info(self.i18n("Error activating File Scanner"));
+                        } else {
+                            self.owcApp.toastManager.info(self.i18n("Error deactivating File Scanner"));
+                        }
+                    }
+                }, function() {
+                    if (status) {
+                        self.owcApp.toastManager.info(self.i18n("Error activating File Scanner"));
+                    } else {
+                        self.owcApp.toastManager.info(self.i18n("Error deactivating File Scanner"));
+                    }
+                });
+            }
+
+            /**             
+             *  This method is used to perform HTTP request needed for removing a file scanner
+             *
+             * @return {null}
+             */
+            deleteFilescanner() {
+                var self = this;
+                return self.owcApp.httpManager.sendRequest(
+                    'DELETE',
+                    self.owcApp.config.baseUrl + self.filescannerDeleteRequestUrl.replace(":fsid", self.model.id)
+                ).then(function(response) {
+                    if (response.status >= 200 && response.status < 300) {
+                        self.owcApp.toastManager.info(self.i18n("File Scanner removed"));
+                        self.owcApp.messageBroker.publish('update-filescanners');
+                    } else {
+                        self.owcApp.toastManager.error(self.i18n("Error in removing File Scanner"));
+                    }
+                }, function() {
+                    self.owcApp.toastManager.error(self.i18n("Error in removing File Scanner"));
+                });
+            }
+
+        };
+
+        Polymer(FilescannerItem);
+
+    })();
+    </script>
+</dom-module>

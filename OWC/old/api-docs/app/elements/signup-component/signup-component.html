@@ -1,0 +1,748 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/gold-email-input/gold-email-input.html">
+<!--
+`signup-component` contains the form used to subscribe to Data Hub Service.
+<br/>All fields in the form are mandatory, so error messages are displayed to user if there are empty fields or if confirmation fields (for password and e-mail) don't match.
+
+
+
+
+-->
+<dom-module id="signup-component">
+    <template>
+        <style is="custom-style">
+        .container {
+            @apply(--layout-vertical);
+            height: var(--createheight, 100%);
+            width: var(--createwidth, 100%);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .fieldContainer {
+            @apply(--layout-horizontal);
+        }
+
+        .vfieldContainer {
+            @apply(--layout-vertical);
+            width: 100%;
+            word-break: break-word;
+            white-space: initial;
+        }
+
+        .flexchild {
+            @apply(--layout-flex);
+        }
+
+        .flex2child {
+            @apply(--layout-flex-5);
+        }
+
+        .flex3child {
+            @apply(--layout-flex-5);
+        }
+
+        .panelHeader {
+            background: #002664;
+            color: white;
+            padding: 5px 5px;
+            /*width: 20%;*/
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        paper-button {
+            background: #002664;
+            color: white;
+            padding: 5px 5px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            float: right;
+            margin-right: 10px
+        }
+
+        paper-button[toggles][active].colorful {
+            background-color: #002664;
+        }
+
+        paper-button[toggles][active][raised].colorful {
+            background-color: rgba(66, 133, 244, 0.75);
+        }
+
+        .terms {
+            text-align: center;
+            padding: 20px 0px;
+            font-weight: bold;
+        }
+
+        .description {
+            font-size: 14px;
+            line-height: 1.42857143;
+            color: #333;
+            display: inline-block;
+        }
+
+        .terms > a {
+            color: #23527c;
+        }
+
+        paper-menu {
+            padding-left: 10px;
+            padding-right: 10px;
+            width: 200px;
+        }
+        </style>
+        <div class="container">
+            <form is="iron-form" method="get" action="/" id="basic">
+                <br/>
+                <div class="vfieldContainer description">
+                    <b>Sentinel data access is free and open to all.</b>
+                    <br/>
+                    <br/> On completion of the registration form below you will receive an e-mail with a link to validate your e-mail address. Following this you can start to download the data.
+                    <br/> Username field accepts only alphanumeric characters plus ".", "-", "_" and "-".
+                </div>
+                <div class="fieldContainer">
+                    <paper-input class="flex2child" value="{{model.firstname}}" name="firstname" label="Firstname" autofocus required error-message="Firstname empty" invalid="{{isFirstnameEmpty}}" on-change="checkFirstName"></paper-input>
+                    <div class="flexchild"></div>
+                    <paper-input class="flex2child" value="{{model.lastname}}" label="Lastname" required error-message="Lastname empty" invalid="{{isLastnameEmpty}}" on-change="checkLastName"></paper-input>
+                </div>
+                <div class="fieldContainer">
+                    <paper-input class="flex2child" value="{{model.username}}" label="Username" required error-message="{{usernameError}}" invalid="{{isUsernameEmpty}}" on-change="checkUsername"></paper-input>
+                    <div class="flexchild"></div>
+                    <div class="flex2child"></div>
+                </div>
+                <div class="fieldContainer">
+                    <paper-input class="flex2child" type="password" value="{{model.password}}" label="Password" minlength="8" invalid="{{isPasswordEmpty}}" error-message="Password too short. Minimum 8 characters" required on-change="checkPassword"></paper-input>
+                    <div class="flexchild"></div>
+                    <paper-input class="flex2child" type="password" value="{{model.confirmpwd}}" label="Confirm Password" required error-message="Password doesn't match" invalid="{{isPasswordInvalid}}" on-change="checkConfirmPassword"></paper-input>
+                </div>
+                <div class="fieldContainer">
+                    <paper-input class="flex2child" required error-message="E-mail not valid" value="{{model.email}}" label="E-mail" invalid="{{isEmailInvalid}}" on-change="checkEmail"></paper-input>
+                    <div class="flexchild"></div>
+                    <paper-input id="signup-confirm-email" class="flex2child" error-message="E-mail doesn't match" value="{{model.confirmemail}}" label="Confirm E-mail" on-change="checkConfirmEmail" invalid="{{!isSameEmail}}"></paper-input>
+                </div>
+                <div class="fieldContainer">
+                    <paper-dropdown-menu class="flex2child" label="Select Domain" value="{{model.domain}}" required error-message="Domain empty" invalid="{{isDomainEmpty}}" on-select="checkDomain">
+                        <paper-menu class="dropdown-content">
+                            <paper-item value="Select Domain" disabled>Select Domain</paper-item>
+                            <template is="dom-repeat" items="{{domains}}">
+                                <paper-item>{{item}}</paper-item>
+                            </template>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                    <div class="flexchild"></div>
+                    <paper-input class="flex2child" value="{{model.subDomain}}" label="Domain" required hidden$="{{!isSubDomain}}" error-message="Domain empty" on-change="checkSubDomain" invalid="{{isSubDomainEmpty}}"></paper-input>
+                    <div class="flex2child" hidden$="{{isSubDomain}}"></div>
+                </div>
+                <div class="fieldContainer">
+                    <paper-dropdown-menu class="flex2child" label="Select Usage" value="{{model.usage}}" required on-select="checkUsage" error-message="Usage empty" invalid="{{isUsageEmpty}}">
+                        <paper-menu class="dropdown-content">
+                            <paper-item value="Select Usage" disabled>Select Usage</paper-item>
+                            <template is="dom-repeat" items="{{usages}}">
+                                <paper-item>{{item}}</paper-item>
+                            </template>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                    <div class="flexchild"></div>
+                    <paper-input class="flex2child" value="{{model.subUsage}}" label="Usage" required hidden$="{{!isSubUsage}}" error-message="Usage empty" on-change="checkSubUsage" invalid="{{isSubUsageEmpty}}"></paper-input>
+                    <div class="flex2child" hidden$="{{isSubUsage}}"></div>
+                </div>
+                <div class="fieldContainer">
+                    <paper-dropdown-menu class="flex2child country-combo" label="Select Country" value="{{model.country}}" required error-message="Country empty" on-select="checkCountry" invalid="{{isCountryEmpty}}">
+                        <paper-menu class="dropdown-content">
+                            <paper-item value="Select Country" disabled>Select Country</paper-item>
+                            <template is="dom-repeat" items="{{countries}}">
+                                <paper-item>{{item.name}}</paper-item>
+                            </template>
+                        </paper-menu>
+                    </paper-dropdown-menu>
+                    <div class="flexchild"></div>
+                    <div class="flex2child"></div>
+                </div>
+                <br>
+                <div class="vfieldContainer description terms">
+                    By registering in this website you are deemed to have accepted the <a href="{{tclink}}" target="_blank">T&C for Sentinel data use</a>.
+                </div>
+                <br>
+                <div class="flex2child"></div>
+                <div class="flexchild"></div>
+                <paper-button class="flex2child" raised on-click="register" title="Register">Register</paper-button>
+            </form>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class SignupComponent {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'signup-component';
+                this.owcApp = document.querySelector('#owc-app');
+                this.countriesUrl = '/api/stub/countries';
+                this.signUpUrl = '/api/stub/signup';
+                this.options = {
+                    headers: [{
+                        name: "Accept",
+                        value: "application/json"
+                    }, {
+                        name: "Content-Type",
+                        value: "application/json"
+                    }]
+
+                };
+                this.properties = {
+
+                    /**
+                     * Property used to check if a subDomain is set.
+                     * This field is mandatory if the *Domain* field is set to 'Other'
+                     *
+                     * @type {Object}
+                     */
+                    isSubDomain: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+                    /**
+                     * Property used to check if a subUsage is set.
+                     * This field is mandatory if the *Usage* field is set to 'Other'
+                     *
+                     * @type {Object}
+                     */
+                    isSubUsage: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+                    /**
+                     * Property used to contains Service Terms & Condition link
+                     *
+                     * @type {Object}
+                     */
+                    tclink: {
+                        type: String,
+                        value: "",
+                        notify: true
+                    },
+                    /**
+                     * Property used to contains available service application domains
+                     *
+                     * @type {Object}
+                     */
+                    domains: {
+                        type: Array,
+                        value: [
+                            'Atmosphere',
+                            'Emergency',
+                            'Marine',
+                            'Land',
+                            'Security',
+                            'Climate',
+                            'Other'
+                        ],
+                        notify: true
+                    },
+                    /**
+                     * Property used to contains available service application usages
+                     *
+                     * @type {Object}
+                     */
+                    usages: {
+                        type: Array,
+                        value: [
+                            'Research',
+                            'Commercial',
+                            'Education',
+                            'Other'
+                        ],
+                        notify: true
+                    },
+                    /**
+                     * Property used to contains available service application countries
+                     *
+                     * @type {Object}
+                     */
+                    countries: {
+                        type: Array,
+                        value: null,
+                        notify: true
+                    },
+                    /**
+                     * Property used to contains user model for registration request
+                     *
+                     * @type {Object}
+                     */
+                    model: {
+                        type: Object,
+                        value: {},
+                        notify: true
+                    }
+
+
+                }
+            }
+
+            /**
+             * Called after property values are set and local DOM is initialized.
+             *
+             * @return {null}
+             */
+            ready() {
+                this.init();
+            }
+
+            /**
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+                var self = this;
+                this.tclink = this.owcApp.appconfig.t_and_c_link;
+
+                if (!this.country) {
+                    self.owcApp.httpManager.sendRequest(
+                        'GET',
+                        self.owcApp.config.baseUrl + self.countriesUrl
+                    ).then(function(response) {
+                        self.countries = response.data;
+                        var event = document.createEvent('Event');
+                        event.initEvent('resize', true, true);
+                        document.dispatchEvent(event);
+
+
+                        window.addEventListener("resize", function() {
+                            self.resize();
+                        });
+                    });
+                } else {
+                    var event = document.createEvent('Event');
+                    event.initEvent('resize', true, true);
+                    document.dispatchEvent(event);
+
+
+                    window.addEventListener("resize", function() {
+                        self.resize();
+                    });
+                }
+            }
+
+            /**
+             *  This method is used to initialize user model when the component is attached to the DOM
+             *
+             */
+            init() {
+                this.model = {};
+                this.model.usage = 'unknown';
+                this.model.domain = 'unknown';
+                this.model.country = 'unknown';
+                this.model.username = '';
+                this.model.firstname = '';
+                this.model.lastname = '';
+                this.model.email = '';
+                this.model.confirmemail = '';
+                this.model.password = '';
+                this.model.confirmpwd = '';
+                this.model.subDomain = '';
+                this.model.subUsage = '';
+                delete this.model['confirmpwd'];
+                delete this.model["confirmemail"];
+            }
+
+
+            /**
+             *  This method is used to force component resize.
+             *  This allows the panel to fit well to screen size and to manage screen resizing or mobile device
+             *
+             */
+            resize() {
+                var self = this;
+                self.customStyle['--loginheight'] = parseInt(self.parentPanel.getSize().height) + "px";
+                self.updateStyles();
+                self.customStyle['--loginwidth'] = parseInt(self.parentPanel.getSize().width) + "px";
+                self.updateStyles();
+
+            }
+
+            /**
+             * This method is used to retrieve country id from country name.
+             *
+             * @private
+             * @return {number}: country id corresponding to the given country name
+             */
+            _getCountryIdByName() {
+                var self = this;
+                var index = _.findIndex(this.countries, function(element) {
+                    return (element.name == self.model.country);
+                });
+                return this.countries[index] ? this.countries[index].id : -1;
+            }
+
+            /**
+             * This method is used to check if firstname field added by user is not empty.
+             *
+             * @return {boolean}: true if field is filled, false otherwise
+             */
+            checkFirstName() {
+                var check = true;
+                if (!this.model.firstname || this.model.firstname.trim() == '') {
+                    this.isFirstnameEmpty = true;
+                    check = false;
+                } else {
+                    this.isFirstnameEmpty = false;
+                }
+                this.checkFields = this.checkFields && check;
+            }
+
+            /**
+             * This method is used to check if lastname field added by user is not empty.
+             *
+             * @return {boolean}: true if field is filled, false otherwise
+             */
+            checkLastName() {
+                var check = true;
+                if (!this.model.lastname || this.model.lastname.trim() == '') {
+                    this.isLastnameEmpty = true;
+                    check = false;
+                } else {
+                    this.isLastnameEmpty = false;
+                }
+                this.checkFields = this.checkFields && check;
+            }
+
+            /**
+             * This method is used to check if username field added by user is not empty.
+             *
+             * @return {boolean}: true if field is filled, false otherwise
+             */
+            checkUsername() {
+                var check = true;
+                var usrregex = new RegExp('^[a-zA-Z0-9-_.]+$');
+                if (!this.model.username || this.model.username.trim() == '') {
+                    this.usernameError = "Username empty";
+                    this.isUsernameEmpty = true;
+                    check = false;
+                } else if (!usrregex.test(this.model.username) || this.model.username.indexOf(' ') > -1) {
+                    this.usernameError = "Username contains illegal characters";
+                    this.isUsernameEmpty = true;
+                    check = false;
+                } else {
+                    this.isUsernameEmpty = false;
+                }
+                this.checkFields = this.checkFields && check;
+            }
+
+            /**
+             * This method is used to check if password fields added by user is empty or shorter than 8 characters.
+             *
+             * @return {boolean}: true if field is filled, false otherwise
+             */
+            checkPassword() {
+
+                var check = true;
+                if (!this.model.password || this.model.password.trim() == '') {
+                    this.isPasswordEmpty = true;
+                    check = false;
+                } else {
+                    this.isPasswordEmpty = false;
+                }
+                this.checkFields = this.checkFields && check;
+            };
+
+            /**
+             * This method is used to check if passwords fields added by user match.
+             *
+             * @return {boolean}: true if password and confirmation password fields match, false otherwise
+             */
+            checkConfirmPassword() {
+                var check = true;
+                if (this.model.confirmpwd && this.model.confirmpwd.trim().length > 0 && this.model.password.localeCompare(this.model.confirmpwd) == 0) {
+                    this.isPasswordInvalid = false;
+                } else {
+                    this.isPasswordInvalid = true;
+                    check = false;
+                }
+                this.checkFields = this.checkFields && check;
+            }
+
+
+            /**
+             * This method is used to check if usage field added by user is not empty.
+             *
+             * @return {boolean}: true if field is filled, false otherwise
+             */
+            checkUsage() {
+                var check = true;
+                if (!this.model.usage || this.model.usage == 'unknown' || this.model.usage.trim() == '') {
+                    this.isUsageEmpty = true;
+                    check = false;
+                } else if (this.model.usage == "Other") {
+                    this.isSubUsage = true;
+                    this.isUsageEmpty = false;
+                    check = true;
+                } else {
+                    this.isSubUsage = false;
+                    this.isUsageEmpty = false;
+                    check = true;
+                }
+                this.checkFields = this.checkFields && check;
+            }
+
+            /**
+             * This method is used to check if domain field added by user is not empty.
+             *
+             * @return {boolean}: true if field is filled, false otherwise
+             */
+            checkDomain() {
+                var check = true;
+                if (!this.model.domain || this.model.domain == 'unknown' || this.model.domain.trim() == '') {
+                    this.isDomainEmpty = true;
+                    check = false;
+                } else if (this.model.domain == "Other") {
+                    this.isSubDomain = true;
+                    this.isDomainEmpty = false;
+                    check = true;
+                } else {
+                    this.isSubDomain = false;
+                    this.isDomainEmpty = false;
+                    check = true;
+                }
+                this.checkFields = this.checkFields && check;
+            }
+
+
+            /**
+             *  This method is used to validate user email
+             *
+             * @param {String} email: input e-mail to be validated
+             * @return {Boolean} true if e-mail is valid, false otherwise
+             */
+            _validateEmail(email) {
+                var re = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+                return re.test(email);
+            }
+
+            /**
+             * This method is used to check if user e-mail is valid.
+             *
+             * @return {boolean}: true if e-mail field is filled and valid, false otherwise
+             */
+            checkEmail() {
+                var check = true;
+                if (!this.model.email || this.model.email.trim() == '') {
+                    this.isEmailInvalid = true;
+                    check = false;
+                } else if (!this._validateEmail(this.model.email)) {
+                    this.isEmailInvalid = true;
+                    check = false;
+                } else {
+                    this.isEmailInvalid = false;
+                    check = true;
+                }
+                this.checkFields = this.checkFields && check;
+            }
+
+            /**
+             * This method is used to check if passwords fields added by user match.
+             *
+             * @return {boolean}: true if e-mail and confirmation e-mail fields match, false otherwise
+             */
+            checkConfirmEmail() {
+                var check = true;
+                if (this.model.confirmemail && this.model.confirmemail.trim().length > 0 && this.model.email.localeCompare(this.model.confirmemail) == 0) {
+                    this.isSameEmail = true;
+
+                } else {
+                    this.isSameEmail = false;
+                    check = false;
+                }
+                this.checkFields = this.checkFields && check;
+            }
+
+            /**
+             * This method is used to check if sub domain field added by user is empty.
+             * This check is done only if domain field is equal to 'Other'.
+             *
+             * @return {boolean}: true if field is filled, false otherwise
+             */
+            checkSubDomain() {
+
+                var check = true;
+                if (this.isSubDomain) {
+                    if (!this.model.subDomain || this.model.subDomain == 'unknown') {
+                        this.isSubDomainEmpty = true;
+                        check = false;
+                    } else {
+                        this.isSubDomainEmpty = false;
+                    }
+                }
+                this.checkFields = this.checkFields && check;
+            }
+
+            /**
+             * This method is used to check if sub usage field added by user is empty.
+             * This check is done only if usage field is equal to 'Other'.
+             *
+             * @return {boolean}: true if field is filled, false otherwise
+             */
+            checkSubUsage() {
+
+                var check = true;
+                if (this.isSubUsage) {
+                    if (!this.model.subUsage || this.model.subUsage == 'unknown') {
+                        this.isSubUsageEmpty = true;
+                        check = false;
+                    } else {
+                        this.isSubUsageEmpty = false;
+                    }
+                }
+                this.checkFields = this.checkFields && check;
+            }
+
+
+            /**
+             * This method is used to check if country field added by user is empty.
+             *
+             * @return {boolean}: true if field is filled, false otherwise
+             */
+            checkCountry() {
+
+                var check = true;
+                if (!this.model.country || this.model.country == 'unknown' || this.model.country == '') {
+                    this.isCountryEmpty = true;
+                    check = false;
+                } else {
+                    this.isCountryEmpty = false;
+
+                }
+                this.checkFields = this.checkFields && check;
+
+            }
+
+            /**
+             * This method is used to validate all registration fields.
+             *
+             */
+            checkAndUpdateUserInfo() {
+                this.checkFields = true;
+                this.checkUsername();
+                this.checkFirstName();
+                this.checkLastName();
+                this.checkEmail();
+                this.checkConfirmEmail();
+                this.checkDomain();
+                this.checkSubDomain();
+                this.checkUsage();
+                this.checkSubUsage();
+                this.checkCountry();
+                this.checkPassword();
+                this.checkConfirmPassword();
+
+            };
+
+
+            /**
+             * This method is used to check if registration fields are valid.
+             * If all fields are valid, the registration request is procesed, otherwise notification messages are shown to user
+             *
+             */
+            register() {
+                this.checkAndUpdateUserInfo();
+                if (this.checkFields) {
+                    this.saveUser();
+                }
+            }
+
+
+            /**
+             * This method triggers the HTTP request used to register a new user on the DHuS
+             *
+             */
+            saveUser() {
+                var self = this;
+                this.model.country = this._getCountryIdByName().toString();
+                delete this.model['confirmpwd'];
+                delete this.model["confirmemail"];
+                this.options.body = JSON.stringify(this.model);
+                self.owcApp.httpManager.sendRequest(
+                    'POST',
+                    self.owcApp.config.baseUrl + self.signUpUrl,
+                    self.options
+                ).then(function(response) {
+                    if (response.status >= 200 && response.status < 300) {
+                        self.owcApp.toastManager.info("Registration successful: An email was sent to let you validate your registration.");
+                        self.parentPanel.closePanel();
+                    } else {
+                        switch (response.code) {
+                            case 'user_already_present':
+                                self.owcApp.toastManager.error("Registration error: Username already taken.");
+                                break;
+                            default:
+
+                                self.owcApp.toastManager.error("Registration error: An error occurred while creating account.");
+                        }
+                        self.parentPanel.closePanel();
+                    }
+
+                }, function(response) {
+                    switch (response.code) {
+                        case 'user_already_present':
+                            self.owcApp.toastManager.error("Registration error: Username already taken.");
+                            break;
+                        default:
+
+                            self.owcApp.toastManager.error("Registration error: An error occurred while creating account.");
+                    }
+                    self.parentPanel.closePanel();
+                });
+            }
+
+        };
+
+
+
+        Polymer(SignupComponent);
+
+    })();
+    </script>
+</dom-module>

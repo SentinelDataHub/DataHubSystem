@@ -1,0 +1,739 @@
+[      
+     {
+        "matches": [
+            {
+                "name": "Instrument",
+                "value": "OLCI"
+            }
+        ],
+        "styles": {
+            "fill": {
+                "color": [
+                    0,
+                    35,
+                    185,
+                    0.1
+                ]
+            },
+            "stroke": {
+                "color": [
+                    0,
+                    35,
+                    185,
+                    1
+                ],
+                "width": 1.5
+            }
+        },
+        "selected_styles": {
+            "fill": {
+                "color": [
+                    0,
+                    0,
+                    255,
+                    0.3
+                ]
+            },
+            "stroke": {
+                "color": [
+                    0,
+                    0,
+                    255,
+                    1
+                ],
+                "width": 3.5
+            }
+        },
+        "highlighted_styles": {
+            "fill": {
+                "color": [
+                    0,
+                    35,
+                    185,
+                    0.3
+                ]
+            },
+            "stroke": {
+                "color": [
+                    0,
+                    35,
+                    185,
+                    1
+                ],
+                "width": 3
+            }
+        },
+        "label_style": "background-color: #0000FF !important;",
+        "instrlabel_style": "background-color: #002387 !important;"
+    },
+    {
+        "matches": [
+            {
+                "name": "Instrument",
+                "value": "SLSTR"
+            }
+        ],
+        "styles": {
+            "fill": {
+                "color": [
+                    192,
+                    64,
+                    0,
+                    0.1
+                ]
+            },
+            "stroke": {
+                "color": [
+                    192,
+                    64,
+                    0,
+                    1
+                ],
+                "width": 1.5
+            }
+        },
+        "selected_styles": {
+            "fill": {
+                "color": [
+                    255,
+                    127,
+                    0,
+                    0.3
+                ]
+            },
+            "stroke": {
+                "color": [
+                    255,
+                    127,
+                    0,
+                    1
+                ],
+                "width": 3.5
+            }
+        },
+        "highlighted_styles": {
+            "fill": {
+                "color": [
+                    192,
+                    64,
+                    0,
+                    0.3
+                ]
+            },
+            "stroke": {
+                "color": [
+                    192,
+                    64,
+                    0,
+                    1
+                ],
+                "width": 3
+            }
+        },
+        "label_style": "background-color: #0000FF !important;",
+        "instrlabel_style": "background-color: #C04000 !important;"
+    },
+    {
+        "matches": [
+            {
+                "name": "Instrument",
+                "value": "SRAL"
+            }
+        ],
+        "styles": {
+            "fill": {
+                "color": [
+                    125,
+                    0,
+                    125,
+                    0.1
+                ]
+            },
+            "stroke": {
+                "color": [
+                    125,
+                    0,
+                    125,
+                    1
+                ],
+                "width": 1.5
+            }
+        },
+        "selected_styles": {
+            "fill": {
+                "color": [
+                    255,
+                    0,
+                    255,
+                    0.3
+                ]
+            },
+            "stroke": {
+                "color": [
+                    255,
+                    0,
+                    255,
+                    1
+                ],
+                "width": 3.5
+            }
+        },
+        "highlighted_styles": {
+            "fill": {
+                "color": [
+                    125,
+                    0,
+                    125,
+                    0.3
+                ]
+            },
+            "stroke": {
+                "color": [
+                    125,
+                    0,
+                    125,
+                    1
+                ],
+                "width": 3
+            }
+        },
+        "label_style": "background-color: #0000FF !important;",
+        "instrlabel_style": "background-color: #800080 !important;"
+    },
+    {
+        "matches": [
+            {
+                "name": "Instrument",
+                "value": "DORIS"
+            }
+        ],
+        "styles": {
+            "fill": {
+                "color": [
+                    255,
+                    0,
+                    255,
+                    0.4
+                ]
+            },
+            "stroke": {
+                "color": [
+                    255,
+                    0,
+                    255,
+                    1
+                ],
+                "width": 1
+            }
+        },
+        "selected_styles": {
+            "fill": {
+                "color": [
+                    255,
+                    0,
+                    255,
+                    0.6
+                ]
+            },
+            "stroke": {
+                "color": [
+                    255,
+                    0,
+                    255,
+                    1
+                ],
+                "width": 1
+            }
+        },
+        "highlighted_styles": {
+            "fill": {
+                "color": [
+                    255,
+                    0,
+                    255,
+                    0.3
+                ]
+            },
+            "stroke": {
+                "color": [
+                    255,
+                    0,
+                    255,
+                    1
+                ],
+                "width": 1
+            }
+        },
+        "label_style": "background-color: #191970 !important;",
+        "instrlabel_style": "background-color: #ff00ff !important;"
+    },
+    {
+        "matches": [
+            {
+                "name": "Instrument",
+                "value": "MWR"
+            }
+        ],
+        "styles": {
+            "fill": {
+                "color": [
+                    255,
+                    255,
+                    255,
+                    0.4
+                ]
+            },
+            "stroke": {
+                "color": [
+                    255,
+                    255,
+                    255,
+                    1
+                ],
+                "width": 1
+            }
+        },
+        "selected_styles": {
+            "fill": {
+                "color": [
+                    255,
+                    255,
+                    255,
+                    0.6
+                ]
+            },
+            "stroke": {
+                "color": [
+                    255,
+                    255,
+                    255,
+                    1
+                ],
+                "width": 1
+            }
+        },
+        "highlighted_styles": {
+            "fill": {
+                "color": [
+                    255,
+                    255,
+                    255,
+                    0.3
+                ]
+            },
+            "stroke": {
+                "color": [
+                    255,
+                    255,
+                    255,
+                    1
+                ],
+                "width": 1
+            }
+        },
+        "label_style": "background-color: #191970 !important;",
+        "instrlabel_style": "background-color: #ffffff !important;"
+    },
+    {
+        "matches": [
+            {
+                "name": "Instrument",
+                "value": "GNSS"
+            }
+        ],
+        "styles": {
+            "fill": {
+                "color": [
+                    104,
+                    255,
+                    255,
+                    0.4
+                ]
+            },
+            "stroke": {
+                "color": [
+                    204,
+                    255,
+                    255,
+                    1
+                ],
+                "width": 1
+            }
+        },
+        "selected_styles": {
+            "fill": {
+                "color": [
+                    204,
+                    255,
+                    255,
+                    0.6
+                ]
+            },
+            "stroke": {
+                "color": [
+                    204,
+                    255,
+                    255,
+                    1
+                ],
+                "width": 1
+            }
+        },
+        "highlighted_styles": {
+            "fill": {
+                "color": [
+                    204,
+                    255,
+                    255,
+                    0.3
+                ]
+            },
+            "stroke": {
+                "color": [
+                    204,
+                    255,
+                    255,
+                    1
+                ],
+                "width": 1
+            }
+        },
+        "label_style": "background-color: #191970 !important;",
+        "instrlabel_style": "background-color: #ccffff !important;"
+    },
+    {
+        "matches": [
+            {
+                "name": "Instrument",
+                "value": "SYNERGY"
+            }
+        ],
+        "styles": {
+            "fill": {
+                "color": [
+                    233,
+                    171,
+                    23,
+                    0.4
+                ]
+            },
+            "stroke": {
+                "color": [
+                    233,
+                    171,
+                    23,
+                    1
+                ],
+                "width": 1
+            }
+        },
+        "selected_styles": {
+            "fill": {
+                "color": [
+                    233,
+                    171,
+                    23,
+                    0.6
+                ]
+            },
+            "stroke": {
+                "color": [
+                    233,
+                    171,
+                    23,
+                    1
+                ],
+                "width": 1
+            }
+        },
+        "highlighted_styles": {
+            "fill": {
+                "color": [
+                    233,
+                    171,
+                    23,
+                    0.3
+                ]
+            },
+            "stroke": {
+                "color": [
+                    233,
+                    171,
+                    23,
+                    1
+                ],
+                "width": 1
+            }
+        },
+        "label_style": "background-color: #191970 !important;",
+        "instrlabel_style": "background-color: #e9ab17 !important;"
+    },
+    {
+        "matches": [
+            {
+                "name": "Instrument",
+                "value": "HKTM"
+            }
+        ],
+        "styles": {
+            "fill": {
+                "color": [
+                    255,
+                    255,
+                    0,
+                    0.4
+                ]
+            },
+            "stroke": {
+                "color": [
+                    255,
+                    255,
+                    0,
+                    1
+                ],
+                "width": 1
+            }
+        },
+        "selected_styles": {
+            "fill": {
+                "color": [
+                    255,
+                    255,
+                    0,
+                    0.6
+                ]
+            },
+            "stroke": {
+                "color": [
+                    255,
+                    255,
+                    0,
+                    1
+                ],
+                "width": 1
+            }
+        },
+        "highlighted_styles": {
+            "fill": {
+                "color": [
+                    255,
+                    255,
+                    0,
+                    0.3
+                ]
+            },
+            "stroke": {
+                "color": [
+                    255,
+                    255,
+                    0,
+                    1
+                ],
+                "width": 1
+            }
+        },
+        "label_style": "background-color: #191970 !important;",
+        "instrlabel_style": "background-color: #ffff00 !important;"
+    },
+    {
+        "matches": [
+            {
+                "name": "Instrument",
+                "value": "NAVATT"
+            }
+        ],
+        "styles": {
+            "fill": {
+                "color": [
+                    48,
+                    103,
+                    84,
+                    0.4
+                ]
+            },
+            "stroke": {
+                "color": [
+                    48,
+                    103,
+                    84,
+                    1
+                ],
+                "width": 1
+            }
+        },
+        "selected_styles": {
+            "fill": {
+                "color": [
+                    48,
+                    103,
+                    84,
+                    0.6
+                ]
+            },
+            "stroke": {
+                "color": [
+                    48,
+                    103,
+                    84,
+                    1
+                ],
+                "width": 1
+            }
+        },
+        "highlighted_styles": {
+            "fill": {
+                "color": [
+                    48,
+                    103,
+                    84,
+                    0.3
+                ]
+            },
+            "stroke": {
+                "color": [
+                    48,
+                    103,
+                    84,
+                    1
+                ],
+                "width": 1
+            }
+        },
+        "label_style": "background-color: #191970 !important;",
+        "instrlabel_style": "background-color: #306754 !important;"
+    },
+    {
+        "matches": [
+            {
+                "name": "Instrument",
+                "value": "MSI"
+            }
+        ],
+        "styles": {
+            "fill": {
+                "color": [
+                    23,
+                    114,
+                    69,
+                    0.1
+                ]
+            },
+            "stroke": {
+                "color": [
+                    23,
+                    114,
+                    69,
+                    1
+                ],
+                "width": 1.5
+            }
+        },
+        "selected_styles": {
+            "fill": {
+                "color": [
+                    173,
+                    255,
+                    47,
+                    0.3
+                ]
+            },
+            "stroke": {
+                "color": [
+                    3,
+                    192,
+                    60,
+                    1
+                ],
+                "width": 3.5
+            }
+        },
+        "highlighted_styles": {
+            "fill": {
+                "color": [
+                    23,
+                    114,
+                    69,
+                    0.3
+                ]
+            },
+            "stroke": {
+                "color": [
+                    23,
+                    114,
+                    69,
+                    1
+                ],
+                "width": 3
+            }
+        },
+        "label_style": "background-color: #0f9d58 !important",
+        "instrlabel_style": "background-color: #0f9d58 !important"
+    },
+    {
+        "matches": [
+            {
+                "name": "Instrument",
+                "value": "SAR-C"
+            }
+        ],
+        "styles": {
+            "fill": {
+                "color": [
+                    179,
+                    27,
+                    27,
+                    0.1
+                ]
+            },
+            "stroke": {
+                "color": [
+                    179,
+                    27,
+                    27,
+                    1
+                ],
+                "width": 1.5
+            }
+        },
+        "selected_styles": {
+            "fill": {
+                "color": [
+                    255,
+                    0,
+                    0,
+                    0.3
+                ]
+            },
+            "stroke": {
+                "color": [
+                    255,
+                    0,
+                    0,
+                    1
+                ],
+                "width": 3.5
+            }
+        },
+        "highlighted_styles": {
+            "fill": {
+                "color": [
+                    179,
+                    27,
+                    27,
+                    0.3
+                ]
+            },
+            "stroke": {
+                "color": [
+                    179,
+                    27,
+                    27,
+                    1
+                ],
+                "width": 3
+            }
+        },
+        "label_style": "background-color: #dc143c !important;",
+        "instrlabel_style": "background-color: #dc143c !important;"
+    }
+]

@@ -1,0 +1,124 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+synchronizer container
+
+
+@demo demo/index.html
+-->
+<dom-module id="synchronizer-container">
+    <template>
+        <style type="text/css">
+        #list-container-main-container {
+            height: var(--listheight, 500px);
+            width: var(--listwidth, 100%);
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+        
+        paper-button {
+            background: #002664;
+            color: white;
+            padding: 5px 5px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            float: right;
+            margin-right: 10px
+        }
+        
+        paper-button[toggles][active].colorful {
+            background-color: #002664;
+        }
+        
+        paper-button[toggles][active][raised].colorful {
+            background-color: rgba(66, 133, 244, 0.75);
+        }
+        </style>
+        <paper-button raised class="colorful" on-click="createSynch" title="CREATE SYNCHRONIZER">Create Synchronizer</paper-button>
+        <div id="list-container-main-container">
+            <synchronizer-list></synchronizer-list>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class SynchronizerContainer {
+
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'synchronizer-container';
+
+            }
+
+            /**
+             * Resize callback handler
+             *
+             * @return {null}
+             */
+            resize() {
+                console.log("Resize");
+                this.customStyle['--listheight'] = parseInt(this.parentPanel.getSize().height - 50) + "px";
+                this.updateStyles();
+                this.customStyle['--listwidth'] = parseInt(this.parentPanel.getSize().width) + "px";
+                this.updateStyles();
+            }
+
+            attached() {
+                var self = this;
+                self.navigationManager = document.getElementById('navigation-manager');
+                setTimeout(function() {
+                    self.resize();
+                }, 0);
+            }
+
+            /**
+             * Create and push synchronizer-creator component to navigation system
+             *
+             * @return {null}
+             */
+            createSynch() {
+                var newSynch = document.createElement('synchronizer-creator');
+                this.navigationManager.pushComponent(newSynch, '500px', 'Synchronizer Creator');
+            }
+
+        };
+
+
+        Polymer(SynchronizerContainer);
+
+    })();
+    </script>
+</dom-module>

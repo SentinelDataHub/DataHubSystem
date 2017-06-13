@@ -1,0 +1,381 @@
+<!--
+  @license
+
+ 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-styles/color.html">
+<link rel="import" href="../../bower_components/paper-styles/demo-pages.html">
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<!--
+This component is use to show default information box page
+
+
+@demo demo/index.html
+-->
+<dom-module id="info-container">
+    <!-- VIEW  CODE HERE -->
+    <template>
+        <!-- view code here -->
+        <style is="custom-style">
+        .info-container {
+            @apply(--layout-vertical);
+            /*max-height: calc(100% - 1px);*/
+            overflow-y: auto !important;
+            overflow-x: hidden;
+        }
+        
+        .info-container-title {
+            @apply(--layout-horizontal);
+            @apply(--layout-center-justified);
+        }
+        
+        .flexchild {
+            @apply(--layout-flex);
+        }
+        
+        .datahublogo {
+            width: 50px;
+            height: 50px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        .datahubtitle {
+            display: inline-table;
+            vertical-align: middle !important;
+            font-weight: bold;
+            padding: 0px 15px;
+            font-size: 20px;
+            overflow-y: hidden !important;
+            line-height: 50px;
+        }
+        
+        .infos-container {
+            @apply(--layout-horizontal);
+            @apply(--layout-center-justified);
+            display: inline-table;
+            word-wrap: break-word;
+            white-space: normal;
+            padding-left: 20px;
+            padding-right: 20px;
+            text-align: justify;
+        }
+        
+        .infos-container-margin {
+            margin-top: 50px;
+        }
+        
+        .statistics-container {
+            @apply(--layout-vertical);
+            @apply(--layout-center-justified);
+            display: inline-table;
+            padding-left: 20px;
+            padding-right: 20px;
+            margin-top: 0px !important;
+            overflow-y: hidden !important;
+        }
+        
+        .icon-container {
+            @apply(--layout-horizontal);
+            @apply(--layout-center-justified);
+            display: inline-table;
+            padding-left: 20px;
+            padding-right: 20px;
+            margin-top: 5px;
+            margin: auto;
+        }
+        
+        .icons-container {
+            @apply(--layout-horizontal);
+            @apply(--layout-center-justified);
+            padding-left: 20px;
+            padding-right: 20px;
+            margin-top: 5px;
+            margin: auto;
+        }
+        
+        .stats-title {
+            display: inline-table;
+            @apply(--layout-center-justified);
+            font-weight: bold;
+            padding: 0px 15px;
+            font-size: 20px;
+            text-align: center;
+            overflow-y: hidden !important;
+            margin: auto;
+        }
+        
+        .info-logos {
+            height: 40px;
+            width: 60px;
+        }
+        
+        .info-container-content {
+            text-align: justify;
+            overflow-y: hidden !important;
+        }
+        
+        paper-icon-button.menu-item {
+            @apply(--layout-center-justified);
+            margin-left: 0px;
+            width: 70px;
+            height: 70px;
+        }
+        
+        paper-icon-button.menu-item:hover {
+            background: var(--paper-light-blue-50);
+            border-radius: 50%;
+        }
+        
+        hr {
+            width: 90%;
+        }
+        
+        #info-container {
+            height: var(--menuheight, 500px);
+            width: var(--menuwidth, 300px);
+            overflow-y: hidden !important;
+            overflow-x: hidden !important;
+            width: 100%!important;
+            /*height: 10px;*/
+        }
+        
+        #dashboard-maincontainer-title {
+            height: 70px!important;
+            overflow-y: hidden !important;
+            overflow-x: hidden !important;
+            width: 100%!important;
+            /*height: 10px;*/
+        }
+        </style>
+        <div id="info-container">
+            <div class="info-container-title">
+                <img class="datahublogo" src="{{imgbaseurl}}{{imgsource}}"></img>
+                <div class="datahubtitle">
+                    <b>{{title}}</b>
+                </div>
+            </div>
+            <div class="flexchild">
+                <div class="infos-container infos-container-margin info-container-content">
+                    The {{title}} is a web based system designed to provide EO data users with distributed mirror archives and bulk dissemination capabilities for the Sentinels products.
+                </div>
+                <div class="infos-container" hidden="true">
+                    <a href="" on-click="goLink">Terms of {{title}} portal and Data supply conditions</a>
+                </div>
+                <br>
+                <br>
+                <div class="infos-container info-container-content">
+                    Data Hub System {{version}} developed by a Serco and GAEL Systems consortium under a contract with the European Space Agency - Funded by the EU and ESA
+                </div>
+            </div>
+            <div class="icons-container">
+                <br>
+                <template is="dom-repeat" items="{{logos}}">
+                    <iron-image class="info-logos" sizing="contain" src="{{item}}"></iron-image>
+                </template>
+                <br>
+            </div>
+        </div>
+    </template>
+    <!-- MODEL-CONTROLLER CODE -->
+    <script>
+    (function() {
+        'use strict';
+        class InfoContainer extends HTMLElement {
+
+            /**
+             * class constructor             
+             */
+            constructor() {
+                super();
+                this.beforeRegister();
+
+            }
+
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'info-container';
+                this.owcApp = document.querySelector('#owc-app');
+
+                /**
+                 * Public property description
+                 *
+                 * @type {Object}
+                 */
+                this.properties = {
+
+
+                    /**
+                     * Dashboard default title
+                     *
+                     * @type {String}
+                     */
+                    title: {
+                        type: String,
+                        value: "Copernicus Scientific Data Hub",
+                        notify: true
+                    },
+                    /**
+                     * Dashboard default image
+                     *
+                     * @type {String}
+                     */
+                    imgsource: {
+                        type: String,
+                        value: "/images/datahub.png",
+                        notify: true
+                    },
+                    /**
+                     * Dashboard default image base url
+                     *
+                     * @type {String}
+                     */
+                    imgbaseurl: {
+                        type: String,
+                        value: "",
+                        notify: true
+                    },
+                    /**
+                     * software version property
+                     *
+                     * @type {String}
+                     */
+                    version: {
+                        type: String,
+                        value: "",
+                        notify: true
+                    },
+                    /**
+                     * check if user has data manager role
+                     *
+                     * @type {Boolean}
+                     */
+                    isLogged: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    }
+                };
+            }
+
+            /**
+             * Called when the element has been created, but before property values are set and local DOM is initialized.
+             *
+             * @return {null}
+             */
+            created() {
+                this.navigationManager = document.getElementById('navigation-manager');
+            }
+
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+                var self = this;
+                this.imgbaseurl = this.owcApp.config.clientUrl;
+                this.logos = this.owcApp.appconfig.dashboard_logos;
+                self.owcApp.messageBroker.subscribe('logged-in', function(eventName) {
+                    self.isLogged = self.owcApp.authenticationManager.isLogged();
+                    setTimeout(self.set('isLogged', self.isLogged), 0);
+                });
+                self.owcApp.messageBroker.subscribe('logged-out', function() {
+                    self.isLogged = self.owcApp.authenticationManager.isLogged();
+                    setTimeout(self.set('isLogged', self.isLogged), 0);
+                });
+
+                self.isLogged = self.owcApp.authenticationManager.isLogged();
+                self.set('isLogged', self.isLogged);
+                this.owcApp.httpManager.sendRequest('GET', this.owcApp.config.baseUrl + '/api/owc/version')
+                    .then(function(response) {
+                        self.version = response.data.value;
+
+                    });
+
+                Polymer.dom(self.root).querySelector('#dashboard-maincontainer').addEventListener("resize", function() {});
+                window.addEventListener("resize", function() {
+                    self.resize();
+
+                });
+            }
+
+            /**             
+             * This method is called to force component resize
+             *
+             * @return {null}
+             */
+            resize() {
+                var self = this;
+                self.customStyle['--menuheight'] = parseInt(self.parentPanel.getSize().height - $("#dashboard-maincontainer-title").height() ) + "px";
+                self.updateStyles();
+                self.customStyle['--menuwidth'] = parseInt(self.parentPanel.getSize().width - 50) + "px";
+                self.updateStyles();
+            }
+
+            /**             
+             * This method is used to push OWC Calendar component
+             *
+             * @return {null}
+             */
+            showCalendar() {
+
+                var calendar = document.getElementById('calendar-container');
+                if (!calendar) {
+                    calendar = document.createElement('calendar-container');
+                    this.navigationManager.pushComponent(calendar, '500px', 'Calendar of Publication Density');
+                }
+
+            }
+
+            /**             
+             * This method is used to push OWC Timeline component
+             *
+             * @return {null}
+             */
+            showTimeline() {
+                var timeline = document.createElement('timeline-component');
+                this.navigationManager.pushComponent(timeline, '500px', 'Timeline');
+            }
+
+        };
+
+        Polymer(InfoContainer);
+
+
+    })();
+    </script>
+</dom-module>

@@ -1,0 +1,192 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+    This component is used to provide a generic data model as base model for other components
+
+
+    @demo demo/index.html
+    -->
+<dom-module id="generic-model">
+    <template>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class GenericModel {
+
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'generic-model';
+                this.owcApp = document.querySelector('#owc-app');
+                this.removedElementsCount = 0;
+                this.addedElemetsCount = 0;
+                this.startIndex = 0;
+                this.endIndex = 0;
+                this.properties = {
+
+                    /**
+                     * This property contains generic data model
+                     *
+                     * @type {Object}
+                     */
+                    model: {
+                        type: Object,
+                        value: null,
+                        notify: false,
+                    },
+                    
+                    /**
+                     * This property contains the target component of message broker notification
+                     *
+                     * @type {Object}
+                     */
+                    target: {
+                        type: String,
+                        value: null
+                    }
+                };
+
+                /**
+                 * This property contains the default maximum page size to be used in infinite scroll list
+                 *
+                 * @type {Object}
+                 */
+                this._maxModelSize = 60;
+            }
+
+
+            /**
+             *  Called after the element is detached from the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  Uses include removing event listeners added in attached.
+             *
+             * @return {null}
+             */
+            detached() {
+                var self = this;
+                self.model = null;
+            }
+
+            /**
+             *  This method is used to send a notification to a target component on data model changes
+             *
+             * @return {null}
+             */
+            setNewModel() {
+                var self = this;
+                self.owcApp.messageBroker.publish('setNewModel', null, self.target);
+            }
+
+            /**
+             *  This method is used to append new pages to an infinite list during down list scroll
+             *
+             * @return {null}
+             */
+            appendNewPage(genericModel) {
+                var newPageSize = genericModel.length;
+                this.model.push.apply(this.model, genericModel);
+                this.addedElementsCount = newPageSize + 0;
+                this.endIndex += newPageSize;
+                var bufferSize = this.model.length;
+                if (bufferSize > this._maxModelSize) {
+                    this.model.splice(0, newPageSize);
+                    this.removedElementsCount = newPageSize + 0;
+                    this.startIndex += this.removedElementsCount;
+
+
+                } else {
+                    this.removedElementsCount = 0;
+                }
+
+                this.owcApp.messageBroker.publish('setNewModel', null, this.target);
+            }
+
+            /**
+             *  This method is used to update the data model and send a notification to a target component on data model changes
+             *
+             * @return {null}
+             */
+            setModel(genericModel) {
+                this.model = genericModel;
+                this.owcApp.messageBroker.publish('setNewModel', null, this.target);
+                this.startIndex = 1;
+                if (this.model && this.model.length)
+                    this.endIndex = this.model.length;
+            }
+
+            /**
+             *  This method is used to get data model
+             *
+             * @return model
+             */
+            getModel() {
+                return this.model;
+            }
+
+            /**
+             *  This method is used to set target component of message broker notification
+             *
+             * @return model
+             */
+            setTarget(target) {
+                this.target = target;
+            }
+
+            /**
+             *  This method is used to prepend new pages to an infinite list during up list scroll
+             *
+             * @return {null}
+             */
+            prependNewPage(genericModel) {
+                var newPageSize = genericModel.length;
+                this.model.unshift.apply(this.model, genericModel);
+                this.startIndex -= newPageSize;
+                this.addedElementsCount = newPageSize + 0;
+                var bufferSize = this.model.length;
+                if (bufferSize > this._maxModelSize) {
+                    this.model.splice(bufferSize - newPageSize, newPageSize);
+                    this.removedElementsCount = newPageSize + 0;
+                    this.endIndex -= this.removedElementsCount;
+                } else {
+                    this.removedElementsCount = 0;
+                }
+                this.owcApp.messageBroker.publish('setNewModel', null, this.target);
+            }
+
+        };
+        Polymer(GenericModel);
+    })();
+    </script>
+</dom-module>

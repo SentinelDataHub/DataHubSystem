@@ -1,0 +1,563 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-icons/maps-icons.html">
+<link rel="import" href="../../bower_components/paper-item/paper-icon-item.html">
+<link rel="import" href="Map.html">
+<link rel="stylesheet" href="../../bower_components/ol3-bower/ol.css" type="text/css">
+<script src="../../bower_components/ol3-bower/ol.js"></script>
+<link rel="import" href="Map.html">
+<!--
+                owc map
+                
+                
+                @demo demo/index.html
+                -->
+<dom-module id="owc-map">
+    <style is="custom-style">
+    #map {
+        width: 100%;
+        height: 100%;
+    }
+    
+    .mapButton {
+        top: 50px;
+        float: right;
+        z-index: 1;
+        background-color: #002664;
+        color: #fff;
+        cursor: pointer;
+        text-decoration: none;
+        border-radius: 50%;
+    }
+    
+    .mapButtonleft {
+        padding: 0px!important;
+        bottom: 50px;
+        float: left;
+        z-index: 1;
+        background-color: #002664;
+        color: #fff;
+        cursor: pointer;
+        text-decoration: none;
+        border-radius: 50%;
+    }
+    
+    #layerSelector {
+        z-index: 1;
+        bottom: 50px;
+    }
+    /*paper-icon-item.focused {
+        background: var(--paper-icon-item-background, yellow !important);
+    }*/
+    
+    paper-icon-item {
+        --paper-item-selected: {
+            background: #a9a9a9 !important;
+            font-weight: bold;
+        }
+        ;
+        --paper-item-focused-before: {
+            opacity: 0;
+        }
+        ;
+    }
+    </style>
+    <template>
+        <paper-icon-button icon="open-with" class="mapButton" on-click="activateSelection" hidden="{{!activeSelection}}" title="Navigate on Map"></paper-icon-button>
+        <paper-icon-button icon="flip-to-front" class="mapButton" on-click="activateSelection" hidden="{{activeSelection}}" title="Draw region of Interest"></paper-icon-button>
+        <map-coder id="map-coder"></map-coder>
+        <div id="{{mapId}}" style="height: 91%;"></div>
+        <paper-menu-button ignore-select class="mapButtonleft" vertical-align="bottom" title="Map Layer Selector">
+            <paper-icon-button icon="maps:layers" vertical-align="bottom" class="dropdown-trigger"></paper-icon-button>
+            <paper-menu multi selected-values="{{maplayers.selected}}" class="dropdown-content" vertical-align="bottom" on-iron-select="showLayer" on-iron-deselect="hideLayer">
+                <template is="dom-repeat" items="{{maplayers.layers}}">
+                    <paper-icon-item>
+                        <iron-icon icon="{{item.icon}}" item-icon></iron-icon>
+                        {{item.title}}
+                    </paper-icon-item>
+                </template>
+            </paper-menu>
+        </paper-menu-button>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class OwcMap {
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.properties = {
+                    /**
+                     * property containing configured map layers
+                     *
+                     * @type {Object}
+                     */
+                    maplayers: {
+                        type: Object,
+                        value: {
+                            layers: [],
+                            selected: []
+                        },
+                        notify: true
+                    },
+                    /**
+                     * property containing map layer selector icon
+                     *
+                     * @type {String}: check-box-outline-blank|check-box
+                     */
+                    selectionIcon: {
+                        type: String,
+                        value: "check-box-outline-blank",
+                        notify: true
+                    }
+
+                };
+            }
+
+
+            /**
+             * Called after the element is attached to the document. 
+             * Can be called multiple times during the lifetime of an element. 
+             * The first `attached` callback is guaranteed not to fire until after `ready`.
+             *
+             * @return {null}
+             */
+            attached() {
+                $(window).trigger('resize');
+                this.owcApp = document.querySelector('#owc-app');
+                //this.owcApp.utils.generateUUID();
+
+                this.properties = {
+
+                    /**
+                     * Public property description
+                     *
+                     * @type {Object}
+                     */
+                    map: {
+                        type: Object,
+                        value: null,
+                        notify: true
+
+                    },
+
+                    /**
+                     * Reference of owc query object
+                     *
+                     * @type {Object}
+                     */
+                    owcQuery: {
+                        type: Object,
+                        value: null,
+                        notify: true
+
+                    },
+
+                    /**
+                     * Model map object
+                     *
+                     * @type {Object}
+                     */
+                    mapmodel: {
+                        type: Array,
+                        value: null,
+                        notify: true
+
+                    },
+
+                    /**
+                     * Interanal property, If it is true the infinite scroll calls http requests, 
+                     * if it is false the scroll event is ignored. 
+                     *
+                     * @type {Boolean}
+                     */
+                    readyToLoadNewPage: true,
+
+                    /**
+                     * UI variable: visibleList, to hide the empty list in case of 0 results
+                     *
+                     * @type {Boolean}
+                     */
+                    visibleMap: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
+                    /**
+                     * Enable pagination in owc list
+                     *
+                     * @type {Boolean}
+                     */
+                    paginationEnabled: {
+                        type: Boolean,
+                        value: true,
+                        notify: true
+                    },
+
+                    /**
+                     * Datasource reference object
+                     *
+                     * @type {Object}
+                     */
+                    datasource: {
+                        type: Object,
+                        value: {},
+                        notify: true
+
+                    },
+
+                    /**
+                     * Map generic model reference
+                     *
+                     * @type {Object}
+                     */
+                    genericModel: {
+                        type: Object,
+                        value: {},
+                        notify: true
+
+                    },
+
+                    /**
+                     * Map container reference
+                     *
+                     * @type {Object}
+                     */
+                    container: {
+                        type: Object,
+                        value: null
+                    },
+
+                    /**
+                     * Flag of active selection
+                     *
+                     * @type {Object}
+                     */
+                    activeSelection: {
+                        type: Boolean,
+                        value: true
+                    },
+
+                    /**
+                     * Target string
+                     *
+                     * @type {Object}
+                     */
+                    target: {
+                        type: String,
+                        value: null
+                    },
+
+
+                };
+
+                var self = this;
+                this.is = 'owc-map';
+                self.owcApp = document.querySelector('#owc-app');
+                self.owcApp.messageBroker.subscribe('setNewModel',
+                    function() {
+                        if (self.genericModel != null) {
+                            var page = self.genericModel.getModel();
+                            var coder = document.getElementById('map-coder');
+                            if(coder) {
+                                var specificModel = coder.extractSpecificModel(page);
+                                self.visibleMap = true;
+                                setTimeout(function() {
+
+                                    self.set('mapmodel', specificModel);
+                                    self.notifyPath('mapmodel', specificModel);
+                                    self.set('visibleMap', self.visibleMap);
+                                    self.notifyPath('visibleMap', self.visibleMap);
+
+                                    var event = document.createEvent('Event');
+                                    event.initEvent('resize', true, true);
+                                    document.dispatchEvent(event);
+
+                                }, 0);
+                                self.readyToLoadNewPage = self.properties.paginationEnabled && true;
+                                self.map.setModel(specificModel);
+                                self.map.deleteLayers(specificModel);
+                            }
+                        }
+
+                    }, self.target);
+            }
+
+
+            /**
+             * set proper icon in map layer selector
+             *
+             * @param {String} title: map layer title
+             * @param {String} icon: layer selected|deselected icon
+             * @return {null}
+             */
+            _setIcon(title, icon) {
+                var self = this;
+                setTimeout(function() {
+                    for (var i = 0; i < self.maplayers.layers.length; i++) {
+                        if (self.maplayers.layers[i].title.localeCompare(title.trim()) == 0) {
+                            self.maplayers.layers[i].icon = icon;
+                            self.set('maplayers.layers.' + i + '.icon', icon);
+                            return;
+                        }
+                    }
+                }, 0);
+            }
+
+            /**
+             * Show layer in map
+             *
+             * @param {Event} e: on-iron-select event
+             * @param {Object} item: layer item
+             * @return {null}
+             */
+            showLayer(e, item) {
+                var self = this;
+                setTimeout(function() {
+                    if (item && item.item) {
+                        self.map.setLayerVisible(item.item.innerText, true);
+                        self._setIcon(item.item.innerText, "check-box");
+                    }
+                }, 0);
+
+            }
+
+            addLayer(param,target) {
+                var self = this;
+                self.map.addLayer(param,target);
+
+            }
+
+            /**
+             * Hide layer in map
+             *
+             * @param {Event} e: on-iron-select event
+             * @param {Object} item: layer item
+             * @return {null}
+             */
+            hideLayer(e, item) {
+
+                if (item && item.item) {
+                    this.map.setLayerVisible(item.item.innerText, false);
+                    this._setIcon(item.item.innerText, "check-box-outline-blank");
+                }
+
+
+            }
+
+            /**
+             * Resize event handler
+             *
+             * @return {null}
+             */
+            resize() {
+                var self = this;
+                setTimeout(function() {
+                    self.map.map.updateSize();
+                }, 0);
+
+            }
+
+            /**
+             * Set the target
+             *
+             * @param {Object} target
+             *
+             * @return {null}
+             */
+            setTarget(target) {
+                this.target = target;
+            }
+
+            /**
+             * Initialization of map component             
+             *
+             * @return {null}
+             */
+            init() {
+                var self = this;
+                self.owcApp = document.querySelector('#owc-app');
+                self.mapId = self.owcApp.utils.generateUUID();
+                self.setActiveSelection(true);
+                self.map = new Map(self.mapId);
+                self.set("map", self.map);
+                this.maplayers = self.map.getConfiguredLayersForSelector();
+                self.resize();
+            }
+
+            detached() {
+                var self = this;
+            }
+
+
+
+
+            /**             
+             *   Set the datasource of map            
+             *
+             * @param {Object} delegate: datasource reference
+             * @return {null}
+             */
+            setDelegate(delegate) {
+                this.datasource = delegate;
+            }
+
+
+            /**             
+             *   Set Generic model         
+             *
+             * @param {Object} genericModel: generic model (list of products)
+             * @return {null}
+             */
+            setGenericModel(genericModel) {
+                this.genericModel = genericModel;
+            }
+
+            /**             
+             *   Set Map container
+             *
+             * @param {Object} mapContainer: Map container reference
+             * @return {null}
+             */
+            setContainer(mapContainer) {
+                this.container = mapContainer;
+            }
+
+            /**             
+             *   Set Query object
+             *
+             * @param {Object} owcQuery: Owc object reference
+             * @return {null}
+             */
+            setOwcQuery(owcQuery) {
+                this.owcQuery = owcQuery;
+            }
+
+            /**             
+             *   Setup open layer map
+             *
+             * @param {Object} owcQuery: Owc object reference
+             * @return {null}
+             */
+            setMap() {
+                var self = this;
+                self.map.setOwcQuery(self.owcQuery);
+                self.map.setDataSource(self.datasource);
+                self.map.setOwcMap(self);
+            }
+
+            /**             
+             *   Update search data 
+             *
+             * @return {null}
+             */
+            updateSearch(param) {
+                var mapContainer = this.container;
+                this.mapContainer.updateSearch();
+            }
+
+            /**             
+             * Set Active selection (flag)
+             * @param {Boolean} status
+             *
+             * @return {null}
+             */
+            setActiveSelection(status) {
+                this.activeSelection = status;
+            }
+
+            /**
+             * Set new model
+             * 
+             * @param {Object} page: model new page
+             *
+             * @return {null}
+             */
+            setNewModel(page) {
+                var self = this;
+                self.visibleMap = true;
+                self.map.setNewQuery(self.newQuery);
+
+                setTimeout(function() {
+                    self.set('mapmodel', page);
+                    self.notifyPath('mapmodel', page);
+                    self.set('visibleMap', self.visibleMap);
+                    self.notifyPath('visibleMap', self.visibleMap);
+                    var event = document.createEvent('Event');
+                    event.initEvent('resize', true, true);
+                    document.dispatchEvent(event);
+                }, 0);
+                self.readyToLoadNewPage = self.properties.paginationEnabled && true;
+                self.map.setModel(page);
+
+
+            }
+
+            /**
+             * Append new page into the mode
+             *
+             * @param {Object} page: page to append into the model
+             * 
+             * @return {null}
+             */
+            appendNewPage(page) {
+                var self = this;
+                if (!page || page.length < 1) {
+                    this.readyToLoadNewPage = false;
+                    return;
+                }
+
+                self.readyToLoadNewPage = self.properties.paginationEnabled && true;
+                var concatMap = this.mapmodel.concat(page);
+                this.set('mapmodel', concatMap);
+                var event = document.createEvent('Event');
+                event.initEvent('resize', true, true);
+                document.dispatchEvent(event);
+                setTimeout(function() {
+                    if (self.container.offsetHeight > self.$['scrollable'].offsetHeight)
+                        self.datasource.loadNextPage();
+                }, 0);
+            }
+
+            activateSelection() {
+                this.map.activateSelection();
+            }
+
+
+        };
+        Polymer(OwcMap);
+    })();
+    </script>
+</dom-module>

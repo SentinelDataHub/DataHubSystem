@@ -1,0 +1,259 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+This component is used to show list of couple of Sentinel-1 products useful to interferometry computing
+
+
+@demo demo/index.html
+-->
+<dom-module id="interferometry-visualizer">
+    <template>
+        <style is="custom-style">
+        #visualizerContainer {
+            @apply(--layout-vertical);
+            height: var(--visualizerheight, 500px);
+            width: var(--visualizerwidth, 100%);
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+        
+        .containerbis {
+            @apply(--layout-horizontal);
+            @apply(--layout-wrap);
+            height: auto!important);
+        }
+        
+        .item {
+            padding: 30px;
+            border-radius: 8px;
+            background-color: white;
+            /*width: 96%;*/
+            margin: 16px !important;
+            border: solid 1px #ecf0f1;
+        }
+        
+        .title {
+            font-size: 14px;
+            font-weight: bold;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            padding: 2px;
+            line-height: 35px;
+        }
+        
+        .attribute {
+            font-size: 14px!important;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        
+        .thumb {
+            margin-right: 5px;
+            width: 60px;
+            height: 60px;
+        }
+        
+        .item.button-list-item.button-list-item {
+            line-height: 60px;
+        }
+        
+        .owc-list-item-thumb {
+            position: absolute;
+            top: var(--owc-list-item-thumb-top, 50px);
+            left: var(--owc-list-item-thumb-left, 30px);
+            display: inline-block;
+        }
+        
+        .owc-list-item-attributes-container {
+            left: 105px;
+            width: 100%;
+        }
+        
+        .owc-list-item-master-container {
+            background-color: #eee;
+        }
+        
+        .owc-list-item-slave-container {
+            background-color: #fff;
+            margin: 10px;
+        }
+        
+        .owc-list-item-title-container {}
+        
+        .owc-list-item-attribute {
+            width: calc(100% - 120px);
+        }
+        
+        .owc-list-item-title {
+            /*margin-top: 10px;
+      margin-left: 5px;*/
+            /*width:var(--owc-list-item-title-width, calc(100% - 50px));*/
+        }
+        
+        .owc-list-item-buttons {
+            /*position:absolute;
+      bottom:20px;  */
+            width: 100%;
+            height: 50px;
+            padding: 5px;
+            line-height: 60px;
+        }
+        
+        paper-icon-button.icon-buttons {
+            float: right !important;
+            padding: 8px !important;
+        }
+        
+        .adf-list-item-type {
+            float: right !important;
+        }
+        
+        .button {
+            background-color: #505050;
+            color: #fff;
+            font-family: 'Open Sans', Helvetica, sans-serif;
+            font-size: 12px;
+        }
+        </style>
+        <div id="visualizerContainer">
+            <div class="owc-list-item-master-container">
+                <template is="dom-repeat" items="{{couples.masters}}">
+                    <div class="owc-list-item-master-container">
+                        <div class="owc-list-item-title-container">
+                            <div class="title owc-list-item-title">MASTER #{{compute(index)}}</div>
+                        </div>
+                        <div class="owc-list-item-title-container">
+                            <paper-icon-button icon="file-download" class="icon-buttons " on-click="download" title="Download Product"></paper-icon-button>
+                            <div class="title owc-list-item-title" title="{{item.title}}">{{item.title}}</div>
+                            <div hidden="true">{{item.uuid}}</div>
+                        </div>
+                        <div class="flex2child">
+                            <div class="owc-list-item-attributes-container" hidden="{{!item.attributes}}">
+                                <template is="dom-repeat" items="{{item.attributes}}" hidden="{{!item.attributes}}">
+                                    <div class="attribute owc-list-item-attribute">{{item}}</div>
+                                </template>
+                            </div>
+                        </div>
+                        <template is="dom-repeat" items="{{item.slaves}}" hidden="{{!item.slaves}}">
+                            <div class="owc-list-item-slave-container">
+                                <div class="owc-list-item-title-container">
+                                    <div class="title owc-list-item-title">SLAVE #{{compute(index)}}</div>
+                                </div>
+                                <div class="owc-list-item-title-container">
+                                    <paper-icon-button icon="file-download" class="icon-buttons " on-click="download" title="Download Product"></paper-icon-button>
+                                    <div class="title owc-list-item-title" title="{{item.title}}">{{item.title}}</div>
+                                    <div hidden="true">{{item.uuid}}</div>
+                                </div>
+                                <div class="flex2child">
+                                    <div class="owc-list-item-attributes-container" hidden="{{!item.attributes}}">
+                                        <template is="dom-repeat" items="{{item.attributes}}" hidden="{{!item.attributes}}">
+                                            <div class="attribute owc-list-item-attribute">{{item}}</div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class InterferometryVisualizer {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'interferometry-visualizer';
+                this.properties = {
+                    model: {
+                        type: String,
+                        value: "",
+                    }
+                };
+
+            }
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+                var self = this;
+                this.couples = JSON.parse(this.model);
+                //console.log('this.couples', this.couples);
+                window.addEventListener("resize", function() {
+                    self.resize();
+                });
+            }
+
+            /**             
+             *  This method is used to get master and slave product index
+             *
+             * @return {Number}
+             */
+            compute(index) {
+                return index + 1;
+            }
+
+            /**
+             *  Resize callbach handler
+             *
+             * @return {null}
+             */
+            resize() {
+                var self = this;
+
+                self.customStyle['--visualizerheight'] = parseInt(self.parentPanel.getSize().height) + "px";
+                self.updateStyles();
+                self.customStyle['--visualizerwidth'] = parseInt(self.parentPanel.getSize().width) + "px";
+                self.updateStyles();
+
+            }
+
+        };
+
+        Polymer(InterferometryVisualizer);
+
+    })();
+    </script>
+</dom-module>

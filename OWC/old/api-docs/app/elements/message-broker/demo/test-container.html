@@ -1,0 +1,41 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../message-broker/message-broker.html">
+<link rel="import" href="component-a.html">
+<link rel="import" href="component-b.html">
+<link rel="import" href="component-c.html">
+<dom-module id="message-broker-demo">
+    <template>
+        <style>
+        #container {
+            width: 500px;
+            height: 200px;
+            background-color: gray;
+            display: inline-block;
+        }
+        </style>
+        <div id="test-container">
+            <h3>TEST-CONTAINER<h3>
+    <message-broker id="message-broker"></message-broker>
+    <component-a></component-a>
+    <component-b></component-b>
+    <br>
+    <br>
+    <br>
+    <component-c></component-c>
+  </div>
+  
+
+</template>
+
+<script>
+  'use strict';
+  Polymer({
+    is: 'message-broker-demo',
+
+    attached: function(){      
+      //this._subscribe();
+    }
+    
+  });
+</script>
+</dom-module>

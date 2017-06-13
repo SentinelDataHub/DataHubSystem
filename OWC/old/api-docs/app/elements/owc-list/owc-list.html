@@ -1,0 +1,648 @@
+<!--
+    @license
+
+
+    Data HUb Service (DHuS) - For Space data distribution.
+    Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+    Copyright (C) 2013,2014,2015,2016 GAEL Systems
+    Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+    This file is part of DHuS software sources.
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+  -->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../adf-list-item/adf-list-item.html">
+<link rel="import" href="../button-list-item/button-list-item.html">
+<!--
+  Owc list
+
+
+  @demo demo/index.html
+  -->
+<dom-module id="owc-list">
+    <template>
+        <style is="custom-style">
+        iron-list {
+            background-color: var(--paper-grey-200, #eee);
+        }
+
+        #ironlist {
+            height: 100%;
+            overflow: hidden!important;
+        }
+
+        .item {
+            @apply(--layout-horizontal);
+            padding: 20px;
+            border-radius: 8px;
+            background-color: white;
+            width: 96%;
+            height: 100px;
+            margin: 16px !important;
+            border: solid 1px #ecf0f1;
+        }
+
+        .title {
+            font-size: 14px;
+            font-weight: bold;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .attribute {
+            font-size: 12px;
+        }
+
+        .thumb {
+            margin-right: 5px;
+        }
+
+        .pin-button {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .owclist{
+
+        }
+        </style>
+        <div id="scrollable">
+            <template is="dom-if" if="{{default}}">
+                <iron-list id="ironlist" class="owclist" items="{{listmodel}}" as="product" style="width: 100%!important" hidden="{{!visibleList}}">
+                    <template>
+                        <button-list-item parent="{{that}}" iscart="{{isCart}}" target="{{target}}" cart="{{cartIds}}" cartmngr="{{cartManager}}" model="{{product}}"></button-list-item>
+                    </template>
+                </iron-list>
+            </template>
+            <template is="dom-if" if="{{showAdfitem}}">
+                <iron-list id="ironlist2" class="owclist" items="{{listmodel}}" as="product" style="width: 100%!important" hidden="{{!visibleList}}">
+                    <template>
+                        <adf-list-item parent="{{that}}" cart="{{cartIds}}" cartmngr="{{cartManager}}" model="{{product}}"></adf-list-item>
+                    </template>
+                </iron-list>
+            </template>
+            <template is="dom-if" if="{{users}}">
+                <iron-list id="ironlist3" class="owclist" items="{{listmodel}}" as="product" style="width: 100%!important" hidden="{{!visibleList}}">
+                    <template>
+                        <admin-users-list-item parent="{{that}}" cart="{{cartIds}}" cartmngr="{{cartManager}}" model="{{product}}"></admin-users-list-item>
+                    </template>
+                </iron-list>
+            </template>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class OwcList {
+
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'owc-list';
+                this.owcApp = document.querySelector('#owc-app');
+                var self = this;
+
+                this.properties = {
+
+                    /**
+                     * internal property, If it is true the infinite scroll calls http requests,
+                     * if it is false the scroll event is ignored.
+                     *
+                     * @type {Boolean}
+                     */
+                    readyToLoadNewPage: true,
+
+                    /**
+                     * UI variable: visibleList, to hide the empty list in case of 0 results
+                     *
+                     * @type {Boolean}
+                     */
+                    visibleList: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
+                    /**
+                     * Enable pagination in owc list
+                     *
+                     * @type {Boolean}
+                     */
+                    paginationEnabled: {
+                        type: Boolean,
+                        value: true,
+                        notify: true
+                    },
+
+                    /**
+                     * List model
+                     *
+                     * @type {Array}
+                     */
+                    listmodel: {
+                        type: Array,
+                        value: null,
+                        notify: true
+                    },
+
+                    /**
+                     * Cart Ids
+                     *
+                     * @type {Array}
+                     */
+                    cartIds: {
+                        type: Array,
+                        value: null,
+                        notify: true
+                    },
+
+                    /**
+                     * Data source reference
+                     *
+                     * @type {Object}
+                     */
+                    datasource: {
+                        type: Object,
+                        value: {},
+                        notify: true
+                    },
+
+                    /**
+                     * Data source reference
+                     *
+                     * @type {Object}
+                     */
+                    map: {
+                        type: Object,
+                        value: {},
+                        notify: true
+                    },
+
+
+                    /**
+                     * Generic model object reference
+                     *
+                     * @type {Object}
+                     */
+                    genericModel: {
+                        type: Object,
+                        value: {},
+                        notify: true
+                    },
+
+                    /**
+                     * Coder object reference
+                     *
+                     * @type {Object}
+                     */
+                    coder: {
+                        type: Object,
+                        value: {},
+                        notify: true
+                    },
+                    /**
+                     * WMS Coder object reference
+                     *
+                     * @type {Object}
+                     */
+                    wmsCoder: {
+                        type: Object,
+                        value: null,
+                        notify: true
+                    },
+
+                    /**
+                     * Owc Cart Manager reference
+                     *
+                     * @type {Object}
+                     */
+                    cartManager: {
+                        type: Object,
+                        value: null,
+                        notify: true
+                    },
+
+
+                    /**
+                     * Internal property, If it is true list item shows buttons.
+                     *
+                     * @type {Boolean}
+                     */
+                    showButtons: {
+                        type: Boolean,
+                        value: true,
+                        notify: true,
+                        readOnly: false
+                    },
+
+                    /**
+                     * Internal property, If it is true list adf item shown.
+                     *
+                     * @type {Boolean}
+                     */
+                    showAdfitem: {
+                        type: Boolean,
+                        value: false,
+                        notify: true,
+                        readOnly: false
+                    },
+
+                    /**
+                     *
+                     *
+                     * @type {Boolean}
+                     */
+                    default: {
+                        type: Boolean,
+                        value: true,
+                        notify: true,
+                        readOnly: false
+                    },
+
+                    /**
+                     *
+                     *
+                     * @type {Boolean}
+                     */
+                    users: {
+                        type: Boolean,
+                        value: false,
+                        notify: true,
+                        readOnly: false
+                    },
+
+                    /**
+                     * List container reference
+                     *
+                     * @type {Object}
+                     */
+                    container: {
+                        type: Object,
+                        value: null
+                    },
+
+                    /**
+                     * Combo component reference
+                     *
+                     * @type {Object}
+                     */
+                    combo: {
+                        type: Object,
+                        value: null
+                    },
+
+                    /**
+                     * Target reference
+                     *
+                     * @type {String}
+                     */
+                    target: {
+                        type: String,
+                        value: null
+                    },
+
+                    that: {
+                        type: Object,
+                        value: null
+                    },
+
+                    /**
+                     * check if is cart list
+                     *
+                     * @type {String}
+                     */
+                    isCart: {
+                        type: Boolean,
+                        value: false
+                    }
+                };
+
+                this.that = this;
+
+
+
+            }
+
+            addMapLayer() {
+                var self = this;
+                self.addLayer();
+            }
+
+            attached() {
+                var self = this;
+                if (self.cartManager) {
+                    self.cartManager.getCartIds().then(function(cartIdsModel) {
+                        self.cartIds = cartIdsModel;
+                        self.set('self.cartIds', self.cartIds);
+                        self.notifyPath('self.cartIds', self.cartIds);
+                    });
+                }
+                if (self.genericModel != null) {
+                    self.loadingNewPage = false;
+                    self.owcApp.messageBroker.subscribe('setNewModel',
+
+                        function() {
+
+
+                            function clone(obj) {
+                                if (null == obj || "object" != typeof obj) return obj;
+                                var copy = obj.constructor();
+                                for (var attr in obj) {
+                                    if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
+                                }
+                                return copy;
+                            }
+                            if (!self.genericModel || !self.genericModel.getModel) {
+                                var event = document.createEvent('Event');
+                                event.initEvent('resize', true, true);
+                                document.dispatchEvent(event);
+                                setTimeout(function() {
+                                    var event = document.createEvent('Event');
+                                    event.initEvent('resize', true, true);
+                                    document.dispatchEvent(event);
+                                }, 1000);
+                                return;
+                            }
+                            var mymodel = self.genericModel.getModel();
+                            var page = clone(mymodel);
+                            self.loadingNewPage = false;
+                            self.loadingNewPage2 = false;
+                            if (!page || page.length < 1) {
+                                self.visibleList = false;
+                                return;
+                            }
+
+                            var specificModel = self.coder.extractSpecificModel(page);
+                            var wmsSettings = [];
+                            var ls = localStorage.getItem('wms-settings');
+                            if (ls) {
+                                wmsSettings = JSON.parse(ls);
+                            } else {
+                                if (self.owcApp.appconfig.wms_server_config)
+                                    wmsSettings = self.owcApp.appconfig.wms_server_config;
+                            }
+                            if (wmsSettings.length > 0 && self.wmsCoder) {
+                                self.wmsCoder.checkWms(specificModel).then(function(result) {
+
+                                    specificModel = result;
+                                    self.set('listmodel', specificModel);
+
+                                    self.notifyPath('listmodel', specificModel);
+                                }).catch(function(err) {
+                                    console.log(err);
+
+                                });
+
+                            }
+
+                            self.visibleList = true;
+                            self.loadingNewPage = false;
+
+
+                            self.set('listmodel', []);
+                            self.notifyPath('listmodel', []);
+
+
+
+
+                            self.set('listmodel', specificModel);
+
+                            self.notifyPath('listmodel', specificModel);
+                            self.set('visibleList', self.visibleList);
+                            self.notifyPath('visibleList', self.visibleList);
+
+
+                            var event = document.createEvent('Event');
+                            event.initEvent('resize', true, true);
+                            document.dispatchEvent(event);
+                            setTimeout(function() {
+                                var event = document.createEvent('Event');
+                                event.initEvent('resize', true, true);
+                                document.dispatchEvent(event);
+                            }, 1000);
+
+                            var updatedPosition = 0;
+
+
+                            switch (self.datasource.paginationDirection) {
+                                case "top":
+                                    updatedPosition = parseInt(self.cachedScrollTop) + (parseInt(self.genericModel.addedElementsCount) * 163);
+                                    break;
+
+                                case "bottom":
+                                    updatedPosition = parseInt(self.cachedScrollTop) - (parseInt(self.genericModel.removedElementsCount) * 163);
+                                    break;
+
+                            }
+                            self.combo && self.combo.setProductsRange(self.genericModel.startIndex, self.genericModel.endIndex);
+                            if (self.combo && self.listmodel && self.listmodel.length)
+                                self.combo.setPageSize(self.genericModel.model.length);
+
+
+                            $(Polymer.dom(self).parentNode).scrollTop(updatedPosition);
+
+                            self.readyToLoadNewPage = self.properties.paginationEnabled && true;
+                            setTimeout(function() {
+                                var toReload = (self.container.offsetHeight > Polymer.dom(self.root).querySelector('.owclist').offsetHeight);
+                                if (toReload) {
+                                    self.datasource.loadNextPage();
+                                }
+
+                            }, 0);
+
+
+                        }, self.target);
+
+                    var throttledScroll = _.throttle(function(event) {
+                        event && event.stopPropagation();
+                        if (self.readyToLoadNewPage) {
+                            var percentScroll = (
+                                (event.target.scrollTop + self.container.offsetHeight) / self.$['scrollable'].offsetHeight) * 100;
+                            if (percentScroll > 70) {
+                                if (!self.loadingNewPage) {
+                                    self.loadingNewPage = true;
+                                    if (self.datasource) {
+                                        self.cachedScrollTop = $(Polymer.dom(self).parentNode).scrollTop();
+                                        self.datasource.loadNextPage();
+                                    }
+                                }
+                            } else {
+                                if (percentScroll < 10) {
+                                    if (!self.loadingNewPage2) {
+                                        self.loadingNewPage2 = true;
+                                        if (self.datasource) {
+                                            self.cachedScrollTop = $(Polymer.dom(self).parentNode).scrollTop();
+                                            self.datasource.loadPreviousPage();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }, 500);
+
+                    if (self.container)
+                        self.container.addEventListener("scroll", throttledScroll);
+                    //throttledScroll();
+                }
+
+            }
+
+            /**
+             * Public method to set (reset) a new  list model.
+             *
+             * @param {Object} page: new page of list
+             *
+             * @return {null}
+             */
+            setNewModel(page) {
+                var self = this;
+                if (!page || page.length < 1) {
+                    self.visibleList = false;
+                    return;
+                }
+                var specificModel = self.coder.extractSpecificModel(page);
+                self.visibleList = true;
+                self.readyToLoadNewPage = self.properties.paginationEnabled && true;
+                setTimeout(function() {
+                    self.set('listmodel', specificModel);
+                    self.notifyPath('listmodel', specificModel);
+                    self.set('visibleList', self.visibleList);
+                    self.notifyPath('visibleList', self.visibleList);
+                    var event = document.createEvent('Event');
+                    event.initEvent('resize', true, true);
+                    document.dispatchEvent(event);
+                }, 500);
+
+                self.loadingNewPage = false;
+            }
+
+
+
+            /**
+             *  set delegate
+             *
+             * @param {Object} delegate: datasource object reference
+             * @return {null}
+             */
+            setDelegate(delegate) {
+                this.datasource = delegate;
+            }
+
+            /**
+             * Set generic model
+             *
+             * @param {Object} genericModel: list generic model object reference
+             * @return {null}
+             */
+            setGenericModel(genericModel) {
+                this.genericModel = genericModel;
+            }
+
+            /**
+             *  set delegate
+             *
+             * @param {Object} listContainer: datasource object reference
+             * @return {null}
+             */
+            setContainer(listContainer) {
+                this.container = listContainer;
+            }
+
+            /**
+             *  set combo component
+             *
+             * @param {Object} combo: combo component reference
+             * @return {null}
+             */
+            setCombo(combo) {
+                this.combo = combo;
+            }
+
+            /**
+             *  set combo component
+             *
+             * @param {Object} combo: combo component reference
+             * @return {null}
+             */
+            setMap(map) {
+                this.map = map;
+                this.that = this.map;
+            }
+
+            /**
+             * set coder component
+             *
+             * @param {Object} listCoder: coder component object reference
+             * @return {null}
+             */
+            setCoder(listCoder) {
+                this.coder = listCoder;
+            }
+
+            /**
+             * set wms coder component
+             *
+             * @param {Object} wmsCoder: coder component object reference
+             * @return {null}
+             */
+            setWmsCoder(wmsCoder) {
+                this.wmsCoder = wmsCoder;
+            }
+
+            /**
+             * set owc cart manager component
+             *
+             * @param {Object} cartManager: cartManager object reference
+             * @return {null}
+             */
+            setCartManager(cartManager) {
+                this.cartManager = cartManager;
+            }
+
+            /**
+             * set target
+             *
+             * @param {Object} target: target component object reference
+             * @return {null}
+             */
+            setTarget(target) {
+                this.target = target;
+            }
+
+
+            detached() {
+                var self = this;
+                this.listmodel = null;
+            }
+
+
+        };
+
+        Polymer(OwcList);
+        eu.serco.Owc.OwcList = OwcList;
+
+    })();
+    </script>
+</dom-module>

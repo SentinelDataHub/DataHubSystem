@@ -1,0 +1,196 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!-- ace editor -->
+<link rel="import" href="../../bower_components/juicy-ace-editor/juicy-ace-editor.html">
+<!--
+Local editor for semantic schema
+
+
+@demo demo/index.html
+-->
+<dom-module id="semantic-schema-editor">
+    <template>
+        <style>
+        :root {
+            --default-primary-color: green;
+        }
+        
+        .section-item {
+            padding: 30px;
+            margin: 30px;
+        }
+        
+        .remove-section-button {
+            float: right;
+        }
+        
+        paper-button {
+            background: #002664;
+            color: white;
+            padding: 5px 5px;
+            width: 20%;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            float: right;
+            top: 36px;
+            margin-right: 10px
+        }
+        
+        paper-button[toggles][active].colorful {
+            background-color: #002664;
+        }
+        
+        paper-button[toggles][active][raised].colorful {
+            background-color: rgba(66, 133, 244, 0.75);
+        }
+        
+        #owcMapSettingsContainer {
+            height: calc(100% - 30px);
+            width: var(--width, 98%);
+            overflow-y: auto;
+        }
+        
+        .buttonContainer {
+            margin-bottom: 0px;
+            height: 100px!important;
+            width: 98%!important;
+            overflow: hidden;
+        }
+        
+        .settingsHeader {
+            float: left;
+            margin-left: 10px;
+        }
+        
+        .editor-container {
+            height: calc(100% - 60px);
+        }
+        
+        .editor {
+            height: 100%;
+        }
+        
+        .buttons {
+            height: 60px;
+        }
+        
+        .semantic-schema-editor-button {
+            float: left;
+        }
+        </style>
+        <div class="buttonContainer">
+            <paper-button class="semantic-schema-editor-button" on-click="restoreDefault" title="{{i18n('Restore Default')}}">{{i18n("Restore Default")}}</paper-button>
+            <paper-button class="semantic-schema-editor-button" on-click="save" title="{{i18n('Save')}}">{{i18n("Save")}}</paper-button>
+        </div>
+        <div id="owcMapSettingsContainer">
+            <div class="row editor-container">
+                <juicy-ace-editor id="editor" class="editor" mode="ace/mode/json" theme="ace/theme/twilight">semantic schema</juicy-ace-editor>
+            </div>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class SemanticSchemaEditor {
+
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                var self = this;
+                self.owcApp = document.querySelector('#owc-app');
+                this.is = 'semantic-schema-editor';
+            }
+
+            attached() {
+                var self = this;                
+                var schemaDefault = localStorage.getItem('schema-default');
+                var editor = Polymer.dom(self.root).querySelector('#editor');
+                editor.innerHTML = schemaDefault;
+                if (!schemaDefault) {
+                    var defaultUrl = self.owcApp.config.clientUrl + '/semantic_schema/default.json';
+                    return self.owcApp.httpManager.sendRequest('GET', defaultUrl)
+                      .then(function(response) {
+                          var defaultSchema = response.data;
+                          if (!defaultSchema) return null;
+                          var schemaString = JSON.stringify(defaultSchema, null, 4);
+                          self.owcApp.Owc.SchemaCache.instance.set('default', schemaString);
+                          localStorage.setItem('schema-default', schemaString);
+                          var editor = Polymer.dom(self.root).querySelector('#editor');
+                          editor.editor.setValue(schemaString);
+
+                      });
+                }
+            }
+
+            /**
+             * Save semantic schema
+             *
+             * @return {null}
+             */
+            save() {
+                var self = this;
+                var editor = Polymer.dom(self.root).querySelector('#editor');
+                localStorage.setItem('schema-default', editor.value);
+                self.owcApp.Owc.SchemaCache.instance.set('default', editor.value);
+                self.owcApp.toastManager.info(self.i18n("Saved semantic schema."));
+            }
+
+            /**
+             * Restore default semantic schema 
+             *
+             * @return {null}
+             */
+            restoreDefault() {
+                var self = this;
+                var defaultUrl = self.owcApp.config.clientUrl + '/semantic_schema/default.json';
+                self.owcApp.httpManager.sendRequest('GET', defaultUrl)
+                    .then(function(response) {
+                        var defaultSchema = response.data;
+                        if (!defaultSchema) return null;
+                        var schemaString = JSON.stringify(defaultSchema, null, 4);
+                        self.owcApp.Owc.SchemaCache.instance.set('default', schemaString);
+                        localStorage.setItem('schema-default', schemaString);
+                        var editor = Polymer.dom(self.root).querySelector('#editor');
+                        editor.editor.setValue(schemaString);
+                        self.owcApp.toastManager.info(self.i18n("Restored default schema."));
+                    });
+            }
+        };
+
+        Polymer(SemanticSchemaEditor);
+
+    })();
+    </script>
+</dom-module>

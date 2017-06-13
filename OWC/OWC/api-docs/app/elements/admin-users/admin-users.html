@@ -1,0 +1,257 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<!--
+Admin panel to manage users
+
+
+@demo demo/index.html
+-->
+
+<dom-module id="admin-users">
+<template>
+
+  <style>
+
+
+    #list-container-main-container {
+        height: var(--listheight, 500px);
+        width: var(--listwidth, 100%);
+        overflow-y: auto;
+        overflow-x: auto;
+    }
+
+    paper-button {
+        background: #002664;
+        color: white;
+        padding: 5px 5px;
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        float: right;
+        margin-right: 10px
+    }
+
+    paper-button[toggles][active].colorful {
+        background-color: #002664;
+    }
+
+    paper-button[toggles][active][raised].colorful {
+        background-color: rgba(66, 133, 244, 0.75);
+    }
+
+    .container {
+      @apply(--layout-horizontal);
+    }
+
+    .column-toolbar{
+      width: 50%;
+    }
+    .create-button-container{
+      width: 50%;
+    }
+
+    .create-button{
+      top:35px;
+      right:0px;
+    }
+  </style>
+
+  <div class="container">
+    <div class="toobar-column">
+      <paper-input class="search-box" label="Search" value="{{query}}">
+        <paper-icon-button suffix on-click="filter" icon="search"></paper-icon-button>
+      </paper-input>
+    </div>
+    <div class="toobar-column create-button-container">
+      <paper-button raised class="colorful create-button" on-click="createUser" title="CREATE">Create</paper-button>
+    </div>
+  </div>
+
+  <div id="list-container-main-container">
+      <owc-list id="admin-users-list"></owc-list>
+
+  </div>
+
+
+
+  <users-coder      id="admin-users-coder"></users-coder>
+  <data-source      id="admin-users-datasource"></data-source>
+  <owc-query        id="admin-users-query"></owc-query>
+  <generic-model    id="admin-users-generic-model"></generic-model>
+
+  <hr/>
+</template>
+
+<script>
+    (function() {
+       'use strict';
+       class AdminUsers {
+
+
+          /* --- POLYMER LIFECYCLE METHODS --- */
+
+          /**
+           * BeforeRegister method Polymer calls before creating the element.
+           * This method is where you shoud define the is property (element's name) and
+           * properties  object.
+           *
+           * @return {null}
+           */
+
+           beforeRegister() {
+               this.is = 'admin-users';
+
+               this.owcApp = document.querySelector('#owc-app');
+               this.properties = {
+
+                  /**
+                   * userid property
+                   *
+                   * @type {Number}
+                   */
+                  query: {
+                    type: String,
+                    value: "",
+                  }
+                }
+
+               this.properties = {
+
+                  /**
+                   * userid property
+                   *
+                   * @type {Number}
+                   */
+                  query: {
+                    type: String,
+                    value: "",
+                  }
+                }
+
+           }
+           
+           attached(){
+             var self = this;
+
+             this.loadDataFromServer();
+
+             self.owcApp.messageBroker.subscribe('updateUsersList',
+                 function() {
+                    var datasource = Polymer.dom(self.root).querySelector('#admin-users-datasource');
+                    datasource.loadDataFromServer();
+
+                 });
+           }
+
+           createUser(){
+             var userDetails = document.createElement('user-details');
+             userDetails.uuid = null;
+             userDetails.newUser = true;
+             this.owcApp.navigationManager.pushComponent(userDetails, '500px', "Create new User");
+           }
+
+           loadDataFromServer() {
+               var self             = this,
+                   target           = self.owcApp.utils.generateUUID(),
+                   owcquery         = Polymer.dom(self.root).querySelector('#admin-users-query'),
+                   list             = Polymer.dom(self.root).querySelector('#admin-users-list'),
+                   datasource       = Polymer.dom(self.root).querySelector('#admin-users-datasource'),
+                   genModel         = Polymer.dom(self.root).querySelector('#admin-users-generic-model'),
+
+                   usersCoder       = Polymer.dom(self.root).querySelector('#admin-users-coder'),
+                   listContainer    = Polymer.dom(self.root).querySelector('#list-container-main-container');
+
+
+               datasource._requestUrl = "/api/stub/admin/users?filter=:filter&offset=:offset&limit=:limit";
+               datasource._countUrl   = "/api/stub/admin/users/count?filter=:filter";
+
+
+               // users list
+               datasource.setList(list);
+               // useless?
+               // datasource.setListContainer(listContainer);
+               // query ---> just the text empty by default
+               datasource.setOwcQuery(owcquery);
+               datasource.filterAllValue = '';
+               datasource._pageSize = 7;
+               datasource.setListContainer(listContainer);
+
+               // target message broker
+               genModel.setTarget(target);
+               // generic model
+               datasource.setGenericModel(genModel);
+               list.setTarget(target);
+               list.setCoder(usersCoder);
+
+               list.setGenericModel(genModel);
+               list.setDelegate(datasource);
+               list.default = false;
+               list.users = true;
+               list.setContainer(listContainer);
+
+               // TODO: to set the filter from the form
+               owcquery.setText("");
+               // run request
+               datasource.loadDataFromServer();
+           }
+
+
+           filter(){
+              var self = this;
+              var owcquery   = Polymer.dom(self.root).querySelector('#admin-users-query');
+              var datasource = Polymer.dom(self.root).querySelector('#admin-users-datasource');
+
+              owcquery.setText(this.get('query'));
+              datasource.loadDataFromServer();
+
+           }
+
+
+           /**
+            * Resize method (called from navigation panel)
+            *
+            * @return {null}
+            */
+           resize() {
+               this.customStyle['--listheight'] = parseInt((this.parentPanel.getSize().height)-80) + "px";
+               this.updateStyles();
+               this.customStyle['--listwidth'] = parseInt(this.parentPanel.getSize().width) + "px";
+               this.updateStyles();
+           }
+
+
+       };
+
+      Polymer(AdminUsers);
+
+    })();
+  </script>
+
+</dom-module>

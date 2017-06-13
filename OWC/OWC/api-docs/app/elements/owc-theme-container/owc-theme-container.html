@@ -1,0 +1,104 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+This component is the container panel for Theme Editor
+
+
+@demo demo/index.html
+-->
+<dom-module id="owc-theme-container">
+    <template>
+        <style type="text/css">
+        .container {
+            height: var(--height, 100%);
+            width: var(--width, 100%);
+        }
+        </style>
+        <div id="themeContainer" class="container">
+            <owc-theme-settings></owc-theme-settings>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class OwcThemeContainer extends HTMLElement {
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'owc-theme-container';
+
+                this.properties = {
+
+
+                };
+            }
+
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+                var self = this;
+                window.addEventListener("resize", function() {
+                    self.resize();
+                });
+            }
+
+
+            /**             
+             *   Resize method implementation for owc-settings-container         
+             *
+             * @return {null}
+             */
+            resize() {
+                var self = this;
+
+                self.customStyle['--settingsheight'] = parseInt((self.parentPanel.getSize().height) - 140) + "px";
+                self.updateStyles();
+                self.customStyle['--width'] = parseInt(self.parentPanel.getSize().width) + "px";
+                self.updateStyles();
+
+            }
+
+        };
+
+        Polymer(OwcThemeContainer);
+
+    })();
+    </script>
+</dom-module>

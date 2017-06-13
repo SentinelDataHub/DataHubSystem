@@ -1,0 +1,755 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+Panel with details of user
+
+
+@demo demo/index.html
+-->
+<dom-module id="user-details">
+    <template>
+        <style>
+        :root {
+            --default-primary-color: green;
+        }
+
+        .section-item {
+            padding: 30px;
+            margin: 30px;
+        }
+
+        .remove-section-button {
+            float: right;
+        }
+
+        paper-button {
+            background: #002664;
+            color: white;
+            padding: 5px 5px;
+            width: 20%;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            float: right;
+            top: 36px;
+            margin-right: 10px
+        }
+
+        paper-button[toggles][active].colorful {
+            background-color: #002664;
+        }
+
+        paper-button[toggles][active][raised].colorful {
+            background-color: rgba(66, 133, 244, 0.75);
+        }
+
+        #owcSettingsContainer {
+            height: var(--settingsheight, 90%);
+            width: var(--width, 98%);
+            overflow-y: auto;
+        }
+
+        .buttonContainer {
+            margin-bottom: 0px;
+            height: 100px!important;
+            width: 98%!important;
+            overflow: hidden;
+        }
+
+        .settingsHeader {
+            float: left;
+            margin-left: 10px;
+        }
+
+        .panelHeader {
+            background: #002664;
+            color: white;
+            padding: 5px 5px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        </style>
+        <div class="buttonContainer">
+            <!-- <p>newUser:<span>{{newUser}}</span> editor:<span>{{editor}}</span></p> -->
+            <paper-button hidden$="{{!newUser}}" raised class="colorful" on-click="create" title="{{i18n('Create')}}">{{i18n("Create")}}</paper-button>
+            <paper-button hidden$="{{!editor}}" raised class="colorful" on-click="save" title="{{i18n('save')}}">{{i18n("save")}}</paper-button>
+        </div>
+        <div id="owcSettingsContainer">
+            <paper-material class="section-item">
+                <div>
+                    <form is="iron-form">
+                        <paper-input hidden$="{{!editor}}" auto-validate value="{{username}}" name="username" label="{{i18n('Username')}}" readonly></paper-input>
+                        <paper-input hidden$="{{!newUser}}" auto-validate value="{{username}}" name="username" label="{{i18n('Username')}}"></paper-input>
+                        <paper-input auto-validate value="{{email}}" name="email" label="{{i18n('E-mail')}}" type="email" required></paper-input>
+                        <paper-input auto-validate value="{{firstname}}" name="firstname" label="{{i18n('Firstname')}}" required></paper-input>
+                        <paper-input auto-validate value="{{lastname}}" name="lastname" label="{{i18n('Lastname')}}" required></paper-input>
+                        <br/>
+                        <paper-dropdown-menu class="flex2child" label="Select Domain">
+                            <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{domain}}" required>
+                                <paper-item value="Select Domain" disabled>Select Domain</paper-item>
+                                <paper-item value="Atmosphere">Atmosphere</paper-item>
+                                <paper-item value="Emergency">Emergency</paper-item>
+                                <paper-item value="Marine">Marine</paper-item>
+                                <paper-item value="Land">Land</paper-item>
+                                <paper-item value="Security">Security</paper-item>
+                                <paper-item value="Climate">Climate</paper-item>
+                                <paper-item value="Other">Other</paper-item>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                        <br/>
+                        <paper-input hidden$="{{hideDomain}}" value="{{subDomain}}" name="other-domain" label="{{i18n('Other Domain')}}" required></paper-input>
+                        <br/>
+                        <paper-dropdown-menu class="flex2child" label="Select Usage">
+                            <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{usage}}" required>
+                                <paper-item value="Select Usage" disabled>Select Usage</paper-item>
+                                <paper-item value="Research">Research</paper-item>
+                                <paper-item value="Commercial">Commercial</paper-item>
+                                <paper-item value="Education">Education</paper-item>
+                                <paper-item value="Other">Other</paper-item>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                        <br/>
+                        <paper-input hidden$="{{hideUsage}}" value="{{subUsage}}" name="other-usage" label="{{i18n('Other Usage')}}" required></paper-input>
+                        <br/>
+                        <paper-dropdown-menu class="flex2child" label="Select Country">
+                            <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{country}}" required>
+                                <paper-item value="Select Country" disabled>Select Country</paper-item>
+                                <template is="dom-repeat" items="{{countries}}">
+                                    <paper-item value="{{item.name}}">{{item.name}}</paper-item>
+                                </template>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                        <br/>
+                        <paper-checkbox checked="{{locked}}" name="locked" label="{{i18n('Locked')}}">{{i18n('Locked')}}</paper-checkbox>
+                        <br/>
+                        <paper-input hidden$="{{hideReason}}" value="{{lockedReason}}" name="locked-reason" label="{{i18n('Reason')}}" required></paper-input>
+                        <br/>
+                        <div class="panelHeader">Available Functions</div>
+                        <paper-material class="section-item">
+                            <div>
+                                <iron-list id="ironlist" items="{{roles}}" as="item" style="width: 100%!important">
+                                    <template>
+                                        <paper-checkbox model="{{item}}" checked="{{item.checked}}">{{item.title}}</paper-checkbox>
+                                    </template>
+                                </iron-list>
+                            </div>
+                        </paper-material>
+                    </form>
+                </div>
+            </paper-material>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class UserDetails {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'user-details';
+
+                this.owcApp = document.querySelector('#owc-app');
+                this.editRemoveUserRequestUrl = "/api/stub/admin/users/:userid";
+                this.countriesUrl = "/api/stub/countries";
+                this.createUrl = "/api/stub/admin/users"
+
+                this.properties = {
+
+                    /**
+                     * userid property
+                     *
+                     * @type {Number}
+                     */
+                    uuid: {
+                        type: String,
+                        value: null,
+                        notify: true
+                    },
+
+                    username: {
+                        type: String,
+                        notify: true
+                    },
+
+                    email: {
+                        type: String,
+                        notify: true
+                    },
+
+                    firstname: {
+                        type: String,
+                        notify: true
+                    },
+
+                    lastname: {
+                        type: String,
+                        notify: true
+                    },
+
+                    domain: {
+                        type: String,
+                        notify: true,
+                        observer: '_domainChanged'
+                    },
+
+                    subDomain: {
+                        type: String,
+                        notify: true
+                    },
+
+                    usage: {
+                        type: String,
+                        notify: true,
+                        observer: '_usageChanged'
+                    },
+
+                    subUsage: {
+                        type: String,
+                        notify: true
+                    },
+
+                    locked: {
+                        type: String,
+                        notify: true,
+                        observer: '_lockedChanged'
+                    },
+
+                    lockedReason: {
+                        type: String,
+                        notify: true
+                    },
+
+                    userFunctions: {
+                        type: Object,
+                        value: {
+                            search: false,
+                            download: false,
+                            upload: false,
+                            userManager: false,
+                            archiveManager: false,
+                            dataManager: false,
+                            systemManager: false,
+                            statistics: false
+                        },
+                        notify: true
+                    },
+
+                    hideDomain: {
+                        type: Boolean,
+                        value: true
+                    },
+
+                    hideUsage: {
+                        type: Boolean,
+                        value: true
+
+                    },
+
+                    hideReason: {
+                        type: Boolean,
+                        value: true
+                    },
+
+                    countries: {
+                        type: Array,
+                        value: []
+                    },
+
+                    country: {
+                        type: Object
+                    },
+
+                    roles: {
+                        type: Array,
+                        value: [],
+                        observer: "_roleChanged"
+                    },
+
+                    default_roles: {
+                        type: Array,
+                        value: [{
+                            "id": "SEARCH",
+                            "title": "Search"
+                        }, {
+                            "id": "DOWNLOAD",
+                            "title": "Download"
+                        }, {
+                            "id": "UPLOAD",
+                            "title": "Upload"
+                        }, {
+                            "id": "USER_MANAGER",
+                            "title": "User Manager"
+                        }, {
+                            "id": "ARCHIVE_MANAGER",
+                            "title": "Archive Manager"
+                        }, {
+                            "id": "DATA_MANAGER",
+                            "title": "Data Manager"
+                        }, {
+                            "id": "SYSTEM_MANAGER",
+                            "title": "System Manager"
+                        }, {
+                            "id": "STATISTICS",
+                            "title": "Statistics"
+                        }, {
+                          "id": "EVENT_MANAGER",
+                          "title": "Event manager"
+                        }]
+                    },
+
+                    newUser: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+
+                    editor: {
+                        type: Boolean,
+                        value: true,
+                        notify: true
+                    }
+                }
+            }
+
+
+            /* observers */
+            _domainChanged(newDomainValue) {
+                this.hideDomain = !(newDomainValue == "Other");
+                if (newDomainValue != "Other") {
+                    this.subDomain = "";
+                    this.set('subDomain', "");
+                    this.notifyPath('subDomain', "");
+                }
+            }
+
+            _usageChanged(newDomainValue) {
+                this.hideUsage = !(newDomainValue == "Other");
+                if (newDomainValue != "Other") {
+                    this.subUsage = "";
+                    this.set('subUsage', "");
+                    this.notifyPath('subUsage', "");
+                }
+            }
+
+            _lockedChanged(newLockedValue) {
+                this.hideReason = !(newLockedValue)
+            }
+
+            _roleChanged(newValue) {
+
+            }
+
+            _extractCountryIndex(countryName) {
+                var self = this;
+                var index = _.findIndex(self.countries, function(element) {
+                    return (element.name == countryName)
+                });
+                return self.countries[index] ? self.countries[index].id : -1;
+            }
+
+            /**
+             *  This method is called to create a new user
+             *
+             * @return {null}
+             */
+            create() {
+
+                var self = this;
+                var user = this.generateUserModel();
+                if (!this.validateFields()) {
+                    self.owcApp.toastManager.warn(self.i18n("Data not valid, updating the user"));
+                    return;
+                }
+
+
+
+                var options = {
+                    body: JSON.stringify(user),
+                    headers: [{
+                        name: "Accept",
+                        value: "application/json"
+                    }, {
+                        name: "Content-Type",
+                        value: "application/json"
+                    }]
+                };
+
+                return this.owcApp.httpManager.sendRequest(
+                    'POST',
+                    self.owcApp.config.baseUrl + self.createUrl,
+                    options
+                ).then(
+                    function(response) {
+                        self.owcApp.messageBroker.publish('updateUsersList');
+                        setTimeout(function() {
+                            self.owcApp.toastManager.info(self.i18n("User created with success"));
+                        }, 500);
+
+                        self.parentPanel.closePanel();
+                    },
+                    function() {
+                        self.owcApp.toastManager.warn(self.i18n("Failed user update"));
+                    });
+
+            }
+
+            /**
+            * This method is used to retrive the list of default roles unchecked for user creation
+            *
+            * @return {null}
+            */
+            getDefaultRoles() {
+                var roles = [];
+                for (var i = 0; i < this.default_roles.length; i++) {
+                    var userRole = this.default_roles[i];
+                    userRole.checked = false;
+
+                    roles.push(userRole);
+                }
+                return roles;
+            }
+
+            /**
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+                this.loadCountries();
+
+                if (this.uuid == null) {
+
+                    this.newUser = true;
+                    this.set("newUser", true);
+                    this.notifyPath("newUser", true);
+
+                    this.editor = false;
+                    this.set("editor", false);
+                    this.notifyPath("editor", false);
+                    var roles = this.getDefaultRoles();
+                    this.set('roles', []);
+                    this.notifyPath('roles', []);
+                    this.set('roles', roles);
+                    this.notifyPath('roles', roles);
+
+                } else {
+                    //edit users
+                    this.newUser = false;
+                    this.set("newUser", false);
+                    this.notifyPath("newUser", false);
+
+                    this.editor = true;
+                    this.set("editor", true);
+                    this.notifyPath("editor", true);
+
+                    this.loadUser();
+
+                }
+
+            }
+
+            /**
+            * This method is used to retrieve countries list from dhus server
+            *
+            * @return {null}
+            */
+            loadCountries() {
+                var self = this;
+                return this.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + "/api/stub/countries"
+                ).then(function(response) {
+                    self.countries = response.data;
+                });
+            }
+
+            /**
+            * This method is used to check if required fields are not empty
+            *
+            * @return {null}
+            */
+            basicFieldValidation(item) {
+                return item != undefined && item != '';
+            }
+
+            /**
+            * This method is used to validate user username
+            *
+            * @return {null}
+            */
+            usernameValidation() {
+                return this.basicFieldValidation(this.username);
+            }
+
+
+
+            /**
+            * This method is used to validate user email with proper regular expression
+            *
+            * @return {Boolean} true if email is valid, false otherwise
+            */
+            validateEmail(email) {
+                var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+                return re.test(email);
+            }
+
+            /**
+            * This method is used to validate user email
+            *
+            * @return {null}
+            */
+            emailValidation() {
+                return this.basicFieldValidation(this.email) && this.validateEmail(this.email)
+            }
+
+            /**
+            * This method is used to validate user firstname
+            *
+            * @return {null}
+            */
+            firstnameValidation() {
+                return this.basicFieldValidation(this.firstname);
+            }
+
+            /**
+            * This method is used to validate user lastname
+            *
+            * @return {null}
+            */
+            lastnameValidation() {
+                return this.basicFieldValidation(this.lastname);
+            }
+
+            /**
+            * This method is used to validate user domain
+            *
+            * @return {null}
+            */
+            domainValidation() {
+                if (this.domain == "Other" && (!this.subDomain || this.subDomain == ''))
+                    return false;
+                return this.basicFieldValidation(this.domain);
+            }
+
+            /**
+            * This method is used to validate user usage
+            *
+            * @return {null}
+            */
+            usageValidation() {
+                if (this.usage == "Other" && (!this.subUsage || this.subUsage == ''))
+                    return false;
+                return this.basicFieldValidation(this.usage);
+            }
+
+            /**
+            * This method is used to validate user country
+            *
+            * @return {null}
+            */
+            countryValidation() {
+                return this.basicFieldValidation(this.country);
+            }
+
+            /**
+            * This method is used to generate user data model
+            *
+            * @return {null}
+            */
+            generateUserModel() {
+                var self = this;
+                var model = {
+                    uuid: this.uuid,
+                    username: this.username,
+                    email: this.email,
+                    firstname: this.firstname,
+                    lastname: this.lastname,
+                    domain: this.domain,
+                    subDomain: this.subDomain,
+                    usage: this.usage,
+                    subUsage: this.subUsage,
+                    country: self._extractCountryIndex(this.country)
+                };
+
+                if (this.locked)
+                    model.lockedReason = (this.lockedReason) ? this.lockedReason : "";
+
+                var roles = [];
+                for (var i = 0; i < self.roles.length; i++)
+                    if (self.roles[i].checked)
+                        roles.push(self.roles[i].id);
+                model.roles = roles;
+
+                return model;
+            }
+
+            /**
+            * This method is used to validate user properties
+            *
+            * @return {null}
+            */
+            validateFields() {
+                return this.usernameValidation() &&
+                    this.emailValidation() &&
+                    this.firstnameValidation() &&
+                    this.lastnameValidation() &&
+                    this.domainValidation() &&
+                    this.usageValidation() &&
+                    this.countryValidation()
+            }
+
+            /**
+            * This method is used to save user settings
+            *
+            * @return {null}
+            */
+            save() {
+                var self = this;
+                var user = this.generateUserModel();
+                if (!this.validateFields()) {
+                    self.owcApp.toastManager.warn(self.i18n("Data not valid, updating the user"));
+                    return;
+                }
+
+
+
+                var options = {
+                    body: JSON.stringify(user),
+                    headers: [{
+                        name: "Accept",
+                        value: "application/json"
+                    }, {
+                        name: "Content-Type",
+                        value: "application/json"
+                    }]
+                };
+
+                return this.owcApp.httpManager.sendRequest(
+                    'PUT',
+                    self.owcApp.config.baseUrl + self.editRemoveUserRequestUrl.replace(":userid", user.uuid),
+                    options
+                ).then(
+                    function(response) {
+                        self.owcApp.messageBroker.publish('updateUsersList');
+                        setTimeout(function() {
+                            self.owcApp.toastManager.info(self.i18n("User updated with success"));
+                        }, 500);
+
+                    },
+                    function() {
+                        self.owcApp.toastManager.warn(self.i18n("Failed user update"));
+                    });
+
+            }
+
+            /**
+            * This method is used to update user model with data retrieved from server
+            *
+            * @return {null}
+            */
+            _reloadUser(user) {
+                var self = this;
+                var roles = [];
+                setTimeout(function() {
+                    self.uuid = user.uuid;
+                    self.username = user.username;
+                    self.email = user.email;
+                    self.firstname = user.firstname;
+                    self.lastname = user.lastname;
+                    self.set('domain', user.domain);
+                    self.notifyPath('domain', user.domain);
+                    self.domain = user.domain;
+                    self.subDomain = user.subDomain;
+                    self.usage = user.usage;
+                    self.subUsage = user.subUsage;
+                    self.locked = (user.lockedReason != undefined);
+                    self.lockedReason = user.lockedReason;
+                    self.userFunctions = user.userFunctions;
+                    self.country = user.country;
+
+                    self.set('roles', []);
+                    self.notifyPath('roles', []);
+                    for (var i = 0; i < self.default_roles.length; i++) {
+                        var userRole = self.default_roles[i];
+                        if (_.contains(user.roles, self.default_roles[i].id)) {
+                            userRole.checked = true;
+
+                        } else {
+                            userRole.checked = false;
+                        }
+                        roles.push(userRole);
+                    }
+                    self.roles = roles;
+
+
+                    self.set('roles', roles);
+                    self.notifyPath('roles', roles);
+
+                }, 0);
+
+            }
+
+            /**
+            * This method is used to get user details
+            *
+            * @return {null}
+            */
+            loadUser() {
+
+                var self = this;
+
+                return this.owcApp.httpManager.sendRequest(
+                    'GET',
+                    self.owcApp.config.baseUrl + self.editRemoveUserRequestUrl.replace(":userid", self.uuid)
+                ).then(
+                    function(response) {
+                        self._reloadUser(response.data);
+                    },
+                    function() {
+                        self.owcApp.toastManager.warn(self.i18n("Failed loading user"));
+                    });
+
+            }
+        };
+
+        Polymer(UserDetails);
+
+    })();
+    </script>
+</dom-module>

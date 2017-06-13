@@ -1,0 +1,306 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-tooltip/paper-tooltip.html">
+<!--
+This components allow to add available map layers to map settings
+
+
+@demo demo/index.html
+-->
+<dom-module id="map-settings">
+    <template>
+        <style>
+        :root {
+            --default-primary-color: green;
+        }
+        
+        .section-item {
+            padding: 30px;
+            margin: 30px;
+        }
+        
+        .remove-section-button {
+            float: right;
+        }
+        
+        paper-button {
+            background: #002664;
+            color: white;
+            padding: 5px 5px;
+            width: 20%;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            float: right;
+            top: 36px;
+            margin-right: 10px
+        }
+        
+        paper-button[toggles][active].colorful {
+            background-color: #002664;
+        }
+        
+        paper-button[toggles][active][raised].colorful {
+            background-color: rgba(66, 133, 244, 0.75);
+        }
+        
+        #owcMapSettingsContainer {
+            height: var(--settingsheight, 90%);
+            width: var(--width, 98%);
+            overflow-y: auto;
+        }
+        
+        .buttonContainer {
+            margin-bottom: 0px;
+            height: 100px!important;
+            width: 98%!important;
+            overflow: hidden;
+        }
+        
+        .settingsHeader {
+            float: left;
+            margin-left: 10px;
+        }
+        </style>
+        <div class="buttonContainer">
+            <h1 class="settingsHeader">{{i18n("Layers")}} <paper-icon-button on-click="addLayer" icon="add-circle">+</paper-icon-button></h1>
+            <paper-button raised class="colorful" on-click="save" title="{{i18n('save')}}">{{i18n("save")}}</paper-button>
+        </div>
+        <div id="owcMapSettingsContainer">
+            <template is="dom-repeat" items="{{config.layers}}">
+                <paper-material class="section-item">
+                    <div>
+                        <paper-icon-button on-click="removeLayer" icon="highlight-off" class="remove-section-button" hidden$="{{isFirst(index)}}">x</paper-icon-button>
+                        <div class="">
+                            <form is="iron-form">
+                                <paper-checkbox checked="{{item.visible}}" name="visible" label="{{i18n('visible')}}">{{i18n('Visible Layer')}}</paper-checkbox>
+                                <paper-input value="{{item.url}}" name="url" label="{{i18n('Url')}}" required disabled$="{{isFirst(index)}}"></paper-input>
+                                <paper-input value="{{item.title}}" name="title" label="{{i18n('Title')}}" required readonly$="{{isFirst(index)}}"></paper-input>
+                                <div>
+                                    <paper-input value="{{item.layer}}" name="layer" label="{{i18n('Layers')}}" required disabled$="{{isFirst(index)}}"></paper-input>
+                                    <paper-tooltip hidden$="{{isFirst(index)}}">Please insert layers name separated by comma (e.g. name1, name2)</paper-tooltip>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </paper-material>
+            </template>
+        </div>
+    </template>
+    <script>
+    (function() {
+        'use strict';
+        class MapSettings extends HTMLElement {
+
+            /* --- POLYMER LIFECYCLE METHODS --- */
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'map-settings';
+                this.owcApp = document.querySelector('#owc-app');
+
+                /**
+                 * Public property description
+                 *
+                 * @type {Object}
+                 */
+                this.properties = {
+
+                    /**
+                     * configured map layers
+                     *
+                     * @type {Array}
+                     */
+                    layers: [],
+
+
+                    /**
+                     * Map layers configuration properties
+                     *
+                     * @type {String}
+                     */
+                    config: {
+                        type: Object,
+                        value: {
+                            layers: []
+                        },
+                        notify: true
+                    },
+
+                    /**
+                     * Default map layer
+                     *
+                     * @type {String}
+                     */
+                    default_layer: {
+                        type: Object,
+                        value: {},
+                        notify: true
+                    }
+
+                };
+
+            }
+
+            /**             
+             *  Called after the element is attached to the document.
+             *  Can be called multiple times during the lifetime of an element.
+             *  The first 'attached' callback is guaranteed not to fire until after 'ready'
+             *
+             * @return {null}
+             */
+            attached() {
+
+
+
+                this.config.layers = [];
+                this.set('config.layers', this.config.layers);
+                this.notifyPath('config.layers', this.config.layers);
+                this.loadSettings();
+            }
+
+            /**             
+             *  This method is used to load map settings from local storage
+             *
+             * @return {null}
+             */
+            loadSettings() {
+                var self = this;
+                var isDefaultVisible = true;
+                var default_config, key, value, mapSettings, str_default_config;
+                setTimeout(function() {
+                    if (localStorage.getItem('default-map-settings')) {
+                        str_default_config = JSON.stringify(this.owcApp.appconfig.default_layer).replace(':visible', localStorage.getItem('default-map-settings'));
+                        isDefaultVisible = JSON.parse(localStorage.getItem('default-map-settings'));
+                        default_config = JSON.parse(str_default_config);
+
+                    } else {
+                        str_default_config = JSON.stringify(this.owcApp.appconfig.default_layer).replace(':visible', true);
+                        default_config = JSON.parse(str_default_config);
+
+                    }
+
+
+
+                    if (default_config) {
+                        key = Object.keys(default_config)[0];
+                        value = default_config[key];
+                        value.visible = isDefaultVisible;
+                        self.push('config.layers', value);
+                    }
+                    var ls = localStorage.getItem('map-settings');
+                    if (ls) {
+
+                        mapSettings = JSON.parse(ls);
+                        for (var i = 0; i < mapSettings.length; i++) {
+                            self.push('config.layers', mapSettings[i]);
+                        }
+                    }
+
+
+                }, 0);
+
+
+            }
+
+            /**             
+             *  This method is used to check if a layer is the first or not in the settings list
+             *
+             * @return {Boolean} true if is first map layer, false otherwise
+             */
+            isFirst(index) {
+                var isFirst = false;
+                if (index == 0)
+                    isFirst = true;
+                return isFirst;
+            }
+
+
+            /**             
+             *  used to add a layer section in the map settings panel
+             *
+             * @return {null}
+             */
+            addLayer() {
+                var object = {
+                    "visible": false,
+                    "url": "",
+                    "title": "",
+                    "layer": ""
+                };
+                this.push('config.layers', object);
+            }
+
+
+            /**             
+             *  used to remove a layer section from the map settings panel
+             *
+             * @return {null}
+             */
+            removeLayer(event, details, sender) {
+                this.splice('config.layers', event.model.__data__.index, 1);
+            }
+
+            /**             
+             *  used to save map layers configuration in browser local storage
+             *
+             * @return {null}
+             */
+            save() {
+                var self = this;
+                var mapSettings = [];
+                for (var i = 1; i < this.config.layers.length; i++) {
+                    var l = this.config.layers[i];
+                    if (l.url.length > 0 && l.title.length > 0 && l.layer.length > 0) {
+                        mapSettings.push(l);
+                    }
+
+                }
+
+                var default_layer = this.config.layers[0];
+                if (default_layer) {
+                    localStorage.setItem('default-map-settings', default_layer.visible);
+                }
+
+                localStorage.setItem('map-settings', JSON.stringify(mapSettings));
+                this.owcApp.toastManager.info(self.i18n('Settings saved successfully. Please open a new search component to see these settings.'));
+            }
+
+        };
+
+        Polymer(MapSettings);
+
+    })();
+    </script>
+</dom-module>

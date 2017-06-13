@@ -1,0 +1,8 @@
+{
+  "suites": ["./test"],
+  "webserver": {
+    "pathMappings": [
+      {"/elements/event-synchronizer-editor/bower_components": "bower_components"}
+    ]
+  }
+}

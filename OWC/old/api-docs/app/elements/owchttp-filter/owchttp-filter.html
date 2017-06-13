@@ -1,0 +1,170 @@
+<!--
+  @license
+
+
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+
+  This file is part of DHuS software sources.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../http-filter/http-filter.html">
+<!--
+<strong>OWC http request filter</strong>
+<p>This component is the specification of the http-filter, with the configurations to filter owc requests.</p>
+This filter validates every http request launched exploiting the owc http-manage, if the url request is not present in the white list and the user is not
+logged in, the request will be dropped.
+
+Another goal of this component is to inject in every http request the header for basic authentication, with the base64 string of <i>username:password </i>
+
+The current white list follows:
+
+<ul>
+<li> <pre>/.*\/signin/g</pre></li>
+<li> <pre>/.*\/login/g</pre></li>
+<li><pre>/.*\/lang\/dictionary.*/g</pre></li>
+<li><pre>/.*\/conf\/menu.json/g</pre></li>
+<li><pre>/.*\/conf\/appconfig.json/g</pre></li>
+<li><pre>/.*api\/owc\/settings\/menu/g</pre></li>
+<li><pre>/.*api\/owc\/version/g</pre></li>
+<li><pre>/.*api\/stub\/countries/g</pre></li>
+<li><pre>/.*api\/stub\/signup/g</pre></li>
+</ul>
+
+
+-->
+<dom-module id="owchttp-filter">
+    <template></template>
+    <script>
+    (function() {
+        'use strict';
+        class OwcHttpFilter extends eu.serco.Owc.HttpFilter {
+
+            constructor() {
+                super();
+                this.beforeRegister();
+            }
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'owchttp-filter';
+                this.owcApp = document.querySelector('#owc-app');
+
+                this.exceptions = [{
+                    url: /.*\/signin/g,
+                    method: "POST"
+                }, {
+                    url: /.*\/login/g,
+                    method: "POST"
+                }, {
+                    url: /.*\/lang\/dictionary.*/g,
+                    method: "GET"
+                }, {
+                    url: /.*\/conf\/menu.json/g,
+                    method: "GET"
+                }, {
+                    url: /.*\/conf\/appconfig.json/g,
+                    method: "GET"
+                }, {
+                    url: /.*api\/owc\/settings\/menu/g,
+                    method: "GET"
+                }, {
+                    url: /.*api\/owc\/version/g,
+                    method: "GET"
+                }, {
+                    url: /.*api\/stub\/countries/g,
+                    method: "GET"
+                }, {
+                    url: /.*api\/stub\/signup/g,
+                    method: "POST"
+                }];
+
+            }
+
+            /**
+             *   verify if requested url is in exceptions array
+             *
+             * @param {String} method: http request method
+             * @param {String} url: http request url
+             * @param {String} options: http request options
+             * @return {object}
+             */
+            request(method, url, options) {
+                var self = this;
+                var response = {};
+                for (var i = 0; i < self.exceptions.length; i++) {
+                    var match = url.match(self.exceptions[i].url);
+                    if (match && method == self.exceptions[i].method) {
+                        return {
+                            status: true,
+                            code: "",
+                            request: {
+                                method: method,
+                                url: url,
+                                options: options
+                            }
+                        };
+                    }
+                }
+
+                if (!self.owcApp.authenticationManager.isLogged()) {
+                    self.owcApp.authenticationManager.showLogin();
+                    return {
+                        status: false,
+                        code: "unauthorized",
+                        request: {
+                            method: method,
+                            url: url,
+                            options: options
+                        }
+                    };
+                } else {
+                    if (!options) {
+                        options = {};
+                        options.headers = {};
+                    } else if (!options.headers) {
+                        options.headers = {};
+                    }
+
+                    options.headers['Authorization'] = self.owcApp.authenticationManager.basicAuthentication;
+                    return {
+                        status: true,
+                        code: "",
+                        request: {
+                            method: method,
+                            url: url,
+                            options: options
+                        }
+                    };
+                }
+            }
+        };
+
+        eu.serco.Owc.OwcHttpFilter = OwcHttpFilter;
+
+    })();
+    </script>
+</dom-module>

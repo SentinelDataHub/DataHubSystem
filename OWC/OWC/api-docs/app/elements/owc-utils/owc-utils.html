@@ -1,0 +1,206 @@
+<!--
+  @license
+
+ 
+  Data HUb Service (DHuS) - For Space data distribution.
+  Copyright (C) 2013,2014,2015,2016 European Space Agency (ESA)
+  Copyright (C) 2013,2014,2015,2016 GAEL Systems
+  Copyright (C) 2013,2014,2015,2016 Serco Spa
+  
+  This file is part of DHuS software sources.
+ 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+ 
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ 
+
+-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--
+Generic utilities for Open Web Components application.
+
+
+@demo demo/index.html
+-->
+<dom-module id="owc-utils">
+    <script>
+    (function() {
+        'use strict';
+        class OwcUtils {
+
+
+            /**
+             * BeforeRegister method Polymer calls before creating the element.
+             * This method is where you shoud define the is property (element's name) and
+             * properties  object.
+             *
+             * @return {null}
+             */
+            beforeRegister() {
+                this.is = 'owc-utils';
+            }
+
+
+            /**             
+             *  Check if the parameter is a string 
+             *
+             * @param {String} value
+             * @return {Boolean}
+             */
+            isString(value) {
+                return typeof value === 'string';
+            }
+
+            /**             
+             *   Convert the string to json
+             *
+             * @param {String} json
+             * @return {Object}
+             */
+            fromJson(json) {
+                return this.isString(json) ? JSON.parse(json) : json;
+            }
+
+            /**             
+             * Check if the parameter is an undefined
+             *
+             * @param {Undefined} value
+             * @return {Boolean}
+             */
+            isUndefined(value) {
+                return typeof value === 'undefined';
+            }
+
+            /**             
+             * Check if the parameter is a number
+             *
+             * @param {Number} value
+             * @return {Boolean}
+             */
+            isNumber(value) {
+                return typeof value === 'number';
+            }
+
+            /**             
+             * Check if the parameter is a Date
+             *
+             * @param {Date} value
+             * @return {Boolean}
+             */
+            isDate(value) {
+                return toString.call(value) === '[object Date]';
+            }
+
+            /**             
+             * Check if the parameter is a Function
+             *
+             * @param {Function} value
+             * @return {Boolean}
+             */
+            isFunction(value) {
+                return typeof value === 'function';
+            }
+
+            /**             
+             * convert json object to string
+             *
+             * @param {Object} obj
+             * @return {String}
+             */
+            toJson(obj) {
+                if (this.isUndefined(obj))
+                    return undefined;
+                return JSON.stringify(obj);
+            }
+
+            /**             
+             * Check if the parameter is a regular Expression
+             *
+             * @param {RegEx} value
+             * @return {Boolean}
+             */
+            isRegExp(value) {
+                return toString.call(value) === '[object RegExp]';
+            }
+
+            /**             
+             * Check if the parameter is a Form Data object
+             *
+             * @param {RegEx} obj
+             * @return {Boolean}
+             */
+            isFormData(obj) {
+                return toString.call(obj) === '[object FormData]';
+            }
+
+
+            /**             
+             * Check if the parameter is a Blob
+             *
+             * @param {Blob} obj
+             * @return {Boolean}
+             */
+            isBlob(obj) {
+                return toString.call(obj) === '[object Blob]';
+            }
+
+            /**             
+             * Check if the parameter is a Boolean
+             *
+             * @param {Boolean} value
+             * @return {Boolean}
+             */
+            isBoolean(value) {
+                return typeof value === 'boolean';
+            }
+
+            /**             
+             * Check if the string is like a json object
+             *
+             * @param {String} str
+             * @return {Boolean}
+             */
+            isJsonLike(str) {
+                str = str.trim();
+                var JSON_START = /^\[|^\{(?!\{)/;
+                var JSON_ENDS = {
+                    '[': /]$/,
+                    '{': /}$/
+                };
+                var jsonStart = str.match(JSON_START);
+                return jsonStart && JSON_ENDS[jsonStart[0]].test(str);
+            }
+
+            /**             
+             * Generate UUID string
+             *
+             * @return {Boolean}
+             */
+            generateUUID() {
+                var d = new Date().getTime();
+                var map = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    var r = (d + Math.random() * 16) % 16 | 0;
+                    d = Math.floor(d / 16);
+                    return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+                });
+
+                return map;
+            };
+
+        };
+
+        Polymer(OwcUtils);
+        eu.serco.Owc.OwcUtils = OwcUtils;
+
+    })();
+    </script>
+</dom-module>

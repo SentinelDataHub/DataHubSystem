@@ -1,0 +1,8 @@
+{
+  "suites": ["./test"],
+  "webserver": {
+    "pathMappings": [
+      {"/elements/admin-system-restore-database/bower_components": "bower_components"}
+    ]
+  }
+}
