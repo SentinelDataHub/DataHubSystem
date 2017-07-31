@@ -294,8 +294,8 @@ public class ProductDao extends HibernateDao<Product, Long>
       SimpleDateFormat sdf = new SimpleDateFormat ("yyyy-MM-dd HH:mm:ss.SSS");
       String date = sdf.format (max_date);
       String query = "FROM " + entityClass.getName () + " " +
-            "WHERE created < '" + date + "' AND processed=true AND " +
-            "locked=false ORDER BY created ASC, updated ASC";
+            "WHERE ingestiondate < '" + date + "' AND processed=true AND " +
+            "locked=false ORDER BY ingestiondate ASC, updated ASC";
       return new PagedIterator<> (this, query);
    }
    
