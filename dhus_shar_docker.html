@@ -161,6 +161,40 @@
 <p align="JUSTIFY"><code></code></p>
 <h2>4. DHuS Customization</h2>
 <p align="JUSTIFY"><code></code></p>
+<p align="JUSTIFY">When started the first time, the DHuS runs with some defaults value and parameters in the followingconfiguration files:</p>
+<p align="JUSTIFY">&bull; Dhus.xml</p>
+<p align="JUSTIFY">- Parameter<strong> varFolder</strong> set to &ldquo;/local_dhus&rdquo;</p>
+<p align="JUSTIFY">-Parameter <strong>workingDir</strong> set to &ldquo;/local_dhus/working_dir&rdquo;</p>
+<p align="JUSTIFY">-Parameter <strong>executor_enabled </strong>set to &ldquo;true</p>
+<p align="JUSTIFY">-Section <strong>dataStore</strong> commented out</p>
+<p align="JUSTIFY">-Default for all the rest</p>
+<p align="JUSTIFY">&bull; Log4j2.xml</p>
+<p align="JUSTIFY">-log file name set to &ldquo;/local_dhus/logs/dhus.log&rdquo;, with file rotation every day saved to "filename-yyyy-MM-dd"</p>
+<p align="JUSTIFY">-Default for all the rest</p>
+<p align="JUSTIFY">&bull; start.sh</p>
+<p align="JUSTIFY">-Memory parameters set to -Xms2g and -Xmx2g, instead of -Xms12g and -Xmx12g</p>
+<p align="JUSTIFY">-Default for all the rest</p>
+<p align="JUSTIFY">&bull; Server.xml</p>
+<p align="JUSTIFY">-Default for all</p>
+<p align="JUSTIFY">If a customization is required, modify the basic configuration files dhus.xml, log4j2.xml, server.xml, start.sh present in the /home/dhus/Docker_Dhus directory as needed, following the instructions in the &ldquo;DHuS Administration Manual&rdquo; available at: <a href="http://sentineldatahub.github.io/DataHubSystem/documents/DHuS%20Administration%20Manual.pdf" target="_blank" rel="noopener">http://sentineldatahub.github.io/DataHubSystem/documents/DHuS%20Administration%20Manual.pdf </a></p>
+<p align="JUSTIFY">To change the configuration:</p>
+<p align="JUSTIFY"><code></code></p>
+<p align="JUSTIFY">&bull; Verify the ID of the running docker container executing the DHuS and stop it:</p>
+<p align="JUSTIFY"><code><code></code></code></p>
+<p><span style="color: #0000ff;"> docker ps -a</span></p>
+<p><span style="color: #0000ff;"> docker exec &lt;container ID&gt;/home/dhus/DHUS/stop.sh</span></p>
+<p><span style="color: #0000ff;"> cd /home/dhus/Docker_Dhus</span></p>
+<p align="JUSTIFY">&bull; Customize the configuration files as needed</p>
+<p align="JUSTIFY">&bull; Rebuild the Docker Dhus image:</p>
+<p><span style="color: #0000ff;">docker build -t dhus .</span></p>
+<p align="JUSTIFY">&bull; Restart the new builded DHuS:</p>
+<p><span style="color: #0000ff;">docker run -u dhus -d -p 8081:8081 -t -v /home/dhus/DHuS_archive:/local_dhus dhus</span></p>
+</article>
+</div>
+</div>
+</section>
+<!--<h2>4. DHuS Customization</h2>
+<p align="JUSTIFY"><code></code></p>
 <p align="JUSTIFY">When started the first time, the DHuS runs with some defaults value and parameters. If a customization is required, modify the basic configuration files dhus.xml, log4j2.xml, server.xml, start.sh present in the /home/dhus/Docker_Dhus directory as needed, following the instructions in the &ldquo;DHuS Administration Manual&rdquo; available at: <a href="http://sentineldatahub.github.io/DataHubSystem/documents/DHuS%20Administration%20Manual.pdf" target="_blank" rel="noopener">http://sentineldatahub.github.io/DataHubSystem/documents/DHuS%20Administration%20Manual.pdf </a></p>
 <p align="JUSTIFY"><code></code></p>
 <p align="JUSTIFY">&bull; Verify the ID of the running docker container executing the DHuS and stop it:</p>
@@ -182,4 +216,4 @@
 </article>
 </div>
 </div>
-</section>
+</section>-->
