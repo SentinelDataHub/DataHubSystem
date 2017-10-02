@@ -1,0 +1,23 @@
+Dockerfile0000664002361500236150000000217513117715424011564 0ustar  dhusdhusFROM centos:6.7
+RUN groupadd -g 10125 dhus
+RUN useradd -u 10125 -g 10125 dhus
+RUN yum -y install which \
+	tar \
+	util-linux-ng \
+	wget 
+# Download and install Oracle
+RUN wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.rpm
+RUN rpm -ivh /jdk-8u131-linux-x64.rpm
+# Download and install DHuS
+RUN wget https://github.com/SentinelDataHub/DataHubSystem/releases/download/0.12.5-7-osf/dhus-software-0.12.5-7-osf-distribution.shar
+RUN chmod +x /dhus-software-0.12.5-7-osf-distribution.shar
+RUN su -c "mkdir /home/dhus/DHUS" dhus; \
+	cd /home/dhus/DHUS; \
+	su -c "/dhus-software-0.12.5-7-osf-distribution.shar" dhus; \
+	su -c "sed -i 's@local_dhus@/local_dhus@' /home/dhus/DHUS/etc/dhus.xml" dhus; \
+	su -c "sed -i 's@<executor enabled=\"false\"@<executor enabled=\"true\"@' /home/dhus/DHUS/etc/dhus.xml" dhus; \
+	su -c "sed -i 's@-Xms12g -Xmx12g@-Xms2g -Xmx2g  @' /home/dhus/DHUS/start.sh" dhus
+# Set variables
+ENV JAVA_HOME /usr/java/jdk1.8.0_131
+WORKDIR /home/dhus/DHUS
+ENTRYPOINT ["./start.sh"]
