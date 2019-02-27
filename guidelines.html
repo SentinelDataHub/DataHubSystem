@@ -98,7 +98,10 @@ The main sections are: </p>
 						<p align="JUSTIFY"><a href="guidelines.html#Prerequisites"><strong> 2.Prerequisites</strong></a></p>
                                                 <p align="JUSTIFY"><a href="guidelines.html#Developer"><strong> 3.Developer’Steps</strong></a></p>
 						<p align="JUSTIFY"><a href="guidelines.html#Integration"><strong> 4.Integration Workflow</strong></a></p>
-                                                <p align="JUSTIFY"><a href="guidelines.html#GitHub"><strong> 5.GitHub Issue system</strong></a></p>
+                                                <p align="JUSTIFY"><a href="guidelines.html#Branching"><strong> 5.Branching Model</strong></a></p>
+						<p align="JUSTIFY"><a href="guidelines.html#GitHub"><strong> 6.GitHub Issue system</strong></a></p>
+						
+						
 						<h3><a name="Contribution"><strong>1. Contribution Process</strong></a></h3>
 <p align="JUSTIFY">  
 You can contribute to the project, regardless of the skills, as there are many ways to contribute. For instance, you might be active on issue tracking system, or might supply patches. The various ways of contributing are described below.
@@ -174,7 +177,6 @@ Note: one thing that's sort of interesting is that you never directly update you
 <tr style="text-align: left;"><th style="border: 1px solid black;">Ensure build is not broken before committing!</th></tr>
 <tr style="text-align: left;"><th style="border: 1px solid black;">(If you have any doubts about or) If unsure about where to place code, contact the Maintainers to confirm whether your code needs a new module, and where it should go.</th></tr>
 <tr style="text-align: left;"><th style="border: 1px solid black;">All source code must have the required file header with the Serco/Gael/(ESA) copyright (with the copyright year(s) updated)</th></tr>
-<tr style="text-align: left;"><th style="border: 1px solid black;">Update the @Author tag on any class modified</th></tr>
 <tr style="text-align: left;"><th style="border: 1px solid black;">Write JavaDoc for any methods that are public or which purpose can be tricky to understand.</th></tr>
 <tr><th style="border: 1px solid black; text-align: left;">All commit messages should have the relevant #GitHub issue number. If an issue does not exist, create it as a new issue or as a sub-task of the overall issue.</th></tr>
 </tbody>
@@ -240,7 +242,12 @@ Note that pull requests can be sent from any branch or commit but it's recommend
  
 
 		<div align="center"><img class="flex" src="assets/images/workflow2.png" alt=""/></div>
-	<h3><a name="GitHub"><strong>5. GitHub issue System</strong></a></h3>
+		
+		<h3><a name="Branching"><strong>5.Branching Model</strong></a></h3>
+<p align="justify">The Cactus Model is the Branching Model adopted in the Open Source DHuS project development.</p>
+		
+	<div align="center"><img class="flex" src="assets/images/branching.png" alt=""/></div>
+	<h3><a name="GitHub"><strong>6. GitHub issue System</strong></a></h3>
 <p align="justify">
 In order to submit a bug, a document, a new feature or ask a question you can open a new issue in GitHub issue tracking. It is a great place to easily share and collaborate on your issues.
 				<p align="justify"><strong> STEP 1 </strong>: Click on Issues on the right side;</p>
@@ -255,8 +262,8 @@ In order to submit a bug, a document, a new feature or ask a question you can op
 
 <p align="justify">
 <h2><strong>File Header text to be used</strong></h2>
-<p align="justify"><strong><span style="background-color: #ffffff; color: #3366ff;"> /* * Data HUb Service (DHuS) - For Space data distribution. * Copyright (C) 2013,2014,2015 European Space Agency (ESA) * Copyright (C) 2013,2014,2015 GAEL Systems * Copyright (C) 2013,2014,2015 Serco * * This file is part of DHuS software sources. * * This program is free software: you can redistribute it and/or modify * it under the terms of the GNU Affero General Public License as * published by the Free Software Foundation, either version 3 of the * License, or (at your option) any later version. * * This program is distributed in the hope that it will be useful, * but WITHOUT ANY WARRANTY; without even the implied warranty of * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the * GNU Affero General Public License for more details. * * You should have received a copy of the GNU Affero General Public License * along with this program. If not, see <http://www.gnu.org/licenses/>. */ This source is commented in java style, but must be encapsulated in the various languages comment style: shell # # Data HUb Service (DHuS) - For Space data distribution. # Copyright (C) 2013,2014,2015 European Space Agency (ESA) .... XML <!-- Data HUb Service (DHuS) - For Space data distribution. Copyright (C) 2013,2014,2015 European Space Agency (ESA) ... --> 
-C/C++ /* * Data HUb Service (DHuS) - For Space data distribution. * Copyright (C) 2013,2014,2015 European Space Agency (ESA) *... */  
+<p align="justify"><strong><span style="background-color: #ffffff; color: #3366ff;"> /* * Data HUb Service (DHuS) - For Space data distribution. * Copyright (C) 2013-2019 European Space Agency (ESA) * Copyright (C) 2013-2019 GAEL Systems * Copyright (C) 2013-2019 Serco * * This file is part of DHuS software sources. * * This program is free software: you can redistribute it and/or modify * it under the terms of the GNU Affero General Public License as * published by the Free Software Foundation, either version 3 of the * License, or (at your option) any later version. * * This program is distributed in the hope that it will be useful, * but WITHOUT ANY WARRANTY; without even the implied warranty of * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the * GNU Affero General Public License for more details. * * You should have received a copy of the GNU Affero General Public License * along with this program. If not, see <http://www.gnu.org/licenses/>. */ This source is commented in java style, but must be encapsulated in the various languages comment style: shell # # Data HUb Service (DHuS) - For Space data distribution. # Copyright (C) 2013-2019 European Space Agency (ESA) .... XML <!-- Data HUb Service (DHuS) - For Space data distribution. Copyright (C) 2013-2019 European Space Agency (ESA) ... --> 
+C/C++ /* * Data HUb Service (DHuS) - For Space data distribution. * Copyright (C) 2013-2019 European Space Agency (ESA) *... */  
 
 	</span></strong></p>
 
