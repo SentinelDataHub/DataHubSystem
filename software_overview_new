@@ -1,0 +1,138 @@
+<!DOCTYPE HTML>   
+<html>
+	<head>
+		<link rel="stylesheet" href="assets/css/skel.css" />
+			<link rel="stylesheet" href="assets/css/style.css" />
+			<link rel="stylesheet" href="assets/css/style-wide.css" />
+		<title>DHuS Open Source Portal</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+ 		<script src="assets/js/jquery.min.js"></script>
+		<script src="assets/js/jquery.dropotron.min.js"></script>
+		<script src="assets/js/skel.min.js"></script>
+		<script src="assets/js/skel-layers.min.js"></script>
+		<script src="assets/js/init.js"></script>
+	
+	</head>
+	<body>
+
+		<!-- Header -->
+			<div id="header">
+				<h1><a href="index.html" id="logo">DHuS Open Source Portal</a></h1>		
+     <!--<h1>
+     <a href="index.html" class="image left"><img src="assets/images/oslogomini.jpg" "alt="" /></a>
+     <a href="http://ec.europa.eu/index_en.html" class="image left"><img src="assets/images/ec-mini.jpg" "alt=""/></a>
+     <a href="index.html" id="logo"> <em>Open Source Portal</em></a>
+     <a href="http://www.copernicus.eu/" class="image left"><img src="assets/images/copernicus-mini.jpg" "alt=""/></a>
+     <a href="http://www.esa.int/ESA" class="image left"><img src="/assets/images/esa-mini.jpg" "alt=""/></a>    
+     </h1>-->
+				
+		<nav id="nav">
+						<ul>
+						<li ><a href="index.html">Home</a></li>
+						<li ><a href="about.html">About</a></li>
+
+							<li ><a href="https://github.com/SentinelDataHub/dhus-distribution">Download</a></li>	
+							<li ><a href="support.html">Support</a></li>
+							<li>
+               	<a href="">Documentation</a>
+								<ul>
+									<li><a href="governance.html"> Governance Model</a></li>
+									<li><a href="guidelines.html">Developer Guidelines</a></li>
+                 <!-- <li><a href="#">Interface Control Document</a></li>-->
+      		       </ul>
+							</li>
+					
+							
+				<li> <a href=""> Pilot Projects</a>
+							<ul>
+								<li><a href="dhus_docker_installation.html"> Docker Technologies Integration</a></li>
+								<li><a href="multi-mission-access.html">Multi-Mission Access</a></li>
+								<li><a href="wms.html">WMS-Integration</a></li>
+								 <li><a href="dhus-transformations.html">DHuS Transformations </a></li>
+					</ul>
+				</li>
+							<li ><a href="">External Resources</a>
+							         <ul>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/snap/"> SNAP</a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-1-toolbox/">S-1 Toolbox </a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-2-toolbox/">S-2 Toolbox</a></li>
+								<li><a target="_blank" href="http://step.esa.int/main/toolboxes/sentinel-3-toolbox/">S-3 Toolbox</a></li>
+								</ul>
+							</li>
+				<li ><a href="contact.html">Contact Us</a></li>
+					
+						</ul>
+					</nav>
+
+			</div>
+				
+<!-- Main -->
+<section id="banner">
+</section>
+	<section class="wrapper style1">
+		<div class="container">
+			<div id="content">
+				<!-- Content -->
+					<article>
+						
+						<header>
+							<h2>Software Overview</h2>
+											</header>
+
+<p align="JUSTIFY">The Data Hub Software (DHuS) is open source software developed by a Serco/Gael consortium to the purpose of supporting the ESA Copernicus data access.</p>
+<p align="JUSTIFY">The DHuS provides a simple web interface to allow interactive data discovery and download, and a powerful Application Programming Interface (API) that allows users to access the data via computer programs/scripts thereby automating/integrating the download within their workflow.</p>
+
+<p align="JUSTIFY">The figure below shows the High level DHuS Architecture.</p>
+
+<p><img src="assets/images/highlevelarchitecture.png" alt="" /></p>
+	<h2>DHuS Functionalities</h2>
+											</header>
+<p align="JUSTIFY">The major functionalities of the Data Hub Software are schematically represented in figure below. </p>
+<p><img src="assets/images/dhusfunctionalities.jpg" alt="" /></p>
+
+
+
+<p><br /><a name="DataIngestion"></a><strong>Data Ingestion</strong><br /><p align="JUSTIFY">
+This function is activated by DHuS, which retrieves Sentinels’ products from an external data source. 
+</p>
+<p>&nbsp;</p>
+<hr />
+<p> <a name="Data Search"></a><strong>Data Search </strong><br /><p align="JUSTIFY">
+ this function is activated by external users who perform searches via four possible interfaces:</p>
+<p>-Web-based Graphical User Interface (AJS);</p>
+<p>-Open Web Component (OWC);</p>
+<p>-Open Data Protocol (OData) interface;</p>
+<p>-OpenSearch interface </p>
+<hr />
+
+
+<p><a name="DataDissemination"></a><strong>Data Dissemination</strong><br /><p align="JUSTIFY">
+The dissemination function manages the product dissemination, retrieval and access by the user. It also allows disseminating/retrieving sub-components of products. This is considered of particular relevance for the voluminous data products managed in the Sentinels mission.</p>
+<hr />
+<p>&nbsp;</p>
+<p><a name="DataSynchronization"></a><strong>Data Synchronization</strong><br /><p align="JUSTIFY">
+This interaction, based on the OData protocol, allows a DHuS Instance (DHuS Front-End) to retrieve products and their metadata from another DHuS instance (DHuS BackEnd). 
+
+<hr />
+<p><a name="Datadeletion "></a><strong>Data deletion </strong><br /><p align="JUSTIFY">	
+This functionality permits to the administrators to delete products from the archive and eventually to include a record in the DHuS Database which can be read by OData protocol in order to let operators and user to identify the deleted products and the deletion cause.</p>
+
+ <hr />
+<p>
+<a name="Management"></a><strong>Management</strong><br /><p align="JUSTIFY">
+This function is in charge of managing the user accounts for access to the DHuS. It enables the definition of the roles and permissions of the users and prevents uncontrolled accesses. Moreover, it controls the data eviction and the system configuration.  
+ 
+</p>
+<hr />
+<p> <a name="Data Eviction"></a><strong>Data Eviction</strong><br /><p align="JUSTIFY">
+The DHuS rolling archive is managed through control of the overall disk space available for EO products, the management of a general eviction policy and the creation of specific eviction rules governing the period during which products and collections remain available for dissemination prior to eviction. 
+</p>
+<hr />
+<p>&nbsp;</p>
+
+	</p>
+
+		</div>
+	</section>
