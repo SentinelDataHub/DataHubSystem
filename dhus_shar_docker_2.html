@@ -1,0 +1,224 @@
+<!DOCTYPE HTML>   
+<html>
+	<head>
+		<link rel="stylesheet" href="assets/css/skel.css" />
+			<link rel="stylesheet" href="assets/css/style.css" />
+			<link rel="stylesheet" href="assets/css/style-wide.css" />
+		<title>DHuS Open Source Portal</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+ 		<script src="assets/js/jquery.min.js"></script>
+		<script src="assets/js/jquery.dropotron.min.js"></script>
+		<script src="assets/js/skel.min.js"></script>
+		<script src="assets/js/skel-layers.min.js"></script>
+		<script src="assets/js/init.js"></script>
+	
+	</head>
+	<body>
+<!-- Header -->
+<div id="header">
+<h1><a id="logo" href="index.html">DHuS Open Source Portal</a></h1>
+<!--<h1>
+     <a href="index.html" class="image left"><img src="assets/images/oslogomini.jpg" "alt="" /></a>
+     <a href="http://ec.europa.eu/index_en.html" class="image left"><img src="assets/images/ec-mini.jpg" "alt=""/></a>
+     <a href="index.html" id="logo"> <em>Open Source Portal</em></a>
+     <a href="http://www.copernicus.eu/" class="image left"><img src="assets/images/copernicus-mini.jpg" "alt=""/></a>
+     <a href="http://www.esa.int/ESA" class="image left"><img src="/assets/images/esa-mini.jpg" "alt=""/></a>    
+     </h1>--><nav id="nav">
+<ul>
+<li><a href="index.html">Home</a></li>
+<li><a href="about.html">About</a></li>
+<li><a href="https://github.com/SentinelDataHub/dhus-distribution">Download</a></li>
+<li><a href="support.html">Support</a></li>
+<li><a>Documentation</a>
+<ul>
+<li><a href="governance.html"> Governance Model</a></li>
+<li><a href="guidelines.html">Developer Guidelines</a></li>
+</ul>
+</li>
+<li><a> Pilot Projects</a>
+<ul>
+<li><a href="dhus_docker_installation.html"> Docker Technologies Integration</a></li>
+<li><a href="multi-mission-access.html">Multi-Mission Access</a></li>
+<li><a href="wms.html">WMS-Integration</a></li>
+<li><a href="dhus-transformations.html">DHuS Transformations </a></li>
+</ul>
+</li>
+<li><a>External Resources</a>
+<ul>
+<li><a href="http://step.esa.int/main/toolboxes/snap/" target="_blank" rel="noopener"> SNAP</a></li>
+<li><a href="http://step.esa.int/main/toolboxes/sentinel-1-toolbox/" target="_blank" rel="noopener">S-1 Toolbox </a></li>
+<li><a href="http://step.esa.int/main/toolboxes/sentinel-2-toolbox/" target="_blank" rel="noopener">S-2 Toolbox</a></li>
+<li><a href="http://step.esa.int/main/toolboxes/sentinel-3-toolbox/" target="_blank" rel="noopener">S-3 Toolbox</a></li>
+</ul>
+</li>
+<li><a href="contact.html">Contact Us</a></li>
+</ul>
+</nav></div>
+<!-- Main -->
+<section id="banner"></section>
+<section class="wrapper style1">
+<div class="container">
+<div id="content"><!-- Content -->
+<article><header>
+<h2>Pilot Projects</h2>
+</header>
+
+<h2>Installation of DHuS from shar file distribution using Docker (DHuS v.2.0.0)</h2>
+<p align="JUSTIFY">Short guide for installing and executing the DHuS shar distribution, using the Docker S/W.</p>
+<h2>1. Prerequisites</h2>
+<p align="JUSTIFY">The following are the prerequisites for the Unix system where the DHuS will be installed:</p>
+<p align="JUSTIFY">&bull; Connection to Internet;</p>
+<p align="JUSTIFY">&bull;Docker S/W already installed. Please refer to the official Docker documentation at<a href=" https://docs.docker.com/" target="_blank" rel="noopener"> https://docs.docker.com/ </a> for the Docker installation requisites and installation instructions for the different Operating Systems.</p>
+<p align="JUSTIFY">&bull;Creation of user and group &ldquo;dhus&rdquo; with UID 10125 and GID 10125. If a user/group dhus is already existing on the host with different UID/GID, another name can be used. The user must be also added to the group docker (created as part of the docker s/w installation).</p>
+<h2>2. DHuS build and execution</h2>
+<p align="JUSTIFY">Using the dhus account (or the other name assigned to UID 10125):</p>
+<p align="JUSTIFY">&bull; In a directory of your choice, create the directories for building the application Docker_Dhus image and to contain the archive and database. Eg: <code></code></p>
+<p><span style="color: #0000ff;"> mkdir /home/dhus/Docker_Dhus</span> (it will contain the configuration files)</p>
+<p align="JUSTIFY"><code></code></p>
+<p><span style="color: #0000ff;">mkdir /home/dhus/DHuS_archive</span> (it will contain the archive, the databases and the logs)</p>
+<p align="JUSTIFY"><code></code></p>
+<p><span style="color: #0000ff;"> cd /home/dhus/Docker_Dhus</span></p>
+<p align="JUSTIFY"><code>
+	</code></p>
+<p align="JUSTIFY">The rest of commands below must be run from inside the Docker_Dhus directory.</p>
+<p align="JUSTIFY">&bull; In the directory Docker_Dhus, extract the content of the file <a href="https://github.com/SentinelDataHub/DataHubSystem/blob/gh-pages/Docker_Dhus_files_for_shar-2.0.0.tar"> Docker_Dhus_file_for_shar-2.0.0.tar </a>: <code></code></p>
+<p><span style="color: #0000ff;"> tar xvf Docker_Dhus_file_for_shar-2.0.0.tar</span></p>
+<p align="JUSTIFY"><code></code></p>
+<p align="JUSTIFY">&bull; Build the Docker DHus image:</p>
+<p align="JUSTIFY"><code></code></p>
+<p><span style="color: #0000ff;"> <code>
+		docker build -t dhus .</code></span></p>
+<p align="JUSTIFY"><code></code></p>
+<p align="JUSTIFY">&bull; Start the builded DHuS:</p>
+<p align="JUSTIFY"><code><code></code></code></p>
+<p><span style="color: #0000ff;"> docker run -u dhus -d -p 8081:8081 -t -v /home/dhus/DHuS_archive:/local_dhus dhus</span></p>
+<p>&nbsp;</p>
+<p align="JUSTIFY"><code><code></code></code></p>
+<p align="JUSTIFY">The server will be accessible at http://localhost:8081</p>
+<p align="JUSTIFY"><code></code></p>
+<p align="JUSTIFY">Credentials are:<br /> username: <strong>root</strong> <br /> password:<strong>&nbsp;password</strong></p>
+<p align="JUSTIFY"><code></code></p>
+<p align="JUSTIFY">Note: In case the local port 8081 is being used by another application on the host, start the dhus to be listening on another port:</p>
+<p align="JUSTIFY"><code></code></p>
+<p align="JUSTIFY">Eg: &ldquo;-p 8181:8081&rdquo;</p>
+<p align="JUSTIFY"><code></code></p>
+<h2>3. DHuS stop</h2>
+<p align="JUSTIFY"><code></code></p>
+<p align="JUSTIFY">To stop the DHuS properly, execute the stop.sh script internally to the container:</p>
+<p align="JUSTIFY"><code></code></p>
+<p align="JUSTIFY">&bull; Verify the ID of the running docker container executing the DHuS:</p>
+<p align="JUSTIFY"><code><code></code></code></p>
+<p><span style="color: #0000ff;"> docker ps -a</span></p>
+<p align="JUSTIFY"><code><code></code></code></p>
+<p align="JUSTIFY">&bull; Stop the DHuS:</p>
+<p align="JUSTIFY"><code></code></p>
+<p><span style="color: #0000ff;"> docker exec &lt; container ID&gt; /home/dhus/DHUS/stop.sh</span></p>
+<p align="JUSTIFY"><code>Example:</code></p>
+<p><span style="color: #0000ff;"> $ docker ps -a:</span></p>
+<p align="JUSTIFY"><code></code></p>
+<table style="height: 74px;" width="463">
+<tbody>
+<tr>
+<td><strong>CONTAINER ID</strong></td>
+<td><strong>IMAGE</strong></td>
+<td><strong>COMMAND</strong></td>
+<td><strong>CREATED</strong></td>
+<td><strong>STATUS</strong></td>
+<td><strong>PORTS</strong></td>
+<td><strong>NAMES</strong></td>
+</tr>
+<tr>
+<td><span style="color: #ff0000;">9bde14068242&nbsp; </span></td>
+<td><span style="color: #ff0000;">dhus </span></td>
+<td><span style="color: #ff0000;">"bash -c 'cd /home/dh"&nbsp;&nbsp;&nbsp;&nbsp; </span></td>
+<td><span style="color: #ff0000;">3 minutes ago&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></td>
+<td><span style="color: #ff0000;">Up 3 minutes&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+<td><span style="color: #ff0000;">0.0.0.0:8081-&gt;8081/tcp</span></td>
+<td><span style="color: #ff0000;">big_wozniak</span></td>
+</tr>
+<tr>
+<td>2ffc742b2e92&nbsp;&nbsp;</td>
+<td>dhus</td>
+<td>"bash -c 'cd /home/dh"&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td>41 minutes ago&nbsp;&nbsp;&nbsp;</td>
+<td>Exited (0) About an hour ago</td>
+<td>&nbsp;</td>
+<td>angry_thompson</td>
+</tr>
+<tr>
+<td>d2a17cefc308&nbsp;</td>
+<td>dhus</td>
+<td>"bash -c 'cd /home/dh"&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td>2 hours ago&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td>Exited (0) About an hour ago</td>
+<td>&nbsp;</td>
+<td>thirsty_babbage</td>
+</tr>
+</tbody>
+</table>
+<p><span style="color: #0000ff;"> $ docker exec 9bde14068242 /home/dhus/DHUS/stop.sh:</span></p>
+<p align="JUSTIFY"><code></code></p>
+<h2>4. DHuS Customization</h2>
+<p align="JUSTIFY"><code></code></p>
+<p align="JUSTIFY">When started the first time, the DHuS runs with some defaults value and parameters in the following configuration files:</p>
+<p align="JUSTIFY">&bull; Dhus.xml</p>
+<p align="JUSTIFY">- Parameter<strong> varFolder</strong> set to &ldquo;/local_dhus&rdquo;</p>
+<p align="JUSTIFY">-Parameter <strong>workingDir</strong> set to &ldquo;/local_dhus/working_dir&rdquo;</p>
+<p align="JUSTIFY">-Parameter <strong>executor_enabled </strong>set to &ldquo;true</p>
+<p align="JUSTIFY">-Section <strong>dataStore</strong> with HFS DataStore configured:</p>
+  <p align="JUSTIFY">&bull;<strong> Name</strong> set to "local_store"</p>
+  <p align="JUSTIFY">&bull;<strong> readOnly</strong> set to false</p>
+  <p align="JUSTIFY">&bull;<strong> path </strong> set to usr/shared/DHUS//local_dhus/incoming</p>
+  <p align="JUSTIFY">-Datastores "OpenStack Datastore" and "DHuS as DataStore" commented out</p>
+<p align="JUSTIFY">-Default for all the rest</p>
+<p align="JUSTIFY">&bull; Log4j2.xml</p>
+<p align="JUSTIFY">-log file name set to &ldquo;/local_dhus/logs/dhus.log&rdquo;, with file rotation every day saved to "filename-yyyy-MM-dd"</p>
+<p align="JUSTIFY">-Default for all the rest</p>
+<p align="JUSTIFY">&bull; start.sh</p>
+<p align="JUSTIFY">-Memory parameters set to -Xms4g and -Xmx4g, instead of -Xms12g and -Xmx12g</p>
+<p align="JUSTIFY">-Default for all the rest</p>
+<p align="JUSTIFY">&bull; Server.xml</p>
+<p align="JUSTIFY">-Default for all</p>
+<p align="JUSTIFY">If a customization is required, modify SUCH files in the /home/dhus/Docker_Dhus  as needed, following the instructions in the &ldquo;DHuS Administration Manual&rdquo; available at: <a href="http://sentineldatahub.github.io/DataHubSystem/documents/DHuS%20Administration%20Manual_2.0.0.pdf" target="_blank" rel="noopener">http://sentineldatahub.github.io/DataHubSystem/documents/DHuS%20Administration%20Manual_2.0.0.pdf </a></p>
+<p align="JUSTIFY">To change the configuration:</p>
+<p align="JUSTIFY"><code></code></p>
+<p align="JUSTIFY">&bull; Verify the ID of the running docker container executing the DHuS and stop it:</p>
+<p align="JUSTIFY"><code><code></code></code></p>
+<p><span style="color: #0000ff;"> docker ps -a</span></p>
+<p><span style="color: #0000ff;"> docker exec &lt;container ID&gt;/home/dhus/DHUS/stop.sh</span></p>
+<p><span style="color: #0000ff;"> cd /home/dhus/Docker_Dhus</span></p>
+<p align="JUSTIFY">&bull; Customize the configuration files as needed</p>
+<p align="JUSTIFY">&bull; Rebuild the Docker Dhus image:</p>
+<p><span style="color: #0000ff;">docker build -t dhus .</span></p>
+<p align="JUSTIFY">&bull; Restart the new builded DHuS:</p>
+<p><span style="color: #0000ff;">docker run -u dhus -d -p 8081:8081 -t -v /home/dhus/DHuS_archive:/local_dhus dhus</span></p>
+</article>
+</div>
+</div>
+</section>
+<!--<h2>4. DHuS Customization</h2>
+<p align="JUSTIFY"><code></code></p>
+<p align="JUSTIFY">When started the first time, the DHuS runs with some defaults value and parameters. If a customization is required, modify the basic configuration files dhus.xml, log4j2.xml, server.xml, start.sh present in the /home/dhus/Docker_Dhus directory as needed, following the instructions in the &ldquo;DHuS Administration Manual&rdquo; available at: <a href="http://sentineldatahub.github.io/DataHubSystem/documents/DHuS%20Administration%20Manual.pdf" target="_blank" rel="noopener">http://sentineldatahub.github.io/DataHubSystem/documents/DHuS%20Administration%20Manual.pdf </a></p>
+<p align="JUSTIFY"><code></code></p>
+<p align="JUSTIFY">&bull; Verify the ID of the running docker container executing the DHuS and stop it:</p>
+<p align="JUSTIFY"><code><code></code></code></p>
+<p><span style="color: #0000ff;"> docker ps -a</span></p>
+
+<p><span style="color: #0000ff;"> docker exec /home/dhus/DHUS/stop.sh</span></p>
+<p><span style="color: #0000ff;"> cd /home/dhus/Docker_Dhus</span></p>
+<p align="JUSTIFY">&bull; Customize the configuration files as needed</p>
+<p align="JUSTIFY">&bull; Rebuild the Docker Dhus image:</p>
+<p><span style="color: #0000ff;">docker build -t dhus .</span></p>
+<p align="JUSTIFY">&bull; Restart the new builded DHuS:</p>
+  
+  <p><span style="color: #0000ff;">docker run -u dhus -d -p 8081:8081 -t -v /home/dhus/DHuS_archive:/local_dhus dhus</span></p>
+  
+  
+  
+  
+</article>
+</div>
+</div>
+</section>-->
