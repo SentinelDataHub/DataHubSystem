@@ -27,7 +27,7 @@
    <properties>
       <aspectj.version>1.8.8</aspectj.version>
       <cxf.version>3.0.3</cxf.version>
-      <hibernate.version>3.6.10.Final</hibernate.version>
+      <hibernate.version>5.4.24.Final</hibernate.version>
       <olingo.version>2.0.6-XmlFix</olingo.version>
       <solr.version>5.5.3</solr.version>
       <spring.version>4.1.4.RELEASE</spring.version>
