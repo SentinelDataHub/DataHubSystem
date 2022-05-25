@@ -31,7 +31,7 @@
       <olingo.version>2.0.6-XmlFix</olingo.version>
       <solr.version>5.5.3</solr.version>
       <spring.version>4.1.4.RELEASE</spring.version>
-      <spring_security.version>3.2.5.RELEASE</spring_security.version>
+      <spring_security.version>5.5.7</spring_security.version>
       <log4j.version>2.6.2</log4j.version>
       <project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
    </properties>
